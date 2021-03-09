@@ -1,1 +1,1 @@
-Unofficial kanji highlighter, matching kanji learned with WaniKani.
+Chrome extension for kanji highlighting, matching kanji learned with WaniKani (Unofficial extension).
