@@ -1,0 +1,1 @@
+Unofficial kanji highlighter, matching kanji learned with WaniKani.
