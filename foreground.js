@@ -1,9 +1,7 @@
-const TAGS = ["p", "h1", "h2", "h3", "h4", "h5", "div", "span"];
-
-for (const tag of TAGS) {
+for (const tag of ["p", "h1", "h2", "h3", "h4", "h5", "a", "div", "span"]) {
 	const objectsWithText = Array.from(document.getElementsByTagName(tag))
-									.filter(object => object.textContent !== "")
-										.filter(object => /u\w/.test(object.textContent));
+									.filter(object => /\a/.test(object.textContent))
+										.filter(object => object.children.length === 0);
 	for (const obj of objectsWithText) {
 		objHTML = obj.innerHTML;
 		newInnerHTML = "";
@@ -14,12 +12,10 @@ for (const tag of TAGS) {
 			if (currentChar === '<') isTag = true;
 			if (currentChar === '>') isTag = false;
 
-			if (!isTag && currentChar === "u") {
+			if (!isTag && currentChar === "a")
 				newInnerHTML+="<span class='highlighted'>"+currentChar+"</span>";
-				continue;
-			}
-			
-			newInnerHTML+=currentChar;
+			else
+				newInnerHTML+=currentChar;
 		}
 		obj.innerHTML = newInnerHTML;
 	}
