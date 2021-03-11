@@ -10,8 +10,3 @@ const replaceAllObjects = (objects, oldValue, newValue) => {
 		}
 	}
 }
-
-// warn background that this file needs to be injected again
-window.onbeforeunload = () => {
-	chrome.runtime.sendMessage({exiting: "true"});
-}
