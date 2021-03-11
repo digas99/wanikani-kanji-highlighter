@@ -18,7 +18,8 @@
     },
     "permissions": [
         "tabs",
-        "<all_urls>",
+        "http://*/",
+        "https://*/",
         "storage"
     ]
 }
