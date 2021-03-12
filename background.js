@@ -1,7 +1,7 @@
 const tabs = chrome.tabs;
-const urlChecker = new RegExp("^chrome(-[a-zA-Z0-9]+)?:\/\/");
+const urlChecker = new RegExp("^(chrome||devtools)(-[a-zA-Z0-9]+)?:\/\/");
 
-// check if tab url is not any type of chrome:/ or chrome-___:/ with regex
+// check if tab url is not any type of chrome:// or chrome-___:// or devtools:// with regex
 const canInject = tabInfo => (tabInfo.url && !urlChecker.test(tabInfo.url)) || (tabInfo.pendingUrl && !urlChecker.test(tabInfo.pendingUrl));
 
 const multipleScriptExecuter = scriptsInfo => {
@@ -15,7 +15,6 @@ const multipleScriptExecuter = scriptsInfo => {
 
 tabs.onCreated.addListener(tab => {
 	tabs.get(tab.id, tabInfo => {
-		lastUrl = tabInfo.url;
 		if (canInject(tabInfo)) {
 			multipleScriptExecuter([{name: 'highlight.js', result: "Higlighting...", tabId: null}]);
 		}
@@ -24,7 +23,6 @@ tabs.onCreated.addListener(tab => {
 
 tabs.onActivated.addListener(tab => {
 	tabs.get(tab.tabId, tabInfo => {
-		lastUrl = tabInfo.url;
 		if (canInject(tabInfo)) {
 			multipleScriptExecuter([{name: 'highlight.js', result: "Higlighting...", tabId: null}]);
 		}
@@ -56,6 +54,6 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.highlighting === "values_request") {
-		sendResponse({functionDelay: "3000", value: "a"});
+		sendResponse({functionDelay: "2500", values: ["a", "e", "i", "o", "u"]});
 	}
 });
