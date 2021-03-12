@@ -54,6 +54,6 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.highlighting === "values_request") {
-		sendResponse({functionDelay: "1000", values: ["a","e","i","o","u"], unwantedTags: ["html", "body", "head", "title", "style", "link", "meta", "script", "noscript", "img", "svg"]});
+		sendResponse({functionDelay: "2000", values: ["a","e","i","o","u"], unwantedTags: ["html", "body", "head", "title", "style", "link", "meta", "script", "noscript", "img", "svg"]});
 	}
 });
