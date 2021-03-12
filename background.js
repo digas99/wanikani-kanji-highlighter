@@ -31,6 +31,7 @@ tabs.onCreated.addListener(tab => {
 // }
 
 tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
+	console.log("INFO", tabInfo);
 	if (canInject(tabInfo)) {
 		if (changeInfo.status === "complete") {
 			tabs.executeScript(null, {file: 'highlight.js'}, () => console.log("Higlighting..."));
