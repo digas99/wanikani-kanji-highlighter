@@ -16,7 +16,15 @@ const canInject = tabInfo => (tabInfo.url && !urlChecker.test(tabInfo.url)) || (
 tabs.onCreated.addListener(tab => {
 	tabs.get(tab.id, tabInfo => {
 		if (canInject(tabInfo)) {
-			tabs.executeScript(null, {file: 'highlight.js'}, () => console.log("Higlighting..."));
+			tabs.executeScript(null, {file: 'highlight.js'}, () => {
+				console.log("Higlighting...");
+				tabs.sendMessage(tabId, {
+					functionDelay: "2000", 
+					values: ["a","e","i","o","u"],
+					unwantedTags: ["html", "body", "head", "title", "style", "link", "meta", "script", "noscript", "img", "svg"],
+					highlightingClass: "wkhighlighter_highlighted"
+				});
+			});
 		}
 	});
 });
@@ -34,21 +42,17 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 	console.log("INFO", tabInfo);
 	if (canInject(tabInfo)) {
 		if (changeInfo.status === "complete") {
-			tabs.executeScript(null, {file: 'highlight.js'}, () => console.log("Higlighting..."));
+			tabs.executeScript(null, {file: 'highlight.js'}, () => {
+				console.log("Higlighting...");
+				tabs.sendMessage(tabId, {
+					functionDelay: "2000", 
+					values: ["a","e","i","o","u"],
+					unwantedTags: ["html", "body", "head", "title", "style", "link", "meta", "script", "noscript", "img", "svg"],
+					highlightingClass: "wkhighlighter_highlighted"
+				});
+			});
 			tabs.insertCSS(null, {file: 'styles.css'});
 		}
 
-	}
-});
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	// message from highlight script asking for the setup values
-	if (request.highlighting === "values_request") {
-		sendResponse({
-						functionDelay: "2000", 
-						values: ["a","e","i","o","u"],
-						unwantedTags: ["html", "body", "head", "title", "style", "link", "meta", "script", "noscript", "img", "svg"],
-						highlightingClass: "wkhighlighter_highlighted"
-					});
 	}
 });
