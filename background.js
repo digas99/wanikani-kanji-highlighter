@@ -1,59 +1,60 @@
 const tabs = chrome.tabs;
 const urlChecker = new RegExp("^chrome(-[a-zA-Z0-9]+)?:\/\/");
-let injected = false;
 
+// check if tab url is not any type of chrome:/ or chrome-___:/ with regex
 const canInject = tabInfo => (tabInfo.url && !urlChecker.test(tabInfo.url)) || (tabInfo.pendingUrl && !urlChecker.test(tabInfo.pendingUrl));
 
 const multipleScriptExecuter = scriptsInfo => {
 	for (const script of scriptsInfo) {
 		if (script.result)
-			tabs.executeScript(null, {file: script.name}, () => console.log(script.result));
+			tabs.executeScript(script.tabId, {file: script.name}, () => console.log(script.result));
 		else
-			tabs.executeScript(null, {file: script.name});
+			tabs.executeScript(script.tabId, {file: script.name});
 	}
 }
 
 tabs.onCreated.addListener(tab => {
-	// get info of the tab with tabId
-	console.log(tab)
 	tabs.get(tab.id, tabInfo => {
-		console.log(tabInfo);
-		console.log(tabInfo.url);
-	if (canInject(tabInfo))
-			multipleScriptExecuter([{name: 'injection_control.js'}, {name: 'variables.js', result: "Setting variables......"}, {name: 'highlight.js', result: "Higlighting..."}]);
+		lastUrl = tabInfo.url;
+		if (canInject(tabInfo)) {
+			multipleScriptExecuter([{name: 'highlight.js', result: "Higlighting...", tabId: null}]);
+		}
 	});
 });
 
 tabs.onActivated.addListener(tab => {
-	// get info of the tab with tabId
-	console.log(tab)
 	tabs.get(tab.tabId, tabInfo => {
-		console.log(tabInfo);
-		console.log(tabInfo.url);
-	if (canInject(tabInfo))
-			multipleScriptExecuter([{name: 'injection_control.js'}, {name: 'highlight.js', result: "Higlighting..."}]);
+		lastUrl = tabInfo.url;
+		if (canInject(tabInfo)) {
+			multipleScriptExecuter([{name: 'highlight.js', result: "Higlighting...", tabId: null}]);
+		}
 	});
 });
 
-// get tab and window id
+const getDomainAsRegex = url => {
+	// if it is chrome: or chrome-__:
+	if (/^chrome(-[a-zA-Z0-9]+)?:/.test(url))
+		return /^chrome(-[a-zA-Z0-9]+)?:/;
+	
+	// return domain as www\.domain\.xxx
+	return url.split("://")[1].split("/")[0].toString().replace(/\./g, "\\.");
+}
+
 tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
-	// check if tab url is not any type of chrome:/ or chrome-___:/ with regex
-	console.log(tabInfo.url);
 	if (canInject(tabInfo)) {
-		if (!injected) {
-			multipleScriptExecuter([{name: 'injection_control.js'}, {name: 'variables.js', result: "Setting variables......"}, {name: 'highlight.js', result: "Higlighting..."}]);
-			injected = true;
+		if (changeInfo.title) {
+			// if different page of the same site
+			// if (changeInfo.url && new RegExp(getDomainAsRegex(changeInfo.url)).test(lastUrl)) {
+
+			// }
+			multipleScriptExecuter([{name: 'highlight.js', result: "Higlighting...", tabId: null}]);
+			tabs.insertCSS(null, {file: 'styles.css'});
 		}
-		// inject some css (null: active tab)
-		tabs.insertCSS(null, {file: 'styles.css'});
+
 	}
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	if (request.exiting === "true") {
-		injected = false;
-	}
-
 	if (request.highlighting === "values_request") {
 		sendResponse({functionDelay: "3000", value: "a"});
 	}
