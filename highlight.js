@@ -49,16 +49,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		let nmrElements;
 		// continuously check for the number of elements in the page
 		// if that number updates, then run highlighter again
-		setInterval(() => {
+		const highlightUpdate = setInterval(() => {
 			nmrElements = document.getElementsByTagName("*").length;
 			if (nmrElements !== lastNmrElements) {
 				lastNmrElements = nmrElements;
 				highlighter(20, request.values, request.highlightingClass, request.unwantedTags);
 			}
 		}, 3000);
+
+		chrome.runtime.sendMessage({intervalFunction: highlightUpdate});
+	}
+
+	if (request.key === "down") {
+		console.log("Key pressed. Highlight update stopped! Waiting for next page update to start again...");
+		clearInterval(request.intervalFunction);
 	}
 });
 
 document.addEventListener("keydown", e => {
-	console.log("keys...", e);
+	chrome.runtime.sendMessage({key: "down"});
 });
