@@ -2,3 +2,25 @@
 	background-color: rgb(66, 222, 228) !important;
 	color: black !important;
 }
+
+.wkhighlighter_detailsPopup {
+	background-color: blue;
+    position: fixed;
+	z-index: 5;
+	right: 0;
+	bottom: 30px;
+    opacity: 0.8;
+    width: 150px;
+	height: 150px;
+	transition: 0.3s;
+}
+
+.wkhighlighter_focusPopup {
+    width: 300px;
+	height: 300px;
+	opacity: 1;
+}
+
+.wkhighlighter_rightOverFlowPopup {
+	right: -150px !important;
+}

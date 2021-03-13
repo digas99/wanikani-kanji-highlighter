@@ -60,12 +60,55 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		chrome.runtime.sendMessage({intervalFunction: highlightUpdate});
 	}
 
+	// if a key was pressed, then stop the highlight update
 	if (request.key === "down") {
 		console.log("Key pressed. Highlight update stopped! Waiting for next page update to start again...");
 		clearInterval(request.intervalFunction);
 	}
 });
 
+// message to the background saying a key was pressed
 document.addEventListener("keydown", e => {
-	chrome.runtime.sendMessage({key: "down"});
+	// if the key is not a modifier
+	if (!e.getModifierState(e.key))
+		chrome.runtime.sendMessage({key: "down"});
+});
+
+document.addEventListener("mouseover", e => {
+	const createPopup = () => {
+		const div = document.createElement("div");
+		div.className = "wkhighlighter_rightOverFlowPopup wkhighlighter_detailsPopup";
+		document.body.appendChild(div);
+		setTimeout(() => document.getElementsByClassName("wkhighlighter_detailsPopup")[0].classList.remove("wkhighlighter_rightOverFlowPopup"), 20);
+	}
+	
+	const node = e.target;
+
+	if (node.classList.contains("wkhighlighter_highlighted")) {
+		if (document.getElementsByClassName("wkhighlighter_detailsPopup").length < 1) {
+			createPopup();
+		}
+	}
+
+	if (node.classList.contains("wkhighlighter_detailsPopup")) {
+		node.classList.add("wkhighlighter_focusPopup");
+	}
+});
+
+document.addEventListener("mouseout", e => {
+	const node = e.target;
+
+	if (node.classList.contains("wkhighlighter_detailsPopup")) {
+		node.classList.remove("wkhighlighter_focusPopup");
+	}
+});
+
+document.addEventListener("click", e => {
+	const node = e.target;
+	
+	if (document.getElementsByClassName("wkhighlighter_detailsPopup").length > 0 && !node.classList.contains("wkhighlighter_detailsPopup")) {
+		const popup = document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
+		popup.classList.add("wkhighlighter_rightOverFlowPopup");
+		setTimeout(() => document.body.removeChild(popup), 200);
+	}
 });

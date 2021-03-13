@@ -5,15 +5,6 @@ let thisTabId;
 // check if tab url is not any type of chrome:// or chrome-___:// or devtools:// with regex
 const canInject = tabInfo => (tabInfo.url && !urlChecker.test(tabInfo.url)) || (tabInfo.pendingUrl && !urlChecker.test(tabInfo.pendingUrl));
 
-// const multipleScriptExecuter = scriptsInfo => {
-// 	for (const script of scriptsInfo) {
-// 		if (script.result)
-// 			tabs.executeScript(script.tabId, {file: script.name}, () => console.log(script.result));
-// 		else
-// 			tabs.executeScript(script.tabId, {file: script.name});
-// 	}
-// }
-
 tabs.onCreated.addListener(tab => {
 	tabs.get(tab.id, tabInfo => {
 		if (canInject(tabInfo)) {
