@@ -33,9 +33,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				//		- have child nodes that are text nodes;
 				//		- aren't any of the unwanted tags (html, head, etc...)
 				let filteredNodes = Array.from(document.getElementsByTagName("*"))
-					.filter(object => !(hasDirectChildHighlighted(object, className) || Array.from(object.classList).includes(className)))
-					.filter(object => textChildNodes(object).length > 0)
-					.filter(object => !unwantedTags.includes(object.localName));
+					.filter(object => !(hasDirectChildHighlighted(object, className) || Array.from(object.classList).includes(className))
+						&& textChildNodes(object).length > 0
+						&& !unwantedTags.includes(object.localName));
 				for (const value of values) {
 					const span = document.createElement("span");
 					span.className = className;
