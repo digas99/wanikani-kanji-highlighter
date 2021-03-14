@@ -22,20 +22,51 @@ tabs.onCreated.addListener(tab => {
 	});
 });
 
-// const getDomainAsRegex = url => {
-// 	// if it is chrome: or chrome-__:
-// 	if (/^chrome(-[a-zA-Z0-9]+)?:/.test(url))
-// 		return /^chrome(-[a-zA-Z0-9]+)?:/;
-	
-// 	// return domain as www\.domain\.xxx
-// 	return url.split("://")[1].split("/")[0].toString().replace(/\./g, "\\.");
-// }
+const apiToken = '27691352-eeae-48fb-ad3a-3c8bb6627528';
+
+// fetch a single page from the WaniKani API
+async function fetchPage(apiToken, page) {				
+	const requestHeaders = new Headers({Authorization: `Bearer ${apiToken}`});
+	let apiEndpoint = new Request(page, {
+		method: 'GET',
+		headers: requestHeaders
+	});
+
+	try {
+		return await fetch(apiEndpoint)
+			.then(response => response.json())
+			.then(responseBody => responseBody)
+			.catch(error => console.log(error));
+	} catch(e) {
+		console.log(e);
+	}
+}
+
+// recursive function to fetch all pages after a given page (given page included)
+async function fetchAllPages(apiToken, page) {
+	if (!page)
+		return [];
+
+	const result = await fetchPage(apiToken, page);
+	return [result].concat(await fetchAllPages(apiToken, result.pages.next_url));
+}
 
 tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
-	console.log("INFO", tabInfo);
+	//console.log("INFO", tabInfo);
 	if (canInject(tabInfo)) {
 		thisTabId = tabId;
 		if (changeInfo.status === "complete") {
+
+			// fetch all review statistics
+			fetchAllPages(apiToken, "https://api.wanikani.com/v2/review_statistics")
+				.then(reviews => {
+					const kanjiLearned = (reviews
+						.map(content => content.data
+							.filter(content => content.data.subject_type === "kanji"))).flat(1);
+					console.log(kanjiLearned);
+				})
+				.catch(error => console.log(error));
+			
 			tabs.executeScript(null, {file: 'highlight.js'}, () => {
 				console.log("Higlighting...");
 				tabs.sendMessage(thisTabId, {

@@ -1,6 +1,7 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.functionDelay && request.values && request.unwantedTags && request.highlightingClass) {
-		const textChildNodes = obj => Array.from(obj.childNodes).filter(node => node.nodeName === "#text");
+		const textChildNodes = obj => Array.from(obj.childNodes)
+			.filter(node => node.nodeName === "#text");
 
 		// replace a matching regex in a text node with a document element, preserving everything else, even other 
 		// none text node siblings from that text node (the parent node must have atleast one text node as a childNode)
@@ -31,14 +32,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				//		- haven't yet been highlighted;
 				//		- have child nodes that are text nodes;
 				//		- aren't any of the unwanted tags (html, head, etc...)
-				let filteredNodes = Array.from(document.getElementsByTagName("*")).filter(object => !(hasDirectChildHighlighted(object, className) || Array.from(object.classList).includes(className))).filter(object => textChildNodes(object).length > 0).filter(object => !unwantedTags.includes(object.localName));
+				let filteredNodes = Array.from(document.getElementsByTagName("*"))
+					.filter(object => !(hasDirectChildHighlighted(object, className) || Array.from(object.classList).includes(className)))
+					.filter(object => textChildNodes(object).length > 0)
+					.filter(object => !unwantedTags.includes(object.localName));
 				for (const value of values) {
 					const span = document.createElement("span");
 					span.className = className;
 					span.appendChild(document.createTextNode(value));
 					// filter the tag elements again for those that have text content equal to the preset regex value;
 					// iterate the filtered tag elements and call replaceWithElem each time
-					filteredNodes.filter(object => new RegExp(value).test(object.textContent)).forEach(node => replaceWithElem(node, new RegExp(value, "g"), span));
+					filteredNodes
+						.filter(object => new RegExp(value).test(object.textContent))
+						.forEach(node => replaceWithElem(node, new RegExp(value, "g"), span));
 				}
 			},delay);
 		}
