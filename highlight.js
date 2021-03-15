@@ -2,9 +2,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	const functionDelay = request.functionDelay;
 	const values = request.values;
 	const unwantedTags = request.unwantedTags;
-	const highlightingClass = request.highlightingClass;
+	const highlightingClass = request.highlightingClass
 
-	if (functionDelay && values && unwantedTags && highlightingClass) {
+	if (functionDelay && values && unwantedTags && highlightingClass) {	
 		const textChildNodes = obj => Array.from(obj.childNodes)
 			.filter(node => node.nodeName === "#text");
 
@@ -23,7 +23,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 						fragment.appendChild(clone);
 					}
 				});
+				// can't do the replaceChild because it will throw an error 
+				// when React tries to access the old child that was replaced
 				node.parentElement.replaceChild(fragment, node);
+				// solution: keep the child there, with empty data
+				//node.data = '';
+				// insert new child after the old child
+				//node.after(fragment);
 			}
 		}
 
@@ -41,7 +47,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			setTimeout(() => {
 				const kanjiRegex = new RegExp(`[${values.join('')}]`, "g");
 				// check if there is any character to be highlighted
-				const nodesToBeHighlighted = allTags.filter(tag => kanjiRegex.test(tag.textContent));
+				const nodesToBeHighlighted = allTags.filter(tag => {
+					const test = tag.textContent.match(kanjiRegex);
+					return test !== null ? test.length > 0 : false;
+				});
 				if (nodesToBeHighlighted.length > 0) {
 					const span = document.createElement("span");
 					span.className = className;

@@ -30,7 +30,7 @@ document.addEventListener("mouseout", e => {
 document.addEventListener("click", e => {
 	const node = e.target;
 	
-	if (document.getElementsByClassName("wkhighlighter_detailsPopup").length > 0 && !node.classList.contains("wkhighlighter_detailsPopup")) {
+	if (document.getElementsByClassName("wkhighlighter_detailsPopup").length > 0 && !node.classList.contains("wkhighlighter_detailsPopup") && getComputedStyle(node).cursor !== 'pointer') {
 		const popup = document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
 		popup.classList.add("wkhighlighter_rightOverFlowPopup");
 		setTimeout(() => {
