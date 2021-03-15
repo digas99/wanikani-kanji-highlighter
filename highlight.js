@@ -26,40 +26,49 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			return false;
 		}
 
-		const highlighter = (delay, values, className, unwantedTags) => {
+		const highlighter = (delay, values, className, allWantedTags) => {
 			setTimeout(() => {
-				// filter all tag elements of the document that:
-				//		- haven't yet been highlighted;
-				//		- have child nodes that are text nodes;
-				//		- aren't any of the unwanted tags (html, head, etc...)
-				let filteredNodes = Array.from(document.getElementsByTagName("*"))
-					.filter(object => !(hasDirectChildHighlighted(object, className) || Array.from(object.classList).includes(className))
-						&& textChildNodes(object).length > 0
-						&& !unwantedTags.includes(object.localName));
-				for (const value of values) {
-					const span = document.createElement("span");
-					span.className = className;
-					span.appendChild(document.createTextNode(value));
-					// filter the tag elements again for those that have text content equal to the preset regex value;
-					// iterate the filtered tag elements and call replaceWithElem each time
-					filteredNodes
-						.filter(object => new RegExp(value).test(object.textContent))
-						.forEach(node => replaceWithElem(node, new RegExp(value, "g"), span));
+				const kanjiRegex = new RegExp(`[${values.join('')}]`, "g");
+
+				// check if there is any character to be highlighted
+				const kanjiTargetedFilter = allWantedTags.filter(tag => kanjiRegex.test(tag.textContent));
+				console.log(kanjiTargetedFilter)
+				if (kanjiTargetedFilter.length > 0) {
+					console.log("Found Kanji to highlight!");
+					// filter all tag elements of the document that haven't yet been highlighted
+					let filteredNodes = kanjiTargetedFilter
+						.filter(object => !(hasDirectChildHighlighted(object, className) || Array.from(object.classList).includes(className)));
+					
+					for (const value of values) {
+						const span = document.createElement("span");
+						span.className = className;
+						span.appendChild(document.createTextNode(value));
+						// filter the tag elements again for those that have text content equal to the preset regex value;
+						// iterate the filtered tag elements and call replaceWithElem each time
+						const kanjiTargetFilter = filteredNodes
+							.filter(object => new RegExp(value).test(object.textContent));
+							
+						if (kanjiTargetFilter.length > 0)
+							kanjiTargetFilter.forEach(node => replaceWithElem(node, new RegExp(value, "g"), span));
+					}
 				}
+				else
+					console.log("Could not find any Kanji to highlight yet!");
 			},delay);
 		}
 
-		highlighter(request.functionDelay, request.values, request.highlightingClass, request.unwantedTags);
+		highlighter(request.functionDelay, request.values, request.highlightingClass, Array.from(document.getElementsByTagName("*")).filter(tag => !request.unwantedTags.includes(tag.localName) && textChildNodes(tag).length > 0));
 
 		let lastNmrElements = 0;
 		let nmrElements;
 		// continuously check for the number of elements in the page
 		// if that number updates, then run highlighter again
 		const highlightUpdate = setInterval(() => {
-			nmrElements = document.getElementsByTagName("*").length;
+			const allWantedTags = Array.from(document.getElementsByTagName("*")).filter(tag => !request.unwantedTags.includes(tag.localName) && textChildNodes(tag).length > 0);
+			nmrElements = allWantedTags.length;
 			if (nmrElements !== lastNmrElements) {
 				lastNmrElements = nmrElements;
-				highlighter(20, request.values, request.highlightingClass, request.unwantedTags);
+				highlighter(20, request.values, request.highlightingClass, allWantedTags);
 			}
 		}, 3000);
 
