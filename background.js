@@ -125,7 +125,7 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 							setupLearnedKanji(apiToken, "https://api.wanikani.com/v2/review_statistics", result)
 								.then(kanji => {
 									tabs.insertCSS(null, {file: 'styles.css'});
-									tabs.executeScript(null, {file: 'details-popup.js'});
+									//tabs.executeScript(null, {file: 'details-popup.js'});
 									tabs.executeScript(null, {file: 'highlight.js'}, () => {
 										tabs.sendMessage(thisTabId, {
 											functionDelay: functionDelay, 

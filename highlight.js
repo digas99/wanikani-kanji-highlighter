@@ -25,11 +25,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				});
 				// can't do the replaceChild because it will throw an error 
 				// when React tries to access the old child that was replaced
-				node.parentElement.replaceChild(fragment, node);
+				// node.parentElement.replaceChild(fragment, node);
 				// solution: keep the child there, with empty data
-				//node.data = '';
+				node.data = '';
 				// insert new child after the old child
-				//node.after(fragment);
+				node.after(fragment);
 			}
 		}
 
