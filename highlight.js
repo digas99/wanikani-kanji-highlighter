@@ -1,18 +1,27 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	if (request.functionDelay && request.values && request.unwantedTags && request.highlightingClass) {
+	const functionDelay = request.functionDelay;
+	const values = request.values;
+	const unwantedTags = request.unwantedTags;
+	const highlightingClass = request.highlightingClass;
+
+	if (functionDelay && values && unwantedTags && highlightingClass) {
 		const textChildNodes = obj => Array.from(obj.childNodes)
 			.filter(node => node.nodeName === "#text");
 
 		// replace a matching regex in a text node with a document element, preserving everything else, even other 
 		// none text node siblings from that text node (the parent node must have atleast one text node as a childNode)
-		const replaceWithElem = (parentNode, regex, elem) => {
+		const replaceMatchesWithElem = (parentNode, regex, elem) => {
 			for (const node of textChildNodes(parentNode)) {
 				const fragment = document.createDocumentFragment();
+				const matches = node.textContent.match(regex);
 				const split = node.textContent.split(regex);
 				split.forEach((content, i) => {
 					fragment.appendChild(document.createTextNode(content));
-					if (i !== split.length-1)
-						fragment.appendChild(elem.cloneNode(true));
+					if (i !== split.length-1) {
+						const clone = elem.cloneNode(true);
+						clone.appendChild(document.createTextNode(matches[i]));
+						fragment.appendChild(clone);
+					}
 				});
 				node.parentElement.replaceChild(fragment, node);
 			}
@@ -26,49 +35,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			return false;
 		}
 
+		const tagFilteringConditions = tag => !unwantedTags.includes(tag.localName) && textChildNodes(tag).length > 0 && !(hasDirectChildHighlighted(tag, highlightingClass) || Array.from(tag.classList).includes(highlightingClass));
+
 		const highlighter = (delay, values, className, allWantedTags) => {
 			setTimeout(() => {
 				const kanjiRegex = new RegExp(`[${values.join('')}]`, "g");
-
 				// check if there is any character to be highlighted
-				const kanjiTargetedFilter = allWantedTags.filter(tag => kanjiRegex.test(tag.textContent));
-				console.log(kanjiTargetedFilter)
-				if (kanjiTargetedFilter.length > 0) {
-					console.log("Found Kanji to highlight!");
-					// filter all tag elements of the document that haven't yet been highlighted
-					let filteredNodes = kanjiTargetedFilter
-						.filter(object => !(hasDirectChildHighlighted(object, className) || Array.from(object.classList).includes(className)));
-					
-					for (const value of values) {
-						const span = document.createElement("span");
-						span.className = className;
-						span.appendChild(document.createTextNode(value));
-						// filter the tag elements again for those that have text content equal to the preset regex value;
-						// iterate the filtered tag elements and call replaceWithElem each time
-						const kanjiTargetFilter = filteredNodes
-							.filter(object => new RegExp(value).test(object.textContent));
-							
-						if (kanjiTargetFilter.length > 0)
-							kanjiTargetFilter.forEach(node => replaceWithElem(node, new RegExp(value, "g"), span));
-					}
+				const nodesToBeHighlighted = allWantedTags.filter(tag => kanjiRegex.test(tag.textContent));
+				if (nodesToBeHighlighted.length > 0) {
+					const span = document.createElement("span");
+					span.className = className;
+					nodesToBeHighlighted.filter(tag => tagFilteringConditions(tag)).forEach(node => replaceMatchesWithElem(node, kanjiRegex, span));
 				}
-				else
-					console.log("Could not find any Kanji to highlight yet!");
 			},delay);
 		}
 
-		highlighter(request.functionDelay, request.values, request.highlightingClass, Array.from(document.getElementsByTagName("*")).filter(tag => !request.unwantedTags.includes(tag.localName) && textChildNodes(tag).length > 0));
+		highlighter(functionDelay, values, highlightingClass, Array.from(document.getElementsByTagName("*")));
 
 		let lastNmrElements = 0;
 		let nmrElements;
 		// continuously check for the number of elements in the page
 		// if that number updates, then run highlighter again
 		const highlightUpdate = setInterval(() => {
-			const allWantedTags = Array.from(document.getElementsByTagName("*")).filter(tag => !request.unwantedTags.includes(tag.localName) && textChildNodes(tag).length > 0);
+			const allWantedTags = Array.from(document.getElementsByTagName("*"));
 			nmrElements = allWantedTags.length;
 			if (nmrElements !== lastNmrElements) {
 				lastNmrElements = nmrElements;
-				highlighter(20, request.values, request.highlightingClass, allWantedTags);
+				highlighter(20, values, highlightingClass, allWantedTags);
 			}
 		}, 3000);
 
