@@ -101,13 +101,16 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 								fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=kanji")
 									.then(kanji_data => {
 										const kanji_dict = {};
+										const kanji_assoc = {};
 										kanji_data
 											.map(content => content.data)
 											.flat(1)
-											.forEach(kanji => kanji_dict[kanji.id] = kanji.data);
-
+											.forEach(kanji => {
+												kanji_dict[kanji.id] = kanji.data;
+												kanji_assoc[kanji.data.slug] = kanji.id;
+											});
 										// saving all kanji
-										chrome.storage.local.set({"wkhighlight_allkanji": kanji_dict}, message => {
+										chrome.storage.local.set({"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc}, message => {
 											if (!message)
 												console.log("Kanji saved in storage.")
 											else
@@ -125,7 +128,7 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 							setupLearnedKanji(apiToken, "https://api.wanikani.com/v2/review_statistics", result)
 								.then(kanji => {
 									tabs.insertCSS(null, {file: 'styles.css'});
-									//tabs.executeScript(null, {file: 'details-popup.js'});
+									tabs.executeScript(null, {file: 'details-popup.js'});
 									tabs.executeScript(null, {file: 'highlight.js'}, () => {
 										tabs.sendMessage(thisTabId, {
 											functionDelay: functionDelay, 
@@ -157,4 +160,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	// fetch reference to the highlight update function
 	if (request.intervalFunction)
 		highlightUpdateFunction = request.intervalFunction;
+
+	if (request.popupDetails)
+		tabs.sendMessage(thisTabId, {popupDetails: request.popupDetails});
 });
