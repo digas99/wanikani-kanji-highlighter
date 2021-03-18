@@ -1,5 +1,5 @@
 .wkhighlighter_highlighted {
-	background-color: rgb(250, 12, 100) !important;
+	background-color: #4d70d1 !important;
 	color: white !important;
 }
 
@@ -13,22 +13,38 @@
 }
 
 .wkhighlighter_detailsPopup {
-	background-color: rgb(250, 12, 100);
+	background-color: #4d70d1;
     position: fixed;
 	z-index: 5;
 	right: 0;
-	bottom: 30px;
+	bottom: 0;
     opacity: 0.8;
     width: 150px;
 	height: 150px;
 	transition: 0.3s;
 	cursor: pointer;
+	overflow: hidden;
 }
 
 .wkhighlighter_focusPopup {
-    width: 200px;
-	height: 200px;
+    width: 275px;
 	opacity: 1;
+	overflow: hidden;
+	transition: 0.3s;
+}
+
+.wkhighlighter_focusPopup_kanji {
+	margin-top: 0 !important;
+	padding: 10px 0;
+    position: fixed;
+    background-color: #4d70d1;
+    width: 250px;
+	border-bottom: 3px solid white;
+	transition: 0.5s;
+}
+
+.wkhighlighter_auto_height {
+	height: auto !important;
 }
 
 .wkhighlighter_rightOverFlowPopup {
@@ -48,4 +64,79 @@
     height: 20px;
     padding-left: 15px;
     padding-right: 15px;
+}
+
+.wkhighlighter_popupDetails_detailedInfoWrapper {
+	pointer-events: none;
+    color: white;
+	font-size: 15px;
+	margin-top: 140px;
+	transition: 0.3s;
+}
+
+.wkhighlighter_popupDetails_separator {
+	height: 20px;
+    border-bottom: 2px solid white;
+}
+
+.wkhighlighter_popupDetails_p {
+	margin: 0 0 5px 0;
+}
+
+.wkhighlighter_popupDetails_kanjiTitle {
+	font-size: 25px;
+	margin-bottom: 15px;
+}
+
+.wkhighlighter_popupDetails_title {
+	color: #ffffff;
+    background-color: #434141;
+    padding: 2px;
+    border-left: 3px solid white;
+}
+
+.wkhighlighter_radicalTag {
+    font-weight: bolder;
+    color: #00ffe7;
+}
+
+.wkhighlighter_kanjiTag {
+    color: #fff700;
+    font-weight: bolder;
+}
+
+.wkhighlighter_readingTag {
+	background-color: rgb(46, 46, 46);
+}
+
+.wkhighlighter_jaTag {
+    font-weight: bolder;
+}
+
+.wkhighlighter_detailsPopup_cards {
+	background-color: inherit !important;
+	color: inherit !important;
+	font-size: 40px;
+    margin: 0;
+}
+
+.wkhighlighter_detailsPopup_usedRadicals_row, .wkhighlighter_detailsPopup_similarKanji_row{
+    padding: 5px;
+    margin: 7px;
+    color: black;
+	border-radius: 2px;
+	display: inline-flex;
+	box-shadow: rgb(0 0 0) 0px 4px 0px 2px;
+}
+
+.wkhighlighter_detailsPopup_usedRadicals_row {
+	background-color: #45ffe7;
+}
+
+.wkhighlighter_detailsPopup_similarKanji_row {
+	background-color: #fff700;
+}
+
+.wkhighlighter_detailsPopup_sectionContainer { 
+	margin: 15px 0;
 }
