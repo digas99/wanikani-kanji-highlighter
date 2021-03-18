@@ -79,8 +79,25 @@ const setupLearnedKanji = async (apiToken, page, kanji) => {
 	return IDs.map(id => kanji["wkhighlight_allkanji"][id].slug);
 }
 
+const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
+	setupLearnedKanji(apiToken, learnedKanjiSource, allkanji)
+	.then(kanji => {
+		tabs.insertCSS(null, {file: 'styles.css'});
+		tabs.executeScript(null, {file: 'details-popup.js'});
+		tabs.executeScript(null, {file: 'highlight.js'}, () => {
+			tabs.sendMessage(thisTabId, {
+				functionDelay: functionDelay, 
+				values: kanji,
+				unwantedTags: unwantedTags,
+				highlightingClass: highlightingClass
+			});
+			console.log("Higlighting...");
+		});
+	})
+	.catch(errorHandling);
+}
+
 tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
-	//console.log("INFO", tabInfo);
 	if (canInject(tabInfo)) {
 		thisTabId = tabId;
 		if (changeInfo.status === "complete") {
@@ -92,9 +109,9 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 					if (user.data.subscription.active) {
 						console.log("User's subscription is activated!");
 						// see if all kanji is already saved in storage
-						chrome.storage.local.get(['wkhighlight_allkanji'], result => {
+						chrome.storage.local.get(['wkhighlight_allkanji', 'wkhighlight_allradicals'], result => {
 							// do this only if all the kanji hasn't been saved yet
-							if (Object.keys(result).length === 0) {
+							if (!result['wkhighlight_allkanji']) {
 								console.log("Saving all kanji info...");
 								
 								// fetch all kanji
@@ -109,6 +126,9 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 												kanji_dict[kanji.id] = kanji.data;
 												kanji_assoc[kanji.data.slug] = kanji.id;
 											});
+										
+										setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", {"wkhighlight_allkanji":kanji_dict});
+										
 										// saving all kanji
 										chrome.storage.local.set({"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc}, message => {
 											if (!message)
@@ -119,28 +139,31 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 									})
 									.catch(errorHandling);
 							}
-						});
-					
-						// load all kanji from storage
-						console.log("Loading all kanji...");
-						chrome.storage.local.get(["wkhighlight_allkanji"], result => {
-
-							setupLearnedKanji(apiToken, "https://api.wanikani.com/v2/review_statistics", result)
-								.then(kanji => {
-									tabs.insertCSS(null, {file: 'styles.css'});
-									tabs.executeScript(null, {file: 'details-popup.js'});
-									tabs.executeScript(null, {file: 'highlight.js'}, () => {
-										tabs.sendMessage(thisTabId, {
-											functionDelay: functionDelay, 
-											values: kanji,
-											unwantedTags: unwantedTags,
-											highlightingClass: highlightingClass
+							else
+								setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", result)
+						
+							if (!result['wkhighlight_allradicals']) {
+								// fetch all radicals
+								fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=radical")
+									.then(radical_data => {
+										const radical_dict = {};
+										radical_data
+											.map(content => content.data)
+											.flat(1)
+											.forEach(radical => {
+												radical_dict[radical.id] = radical.data;
+											});
+										
+										// saving all radical
+										chrome.storage.local.set({"wkhighlight_allradicals": radical_dict}, message => {
+											if (!message)
+												console.log("Radicals saved in storage.")
+											else
+												console.log("Radicals couldn't be saved in storage! ", message);
 										});
-										console.log("Higlighting...");
-									});
-								})
-								.catch(errorHandling);
-
+									})
+									.catch(errorHandling);
+							}
 						});
 					}
 				})

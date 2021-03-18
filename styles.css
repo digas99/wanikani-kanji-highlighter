@@ -15,14 +15,14 @@
 .wkhighlighter_detailsPopup {
 	background-color: #4d70d1;
     position: fixed;
-	z-index: 5;
+    z-index: 10000;
 	right: 0;
 	bottom: 0;
     opacity: 0.8;
     width: 150px;
 	height: 150px;
 	transition: 0.3s;
-	cursor: pointer;
+	/* cursor: pointer; */
 	overflow: hidden;
 }
 
@@ -31,6 +31,19 @@
 	opacity: 1;
 	overflow: hidden;
 	transition: 0.3s;
+}
+
+.wkhighlighter_detailsPopup::-webkit-scrollbar {
+	width: 10px;
+}
+  
+.wkhighlighter_detailsPopup::-webkit-scrollbar-track {
+	background: #4d70d1;        
+}
+
+.wkhighlighter_detailsPopup::-webkit-scrollbar-thumb {
+	background-color: white;    
+	border-radius: 20px;        
 }
 
 .wkhighlighter_focusPopup_kanji {
@@ -67,7 +80,7 @@
 }
 
 .wkhighlighter_popupDetails_detailedInfoWrapper {
-	pointer-events: none;
+	/* pointer-events: none; */
     color: white;
 	font-size: 15px;
 	margin-top: 140px;
@@ -92,7 +105,8 @@
 	color: #ffffff;
     background-color: #434141;
     padding: 2px;
-    border-left: 3px solid white;
+	border-left: 3px solid white;
+	padding-left: 5px;
 }
 
 .wkhighlighter_radicalTag {
@@ -131,10 +145,17 @@
 
 .wkhighlighter_detailsPopup_usedRadicals_row {
 	background-color: #45ffe7;
+	cursor: default;
 }
 
 .wkhighlighter_detailsPopup_similarKanji_row {
 	background-color: #fff700;
+	cursor: pointer;
+	transition: 0.2s;
+}
+
+.wkhighlighter_detailsPopup_similarKanji_row:hover {
+	transform: scale(1.1);
 }
 
 .wkhighlighter_detailsPopup_sectionContainer { 
