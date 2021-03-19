@@ -38,7 +38,7 @@ window.onload = () => {
 	logoDiv.style.marginBottom = "25px";
 	logoDiv.style.textAlign = "center";
 	const logo = document.createElement("img");
-	logo.src="logo/logo-128x128.png";
+	logo.src="logo/logo.png";
 	logo.classList.add("centered");
 	logoDiv.appendChild(logo);
 

@@ -4,10 +4,10 @@
     "version": "0.1.0",
     "manifest_version": 2,
     "icons": {
-        "16": "logo/logo_bb-16x16.png",
-        "32": "logo/logo_bb-32x32.png",
-        "48": "logo/logo_bb-48x48.png",
-        "128": "logo/logo_bb-128x128.png"
+        "16":  "logo/logo_bb.png",
+        "32":  "logo/logo_bb.png",
+        "48":  "logo/logo_bb.png",
+        "128": "logo/logo_bb.png"
     },
     "background": {
         "scripts": ["scripts/background.js"]
