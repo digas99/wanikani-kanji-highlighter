@@ -218,5 +218,10 @@ document.addEventListener("click", e => {
 					detailsPopup.remove();
 			}, 200);
 		}
+
+		// clicked on a kanji card
+		if (node.classList.contains("wkhighlighter_detailsPopup_usedRadicals_row")) {
+			
+		}
 	}
 });
