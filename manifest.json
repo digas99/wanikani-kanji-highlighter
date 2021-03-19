@@ -10,7 +10,7 @@
         "128": "logo/logo_bb-128x128.png"
     },
     "background": {
-        "scripts": ["background.js"]
+        "scripts": ["scripts/background.js"]
     },
     "options_page": "options.html",
     "browser_action": {

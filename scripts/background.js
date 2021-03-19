@@ -15,7 +15,7 @@ const canInject = tabInfo => (tabInfo.url && !urlChecker.test(tabInfo.url)) || (
 // 	tabs.get(tab.id, tabInfo => {
 // 		if (canInject(tabInfo)) {
 // 			thisTabId = tab.id;
-// 			tabs.executeScript(null, {file: 'highlight.js'}, () => {
+// 			tabs.executeScript(null, {file: 'scripts/highlight.js'}, () => {
 // 				console.log("Higlighting...");
 // 				tabs.sendMessage(thisTabId, {
 // 					functionDelay: functionDelay, 
@@ -78,9 +78,9 @@ const setupLearnedKanji = async (apiToken, page, kanji) => {
 const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	setupLearnedKanji(apiToken, learnedKanjiSource, allkanji)
 	.then(kanji => {
-		tabs.insertCSS(null, {file: 'foreground-styles.css'});
-		tabs.executeScript(null, {file: 'details-popup.js'});
-		tabs.executeScript(null, {file: 'highlight.js'}, () => {
+		tabs.insertCSS(null, {file: 'styles/foreground-styles.css'});
+		tabs.executeScript(null, {file: 'scripts/details-popup.js'});
+		tabs.executeScript(null, {file: 'scripts/highlight.js'}, () => {
 			tabs.sendMessage(thisTabId, {
 				functionDelay: functionDelay, 
 				values: kanji,
@@ -97,7 +97,7 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 	if (canInject(tabInfo)) {
 		thisTabId = tabId;
 		if (changeInfo.status === "complete") {
-			tabs.executeScript(null, {file: 'page-reload.js'});
+			tabs.executeScript(null, {file: 'scripts/page-reload.js'});
 			chrome.storage.local.get(["wkhighlight_apiKey"], key => {
 				if (key["wkhighlight_apiKey"]) {
 					apiToken = key["wkhighlight_apiKey"];

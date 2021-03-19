@@ -1,0 +1,121 @@
+.centered {
+	display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+}
+
+li {
+	list-style: none;
+}
+
+p, h2, input, li, ul {
+	padding: 0;
+	margin: 0;
+}
+
+input, input:focus {
+	border: none;
+	border-bottom: 1px solid black;
+	outline: none;
+}
+
+.verticalAlign {
+	display: flex;
+    align-items: center;
+}
+
+.button {
+    background-color: #d95b5b;
+    border-radius: 5px;
+    color: white;
+    padding: 4px;
+	cursor: pointer;
+	transition: 0.3s;
+}
+
+.button:hover {
+	filter: brightness(1.5);
+}
+
+#submit {
+	margin-left: 15px;
+
+}
+
+body {
+	width: 173px;
+}
+
+#reloadPage {
+	text-align: center;
+    margin-top: 15px;
+    margin-bottom: 20px;
+}
+
+a {
+	text-decoration: none;
+	color: #d95b5b;
+}
+
+#footerWarning {
+	font-size: 9px;
+    margin-bottom: 4px;
+}
+
+#whatIsAPIKey {
+	font-size: 11px;
+}
+
+#goBack {
+	margin: 2px;
+	cursor: pointer;
+}
+
+.apiKeyStep {
+	background-color: #5d5d5d;
+    color: white;
+    padding: 6px;
+	border-radius: 5px;
+    margin-top: 6px;
+}
+
+.apiKeyStep img {
+	margin-top: 5px;
+}
+
+.topNav {
+	position: fixed;
+    background-color: white;
+    top: 0;
+    width: 100%;
+    padding: 6px;
+    display: inline-flex;
+}
+
+i {
+	border: solid black;
+	border-width: 0 3px 3px 0;
+	display: inline-block;
+	padding: 7px;
+}
+
+.down {
+transform: rotate(45deg);
+-webkit-transform: rotate(45deg);
+}
+
+.up {
+transform: rotate(-135deg);
+-webkit-transform: rotate(-135deg);
+}
+
+.right {
+transform: rotate(-45deg);
+-webkit-transform: rotate(-45deg);
+}
+
+.left {
+transform: rotate(134deg);
+-webkit-transform: rotate(134deg);
+}
