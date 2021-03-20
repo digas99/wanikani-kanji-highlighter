@@ -26,7 +26,7 @@ input, input:focus {
 }
 
 .button {
-    background-color: #d95b5b;
+    background-color: #dc6560;
     border-radius: 5px;
     color: white;
     padding: 4px;
@@ -39,12 +39,12 @@ input, input:focus {
 }
 
 #submit {
-	margin-left: 15px;
-
+	text-align: center;
+	margin: 5px 0;
 }
 
 body {
-	width: 173px;
+	width: 200px;
 }
 
 #reloadPage {
@@ -73,7 +73,7 @@ a {
 }
 
 .apiKeyStep {
-	background-color: #5d5d5d;
+	background-color: #dc6560;
     color: white;
     padding: 6px;
 	border-radius: 5px;
@@ -91,6 +91,21 @@ a {
     width: 100%;
     padding: 6px;
     display: inline-flex;
+}
+
+#userInfoNavbar {
+	font-size: 15px;
+}
+
+#userInfoNavbar li {
+	margin-bottom: 3px;
+	overflow: hidden;
+}
+
+#nmrKanjiIndicator {
+	background-color: #4d70d1;
+    color: white;
+    padding: 2px;
 }
 
 i {

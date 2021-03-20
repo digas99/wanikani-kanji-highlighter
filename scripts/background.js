@@ -101,6 +101,10 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 			chrome.storage.local.get(["wkhighlight_apiKey"], key => {
 				if (key["wkhighlight_apiKey"]) {
 					apiToken = key["wkhighlight_apiKey"];
+
+					chrome.browserAction.setBadgeText({text: "0"});
+					chrome.browserAction.setBadgeBackgroundColor({color: "#dc6560"});
+					
 					// see if all kanji is already saved in storage
 					chrome.storage.local.get(['wkhighlight_allkanji', 'wkhighlight_allradicals'], result => {
 						// do this only if all the kanji hasn't been saved yet
@@ -121,7 +125,7 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 										});
 									
 									setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", {"wkhighlight_allkanji":kanji_dict});
-									
+
 									// saving all kanji
 									chrome.storage.local.set({"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc}, message => {
 										if (!message)
@@ -178,4 +182,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 	if (request.popupDetails)
 		tabs.sendMessage(thisTabId, {popupDetails: request.popupDetails});
+
+	if (request.badge) {
+		chrome.browserAction.setBadgeText({text: request.badge.toString()});
+		chrome.browserAction.setBadgeBackgroundColor({color: "#dc6560"});
+	}
 });

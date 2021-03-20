@@ -1,3 +1,5 @@
+totalHighlightedKanji = 0;
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	const functionDelay = request.functionDelay;
 	const values = request.values;
@@ -30,6 +32,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				//node.data = '';
 				// insert new child after the old child
 				//node.after(fragment);
+				return !matches ? 0 : matches.length;
 			}
 		}
 
@@ -43,23 +46,31 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 		const tagFilteringConditions = tag => !unwantedTags.includes(tag.localName) && textChildNodes(tag).length > 0 && !(hasDirectChildHighlighted(tag, highlightingClass) || tag.classList.contains(highlightingClass));
 
-		const highlighter = (delay, values, className, allTags) => {
-			setTimeout(() => {
-				const kanjiRegex = new RegExp(`[${values.join('')}]`, "g");
-				// check if there is any character to be highlighted
-				const nodesToBeHighlighted = allTags.filter(tag => {
-					const test = tag.textContent.match(kanjiRegex);
-					return test !== null ? test.length > 0 : false;
-				});
-				if (nodesToBeHighlighted.length > 0) {
-					const span = document.createElement("span");
-					span.className = className;
-					nodesToBeHighlighted.filter(tag => tagFilteringConditions(tag)).forEach(node => replaceMatchesWithElem(node, kanjiRegex, span));
-				}
-			},delay);
-		}
+		const highlighter = (values, className, allTags) => {
+			const kanjiRegex = new RegExp(`[${values.join('')}]`, "g");
+			// check if there is any character to be highlighted
+			const nodesToBeHighlighted = allTags.filter(tag => {
+				const test = tag.textContent.match(kanjiRegex);
+				return test !== null ? test.length > 0 : false;
+			});
 
-		highlighter(functionDelay, values, highlightingClass, Array.from(document.getElementsByTagName("*")));
+			let nmrHighlightedKanji = 0;
+			if (nodesToBeHighlighted.length > 0) {
+				const span = document.createElement("span");
+				span.className = className;
+				nodesToBeHighlighted.filter(tag => tagFilteringConditions(tag)).forEach(node => nmrHighlightedKanji += replaceMatchesWithElem(node, kanjiRegex, span));
+			}
+			return nmrHighlightedKanji;
+		}
+		
+		setTimeout(() => {
+			valueBefore = totalHighlightedKanji;
+			totalHighlightedKanji += highlighter(values, highlightingClass, Array.from(document.getElementsByTagName("*")));
+			if (valueBefore < 99) {
+				valueToSend = valueBefore + totalHighlightedKanji > 98 ? 99 : totalHighlightedKanji;
+				chrome.runtime.sendMessage({badge:valueToSend, nmrKanjiHighlighted:totalHighlightedKanji});
+			}
+		} ,functionDelay);
 
 		let lastNmrElements = 0;
 		let nmrElements;
@@ -70,7 +81,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			nmrElements = allTags.length;
 			if (nmrElements !== lastNmrElements) {
 				lastNmrElements = nmrElements;
-				highlighter(20, values, highlightingClass, allTags);
+				setTimeout(() => {
+					const valueBefore = totalHighlightedKanji;
+					totalHighlightedKanji += highlighter(values, highlightingClass, allTags);
+					if (valueBefore < 99) {
+						valueToSend = valueBefore + totalHighlightedKanji > 98 ? 99 : totalHighlightedKanji;
+						chrome.runtime.sendMessage({badge:valueToSend, nmrKanjiHighlighted:totalHighlightedKanji});
+					}
+				} ,20);
 			}
 		}, 3000);
 
@@ -80,6 +98,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	// if a key was pressed, then stop the highlight update
 	if (request.key === "down")
 		clearInterval(request.intervalFunction);
+
+	if (request.nmrKanjiHighlighted === "popup") {
+		console.log("here");
+		sendResponse({nmrKanjiHighlighted: totalHighlightedKanji});
+	}
 });
 
 // message to the background saying a key was pressed

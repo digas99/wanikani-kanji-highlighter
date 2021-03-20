@@ -1,3 +1,5 @@
+nmrKanjiHighlighted = 0;
+
 const footer = () => {
 	const wrapper = document.createElement("div");
 	wrapper.style.textAlign = "center";
@@ -28,8 +30,29 @@ const footer = () => {
 	return wrapper;
 }
 
+const reloadPage = (message, color) => {
+	const wrapper = document.createElement("div");
+	
+	const submitMessage = document.createElement("p");
+	submitMessage.id = "message";
+	submitMessage.style.marginTop = "5px";
+	submitMessage.style.color = color;
+	submitMessage.style.textAlign = "center";
+	submitMessage.appendChild(document.createTextNode(message));
+	wrapper.appendChild(submitMessage);
+	
+	// button to ask to reload the page
+	const reloadButton = document.createElement("div");
+	reloadButton.appendChild(document.createTextNode("Reload Page"));
+	reloadButton.className = "button centered";
+	reloadButton.id = "reloadPage";
+	wrapper.appendChild(reloadButton);
+
+	return wrapper;
+}
+
 window.onload = () => {
-	const main = document.createElement("main");
+	const main = document.createElement("div");
 	main.id = "main";
 	document.body.appendChild(main);
 
@@ -48,9 +71,12 @@ window.onload = () => {
 	logoDiv.appendChild(title);
 
 	main.appendChild(logoDiv);
-	chrome.storage.local.get(["wkhighlight_apiKey"], key => {
+	chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo"], userData => {
 		// if the user did not add a key yet
-		if (!key["wkhighlight_apiKey"]) {
+		if (!userData["wkhighlight_apiKey"]) {
+			chrome.browserAction.setBadgeText({text: ''});
+			chrome.browserAction.setBadgeBackgroundColor({color: "#dc6560"});
+
 			// key input
 			const APIInputWrapper = document.createElement("div");
 			APIInputWrapper.classList.add("apiKey_wrapper");
@@ -68,29 +94,15 @@ window.onload = () => {
 			APIInput.type = "text";
 			APIInput.id = "apiInput";
 			APIInput.style.fontSize = "15px";
+			APIInput.style.width = "100%";
 			APIInputWrapper.appendChild(APIInput);
 
-			// save session
-			const saveSessionWrapper = document.createElement("div");
-			saveSessionWrapper.classList.add("verticalAlign");
-			saveSessionWrapper.style.marginTop = "4px";
-			const checkbox = document.createElement("input");
-			checkbox.type = "checkbox";
-			checkbox.id = "checkbox";
-			checkbox.checked = true;
-			checkbox.style.marginRight = "5px";
-			saveSessionWrapper.appendChild(checkbox);
-			const saveSessionTitle = document.createElement("span");
-			saveSessionTitle.appendChild(document.createTextNode("Keep me logged in"));
-			saveSessionTitle.style.fontSize = "11px";
-			saveSessionWrapper.appendChild(saveSessionTitle);
 			// submit button
 			const button = document.createElement("div");
 			button.appendChild(document.createTextNode("Submit"));
 			button.classList.add("button");
 			button.id = "submit";
-			saveSessionWrapper.appendChild(button);
-			APIInputWrapper.appendChild(saveSessionWrapper);
+			APIInputWrapper.appendChild(button);
 
 			// what is an api key
 			const whatIsAPIKey = document.createElement("div");
@@ -103,11 +115,48 @@ window.onload = () => {
 			whatIsAPIKey.appendChild(whatIsAPIKeyLink);
 		}
 		else {
+			const userInfo = userData["wkhighlight_userInfo"]["data"];
+			if (userInfo) {
+				const userInfoWrapper = document.createElement("div");
+				userInfoWrapper.style.margin = "0 7px";
+				main.appendChild(userInfoWrapper);
 
+				const userElementsList = document.createElement("ul");
+				userElementsList.id = "userInfoNavbar";
+				userInfoWrapper.appendChild(userElementsList);
+				const signout = document.createElement("li");
+				signout.style.textAlign = "right";
+				const signoutLink = document.createElement("a");
+				signoutLink.id = "signout";
+				signoutLink.href = "#";
+				signoutLink.appendChild(document.createTextNode("Logout"));
+				signout.appendChild(signoutLink);
+				userElementsList.appendChild(signout);
+
+				const greetings = document.createElement("li");
+				greetings.innerHTML = `Hello, <a href="${userInfo["profile_url"]}" target="_blank">${userInfo["username"]}</a>!`;
+				userElementsList.appendChild(greetings);
+
+				const level = document.createElement("li");
+				level.innerHTML = `Level: <strong>${userInfo["level"]}</strong> / ${userInfo["subscription"]["max_level_granted"]}`;
+				userElementsList.appendChild(level);
+				
+				chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+					var activeTab = tabs[0];
+					chrome.tabs.sendMessage(activeTab.id, {nmrKanjiHighlighted: "popup"}, response => {
+						const nmrKanjiHighlighted = response ? response["nmrKanjiHighlighted"] : 0;
+						const kanjiFound = document.createElement("li");
+						kanjiFound.id = "nmrKanjiHighlighted";
+						kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${nmrKanjiHighlighted}</strong> (in the page)`;
+						userElementsList.appendChild(kanjiFound);
+					});
+				});
+			}
 		}
 		document.body.appendChild(footer());
 
 	});
+
 }
 
 const fetchPage = async (apiToken, page) => {				
@@ -147,35 +196,26 @@ const submitAction = () => {
 
 	const main = document.getElementById("main");
 
-	const submitMessage = document.createElement("p");
-	main.appendChild(submitMessage);
-	submitMessage.id = "message";
-	submitMessage.style.marginTop = "5px";
-
 	if (!invalidKey) {
 		fetchPage(apiKey, "https://api.wanikani.com/v2/user")
 			.then(user => {
 				// guarantee the Subscription Restrictions (incomplete)
 				if (user && user.data.subscription.active) { 
-					chrome.storage.local.set({"wkhighlight_apiKey":apiKey});
-					submitMessage.style.color = "green";
-					submitMessage.style.textAlign = "center";
-					submitMessage.appendChild(document.createTextNode("The API key was accepted!"));
+					chrome.storage.local.set({"wkhighlight_apiKey":apiKey, "wkhighlight_userInfo":user});
 					const APIInputWrapper = document.getElementsByClassName("apiKey_wrapper")[0];
 					if (APIInputWrapper)
 						APIInputWrapper.remove();
-					
-					// button to ask to reload the page
-					const reloadButton = document.createElement("div");
-					reloadButton.appendChild(document.createTextNode("Reload Page"));
-					reloadButton.className = "button centered";
-					reloadButton.id = "reloadPage";
-					main.appendChild(reloadButton);	
+
+					main.appendChild(reloadPage("The API key was accepted!", "green"));
 				}
 			})
 			.catch(error => console.log(error));
 	}
 	else {
+		const submitMessage = document.createElement("p");
+		main.appendChild(submitMessage);
+		submitMessage.id = "message";
+		submitMessage.style.marginTop = "5px";	
 		submitMessage.style.color = "red";
 		submitMessage.appendChild(document.createTextNode("The API key is invalid!"));
 	}
@@ -186,9 +226,11 @@ document.addEventListener("click", e => {
 		submitAction();
 
 	if (e.target.id === "reloadPage") {
-		console.log("popup");
-		chrome.runtime.sendMessage({reloadPage:"true"});
-		//window.location.reload();
+		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+			var activeTab = tabs[0];
+			chrome.tabs.sendMessage(activeTab.id, {reloadPage:"true"});
+			window.location.reload();
+		});
 	}
 
 	if (e.target.id === "whatIsAPIKey") {
@@ -231,7 +273,7 @@ document.addEventListener("click", e => {
 			pWrapper.appendChild(p);
 		}
 
-		const stepText = ["1- Click on your photo on the navigation bar anywhere on the website, and then click <strong>API Tokens</strong>.", "2- Click on <strong>Generate a new token</strong>, give it any name you want, and then copy it and paste it here in the extension."];
+		const stepText = ["<strong>1-</strong> Click on your photo on the navigation bar anywhere on the website, and then click <strong>API Tokens</strong>.", "<strong>2-</strong>  Click on <strong>Generate a new token</strong>, give it any name you want, and then copy it and paste it here in the extension."];
 		const imagesSrc = ["../images/apitoken_1.png", "../images/apitoken_2.png"]
 
 		for (let i = 0; i < stepText.length; i++) {
@@ -239,6 +281,7 @@ document.addEventListener("click", e => {
 			wrapper.classList.add("apiKeyStep");
 			content.appendChild(wrapper);
 			const p = document.createElement("p");
+			p.style.padding = "3px";
 			p.innerHTML = stepText[i];
 			wrapper.appendChild(p);
 	
@@ -254,6 +297,14 @@ document.addEventListener("click", e => {
 		document.getElementById("main").style.display = "inherit";
 		document.body.style.width = "173px";
 	}
+
+	if (e.target.id === "signout") {
+		const main = document.getElementById("main");
+		chrome.storage.local.remove("wkhighlight_apiKey");
+		if (main) {
+			main.replaceChild(reloadPage("Logout successfully", "green"), main.childNodes[1]);
+		}
+	}
 });
 
 document.addEventListener("keydown", e => {
@@ -265,4 +316,14 @@ document.addEventListener("keydown", e => {
 	if (inputKey)
 		inputKey.value = inputKey.value.trim();
 
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	if (request.nmrKanjiHighlighted) {
+		nmrKanjiHighlighted = request.nmrKanjiHighlighted;
+		const nmrKanjiHighlightedElem = document.getElementById("nmrKanjiHighlighted");
+		if (nmrKanjiHighlightedElem) {
+			nmrKanjiHighlightedElem.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${nmrKanjiHighlighted}</strong> (in the page)`;
+		}
+	}
 });
