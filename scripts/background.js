@@ -99,7 +99,7 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	.then(kanji => {
 		tabs.insertCSS(null, {file: 'styles/foreground-styles.css'});
 		if (settings["0"])
-			tabs.executeScript(null, {file: 'scripts/details-popup.js'});
+			tabs.executeScript(null, {file: 'scripts/details-popup.js'}, () => chrome.runtime.lastError);
 		tabs.executeScript(null, {file: 'scripts/highlight.js'}, () => {
 			tabs.sendMessage(thisTabId, {
 				functionDelay: functionDelay, 
@@ -108,6 +108,7 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 				highlightingClass: highlightingClass
 			});
 			console.log("Higlighting...");
+			chrome.runtime.lastError;
 		});
 	})
 	.catch(errorHandling);

@@ -82,7 +82,7 @@ window.onload = () => {
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, response => {
 				console.log(userData);
 				console.log(response);
-				if (!userData["wkhighlight_blacklist"] || userData["wkhighlight_blacklist"].length === 0 || !blacklisted(userData["wkhighlight_blacklist"], response["windowLocation"])) {
+				if (!window.chrome.runtime.lastError && (!userData["wkhighlight_blacklist"] || userData["wkhighlight_blacklist"].length === 0 || !blacklisted(userData["wkhighlight_blacklist"], response["windowLocation"]))) {
 					// if the user did not add a key yet
 					if (!userData["wkhighlight_apiKey"]) {
 						chrome.browserAction.setBadgeText({text: ''});
@@ -161,7 +161,7 @@ window.onload = () => {
 							chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 								var activeTab = tabs[0];
 								chrome.tabs.sendMessage(activeTab.id, {nmrKanjiHighlighted: "popup"}, response => {
-									if (response) {
+									if (!window.chrome.runtime.lastError && response) {
 										const nmrKanjiHighlighted = response["nmrKanjiHighlighted"] ? response["nmrKanjiHighlighted"] : 0;
 										const kanjiFound = document.createElement("li");
 										kanjiFound.id = "nmrKanjiHighlighted";
@@ -320,7 +320,7 @@ document.addEventListener("click", e => {
 	if (targetElem.id === "reloadPage") {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			var activeTab = tabs[0];
-			chrome.tabs.sendMessage(activeTab.id, {reloadPage:"true"});
+			chrome.tabs.sendMessage(activeTab.id, {reloadPage:"true"}, () => window.chrome.runtime.lastError);
 			window.location.reload();
 		});
 	}
@@ -376,7 +376,7 @@ document.addEventListener("click", e => {
 			chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 				var activeTab = tabs[0];
 				chrome.tabs.sendMessage(activeTab.id, {windowLocation: "host"}, response => {
-					if (response["windowLocation"]) {
+					if (!window.chrome.runtime.lastError && response["windowLocation"]) {
 						blacklistedUrls.push(response["windowLocation"].replace("www.", "").replace(".", "\\."));
 						chrome.storage.local.set({"wkhighlight_blacklist":blacklistedUrls});
 						const main = document.getElementById("main");
@@ -393,15 +393,12 @@ document.addEventListener("click", e => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			var activeTab = tabs[0];
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "host"}, response => {
-				if (response["windowLocation"]) {
+				if (!window.chrome.runtime.lastError && response["windowLocation"]) {
 					const location = response["windowLocation"];
 					chrome.storage.local.get(["wkhighlight_blacklist"], data => {
 						let blacklisted = data["wkhighlight_blacklist"];
 						let index = blacklisted.indexOf(location.replace("www.", "").replace(".", "\\."))
-						console.log(blacklisted);
-						console.log(index);
 						blacklisted.splice(index,1);
-						console.log(blacklisted);
 						chrome.storage.local.set({"wkhighlight_blacklist": blacklisted});
 						const main = document.getElementById("main");
 						if (main) {

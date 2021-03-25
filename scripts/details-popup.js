@@ -67,7 +67,17 @@ document.addEventListener("mouseover", e => {
 			wrapper.appendChild(li);
 
 			const p = document.createElement("p");
-			p.appendChild(document.createTextNode(kanjisData[ID].characters));
+			const kanjiChar = kanjisData[ID].characters;
+			if (kanjiChar)
+				p.appendChild(document.createTextNode(kanjiChar));
+			else {
+				const img = document.createElement("img");
+				console.log(kanjisData[ID]);
+				const svgs = kanjisData[ID].character_images.filter(img => img["content_type"] === "image/png" && img["metadata"]["dimensions"] === "64x64");
+				img.src = svgs[0].url;
+				img.style.width = "40px";
+				p.appendChild(img);
+			}
 			p.className = "wkhighlighter_detailsPopup_cards wkhighlighter_highlighted";
 			li.appendChild(p);
 		});
@@ -123,8 +133,6 @@ document.addEventListener("mouseover", e => {
 	}
 
 	const node = e.target;
-
-	const verticalCenterTopValue = (node) => node.parentNode.offsetHeight/2-node.offsetHeight/2;
 
 	let detailsPopup = document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
 
