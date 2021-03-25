@@ -38,7 +38,7 @@ const reloadPage = (message, color) => {
 	submitMessage.style.marginTop = "5px";
 	submitMessage.style.color = color;
 	submitMessage.style.textAlign = "center";
-	submitMessage.appendChild(document.createTextNode(message));
+	submitMessage.innerHTML = message;
 	wrapper.appendChild(submitMessage);
 	
 	// button to ask to reload the page
@@ -49,6 +49,11 @@ const reloadPage = (message, color) => {
 	wrapper.appendChild(reloadButton);
 
 	return wrapper;
+}
+
+const blacklisted = (blacklist, url) => {
+	const regex = new RegExp(`^http(s)?:\/\/(www\.)?(${blacklist.join("|")})(\/)?([a-z]+.*)?`, "g");
+	return regex.test(url);
 }
 
 window.onload = () => {
@@ -71,88 +76,139 @@ window.onload = () => {
 	logoDiv.appendChild(title);
 
 	main.appendChild(logoDiv);
-	chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo"], userData => {
-		// if the user did not add a key yet
-		if (!userData["wkhighlight_apiKey"]) {
-			chrome.browserAction.setBadgeText({text: ''});
-			chrome.browserAction.setBadgeBackgroundColor({color: "#dc6560"});
+	chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_blacklist"], userData => {
+		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+			var activeTab = tabs[0];
+			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, response => {
+				console.log(userData);
+				console.log(response);
+				if (!userData["wkhighlight_blacklist"] || userData["wkhighlight_blacklist"].length === 0 || !blacklisted(userData["wkhighlight_blacklist"], response["windowLocation"])) {
+					// if the user did not add a key yet
+					if (!userData["wkhighlight_apiKey"]) {
+						chrome.browserAction.setBadgeText({text: ''});
 
-			// key input
-			const APIInputWrapper = document.createElement("div");
-			APIInputWrapper.classList.add("apiKey_wrapper");
-			main.appendChild(APIInputWrapper);
-	
-			const APILabel = document.createElement("p");
-			APILabel.style.textAlign = "center";
-			APILabel.style.marginBottom = "5px";
-			APILabel.style.fontSize = "16px";
-			APILabel.appendChild(document.createTextNode("API Key: "));
-			APIInputWrapper.appendChild(APILabel);
-	
-			const APIInput = document.createElement("input");
-			APIInput.placeholder = "Input here the key...";
-			APIInput.type = "text";
-			APIInput.id = "apiInput";
-			APIInput.style.fontSize = "15px";
-			APIInput.style.width = "100%";
-			APIInputWrapper.appendChild(APIInput);
+						// key input
+						const APIInputWrapper = document.createElement("div");
+						APIInputWrapper.classList.add("apiKey_wrapper");
+						main.appendChild(APIInputWrapper);
 
-			// submit button
-			const button = document.createElement("div");
-			button.appendChild(document.createTextNode("Submit"));
-			button.classList.add("button");
-			button.id = "submit";
-			APIInputWrapper.appendChild(button);
+						const APILabel = document.createElement("p");
+						APILabel.style.textAlign = "center";
+						APILabel.style.marginBottom = "5px";
+						APILabel.style.fontSize = "16px";
+						APILabel.appendChild(document.createTextNode("API Key: "));
+						APIInputWrapper.appendChild(APILabel);
 
-			// what is an api key
-			const whatIsAPIKey = document.createElement("div");
-			whatIsAPIKey.style.marginTop = "2px";
-			APIInputWrapper.appendChild(whatIsAPIKey);
-			const whatIsAPIKeyLink = document.createElement("a");
-			whatIsAPIKeyLink.href = "#";
-			whatIsAPIKeyLink.id = "whatIsAPIKey";
-			whatIsAPIKeyLink.appendChild(document.createTextNode("What is an API Key?"));
-			whatIsAPIKey.appendChild(whatIsAPIKeyLink);
-		}
-		else {
-			const userInfo = userData["wkhighlight_userInfo"]["data"];
-			if (userInfo) {
-				const userInfoWrapper = document.createElement("div");
-				userInfoWrapper.style.margin = "0 7px";
-				main.appendChild(userInfoWrapper);
+						const APIInput = document.createElement("input");
+						APIInput.placeholder = "Input here the key...";
+						APIInput.type = "text";
+						APIInput.id = "apiInput";
+						APIInput.style.fontSize = "15px";
+						APIInput.style.width = "100%";
+						APIInputWrapper.appendChild(APIInput);
 
-				const userElementsList = document.createElement("ul");
-				userElementsList.id = "userInfoNavbar";
-				userInfoWrapper.appendChild(userElementsList);
-				const signout = document.createElement("li");
-				signout.style.textAlign = "right";
-				const signoutLink = document.createElement("a");
-				signoutLink.id = "signout";
-				signoutLink.href = "#";
-				signoutLink.appendChild(document.createTextNode("Logout"));
-				signout.appendChild(signoutLink);
-				userElementsList.appendChild(signout);
+						// submit button
+						const button = document.createElement("div");
+						button.appendChild(document.createTextNode("Submit"));
+						button.classList.add("button");
+						button.id = "submit";
+						APIInputWrapper.appendChild(button);
 
-				const greetings = document.createElement("li");
-				greetings.innerHTML = `Hello, <a href="${userInfo["profile_url"]}" target="_blank">${userInfo["username"]}</a>!`;
-				userElementsList.appendChild(greetings);
+						// what is an api key
+						const whatIsAPIKey = document.createElement("div");
+						whatIsAPIKey.style.marginTop = "2px";
+						APIInputWrapper.appendChild(whatIsAPIKey);
+						const whatIsAPIKeyLink = document.createElement("a");
+						whatIsAPIKeyLink.href = "#";
+						whatIsAPIKeyLink.id = "whatIsAPIKey";
+						whatIsAPIKeyLink.appendChild(document.createTextNode("What is an API Key?"));
+						whatIsAPIKey.appendChild(whatIsAPIKeyLink);
+					}
+					else {
+						const userInfo = userData["wkhighlight_userInfo"]["data"];
+						if (userInfo) {
+							//const loggedInWrapper = document.createElement("div");
+							//main.appendChild(loggedInWrapper);
 
-				const level = document.createElement("li");
-				level.innerHTML = `Level: <strong>${userInfo["level"]}</strong> / ${userInfo["subscription"]["max_level_granted"]}`;
-				userElementsList.appendChild(level);
-				
-				chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-					var activeTab = tabs[0];
-					chrome.tabs.sendMessage(activeTab.id, {nmrKanjiHighlighted: "popup"}, response => {
-						const nmrKanjiHighlighted = response ? response["nmrKanjiHighlighted"] : 0;
-						const kanjiFound = document.createElement("li");
-						kanjiFound.id = "nmrKanjiHighlighted";
-						kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${nmrKanjiHighlighted}</strong> (in the page)`;
-						userElementsList.appendChild(kanjiFound);
-					});
-				});
-			}
-		}
+							const userInfoWrapper = document.createElement("div");
+							userInfoWrapper.style.margin = "0 7px";
+							main.appendChild(userInfoWrapper);
+
+							const userElementsList = document.createElement("ul");
+							userElementsList.id = "userInfoNavbar";
+							userInfoWrapper.appendChild(userElementsList);
+							const topRightNavbar = document.createElement("li");
+							userElementsList.appendChild(topRightNavbar);
+							topRightNavbar.style.textAlign = "right";
+							topRightNavbar.style.marginBottom = "7px";
+							["settings", "signout"].forEach(title => {
+								const link = document.createElement("a");
+								link.style.padding = "0 5px";
+								link.id = title;
+								link.href = "#";
+								link.appendChild(document.createTextNode(title.charAt(0).toUpperCase()+title.slice(1)));
+								topRightNavbar.appendChild(link);
+							});
+
+							const greetings = document.createElement("li");
+							greetings.innerHTML = `Hello, <a href="${userInfo["profile_url"]}" target="_blank">${userInfo["username"]}</a>!`;
+							userElementsList.appendChild(greetings);
+
+							const level = document.createElement("li");
+							level.innerHTML = `Level: <strong>${userInfo["level"]}</strong> / ${userInfo["subscription"]["max_level_granted"]}`;
+							userElementsList.appendChild(level);
+							
+							chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+								var activeTab = tabs[0];
+								chrome.tabs.sendMessage(activeTab.id, {nmrKanjiHighlighted: "popup"}, response => {
+									if (response) {
+										const nmrKanjiHighlighted = response["nmrKanjiHighlighted"] ? response["nmrKanjiHighlighted"] : 0;
+										const kanjiFound = document.createElement("li");
+										kanjiFound.id = "nmrKanjiHighlighted";
+										kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${nmrKanjiHighlighted}</strong> (in the page)`;
+										userElementsList.appendChild(kanjiFound);
+									}
+								});
+							});
+
+							const blacklistButtonWrapper = document.createElement("div");
+							userInfoWrapper.appendChild(blacklistButtonWrapper);
+							const blacklistButton = document.createElement("div");
+							blacklistButton.id = "blacklistButton";
+							blacklistButtonWrapper.appendChild(blacklistButton);
+							blacklistButton.classList.add("button");
+							blacklistButton.style.margin = "16px 0";
+							blacklistButton.appendChild(document.createTextNode("Don't Run On This Site"));
+						}
+					}
+				}
+				else {
+					const blacklistWrapper = document.createElement("div");
+					main.appendChild(blacklistWrapper);
+
+					const warningWrapper = document.createElement("div");
+					blacklistWrapper.appendChild(warningWrapper);
+					warningWrapper.id = "warningWrapper";
+					const exclamationMark = document.createElement("span");
+					warningWrapper.appendChild(exclamationMark);
+					exclamationMark.appendChild(document.createTextNode("!"));
+					exclamationMark.style.color = "#dc6560";
+					exclamationMark.style.fontSize = "40px";
+					const warningMessage = document.createElement("p");
+					warningWrapper.appendChild(warningMessage);
+					warningMessage.appendChild(document.createTextNode("This page was blacklisted by you."));
+					warningMessage.style.fontSize = "18px";
+
+					const warningButton = document.createElement("div");
+					
+					warningButton.classList.add("button");
+					blacklistWrapper.appendChild(warningButton);
+					warningButton.appendChild(document.createTextNode("Run Highlighter On This Page"));
+					warningButton.id = "runHighlighterButton";
+				}
+			});
+		});
+		
 		document.body.appendChild(footer());
 
 	});
@@ -221,11 +277,47 @@ const submitAction = () => {
 	}
 }
 
+const secundaryPage = (titleText) => {
+	document.body.style.width = "250px";
+
+	document.getElementById("main").style.display = "none";
+
+	const main = document.createElement("div");
+	main.id = "secPageMain";
+	document.body.prepend(main); 
+
+	const navbar = document.createElement("div");
+	navbar.classList.add("topNav");
+	main.appendChild(navbar);
+
+	// go back arrow
+	const arrowWrapper = document.createElement("div");
+	arrowWrapper.id = "goBack"
+	const arrow = document.createElement("i");
+	arrow.classList.add("left");
+	arrow.style.padding = "4px";
+	arrowWrapper.appendChild(arrow);
+	navbar.appendChild(arrowWrapper); 
+
+	const title = document.createElement("h3");
+	title.style.margin = "0 0 0 10px";
+	title.appendChild(document.createTextNode(titleText));
+	navbar.appendChild(title);
+
+	const content = document.createElement("div");
+	content.style.paddingTop = "20px";
+	main.appendChild(content);
+
+	return content;
+}
+
 document.addEventListener("click", e => {
-	if (e.target.id === "submit")
+	const targetElem = e.target;
+
+	if (targetElem.id === "submit")
 		submitAction();
 
-	if (e.target.id === "reloadPage") {
+	if (targetElem.id === "reloadPage") {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			var activeTab = tabs[0];
 			chrome.tabs.sendMessage(activeTab.id, {reloadPage:"true"});
@@ -233,36 +325,8 @@ document.addEventListener("click", e => {
 		});
 	}
 
-	if (e.target.id === "whatIsAPIKey") {
-		document.body.style.width = "250px";
-
-		document.getElementById("main").style.display = "none";
-		
-		const main = document.createElement("div");
-		main.id = "whatIsAPIKeyMain";
-		document.body.prepend(main); 
-
-		const navbar = document.createElement("div");
-		navbar.classList.add("topNav");
-		main.appendChild(navbar);
-
-		// go back arrow
-		const arrowWrapper = document.createElement("div");
-		arrowWrapper.id = "goBack"
-		const arrow = document.createElement("i");
-		arrow.classList.add("left");
-		arrow.style.padding = "4px";
-		arrowWrapper.appendChild(arrow);
-		navbar.appendChild(arrowWrapper); 
-
-		const title = document.createElement("h3");
-		title.style.margin = "0 0 0 10px";
-		title.appendChild(document.createTextNode("API Key"));
-		navbar.appendChild(title);
-
-		const content = document.createElement("div");
-		content.style.paddingTop = "20px";
-		main.appendChild(content);
+	if (targetElem.id === "whatIsAPIKey") {
+		const content = secundaryPage("API Key");
 
 		for (const text of ["A WaniKani API Key is a token that is meant to give you access to all the content provided by WaniKani through a third party application (like this one).", "You can create your API Key on <a href='https://www.wanikani.com/' target='_blank'>WaniKani official website</a> through the following steps:"]) {
 			const pWrapper = document.createElement("div");
@@ -292,17 +356,179 @@ document.addEventListener("click", e => {
 		}
 	}
 
-	if (e.target.id === "goBack" || e.target.localName === "i") {
-		document.getElementById("whatIsAPIKeyMain").remove();
+	if (targetElem.id === "goBack" || targetElem.localName === "i") {
+		document.getElementById("secPageMain").remove();
 		document.getElementById("main").style.display = "inherit";
 		document.body.style.width = "173px";
 	}
 
-	if (e.target.id === "signout") {
+	if (targetElem.id === "signout") {
 		const main = document.getElementById("main");
 		chrome.storage.local.remove("wkhighlight_apiKey");
 		if (main) {
 			main.replaceChild(reloadPage("Logout successfully", "green"), main.childNodes[1]);
+		}
+	}
+
+	if (targetElem.id === "blacklistButton") {
+		chrome.storage.local.get(["wkhighlight_blacklist"], blacklist => {
+			let blacklistedUrls = blacklist["wkhighlight_blacklist"] ? blacklist["wkhighlight_blacklist"] : [];
+			chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+				var activeTab = tabs[0];
+				chrome.tabs.sendMessage(activeTab.id, {windowLocation: "host"}, response => {
+					if (response["windowLocation"]) {
+						blacklistedUrls.push(response["windowLocation"].replace("www.", "").replace(".", "\\."));
+						chrome.storage.local.set({"wkhighlight_blacklist":blacklistedUrls});
+						const main = document.getElementById("main");
+						if (main) {
+							main.replaceChild(reloadPage(`Extension DEACTIVATED on: <div class="locationDiv"><span>${response["windowLocation"]}</span></div>`, "green"), main.childNodes[1]);
+						}
+					}
+				});
+			});
+		}); 
+	}
+
+	if (targetElem.id === "runHighlighterButton") {
+		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+			var activeTab = tabs[0];
+			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "host"}, response => {
+				if (response["windowLocation"]) {
+					const location = response["windowLocation"];
+					chrome.storage.local.get(["wkhighlight_blacklist"], data => {
+						let blacklisted = data["wkhighlight_blacklist"];
+						let index = blacklisted.indexOf(location.replace("www.", "").replace(".", "\\."))
+						console.log(blacklisted);
+						console.log(index);
+						blacklisted.splice(index,1);
+						console.log(blacklisted);
+						chrome.storage.local.set({"wkhighlight_blacklist": blacklisted});
+						const main = document.getElementById("main");
+						if (main) {
+							main.replaceChild(reloadPage(`Extension ACTIVATED on <div class="locationDiv"><span>${location}</span></div>`, "green"), main.childNodes[1]);
+						}
+					});
+				}
+			});
+		});
+	}
+
+	if (targetElem.id === "settings") {
+		const content = secundaryPage("Settings");
+		content.id = "settingsContent";
+		
+		const blacklistedDiv = document.createElement("div");
+		content.appendChild(blacklistedDiv);
+		const blackListedlink = document.createElement("a");
+		blacklistedDiv.appendChild(blackListedlink);
+		blackListedlink.href = "#";
+		blackListedlink.id = "blacklistedSitesList";
+		blackListedlink.appendChild(document.createTextNode("Blacklisted sites"));
+		const arrow = document.createElement("i");
+		blackListedlink.appendChild(arrow);
+		arrow.className = "down linkArrow";
+		arrow.style.padding = "3px";
+		arrow.style.marginBottom = "3px";
+		arrow.style.marginLeft = "5px";
+
+		const settingsChecks = document.createElement("div");
+		settingsChecks.style.display = "grid";
+		content.appendChild(settingsChecks);
+		count = 0;
+		chrome.storage.local.get(["wkhighlight_settings"], data => {
+			let settings = data["wkhighlight_settings"];
+			if (settings) {
+				["Kanji info popup"].forEach(title => {
+					const div = document.createElement("div");
+					settingsChecks.appendChild(div);
+					div.style.display = "inline-flex";
+					div.style.padding = "3px 0";
+		
+					const titleDiv = document.createElement("div");
+					div.appendChild(titleDiv);
+					titleDiv.appendChild(document.createTextNode(title));
+		
+					const checkbox = document.createElement("input");
+					div.appendChild(checkbox);
+					checkbox.checked = settings[count];
+					checkbox.type = "checkbox";
+					checkbox.id = "settings"+(count++);
+					checkbox.classList.add("settingsItemCheckbox");
+				});
+			}
+		});
+
+		const dangerZone = document.createElement("div");
+		content.appendChild(dangerZone);
+
+		const clearCash = document.createElement("div");
+		dangerZone.appendChild(clearCash);
+		clearCash.classList.add("dangerItem");
+		const clearCashButton = document.createElement("div");
+		clearCash.appendChild(clearCashButton);
+		clearCashButton.classList.add("button");
+		clearCashButton.id = "clearCash";
+		clearCashButton.appendChild(document.createTextNode("Clear Cash"));
+		const clearCashDescription = document.createElement("div");
+		clearCash.appendChild(clearCashDescription);
+		clearCashDescription.classList.add("dangerItemDescription");
+		clearCashDescription.appendChild(document.createTextNode("Clears local data. This won't affect your WaniKani account!"));
+
+	}
+
+	if (targetElem.className === "settingsItemCheckbox") {
+		chrome.storage.local.get(["wkhighlight_settings"], data => {
+			let settings = data["wkhighlight_settings"];
+			if (!settings) {
+				settings = {};
+			}
+			settings[targetElem.id.replace("settings", "")] = targetElem.checked;
+			chrome.storage.local.set({"wkhighlight_settings":settings});
+		});
+	}
+
+	if (targetElem.id === "clearCash") {
+		chrome.storage.local.get(null, data => {
+			let keysToRemove = [];
+			Object.keys(data).forEach(key => {
+				if (/^wkhighlight_.*/g.test(key)) {
+					keysToRemove.push(key);
+				}
+			});
+			chrome.storage.local.remove(keysToRemove, () => alert("Local data cleared! This didn't affect your WaniKani account!"));
+		});
+	}
+
+	if (targetElem.id === "blacklistedSitesList") {
+		const wrapper = document.getElementById("blacklistedSitesWrapper");
+		if (!wrapper) {
+			const parent = targetElem.parentElement;
+
+			const blacklistedSitesList = document.createElement("div");
+			parent.appendChild(blacklistedSitesList);
+			blacklistedSitesList.id = "blacklistedSitesWrapper";
+			chrome.storage.local.get(["wkhighlight_blacklist"], result => {
+				const blacklisted = result["wkhighlight_blacklist"];
+				if (blacklisted) {
+					blacklisted.forEach(site => {
+						site = site.replace("\\.", ".");
+						const a = document.createElement("a");
+						a.target = "_black";
+						a.href = "https://www."+site;
+						a.appendChild(document.createTextNode(site));
+						blacklistedSitesList.appendChild(a);
+					});
+				}
+				
+				if (!blacklisted || blacklisted.length === 0) {
+					const p = document.createElement("p");
+					blacklistedSitesList.appendChild(p);
+					p.appendChild(document.createTextNode("There are no sites blacklisted!"));
+				}
+			});
+		}
+		else {
+			wrapper.remove();
 		}
 	}
 });

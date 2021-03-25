@@ -99,10 +99,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.key === "down")
 		clearInterval(request.intervalFunction);
 
-	if (request.nmrKanjiHighlighted === "popup") {
-		console.log("here");
+	// if extension pooup is asking for number of highlighted kanji
+	if (request.nmrKanjiHighlighted === "popup")
 		sendResponse({nmrKanjiHighlighted: totalHighlightedKanji});
-	}
 });
 
 // message to the background saying a key was pressed

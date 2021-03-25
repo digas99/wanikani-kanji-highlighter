@@ -37,20 +37,23 @@ document.addEventListener("mouseover", e => {
 
 	// parse tags specific to wanikani
 	const parseTags = string => {
-		const tags = ["radical", "kanji", "reading", "ja"];
-		const filter = string.split(/[<>\/]+/g);
 		let finalString = "";
-		let tagOpen = false;
-		filter.forEach(substring => {
-			if (!tags.includes(substring)) {
-				if (tagOpen)
-					finalString += `<span class="wkhighlighter_${tagOpen}Tag">${substring}</span>`;
+		if (string) {
+			const tags = ["radical", "kanji", "reading", "ja"];
+			const filter = string.split(/[<>\/]+/g);
+			let tagOpen = false;
+			filter.forEach(substring => {
+				if (!tags.includes(substring)) {
+					if (tagOpen)
+						finalString += `<span class="wkhighlighter_${tagOpen}Tag">${substring}</span>`;
+					else
+						finalString += substring;
+				}
 				else
-					finalString += substring;
-			}
-			else
-				tagOpen = !tagOpen ? substring : false;
-		});
+					tagOpen = !tagOpen ? substring : false;
+			});
+		}
+
 		return finalString;
 	}
 
@@ -141,7 +144,7 @@ document.addEventListener("mouseover", e => {
 		chrome.storage.local.get(["wkhighlight_kanji_assoc"], data => {
 			const kanjiID = data["wkhighlight_kanji_assoc"][kanji];
 			const kanjiInfo = allKanji[kanjiID];
-			chrome.storage.local.set({"currentKanjiInfo": kanjiInfo});
+			chrome.storage.local.set({"wkhighlight_currentKanjiInfo": kanjiInfo});
 			const readings = kanjiInfo.readings;
 
 			const ul = document.createElement("ul");
@@ -176,8 +179,8 @@ document.addEventListener("mouseover", e => {
 			if (infoInPopup) {
 				detailsPopup.childNodes[0].classList.add("wkhighlighter_focusPopup_kanji");
 				detailsPopup.childNodes[0].style.width = detailsPopup.offsetWidth+"px";
-				chrome.storage.local.get(["currentKanjiInfo"], info => {
-					detailsPopup.replaceChild(createKanjiDetailedInfo(info["currentKanjiInfo"]), detailsPopup.childNodes[1]);
+				chrome.storage.local.get(["wkhighlight_currentKanjiInfo"], info => {
+					detailsPopup.replaceChild(createKanjiDetailedInfo(info["wkhighlight_currentKanjiInfo"]), detailsPopup.childNodes[1]);
 				});
 				infoInPopup = true;
 			}
@@ -196,8 +199,8 @@ document.addEventListener("mouseover", e => {
 			detailsPopup.style.maxHeight = window.innerHeight+"px";
 		}, 300);
 
-		chrome.storage.local.get(["currentKanjiInfo"], info => {
-			detailsPopup.appendChild(createKanjiDetailedInfo(info["currentKanjiInfo"]));
+		chrome.storage.local.get(["wkhighlight_currentKanjiInfo"], info => {
+			detailsPopup.appendChild(createKanjiDetailedInfo(info["wkhighlight_currentKanjiInfo"]));
 		});
 		infoInPopup = true;
 	}
