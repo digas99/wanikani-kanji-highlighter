@@ -65,10 +65,16 @@ document.addEventListener("mouseover", e => {
 			const li = document.createElement("li");
 			li.classList.add(className);
 			wrapper.appendChild(li);
-			
 
 			const p = document.createElement("p");
 			const thisKanjiData = kanjisData[ID];
+
+			const a = document.createElement("a");
+			a.target = "_blank";
+			a.href = thisKanjiData["document_url"];
+			a.style.color = "black";
+			a.style.textDecoration = "none";
+
 			if (thisKanjiData.characters)
 				p.appendChild(document.createTextNode(thisKanjiData.characters));
 			else {
@@ -79,7 +85,8 @@ document.addEventListener("mouseover", e => {
 				p.appendChild(img);
 			}
 			p.className = "wkhighlighter_detailsPopup_cards wkhighlighter_highlighted";
-			li.appendChild(p);
+			li.appendChild(a);
+			a.appendChild(p);
 			const kanjiLevel = document.createElement("div");
 			kanjiLevel.classList.add("kanjiLevelCard");
 			li.appendChild(kanjiLevel);
@@ -159,7 +166,6 @@ document.addEventListener("mouseover", e => {
 		chrome.storage.local.get(["wkhighlight_kanji_assoc"], data => {
 			const kanjiID = data["wkhighlight_kanji_assoc"][kanji];
 			const kanjiInfo = allKanji[kanjiID];
-			console.log(kanjiInfo.document_url);
 			kanjiLink.href = kanjiInfo.document_url;
 			chrome.storage.local.set({"wkhighlight_currentKanjiInfo": kanjiInfo});
 			const readings = kanjiInfo.readings;

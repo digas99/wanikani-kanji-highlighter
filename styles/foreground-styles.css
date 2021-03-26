@@ -154,20 +154,19 @@
 	display: inline-flex;
 	box-shadow: rgb(0 0 0) 0px 4px 0px 2px;
 	position: relative;
-}
-
-.wkhighlighter_detailsPopup_usedRadicals_row {
-	background-color: #45ffe7;
-	cursor: default;
-}
-
-.wkhighlighter_detailsPopup_similarKanji_row {
-	background-color: #fff700;
 	cursor: pointer;
 	transition: 0.2s;
 }
 
-.wkhighlighter_detailsPopup_similarKanji_row:hover {
+.wkhighlighter_detailsPopup_usedRadicals_row {
+	background-color: #45ffe7;
+}
+
+.wkhighlighter_detailsPopup_similarKanji_row {
+	background-color: #fff700;
+}
+
+.wkhighlighter_detailsPopup_similarKanji_row:hover, .wkhighlighter_detailsPopup_usedRadicals_row:hover {
 	transform: scale(1.1);
 }
 

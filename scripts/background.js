@@ -6,6 +6,8 @@ const unwantedTags = ["html", "body", "head", "title", "style", "link", "meta", 
 const functionDelay = "2000";
 const highlightingClass = "wkhighlighter_highlighted";
 
+let injectedHighlighter = false;
+
 let settings;
 // set settings
 const setSettings = () => {
@@ -30,22 +32,6 @@ const blacklisted = (blacklist, url) => {
 // check if tab url is not any type of chrome:// or chrome-___:// or devtools:// with regex
 const canInject = tabInfo => (tabInfo.url && !urlChecker.test(tabInfo.url)) || (tabInfo.pendingUrl && !urlChecker.test(tabInfo.pendingUrl));
 
-// tabs.onCreated.addListener(tab => {
-// 	tabs.get(tab.id, tabInfo => {
-// 		if (canInject(tabInfo)) {
-// 			thisTabId = tab.id;
-// 			tabs.executeScript(null, {file: 'scripts/highlight.js'}, () => {
-// 				console.log("Higlighting...");
-// 				tabs.sendMessage(thisTabId, {
-// 					functionDelay: functionDelay, 
-// 					values: ["a","e","i","o","u"],
-// 					unwantedTags: unwantedTags,
-// 					highlightingClass: highlightingClass
-// 				});
-// 			});
-// 		}
-// 	});
-// });
 // fetch a single page from the WaniKani API
 const fetchPage = async (apiToken, page) => {				
 	const requestHeaders = new Headers({Authorization: `Bearer ${apiToken}`});
@@ -101,6 +87,7 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 		if (settings["0"])
 			tabs.executeScript(null, {file: 'scripts/details-popup.js'}, () => chrome.runtime.lastError);
 		tabs.executeScript(null, {file: 'scripts/highlight.js'}, () => {
+			injectedHighlighter = true;
 			tabs.sendMessage(thisTabId, {
 				functionDelay: functionDelay, 
 				values: kanji,
@@ -114,6 +101,24 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	.catch(errorHandling);
 }
 
+tabs.onActivated.addListener(activeInfo => {
+	const tabId = activeInfo["tabId"];
+	if (settings["1"] && injectedHighlighter) {
+		tabs.sendMessage(tabId, {nmrKanjiHighlighted:"popup"}, response => {
+			if (!window.chrome.runtime.lastError) {
+				if (response) {
+					const value = response["nmrKanjiHighlighted"];
+					chrome.browserAction.setBadgeText({text:value >= 99 ? "99" : value.toString()});
+				}
+			}
+			else
+				chrome.browserAction.setBadgeText({text: "0"});
+
+			chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
+		});
+	}
+});
+
 tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 	if (canInject(tabInfo)) {
 		setSettings();
@@ -126,8 +131,10 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 						if (key["wkhighlight_apiKey"]) {
 							apiToken = key["wkhighlight_apiKey"];
 		
-							chrome.browserAction.setBadgeText({text: "0"});
-							chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
+							if (settings["1"]) {
+								chrome.browserAction.setBadgeText({text: "0"});
+								chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
+							}
 							
 							// see if all kanji is already saved in storage
 							chrome.storage.local.get(['wkhighlight_allkanji', 'wkhighlight_allradicals'], result => {
@@ -212,7 +219,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.popupDetails)
 		tabs.sendMessage(thisTabId, {popupDetails: request.popupDetails});
 
-	if (request.badge) {
+	if (request.badge && settings["1"]) {
 		chrome.browserAction.setBadgeText({text: request.badge.toString()});
 		chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
 	}

@@ -80,8 +80,6 @@ window.onload = () => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			var activeTab = tabs[0];
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, response => {
-				console.log(userData);
-				console.log(response);
 				if (!window.chrome.runtime.lastError && (!userData["wkhighlight_blacklist"] || userData["wkhighlight_blacklist"].length === 0 || !blacklisted(userData["wkhighlight_blacklist"], response["windowLocation"]))) {
 					// if the user did not add a key yet
 					if (!userData["wkhighlight_apiKey"]) {
@@ -313,6 +311,7 @@ const secundaryPage = (titleText) => {
 
 document.addEventListener("click", e => {
 	const targetElem = e.target;
+	console.log(targetElem);
 
 	if (targetElem.id === "submit")
 		submitAction();
@@ -404,6 +403,7 @@ document.addEventListener("click", e => {
 						if (main) {
 							main.replaceChild(reloadPage(`Extension ACTIVATED on <div class="locationDiv"><span>${location}</span></div>`, "green"), main.childNodes[1]);
 						}
+						chrome.browserAction.setBadgeText({text: ''});
 					});
 				}
 			});
@@ -421,12 +421,6 @@ document.addEventListener("click", e => {
 		blackListedlink.href = "#";
 		blackListedlink.id = "blacklistedSitesList";
 		blackListedlink.appendChild(document.createTextNode("Blacklisted sites"));
-		const arrow = document.createElement("i");
-		blackListedlink.appendChild(arrow);
-		arrow.className = "down linkArrow";
-		arrow.style.padding = "3px";
-		arrow.style.marginBottom = "3px";
-		arrow.style.marginLeft = "5px";
 
 		const settingsChecks = document.createElement("div");
 		settingsChecks.style.display = "grid";
@@ -479,7 +473,13 @@ document.addEventListener("click", e => {
 			if (!settings) {
 				settings = {};
 			}
-			settings[targetElem.id.replace("settings", "")] = targetElem.checked;
+			const settingsID = targetElem.id.replace("settings", "");
+			
+			// if user removed badges in settings
+			if (settingsID === "1" && !targetElem.checked)
+				chrome.browserAction.setBadgeText({text: ''});
+			
+			settings[settingsID] = targetElem.checked;
 			chrome.storage.local.set({"wkhighlight_settings":settings});
 		});
 	}
@@ -496,7 +496,7 @@ document.addEventListener("click", e => {
 		});
 	}
 
-	if (targetElem.id === "blacklistedSitesList") {
+	if (targetElem.id === "blacklistedSitesList" || targetElem.parentElement.id === "blacklistedSitesList") {
 		const wrapper = document.getElementById("blacklistedSitesWrapper");
 		if (!wrapper) {
 			const parent = targetElem.parentElement;
