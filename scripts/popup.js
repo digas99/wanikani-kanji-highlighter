@@ -431,11 +431,11 @@ document.addEventListener("click", e => {
 		const settingsChecks = document.createElement("div");
 		settingsChecks.style.display = "grid";
 		content.appendChild(settingsChecks);
-		count = 0;
+		let count = 0;
 		chrome.storage.local.get(["wkhighlight_settings"], data => {
 			let settings = data["wkhighlight_settings"];
 			if (settings) {
-				["Kanji info popup"].forEach(title => {
+				["Kanji info popup", "Kanji counter on icon"].forEach(title => {
 					const div = document.createElement("div");
 					settingsChecks.appendChild(div);
 					div.style.display = "inline-flex";

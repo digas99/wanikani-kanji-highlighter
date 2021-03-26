@@ -134,6 +134,18 @@
     margin: 0;
 }
 
+.kanjiLevelCard {
+	position: absolute;
+    right: -10px;
+    bottom: -15px;
+    background: white;
+    border: 2px solid black;
+    padding: 3px;
+    font-weight: bold;
+    box-shadow: 0px 3px 0px 0px black;
+    border-radius: 4px;
+}
+
 .wkhighlighter_detailsPopup_usedRadicals_row, .wkhighlighter_detailsPopup_similarKanji_row{
     padding: 5px;
     margin: 7px;
@@ -141,6 +153,7 @@
 	border-radius: 2px;
 	display: inline-flex;
 	box-shadow: rgb(0 0 0) 0px 4px 0px 2px;
+	position: relative;
 }
 
 .wkhighlighter_detailsPopup_usedRadicals_row {

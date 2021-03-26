@@ -65,21 +65,25 @@ document.addEventListener("mouseover", e => {
 			const li = document.createElement("li");
 			li.classList.add(className);
 			wrapper.appendChild(li);
+			
 
 			const p = document.createElement("p");
-			const kanjiChar = kanjisData[ID].characters;
-			if (kanjiChar)
-				p.appendChild(document.createTextNode(kanjiChar));
+			const thisKanjiData = kanjisData[ID];
+			if (thisKanjiData.characters)
+				p.appendChild(document.createTextNode(thisKanjiData.characters));
 			else {
 				const img = document.createElement("img");
-				console.log(kanjisData[ID]);
-				const svgs = kanjisData[ID].character_images.filter(img => img["content_type"] === "image/png" && img["metadata"]["dimensions"] === "64x64");
+				const svgs = thisKanjiData.character_images.filter(img => img["content_type"] === "image/png" && img["metadata"]["dimensions"] === "64x64");
 				img.src = svgs[0].url;
 				img.style.width = "40px";
 				p.appendChild(img);
 			}
 			p.className = "wkhighlighter_detailsPopup_cards wkhighlighter_highlighted";
 			li.appendChild(p);
+			const kanjiLevel = document.createElement("div");
+			kanjiLevel.classList.add("kanjiLevelCard");
+			li.appendChild(kanjiLevel);
+			kanjiLevel.appendChild(document.createTextNode(thisKanjiData.level));
 		});
 
 		return kanjiIDs.length > 0 ? wrapper : document.createDocumentFragment();
@@ -145,13 +149,18 @@ document.addEventListener("mouseover", e => {
 		//mainWrapper.style.pointerEvents = "none";
 
 		const kanji = node.textContent;
+		const kanjiLink = document.createElement("a");
+		kanjiLink.target = "_blank";
 		const mainChar = document.createElement("p");
+		kanjiLink.appendChild(mainChar);
 		mainChar.appendChild(document.createTextNode(kanji));
 		mainChar.className = "wkhighlighter_detailsPopup_kanji wkhighlighter_highlighted";
 
 		chrome.storage.local.get(["wkhighlight_kanji_assoc"], data => {
 			const kanjiID = data["wkhighlight_kanji_assoc"][kanji];
 			const kanjiInfo = allKanji[kanjiID];
+			console.log(kanjiInfo.document_url);
+			kanjiLink.href = kanjiInfo.document_url;
 			chrome.storage.local.set({"wkhighlight_currentKanjiInfo": kanjiInfo});
 			const readings = kanjiInfo.readings;
 
@@ -171,7 +180,7 @@ document.addEventListener("mouseover", e => {
 			ul.appendChild(on);
 			ul.appendChild(kun);
 			
-			mainWrapper.appendChild(mainChar);
+			mainWrapper.appendChild(kanjiLink);
 			mainWrapper.appendChild(ul);
 
 			// replace kanji and readings

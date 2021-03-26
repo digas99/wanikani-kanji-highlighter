@@ -13,7 +13,7 @@ const setSettings = () => {
 		settings = result["wkhighlight_settings"];
 		if (!settings) {
 			settings = {};
-			[true].forEach((value, i) => settings[i] = value);
+			[true, true].forEach((value, i) => settings[i] = value);
 		}
 		chrome.storage.local.set({"wkhighlight_settings":settings});
 	});
