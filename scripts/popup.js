@@ -80,8 +80,9 @@ window.onload = () => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			var activeTab = tabs[0];
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, response => {
+				const url = response["windowLocation"];
 				if (!window.chrome.runtime.lastError) {
-					if (!userData["wkhighlight_blacklist"] || userData["wkhighlight_blacklist"].length === 0 || !blacklisted(userData["wkhighlight_blacklist"], response["windowLocation"])) {
+					if (!userData["wkhighlight_blacklist"] || userData["wkhighlight_blacklist"].length === 0 || !blacklisted(userData["wkhighlight_blacklist"], url)) {
 						const apiKey = userData["wkhighlight_apiKey"];
 						// if the user did not add a key yet
 						if (!apiKey) {
@@ -172,18 +173,26 @@ window.onload = () => {
 											level.innerHTML = `Level: <strong>${userInfo["level"]}</strong> / ${userInfo["subscription"]["max_level_granted"]}`;
 											userElementsList.appendChild(level);
 											
-											chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-												var activeTab = tabs[0];
-												chrome.tabs.sendMessage(activeTab.id, {nmrKanjiHighlighted: "popup"}, response => {
-													if (!window.chrome.runtime.lastError && response) {
-														const nmrKanjiHighlighted = response["nmrKanjiHighlighted"] ? response["nmrKanjiHighlighted"] : 0;
-														const kanjiFound = document.createElement("li");
-														kanjiFound.id = "nmrKanjiHighlighted";
-														kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${nmrKanjiHighlighted}</strong> (in the page)`;
-														userElementsList.appendChild(kanjiFound);
-													}
+											if (!/.*wanikani\.com.*/g.test(url)) {
+												chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+													var activeTab = tabs[0];
+													chrome.tabs.sendMessage(activeTab.id, {nmrKanjiHighlighted: "popup"}, response => {
+														if (!window.chrome.runtime.lastError && response) {
+															const nmrKanjiHighlighted = response["nmrKanjiHighlighted"] ? response["nmrKanjiHighlighted"] : 0;
+															const kanjiFound = document.createElement("li");
+															kanjiFound.id = "nmrKanjiHighlighted";
+															kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${nmrKanjiHighlighted}</strong> (in the page)`;
+															userElementsList.appendChild(kanjiFound);
+														}
+													});
 												});
-											});
+											}
+											else {
+												const notRunAtWK = document.createElement("li");
+												notRunAtWK.appendChild(document.createTextNode("I don't run @wanikani, sorry!"));
+												notRunAtWK.id = "notRunAtWK";
+												userElementsList.appendChild(notRunAtWK);
+											}
 				
 											const blacklistButtonWrapper = document.createElement("div");
 											userInfoWrapper.appendChild(blacklistButtonWrapper);

@@ -88,93 +88,107 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 
 tabs.onActivated.addListener(activeInfo => {
 	const tabId = activeInfo["tabId"];
-	if (settings["1"] && injectedHighlighter) {
-		tabs.sendMessage(tabId, {nmrKanjiHighlighted:"popup"}, response => {
-			if (!window.chrome.runtime.lastError) {
-				if (response) {
-					const value = response["nmrKanjiHighlighted"];
-					chrome.browserAction.setBadgeText({text:value >= 99 ? "99" : value.toString()});
-				}
+	chrome.tabs.get(tabId, response => {
+		if (!/.*wanikani\.com.*/g.test(response["url"])) {
+			if (settings["1"] && injectedHighlighter) {
+				tabs.sendMessage(tabId, {nmrKanjiHighlighted:"popup"}, response => {
+					if (!window.chrome.runtime.lastError) {
+						if (response) {
+							const value = response["nmrKanjiHighlighted"];
+							chrome.browserAction.setBadgeText({text:value >= 99 ? "99" : value.toString()});
+						}
+					}
+					else
+						chrome.browserAction.setBadgeText({text: "0"});
+		
+					chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
+				});
 			}
-			else
-				chrome.browserAction.setBadgeText({text: "0"});
-
-			chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
-		});
-	}
+		}
+		else {
+			chrome.browserAction.setBadgeText({text: "W"});
+			chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1"});
+		}
+	});
 });
 
 tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 	if (canInject(tabInfo)) {
-		setSettings();
-		chrome.storage.local.get(["wkhighlight_blacklist"], blacklist => {
-			// check if the site is blacklisted
-			if (!blacklist["wkhighlight_blacklist"] || blacklist["wkhighlight_blacklist"].length === 0 || !blacklisted(blacklist["wkhighlight_blacklist"], tabInfo.url)) {
-				thisTabId = tabId;
-				if (changeInfo.status === "complete") {
-					chrome.storage.local.get(["wkhighlight_apiKey"], key => {
-						if (key["wkhighlight_apiKey"]) {
-							apiToken = key["wkhighlight_apiKey"];
-		
-							if (settings["1"]) {
-								chrome.browserAction.setBadgeText({text: "0"});
-								chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
+		if (!/.*wanikani\.com.*/g.test(tabInfo.url)) {
+			setSettings();
+			chrome.storage.local.get(["wkhighlight_blacklist"], blacklist => {
+				// check if the site is blacklisted
+				if (!blacklist["wkhighlight_blacklist"] || blacklist["wkhighlight_blacklist"].length === 0 || !blacklisted(blacklist["wkhighlight_blacklist"], tabInfo.url)) {
+					thisTabId = tabId;
+					if (changeInfo.status === "complete") {
+						chrome.storage.local.get(["wkhighlight_apiKey"], key => {
+							if (key["wkhighlight_apiKey"]) {
+								apiToken = key["wkhighlight_apiKey"];
+			
+								if (settings["1"]) {
+									chrome.browserAction.setBadgeText({text: "0"});
+									chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
+								}
+								
+								// see if all kanji is already saved in storage
+								chrome.storage.local.get(['wkhighlight_allkanji', 'wkhighlight_allradicals'], result => {
+									// do this only if all the kanji hasn't been saved yet
+									if (!result['wkhighlight_allkanji']) {
+										// fetch all kanji
+										fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=kanji")
+											.then(kanji_data => {
+												const kanji_dict = {};
+												const kanji_assoc = {};
+												kanji_data
+													.map(content => content.data)
+													.flat(1)
+													.forEach(kanji => {
+														kanji_dict[kanji.id] = kanji.data;
+														kanji_assoc[kanji.data.slug] = kanji.id;
+													});
+												
+												setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", {"wkhighlight_allkanji":kanji_dict});
+			
+												// saving all kanji
+												chrome.storage.local.set({"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc});
+											})
+											.catch(errorHandling);
+									}
+									else
+										setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", result)
+								
+									if (!result['wkhighlight_allradicals']) {
+										// fetch all radicals
+										fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=radical")
+											.then(radical_data => {
+												const radical_dict = {};
+												radical_data
+													.map(content => content.data)
+													.flat(1)
+													.forEach(radical => {
+														radical_dict[radical.id] = radical.data;
+													});
+												
+												// saving all radical
+												chrome.storage.local.set({"wkhighlight_allradicals": radical_dict});
+											})
+											.catch(errorHandling);
+									}
+								});
 							}
-							
-							// see if all kanji is already saved in storage
-							chrome.storage.local.get(['wkhighlight_allkanji', 'wkhighlight_allradicals'], result => {
-								// do this only if all the kanji hasn't been saved yet
-								if (!result['wkhighlight_allkanji']) {
-									// fetch all kanji
-									fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=kanji")
-										.then(kanji_data => {
-											const kanji_dict = {};
-											const kanji_assoc = {};
-											kanji_data
-												.map(content => content.data)
-												.flat(1)
-												.forEach(kanji => {
-													kanji_dict[kanji.id] = kanji.data;
-													kanji_assoc[kanji.data.slug] = kanji.id;
-												});
-											
-											setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", {"wkhighlight_allkanji":kanji_dict});
-		
-											// saving all kanji
-											chrome.storage.local.set({"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc});
-										})
-										.catch(errorHandling);
-								}
-								else
-									setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", result)
-							
-								if (!result['wkhighlight_allradicals']) {
-									// fetch all radicals
-									fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=radical")
-										.then(radical_data => {
-											const radical_dict = {};
-											radical_data
-												.map(content => content.data)
-												.flat(1)
-												.forEach(radical => {
-													radical_dict[radical.id] = radical.data;
-												});
-											
-											// saving all radical
-											chrome.storage.local.set({"wkhighlight_allradicals": radical_dict});
-										})
-										.catch(errorHandling);
-								}
-							});
-						}
-					});
+						});
+					}
 				}
-			}
-			else {
-				chrome.browserAction.setBadgeText({text: '!'});
-				chrome.browserAction.setBadgeBackgroundColor({color: "#dc6560"});
-			}
-		});
+				else {
+					chrome.browserAction.setBadgeText({text: '!'});
+					chrome.browserAction.setBadgeBackgroundColor({color: "#dc6560"});
+				}
+			});
+		}
+		else {
+			chrome.browserAction.setBadgeText({text: "W"});
+			chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1"});
+		}
 	}
 });
 

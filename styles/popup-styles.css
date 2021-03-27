@@ -181,6 +181,12 @@ a {
     overflow: auto;
 }
 
+#notRunAtWK {
+	color: #f100a1;
+    font-size: 14px;
+    margin-top: 15px;
+}
+
 i {
 	border: solid black;
 	border-width: 0 3px 3px 0;
