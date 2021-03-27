@@ -18,7 +18,6 @@
             "js": ["scripts/essentials.js", "scripts/functions.js"]
         }
     ],
-    "options_page": "options.html",
     "browser_action": {
         "default_popup": "popup.html"
     },
