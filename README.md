@@ -65,3 +65,5 @@ On the extension popup, you will find the app settings.
 
 ## About the Code
 *Cooming soon*
+
+![logo](https://github.com/digas99/wanikani-kanji-highlighter/blob/master/logo/logo.png)
