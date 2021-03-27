@@ -173,3 +173,7 @@
 .wkhighlighter_detailsPopup_sectionContainer { 
 	margin: 15px 0;
 }
+
+a {
+	text-decoration: none;
+}
