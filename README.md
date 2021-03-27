@@ -8,6 +8,16 @@ It works with any website, and provides detailed information about any kanji tha
 ## ~[Get it on Chrome Webstore](#)~
 *(Yet to be published)*
 
+## Table of contents:
+1. [Latest Features](#latest-features)
+2. [Upcoming Features](#upcoming-features)
+3. [Usage Guide](#usage-guide)
+   * 3.1. [WaniKani API Token](#wanikani-api-token)
+   * 3.2. [Kanji Details](#kanji-details)
+   * 3.3. [Blacklisting a Site](#blacklisting-a-site)
+   * 3.3. [BSettings](#settings)
+4. [About the Code](#about-the-code)
+
 ## Latest Features
 ### Content:
 - Highlight of any kanji learned in any web page
@@ -53,5 +63,5 @@ On the extension popup, you will find the app settings.
 - **Kanji info popup:** show the popup with the details of a highlighted kanji, when hover over it
 - **Kanji counter on icon:** show the number of highlighted Kanji in the page on the icon of the extension (doesn't count above *99* kanji for readability purposes)
 
-## About the code
+## About the Code
 *Cooming soon*
