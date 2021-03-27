@@ -15,7 +15,7 @@ It works with any website, and provides detailed information about any kanji tha
    * 3.1. [WaniKani API Token](#wanikani-api-token)
    * 3.2. [Kanji Details](#kanji-details)
    * 3.3. [Blacklisting a Site](#blacklisting-a-site)
-   * 3.3. [BSettings](#settings)
+   * 3.3. [Settings](#settings)
 4. [About the Code](#about-the-code)
 
 ## Latest Features
