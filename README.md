@@ -15,7 +15,7 @@ It works with any website, and provides detailed information about any kanji tha
    * 3.2. [Kanji Details](#kanji-details)
    * 3.3. [Blacklisting a Site](#blacklisting-a-site)
    * 3.3. [Settings](#settings)
-4. [About the Code](#about-the-code)
+4. [Pictures](#pictures)
 
 ## Latest Features
 ### Content:
@@ -62,7 +62,9 @@ On the extension popup, you will find the app settings.
 - **Kanji info popup:** show the popup with the details of a highlighted kanji, when hover over it
 - **Kanji counter on icon:** show the number of highlighted Kanji in the page on the icon of the extension (doesn't count above *99* kanji for readability purposes)
 
-## About the Code
-*Cooming soon*
+## Pictures
+![screenshot1](https://i.imgur.com/9euvCGE.jpg)
+![screenshot2](https://i.imgur.com/25CS2nc.jpg)
+![screenshot3](https://i.imgur.com/A8G5jrJ.jpg)
 
 ![logo](https://github.com/digas99/wanikani-kanji-highlighter/blob/master/logo/logo.png)
