@@ -53,12 +53,14 @@ const setupLearnedKanji = async (apiToken, page, kanji) => {
 }
 
 const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
+	console.log("CONTENT SCRIPTS");
 	const scripts = kanji => {
 		tabs.insertCSS(null, {file: 'styles/foreground-styles.css'});
 		if (settings["0"])
 			tabs.executeScript(null, {file: 'scripts/details-popup.js'}, () => chrome.runtime.lastError);
 		tabs.executeScript(null, {file: 'scripts/highlight.js'}, () => {
 			injectedHighlighter = true;
+			console.log("injecting");
 			tabs.sendMessage(thisTabId, {
 				functionDelay: functionDelay, 
 				values: kanji,
@@ -89,7 +91,8 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 tabs.onActivated.addListener(activeInfo => {
 	const tabId = activeInfo["tabId"];
 	chrome.tabs.get(tabId, response => {
-		if (!/.*wanikani\.com.*/g.test(response["url"])) {
+		console.log(response["url"]);
+		if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(response["url"])) {
 			if (settings["1"] && injectedHighlighter) {
 				tabs.sendMessage(tabId, {nmrKanjiHighlighted:"popup"}, response => {
 					if (!window.chrome.runtime.lastError) {
@@ -114,12 +117,13 @@ tabs.onActivated.addListener(activeInfo => {
 
 tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 	if (canInject(tabInfo)) {
-		if (!/.*wanikani\.com.*/g.test(tabInfo.url)) {
+		if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(tabInfo.url)) {
 			setSettings();
 			chrome.storage.local.get(["wkhighlight_blacklist"], blacklist => {
 				// check if the site is blacklisted
 				if (!blacklist["wkhighlight_blacklist"] || blacklist["wkhighlight_blacklist"].length === 0 || !blacklisted(blacklist["wkhighlight_blacklist"], tabInfo.url)) {
 					thisTabId = tabId;
+					console.log(changeInfo);
 					if (changeInfo.status === "complete") {
 						chrome.storage.local.get(["wkhighlight_apiKey"], key => {
 							if (key["wkhighlight_apiKey"]) {

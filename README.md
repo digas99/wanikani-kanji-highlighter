@@ -5,6 +5,8 @@ This is an unofficial chrome extension for Kanji Highlighting, matching the kanj
 It works with any website, and provides detailed information about any kanji that is highlighted.
 **Because it would be cheating, the extension doesn't work on [WaniKani.com](https://www.wanikani.com/).**
 
+#### VERSION 0.1.1
+
 ## [Get it on Chrome Webstore](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/)
 
 ## Table of contents:
@@ -17,21 +19,9 @@ It works with any website, and provides detailed information about any kanji tha
    * 3.3. [Settings](#settings)
 4. [Pictures](#pictures)
 
-## Latest Features
-### Content:
-- Highlight of any kanji learned in any web page
-- Hovering highlighted kanji will provide detailed information about it
-
-### Popup:
-- Information on how many kanji were highlighted on that page
-- Pages can be blacklisted so that the extension will not run the highlighting on them
-- Added settings where you can turn on or off the following:
-    - Kanji info popup (shows details popup when hovering a highlighted kanji)
-    - Kanji counter on icon (displays number of kanji highlighted in the page on the icon badge)
-
-## Upcoming Features
-### Popup:
-- Highlight color customization
+## Bug Fixes v0.1.1
+- Fixed page loading issues when navigating through pages of a same website
+- The extension now works on subdomains of Wanikani
 
 ## Usage Guide
 ### WaniKani API Token:

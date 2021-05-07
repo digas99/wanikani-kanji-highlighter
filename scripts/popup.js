@@ -173,7 +173,7 @@ window.onload = () => {
 											level.innerHTML = `Level: <strong>${userInfo["level"]}</strong> / ${userInfo["subscription"]["max_level_granted"]}`;
 											userElementsList.appendChild(level);
 											
-											if (!/.*wanikani\.com.*/g.test(url)) {
+											if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {
 												chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 													var activeTab = tabs[0];
 													chrome.tabs.sendMessage(activeTab.id, {nmrKanjiHighlighted: "popup"}, response => {
