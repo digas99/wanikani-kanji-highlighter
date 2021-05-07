@@ -19,7 +19,8 @@ It works with any website, and provides detailed information about any kanji tha
    * 3.3. [Settings](#settings)
 4. [Pictures](#pictures)
 
-## Bug Fixes v0.1.1
+## Changelog v0.1.1
+### Bug Fixes 
 - Fixed page loading issues when navigating through pages of a same website
 - The extension now works on subdomains of Wanikani
 
