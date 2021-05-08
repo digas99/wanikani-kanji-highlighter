@@ -10,14 +10,13 @@ It works with any website, and provides detailed information about any kanji tha
 ## [Get it on Chrome Webstore](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/)
 
 ## Table of contents:
-1. [Latest Features](#latest-features)
-2. [Upcoming Features](#upcoming-features)
-3. [Usage Guide](#usage-guide)
-   * 3.1. [WaniKani API Token](#wanikani-api-token)
-   * 3.2. [Kanji Details](#kanji-details)
-   * 3.3. [Blacklisting a Site](#blacklisting-a-site)
-   * 3.3. [Settings](#settings)
-4. [Pictures](#pictures)
+1. [Latest Features](#changelog-v011)
+2. [Usage Guide](#usage-guide)
+   * 2.1. [WaniKani API Token](#wanikani-api-token)
+   * 2.2. [Kanji Details](#kanji-details)
+   * 2.3. [Blacklisting a Site](#blacklisting-a-site)
+   * 2.4. [Settings](#settings)
+3. [Pictures](#pictures)
 
 ## Changelog v0.1.1
 ### Bug Fixes 
