@@ -197,7 +197,8 @@ document.addEventListener("mouseover", e => {
 			if (!firstChild || (firstChild && firstChild.textContent !== kanji)) {
 				if (firstChild)
 					firstChild.remove();
-				detailsPopup.prepend(mainWrapper);		
+				detailsPopup.prepend(mainWrapper);
+				mainWrapper.style.textAlign = "center";		
 				mainWrapper.style.marginTop = "10px";
 			}
 

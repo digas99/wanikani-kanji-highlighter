@@ -3,7 +3,6 @@ loaded = false;
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (!loaded) {
-		console.log("LOADED");
 		loaded = true;
 
 		const functionDelay = request.functionDelay;
@@ -39,6 +38,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					//node.after(fragment);
 					return !matches ? 0 : matches.length;
 				}
+				// remove all highlighting from within the kanji info popup
+				//document.getElementsByClassName("wkhighlighter_detailsPopup")[0].querySelectorAll("#wkhighlighter_highlighted").forEach(elem => elem.classList.remove("wkhighlighter_highlighted"));
 			}
 
 			const hasDirectChildHighlighted = (node, className) => {

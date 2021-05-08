@@ -9,7 +9,7 @@
 .wkhighlighter_detailsPopup_kanji {
 	background-color: inherit !important;
 	color: inherit !important;
-	font-size: 60px;
+	font-size: 60px !important;
 	text-align: center;
 	color: white !important;
 	margin: 0;
@@ -57,6 +57,7 @@
     background-color: #4d70d1;
 	border-bottom: 3px solid white;
 	transition: 0.5s;
+	text-align: center !important;
 }
 
 .wkhighlighter_auto_height {
@@ -89,6 +90,7 @@
 	font-size: 15px;
 	margin-top: 140px;
 	transition: 0.3s;
+	text-align: left;
 }
 
 .wkhighlighter_popupDetails_separator {
@@ -134,7 +136,7 @@
 .wkhighlighter_detailsPopup_cards {
 	background-color: inherit !important;
 	color: inherit !important;
-	font-size: 40px;
+	font-size: 40px !important;
     margin: 0;
 }
 
