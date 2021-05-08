@@ -1,10 +1,6 @@
 totalHighlightedKanji = 0;
 loaded = false;
 
-window.onload = () => {
-	console.log("LOADED");
-}
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (!loaded) {
 		console.log("LOADED");

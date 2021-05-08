@@ -173,18 +173,21 @@ document.addEventListener("mouseover", e => {
 			const ul = document.createElement("ul");
 			ul.classList.add("wkhighlighter_popupDetails_readings");
 
-			const on = document.createElement("li");
-			on.innerHTML = "<strong>ON: </strong>";
-			on.appendChild(document.createTextNode(readings.filter(reading => reading.type==="onyomi").map(reading => reading.reading).join(", ")));
-			on.classList.add("wkhighlighter_popupDetails_readings_row");
-
-			const kun = document.createElement("li");
-			kun.innerHTML = "<strong>KUN: </strong>";
-			kun.appendChild(document.createTextNode(readings.filter(reading => reading.type==="kunyomi").map(reading => reading.reading).join(", ")));
-			kun.classList.add("wkhighlighter_popupDetails_readings_row");
-			
-			ul.appendChild(on);
-			ul.appendChild(kun);
+			([["ON", "onyomi"], ["KUN", "kunyomi"]]).forEach(type => {
+				const li = document.createElement("li");
+				li.innerHTML = `<strong>${type[0]}: </strong>`;
+				li.classList.add("wkhighlighter_popupDetails_readings_row");
+				const span = document.createElement("span");
+				const readingsString = readings.filter(reading => reading.type===type[1]).map(reading => reading.reading).join(", ");
+				span.appendChild(document.createTextNode(readingsString));
+				li.appendChild(span);
+				if (readingsString.length > 8) {
+					const overflowSpan = document.createElement("span");
+					overflowSpan.appendChild(document.createTextNode("..."));
+					li.appendChild(overflowSpan);
+				}
+				ul.appendChild(li);
+			});
 			
 			mainWrapper.appendChild(kanjiLink);
 			mainWrapper.appendChild(ul);

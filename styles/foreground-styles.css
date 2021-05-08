@@ -1,6 +1,9 @@
 .wkhighlighter_highlighted {
+	all: unset !important;
 	background-color: #4d70d1 !important;
 	color: white !important;
+	display: unset !important;
+	font-size: 100% !important;
 }
 
 .wkhighlighter_detailsPopup_kanji {
@@ -77,6 +80,7 @@
     height: 20px;
     padding-left: 15px;
     padding-right: 15px;
+	display: inline-flex;
 }
 
 .wkhighlighter_popupDetails_detailedInfoWrapper {
@@ -93,7 +97,7 @@
 }
 
 .wkhighlighter_popupDetails_p {
-	margin: 0 0 5px 0;
+	margin: 5px 0;
 }
 
 .wkhighlighter_popupDetails_kanjiTitle {
@@ -176,4 +180,9 @@
 
 a {
 	text-decoration: none;
+}
+
+/* details popup base style */
+.wkhighlighter_detailsPopup ul {
+	margin: 0;
 }
