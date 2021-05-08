@@ -27,6 +27,16 @@ const footer = () => {
 		li.appendChild(a);
 	}
 
+	const versionWrapper = document.createElement("div");
+	const version = document.createElement("a");
+	version.href = "https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/0.1.1";
+	version.appendChild(document.createTextNode("v0.1.1"));
+	version.target = "_blank";
+	versionWrapper.style.marginTop = "4px";
+	version.style.color = "black";
+	versionWrapper.appendChild(version);
+	wrapper.appendChild(versionWrapper);
+
 	return wrapper;
 }
 
@@ -156,12 +166,15 @@ window.onload = () => {
 											userElementsList.appendChild(topRightNavbar);
 											topRightNavbar.style.textAlign = "right";
 											topRightNavbar.style.marginBottom = "7px";
-											["settings", "signout"].forEach(title => {
+											["../images/settings.png", "../images/exit.png"].forEach(img => {
 												const link = document.createElement("a");
 												link.style.padding = "0 5px";
-												link.id = title;
 												link.href = "#";
-												link.appendChild(document.createTextNode(title.charAt(0).toUpperCase()+title.slice(1)));
+												link.classList.add("navbar_icon");
+												const icon_img = document.createElement("img");
+												icon_img.id = img.split("/")[2].split(".")[0];
+												icon_img.src = img;
+												link.appendChild(icon_img);
 												topRightNavbar.appendChild(link);
 											});
 				
@@ -381,10 +394,10 @@ document.addEventListener("click", e => {
 	if (targetElem.id === "goBack" || targetElem.localName === "i") {
 		document.getElementById("secPageMain").remove();
 		document.getElementById("main").style.display = "inherit";
-		document.body.style.width = "173px";
+		document.body.style.width = "200px";
 	}
 
-	if (targetElem.id === "signout") {
+	if (targetElem.id === "exit" || targetElem.querySelector("#exit")) {
 		const main = document.getElementById("main");
 		chrome.storage.local.remove("wkhighlight_apiKey");
 		if (main) {
@@ -433,7 +446,7 @@ document.addEventListener("click", e => {
 		});
 	}
 
-	if (targetElem.id === "settings") {
+	if (targetElem.id === "settings" || targetElem.querySelector("#settings")) {
 		const content = secundaryPage("Settings");
 		content.id = "settingsContent";
 		

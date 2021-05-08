@@ -187,6 +187,15 @@ a {
     margin-top: 15px;
 }
 
+.navbar_icon>img {
+	width: 18px;
+	transition: 0.3s;
+}
+
+.navbar_icon:hover {
+	filter: opacity(0.5);
+}
+
 i {
 	border: solid black;
 	border-width: 0 3px 3px 0;
