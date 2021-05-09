@@ -28,14 +28,17 @@ const footer = () => {
 	}
 
 	const versionWrapper = document.createElement("div");
-	const version = document.createElement("a");
-	version.href = "https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/0.1.1";
-	version.appendChild(document.createTextNode("v0.1.1"));
-	version.target = "_blank";
-	versionWrapper.style.marginTop = "4px";
-	version.style.color = "black";
-	versionWrapper.appendChild(version);
 	wrapper.appendChild(versionWrapper);
+	const version = document.createElement("a");
+	versionWrapper.appendChild(version);
+
+	reposLastVersion("digas99", "wanikani-kanji-highlighter").then(result => {
+		version.href = `https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/${result}`;
+		version.appendChild(document.createTextNode(`v${result}`));
+		version.target = "_blank";
+		versionWrapper.style.marginTop = "4px";
+		version.style.color = "black";
+	});
 
 	return wrapper;
 }

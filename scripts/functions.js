@@ -60,3 +60,11 @@ const clearCache = () => {
 		chrome.storage.local.remove(keysToRemove, () => alert("Local data cleared! This didn't affect your WaniKani account!"));
 	});
 }
+
+const reposVersions = async (user, repos) => {
+	return await fetch(`https://api.github.com/repos/${user}/${repos}/tags`).then(response => response.json()).then(body => body);
+}
+
+const reposLastVersion = async (user, repos) => {
+	return await reposVersions(user, repos).then(result => result[result.length-1].name);
+}
