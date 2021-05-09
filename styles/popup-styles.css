@@ -243,6 +243,14 @@ transform: rotate(134deg);
     border-bottom: 3px solid #4d70d1 !important;
 }
 
+.wkhighlighter_highlighted_bold {
+	display: unset !important;
+    background: unset !important;
+	font-size: 100% !important;
+    color: #4d70d1 !important;
+    font-weight: bold !important;
+}
+
 .settings_highlight_style_option {
 	padding: 0px 2px;
     margin: 0px 5px;

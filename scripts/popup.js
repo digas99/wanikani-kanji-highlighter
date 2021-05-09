@@ -492,7 +492,7 @@ document.addEventListener("click", e => {
 				titleDiv.appendChild(document.createTextNode("Highlight style"));
 				titleDiv.style.marginRight = "5px";
 
-				["wkhighlighter_highlighted", "wkhighlighter_highlighted_underlined"].forEach(className => {
+				["wkhighlighter_highlighted", "wkhighlighter_highlighted_underlined", "wkhighlighter_highlighted_bold"].forEach(className => {
 					const span = document.createElement("span");
 					div.appendChild(span);
 					span.classList.add(className);

@@ -14,6 +14,14 @@
     border-bottom: 3px solid #4d70d1 !important;
 }
 
+.wkhighlighter_highlighted_bold {
+	display: unset !important;
+    background: unset !important;
+	font-size: 100% !important;
+    color: #4d70d1 !important;
+    font-weight: bold !important;
+}
+
 .wkhighlighter_detailsPopup_kanji {
 	background-color: inherit !important;
 	color: inherit !important;
