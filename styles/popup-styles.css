@@ -2,7 +2,6 @@
 	display: block;
     margin-left: auto;
     margin-right: auto;
-    width: 50%;
 }
 
 li {
@@ -57,6 +56,11 @@ body {
 a {
 	text-decoration: none;
 	color: #d95b5b;
+	transition: 0.3s;
+}
+
+a:hover {
+	opacity: 0.5;
 }
 
 #footerWarning {
@@ -153,7 +157,7 @@ a {
 	padding-top: 20px;
     font-size: 16px;
     display: grid;
-    margin: 15px 0;
+    margin: 10px 0;
 }
 
 #settingsContent>div {

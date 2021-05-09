@@ -76,9 +76,11 @@ window.onload = () => {
 	main.appendChild(logoDiv);
 	logoDiv.style.marginBottom = "25px";
 	logoDiv.style.textAlign = "center";
+	logoDiv.style.fontSize = "11px";
 	const logo = document.createElement("img");
 	logo.src="logo/logo.png";
 	logo.classList.add("centered");
+	logo.style.width = "110px";
 	logoDiv.appendChild(logo);
 
 	// extension title
@@ -99,36 +101,36 @@ window.onload = () => {
 							chrome.browserAction.setBadgeText({text: ''});
 	
 							// key input
-							const APIInputWrapper = document.createElement("div");
-							APIInputWrapper.classList.add("apiKey_wrapper");
-							main.appendChild(APIInputWrapper);
+							const apiInputWrapper = document.createElement("div");
+							apiInputWrapper.classList.add("apiKey_wrapper");
+							main.appendChild(apiInputWrapper);
 	
-							const APILabel = document.createElement("p");
-							APILabel.style.textAlign = "center";
-							APILabel.style.marginBottom = "5px";
-							APILabel.style.fontSize = "16px";
-							APILabel.appendChild(document.createTextNode("API Key: "));
-							APIInputWrapper.appendChild(APILabel);
+							const apiLabel = document.createElement("p");
+							apiLabel.style.textAlign = "center";
+							apiLabel.style.marginBottom = "5px";
+							apiLabel.style.fontSize = "16px";
+							apiLabel.appendChild(document.createTextNode("API Key: "));
+							apiInputWrapper.appendChild(apiLabel);
 	
-							const APIInput = document.createElement("input");
-							APIInput.placeholder = "Input here the key...";
-							APIInput.type = "text";
-							APIInput.id = "apiInput";
-							APIInput.style.fontSize = "15px";
-							APIInput.style.width = "100%";
-							APIInputWrapper.appendChild(APIInput);
+							const apiInput = document.createElement("input");
+							apiInput.placeholder = "Input here the key...";
+							apiInput.type = "text";
+							apiInput.id = "apiInput";
+							apiInput.style.fontSize = "15px";
+							apiInput.style.width = "100%";
+							apiInputWrapper.appendChild(apiInput);
 	
 							// submit button
 							const button = document.createElement("div");
 							button.appendChild(document.createTextNode("Submit"));
 							button.classList.add("button");
 							button.id = "submit";
-							APIInputWrapper.appendChild(button);
+							apiInputWrapper.appendChild(button);
 	
 							// what is an api key
 							const whatIsAPIKey = document.createElement("div");
 							whatIsAPIKey.style.marginTop = "2px";
-							APIInputWrapper.appendChild(whatIsAPIKey);
+							apiInputWrapper.appendChild(whatIsAPIKey);
 							const whatIsAPIKeyLink = document.createElement("a");
 							whatIsAPIKeyLink.href = "#";
 							whatIsAPIKeyLink.id = "whatIsAPIKey";
@@ -519,6 +521,11 @@ document.addEventListener("click", e => {
 		clearCash.appendChild(clearCashDescription);
 		clearCashDescription.classList.add("dangerItemDescription");
 		clearCashDescription.appendChild(document.createTextNode("Clears local data. This won't affect your WaniKani account!"));
+
+		const rateApp = document.createElement("div");
+		content.parentNode.appendChild(rateApp);
+		rateApp.style.fontSize = "16px";
+		rateApp.innerHTML = "Enjoying the app? <a target='_blank' href='https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/reviews#:~:text=Rate%20this%20extension'>Rate me!</a>";
 
 	}
 
