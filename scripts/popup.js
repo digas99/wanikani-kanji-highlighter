@@ -347,7 +347,6 @@ const secundaryPage = (titleText) => {
 
 document.addEventListener("click", e => {
 	const targetElem = e.target;
-	console.log(targetElem);
 
 	if (targetElem.id === "submit")
 		submitAction();
@@ -482,6 +481,26 @@ document.addEventListener("click", e => {
 					checkbox.id = "settings"+(count++);
 					checkbox.classList.add("settingsItemCheckbox");
 				});
+
+				const div = document.createElement("div");
+				settingsChecks.appendChild(div);
+				div.style.display = "inline-flex";
+				div.style.padding = "3px 0";
+
+				const titleDiv = document.createElement("div");
+				div.appendChild(titleDiv);
+				titleDiv.appendChild(document.createTextNode("Highlight style"));
+				titleDiv.style.marginRight = "5px";
+
+				["wkhighlighter_highlighted", "wkhighlighter_highlighted_underlined"].forEach(className => {
+					const span = document.createElement("span");
+					div.appendChild(span);
+					span.classList.add(className);
+					span.appendChild(document.createTextNode("A"));
+					span.classList.add("settings_highlight_style_option");
+				});
+
+				chrome.storage.local.get(["wkhighlight_settings"], result => document.querySelectorAll(`.${result["wkhighlight_settings"][2]}`)[0].classList.add("simple_shadow"));
 			}
 		});
 
@@ -555,6 +574,20 @@ document.addEventListener("click", e => {
 		else {
 			wrapper.remove();
 		}
+	}
+
+	if (targetElem.classList.contains("settings_highlight_style_option")) {
+		document.querySelectorAll(".simple_shadow").forEach(elem => elem.classList.remove("simple_shadow"));
+		targetElem.classList.add("simple_shadow");
+		chrome.storage.local.get(["wkhighlight_settings"], data => {
+			let settings = data["wkhighlight_settings"];
+			if (!settings) {
+				settings = {};
+			}
+			
+			settings[2] = targetElem.classList[0];
+			chrome.storage.local.set({"wkhighlight_settings":settings});
+		});
 	}
 });
 

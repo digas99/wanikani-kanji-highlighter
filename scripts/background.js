@@ -4,7 +4,7 @@ let thisTabId, apiToken;
 // highlighting properties
 const unwantedTags = ["html", "body", "head", "title", "style", "link", "meta", "script", "noscript", "img", "svg"];
 const functionDelay = "2000";
-const highlightingClass = "wkhighlighter_highlighted";
+let highlightingClass = "";
 
 let injectedHighlighter = false;
 
@@ -15,8 +15,11 @@ const setSettings = () => {
 		settings = result["wkhighlight_settings"];
 		if (!settings) {
 			settings = {};
-			[true, true].forEach((value, i) => settings[i] = value);
+			[true, true, "wkhighlighter_highlighted"].forEach((value, i) => settings[i] = value);
 		}
+		// setup highlighting class value from settings
+		highlightingClass = settings[2];
+
 		chrome.storage.local.set({"wkhighlight_settings":settings});
 	});
 }
@@ -56,8 +59,9 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	console.log("CONTENT SCRIPTS");
 	const scripts = kanji => {
 		tabs.insertCSS(null, {file: 'styles/foreground-styles.css'});
-		if (settings["0"])
+		if (settings["0"]) {
 			tabs.executeScript(null, {file: 'scripts/details-popup.js'}, () => chrome.runtime.lastError);
+		}
 		tabs.executeScript(null, {file: 'scripts/highlight.js'}, () => {
 			injectedHighlighter = true;
 			console.log("injecting");

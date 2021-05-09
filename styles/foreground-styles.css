@@ -1,9 +1,17 @@
 .wkhighlighter_highlighted {
 	all: unset !important;
-	background-color: #4d70d1 !important;
+	background: #4d70d1 !important;
 	color: white !important;
 	display: unset !important;
 	font-size: 100% !important;
+}
+
+.wkhighlighter_highlighted_underlined {
+	display: unset !important;
+    background: unset !important;
+	font-size: 100% !important;
+    color: inherit !important;
+    border-bottom: 3px solid #4d70d1 !important;
 }
 
 .wkhighlighter_detailsPopup_kanji {

@@ -5,6 +5,8 @@ chrome.storage.local.get(["wkhighlight_allkanji"], data => allKanji = data["wkhi
 allRadicals = {};
 chrome.storage.local.get(["wkhighlight_allradicals"], data => allRadicals = data["wkhighlight_allradicals"]);
 
+loaded = false;
+
 document.addEventListener("mouseover", e => {
 	const createPopup = () => {
 		const div = document.createElement("div");
@@ -84,7 +86,7 @@ document.addEventListener("mouseover", e => {
 				img.style.width = "40px";
 				p.appendChild(img);
 			}
-			p.className = "wkhighlighter_detailsPopup_cards wkhighlighter_highlighted";
+			p.className = `wkhighlighter_detailsPopup_cards ${highlightingClass}`;
 			li.appendChild(a);
 			a.appendChild(p);
 			const kanjiLevel = document.createElement("div");
@@ -148,7 +150,7 @@ document.addEventListener("mouseover", e => {
 	let detailsPopup = document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
 
 	// If hovering over a kanji
-	if (node.classList.contains("wkhighlighter_highlighted") && !(detailsPopup && detailsPopup.contains(node))) {
+	if (node.classList.contains(highlightingClass) && !(detailsPopup && detailsPopup.contains(node))) {
 		if (!detailsPopup)
 			detailsPopup = createPopup();
 		
@@ -161,7 +163,7 @@ document.addEventListener("mouseover", e => {
 		const mainChar = document.createElement("p");
 		kanjiLink.appendChild(mainChar);
 		mainChar.appendChild(document.createTextNode(kanji));
-		mainChar.className = "wkhighlighter_detailsPopup_kanji wkhighlighter_highlighted";
+		mainChar.className = `wkhighlighter_detailsPopup_kanji ${highlightingClass}`;
 
 		chrome.storage.local.get(["wkhighlight_kanji_assoc"], data => {
 			const kanjiID = data["wkhighlight_kanji_assoc"][kanji];
