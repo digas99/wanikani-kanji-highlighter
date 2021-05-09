@@ -191,16 +191,18 @@ window.onload = () => {
 											level.innerHTML = `Level: <strong>${userInfo["level"]}</strong> / ${userInfo["subscription"]["max_level_granted"]}`;
 											userElementsList.appendChild(level);
 											
+											const kanjiFound = document.createElement("li");
+											kanjiFound.id = "nmrKanjiHighlighted";
+											kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: (in the page)`;
+											userElementsList.appendChild(kanjiFound);
+
 											if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {
 												chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 													var activeTab = tabs[0];
 													chrome.tabs.sendMessage(activeTab.id, {nmrKanjiHighlighted: "popup"}, response => {
 														if (!window.chrome.runtime.lastError && response) {
 															const nmrKanjiHighlighted = response["nmrKanjiHighlighted"] ? response["nmrKanjiHighlighted"] : 0;
-															const kanjiFound = document.createElement("li");
-															kanjiFound.id = "nmrKanjiHighlighted";
 															kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${nmrKanjiHighlighted}</strong> (in the page)`;
-															userElementsList.appendChild(kanjiFound);
 														}
 													});
 												});
