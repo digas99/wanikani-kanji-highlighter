@@ -1,4 +1,5 @@
 # Changelog v0.2.0
+Not released yet
 ## Popup
 - Changed navbar buttons from text to icons
 - Added option in settings to change the style of the highlighting
@@ -11,12 +12,14 @@
 
 ---
 
-# Changelog v0.1.1
+# [Changelog v0.1.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/0.1.1)
+Released on 07/05/2021
 ## Bug Fixes
 - Fixed page loading issues when navigating through pages of a same website
 - The extension now works on subdomains of Wanikani
 
-# Changelog v0.1.0
+# [Changelog v0.1.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.1.0) 
+Released on 27/03/2021
 ## Content
 - Highlight of any kanji learned in any web page
 - Hovering highlighted kanji will provide detailed information about it
