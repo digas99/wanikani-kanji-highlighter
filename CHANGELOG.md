@@ -1,5 +1,10 @@
-# Changelog v0.2.0
+# Changelog v0.3.0
 Not released yet
+## Popup
+- added a delete option to the blacklisted sites list within settings for every blacklisted site
+
+# Changelog v0.2.0
+Pending approval
 ## Popup
 - Changed navbar buttons from text to icons
 - Added option in settings to change the style of the highlighting

@@ -4,6 +4,15 @@
     margin-right: auto;
 }
 
+.clickable { 
+	cursor: pointer;
+	transition: 0.2s;
+}
+
+.clickable:hover {
+	opacity: 0.5;
+}
+
 li {
 	list-style: none;
 }
@@ -194,11 +203,6 @@ a:hover {
 
 .navbar_icon>img {
 	width: 18px;
-	transition: 0.3s;
-}
-
-.navbar_icon:hover {
-	filter: opacity(0.5);
 }
 
 i {
@@ -258,13 +262,28 @@ transform: rotate(134deg);
 .settings_highlight_style_option {
 	padding: 0px 2px;
     margin: 0px 5px;
-    cursor: pointer;
-}
-
-.settings_highlight_style_option:hover {
-	filter: opacity(0.5);
 }
 
 .simple_shadow {
 	box-shadow: 0px 0px 4px 0px black;
+}
+
+.blacklisted_site_wrapper {
+	display: inline-flex;
+    padding: 5px 0;
+}
+
+.bin_container {
+	text-align: right;
+	width: 100%;
+}
+
+.bin_wrapper {
+	cursor: pointer;
+	margin-right: 7px;
+	padding: 4px;
+}
+
+.bin_icon {
+	width: 17px;
 }

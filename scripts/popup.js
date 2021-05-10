@@ -175,7 +175,7 @@ window.onload = () => {
 												const link = document.createElement("a");
 												link.style.padding = "0 5px";
 												link.href = "#";
-												link.classList.add("navbar_icon");
+												link.className = "navbar_icon clickable";
 												const icon_img = document.createElement("img");
 												icon_img.id = img.split("/")[2].split(".")[0];
 												icon_img.src = img;
@@ -335,7 +335,7 @@ const secundaryPage = (titleText) => {
 	const arrowWrapper = document.createElement("div");
 	arrowWrapper.id = "goBack"
 	const arrow = document.createElement("i");
-	arrow.classList.add("left");
+	arrow.className = "left clickable";
 	arrow.style.padding = "4px";
 	arrowWrapper.appendChild(arrow);
 	navbar.appendChild(arrowWrapper); 
@@ -354,6 +354,7 @@ const secundaryPage = (titleText) => {
 
 document.addEventListener("click", e => {
 	const targetElem = e.target;
+	console.log(targetElem);
 
 	if (targetElem.id === "submit")
 		submitAction();
@@ -438,7 +439,7 @@ document.addEventListener("click", e => {
 					const location = response["windowLocation"];
 					chrome.storage.local.get(["wkhighlight_blacklist"], data => {
 						let blacklisted = data["wkhighlight_blacklist"];
-						let index = blacklisted.indexOf(location.replace("www.", "").replace(".", "\\."))
+						let index = blacklisted.indexOf(location.replace("www.", "").replace(".", "\\."));
 						blacklisted.splice(index,1);
 						chrome.storage.local.set({"wkhighlight_blacklist": blacklisted});
 						const main = document.getElementById("main");
@@ -504,7 +505,7 @@ document.addEventListener("click", e => {
 					div.appendChild(span);
 					span.classList.add(className);
 					span.appendChild(document.createTextNode("A"));
-					span.classList.add("settings_highlight_style_option");
+					span.classList.add("settings_highlight_style_option", "clickable");
 				});
 
 				chrome.storage.local.get(["wkhighlight_settings"], result => document.querySelectorAll(`.${result["wkhighlight_settings"][2]}`)[0].classList.add("simple_shadow"));
@@ -568,11 +569,27 @@ document.addEventListener("click", e => {
 				if (blacklisted) {
 					blacklisted.forEach(site => {
 						site = site.replace("\\.", ".");
+						const div = document.createElement("div");
+						blacklistedSitesList.appendChild(div);
+						div.classList.add("blacklisted_site_wrapper");
+
 						const a = document.createElement("a");
+						div.appendChild(a);
 						a.target = "_black";
 						a.href = "https://www."+site;
 						a.appendChild(document.createTextNode(site));
-						blacklistedSitesList.appendChild(a);
+
+						const binWrapper = document.createElement("div");
+						binWrapper.classList.add("bin_container");
+						div.appendChild(binWrapper);
+						const span = document.createElement("span");
+						span.id = site.replace(".", "_");
+						binWrapper.appendChild(span);
+						span.classList.add("bin_wrapper", "clickable");
+						const bin = document.createElement("img");
+						bin.src = "../images/trash.png";
+						bin.classList.add("bin_icon");
+						span.appendChild(bin);
 					});
 				}
 				
@@ -599,6 +616,26 @@ document.addEventListener("click", e => {
 			
 			settings[2] = targetElem.classList[0];
 			chrome.storage.local.set({"wkhighlight_settings":settings});
+		});
+	}
+
+	if (targetElem.classList.contains("bin_wrapper") || targetElem.parentElement.classList.contains("bin_wrapper")) {
+		let site = (targetElem.id ? targetElem.id : targetElem.parentElement.id).replace("_", "\\.");
+		chrome.storage.local.get(["wkhighlight_blacklist"], data => {
+			let blacklisted = data["wkhighlight_blacklist"];
+			let index = blacklisted.indexOf(site);
+			blacklisted.splice(index,1);
+			chrome.storage.local.set({"wkhighlight_blacklist": blacklisted});
+
+			site = site.replace("\\.", ".");
+			console.log(site);
+			for (let elem of document.querySelectorAll(".blacklisted_site_wrapper")) {
+				console.log(elem.childNodes[0].text);
+				if (elem.childNodes[0].text === site) {
+					elem.remove();
+					break;
+				}
+			}
 		});
 	}
 });
