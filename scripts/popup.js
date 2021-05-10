@@ -464,6 +464,7 @@ document.addEventListener("click", e => {
 		blackListedlink.href = "#";
 		blackListedlink.id = "blacklistedSitesList";
 		blackListedlink.appendChild(document.createTextNode("Blacklisted sites"));
+		chrome.storage.local.get(["wkhighlight_blacklist"], result => blackListedlink.innerText += ` (${result["wkhighlight_blacklist"].length})`);
 
 		const settingsChecks = document.createElement("div");
 		settingsChecks.style.display = "grid";
@@ -633,6 +634,12 @@ document.addEventListener("click", e => {
 				console.log(elem.childNodes[0].text);
 				if (elem.childNodes[0].text === site) {
 					elem.remove();
+					
+					const blacklistedListTitle = document.getElementById("blacklistedSitesList");
+					const blacklistedText = blacklistedListTitle.innerText;
+					let nmrBlacklisted = blacklistedText.split("(")[1].split(")")[0];
+					blacklistedListTitle.innerText = blacklistedText.replace(nmrBlacklisted, --nmrBlacklisted);
+
 					break;
 				}
 			}
