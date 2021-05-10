@@ -23,6 +23,8 @@ It works with any website, and provides detailed information about any kanji tha
 - Fixed page loading issues when navigating through pages of a same website
 - The extension now works on subdomains of Wanikani
 
+#### [(All changelogs)](CHANGELOG.md)
+
 ## Usage Guide
 ### WaniKani API Token:
 To run the Highlighter and get all the information about your progression in Kanji learning on WaniKani, you need to feed the extension with an API Token. If you don't know how to get it, here's a quick guide:
