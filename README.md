@@ -60,6 +60,7 @@ You can see the list of blacklisted sites in *Settings*, within the extension po
 On the extension popup, you will find the app settings.
 - **Kanji info popup:** show the popup with the details of a highlighted kanji, when hover over it
 - **Kanji counter on icon:** show the number of highlighted Kanji in the page on the icon of the extension (doesn't count above *99* kanji for readability purposes)
+- **Highlight style:** choose how do you want the kanji to be highlighted
 
 ## Pictures
 ![screenshot1](https://i.imgur.com/9euvCGE.jpg)
