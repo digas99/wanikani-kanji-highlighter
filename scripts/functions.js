@@ -65,6 +65,10 @@ const reposVersions = async (user, repos) => {
 	return await fetch(`https://api.github.com/repos/${user}/${repos}/tags`).then(response => response.json()).then(body => body);
 }
 
+const reposFirstVersion = async (user, repos) => {
+	return await reposVersions(user, repos).then(result => result[0].name);
+}
+
 const reposLastVersion = async (user, repos) => {
 	return await reposVersions(user, repos).then(result => result[result.length-1].name);
 }

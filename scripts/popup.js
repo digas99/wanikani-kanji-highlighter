@@ -32,9 +32,9 @@ const footer = () => {
 	const version = document.createElement("a");
 	versionWrapper.appendChild(version);
 
-	reposLastVersion("digas99", "wanikani-kanji-highlighter").then(result => {
+	reposFirstVersion("digas99", "wanikani-kanji-highlighter").then(result => {
 		version.href = `https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/${result}`;
-		version.appendChild(document.createTextNode(`v${result}`));
+		version.appendChild(document.createTextNode(result));
 		version.target = "_blank";
 		versionWrapper.style.marginTop = "4px";
 		version.style.color = "black";

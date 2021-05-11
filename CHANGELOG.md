@@ -1,5 +1,10 @@
+# Changelog v0.2.1
+Pending Release
+## Bug Fixes
+- Fixed wrong version number displaying on the extension popup
+
 # Changelog v0.2.0
-Not released yet
+Released on 11/05/2021
 ## Popup
 - Changed navbar buttons from text to icons
 - Added option in settings to change the style of the highlighting
