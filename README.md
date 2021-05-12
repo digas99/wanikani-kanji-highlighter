@@ -18,8 +18,8 @@ It works with any website, and provides detailed information about any kanji tha
    * 2.4. [Settings](#settings)
 3. [Pictures](#pictures)
 
-# Changelog v0.2.1
-## Bug Fixes
+## Changelog v0.2.1
+### Bug Fixes
 - Fixed wrong version number displaying on the extension popup
 
 #### [(All changelogs)](CHANGELOG.md)
