@@ -1,3 +1,8 @@
+# Changelog v0.2.2
+Pending Release
+## Bug Fixes
+- Fixed extension popup not fully loading on certain websites
+
 # [Changelog v0.2.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.2.1)
 Released on 12/05/2021
 ## Bug Fixes
