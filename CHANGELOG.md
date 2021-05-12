@@ -1,5 +1,5 @@
-# Changelog v0.2.1
-Pending Release
+# [Changelog v0.2.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.2.1)
+Released on 12/05/2021
 ## Bug Fixes
 - Fixed wrong version number displaying on the extension popup
 
