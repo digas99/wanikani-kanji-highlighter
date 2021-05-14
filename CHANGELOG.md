@@ -2,7 +2,8 @@
 Not released yet
 ## Popup
 - Added a delete option to the blacklisted sites list within settings for every blacklisted site
-- Added the number of blacklisted sites to the button that feeds the list of blacklisted sites
+- The button that feeds the list of blacklisted sites now has the number of blacklisted sites
+- Small changes in the style of settings options
 
 ---
 
