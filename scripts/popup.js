@@ -582,6 +582,7 @@ document.addEventListener("click", e => {
 						div.appendChild(a);
 						a.target = "_black";
 						a.href = "https://www."+site;
+						a.style.width = "100%";
 						a.appendChild(document.createTextNode(site));
 
 						const binWrapper = document.createElement("div");

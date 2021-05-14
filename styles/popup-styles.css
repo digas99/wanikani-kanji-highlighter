@@ -1,70 +1,44 @@
-.centered {
-	display: block;
-    margin-left: auto;
-    margin-right: auto;
+/* Table Of Contents 					*/
+/* 0. VARIABLES 						*/
+/* 1. DEFAULTS 							*/
+/* 2. ARROWS 							*/
+/* 3. GENERAL							*/
+/* 4. SECUNDARY PAGES					*/
+/* 5. API KEY INPUT PAGE	 			*/
+/* 6. WHAT IS API KEY PAGE 				*/
+/* 7. LOGGED IN PAGE					*/
+/* 		7.1 NAVBAR						*/
+/* 		7.2 USER INFO					*/
+/* 8. BLACKLISTED SITE PAGE				*/
+/* 9. RUN OR NOT HIGHLIGHTER SITE INFO 	*/
+/* 10. SETTINGS 						*/
+/* 		10.1 BLACKLISTED SITES		 	*/
+/* 		10.2 SETTINGS OPTIONS		 	*/
+/* 		10.3 DANGER ZONE 				*/
+/* 11. HIGHLIGHTS		 				*/
+/* 12. FOOTER 							*/
+/* 13. UNKNOW 							*/
+
+
+/* 0. VARIABLES */
+
+:root {
+	--body-base-width: 200px;
+	--default-color: #dc6560;
+	--highlight-default-color: #4d70d1;
+	--wanikani: #f100a1;
+	--dark-back: #383838;
 }
 
-.clickable { 
-	cursor: pointer;
-	transition: 0.2s;
-}
-
-.clickable:hover {
-	opacity: 0.5;
-}
-
-li {
-	list-style: none;
-}
-
-p, h2, input, li, ul {
-	padding: 0;
-	margin: 0;
-}
-
-input, input:focus {
-	border: none;
-	border-bottom: 1px solid black;
-	outline: none;
-}
-
-.verticalAlign {
-	display: flex;
-    align-items: center;
-}
-
-.button {
-    background-color: #dc6560;
-    border-radius: 5px;
-    color: white;
-    padding: 4px;
-	cursor: pointer;
-	transition: 0.3s;
-	text-align: center;
-}
-
-.button:hover {
-	filter: brightness(1.5);
-}
-
-#submit {
-	text-align: center;
-	margin: 5px 0;
-}
+/* 1. DEFAULTS */
 
 body {
-	width: 200px;
-}
-
-#reloadPage {
-	text-align: center;
-    margin-top: 15px;
-    margin-bottom: 20px;
+	width: var(--body-base-width);
 }
 
 a {
 	text-decoration: none;
-	color: #d95b5b;
+	color: var(--default-color);
 	transition: 0.3s;
 }
 
@@ -72,138 +46,27 @@ a:hover {
 	opacity: 0.5;
 }
 
-#footerWarning {
-	font-size: 9px;
-    margin-bottom: 4px;
+li {
+	list-style: none;
 }
 
-#whatIsAPIKey {
-	font-size: 11px;
+p,
+h2,
+input,
+li,
+ul {
+	padding: 0;
+	margin: 0;
 }
 
-#goBack {
-	margin: 2px;
-	cursor: pointer;
+input,
+input:focus {
+	border: none;
+	border-bottom: 1px solid black;
+	outline: none;
 }
 
-.apiKeyStep {
-	background-color: #dc6560;
-    color: white;
-    padding: 6px;
-	border-radius: 5px;
-    margin-top: 6px;
-}
-
-.apiKeyStep img {
-	margin-top: 5px;
-}
-
-.topNav {
-	position: fixed;
-    background-color: white;
-    top: 0;
-    width: 100%;
-    padding: 6px;
-    display: inline-flex;
-}
-
-#userInfoNavbar {
-	font-size: 15px;
-}
-
-#userInfoNavbar li {
-	margin-bottom: 3px;
-	overflow: hidden;
-}
-
-#nmrKanjiIndicator {
-	background-color: #4d70d1;
-    color: white;
-    padding: 2px;
-}
-
-#warningWrapper {
-	text-align: center;
-    background-color: #383838;
-    border-radius: 5px;
-    color: white;
-    padding: 8px;
-}
-
-#warningWrapper span {
-	font-size: 40px;
-    border-radius: 50px;
-    color: #dc6560;
-}
-
-#runHighlighterButton {
-	margin: 9px 0;
-}
-
-.locationDiv {
-    background-color: #383838;
-    color: white;
-    padding: 4px;
-    overflow: auto;
-    font-size: 18px;
-    margin: 5px;
-}
-
-#message {
-	margin-top: 5px;
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-}
-
-.settingsItemCheckbox { 
-	margin-left: 8px;
-    margin-top: 3px;
-	cursor: pointer;
-}
-
-#settingsContent {
-	padding-top: 20px;
-    font-size: 16px;
-    display: grid;
-    margin: 10px 0;
-}
-
-#settingsContent>div {
-	padding: 15px 0;
-}
-
-.dangerItem>.button {
-	width: fit-content;
-    padding: 5px;
-}
-
-.dangerItemDescription {
-	background-color: #4f4d4d;
-    color: white;
-    padding: 7px;
-	margin-left: 4px;
-	border-radius: 0 7px 7px 7px;
-	font-size: 12px;
-}
-
-#blacklistedSitesWrapper {
-	border: 2px solid black;
-    padding: 5px;
-    display: grid;
-    max-height: 150px;
-    overflow: auto;
-}
-
-#notRunAtWK {
-	color: #f100a1;
-    font-size: 14px;
-    margin-top: 15px;
-}
-
-.navbar_icon>img {
-	width: 18px;
-}
+/* 2. ARROWS */
 
 i {
 	border: solid black;
@@ -232,40 +95,186 @@ transform: rotate(134deg);
 -webkit-transform: rotate(134deg);
 }
 
-.linkArrow {
-	border-color: #d95b5b;
+/* 3. GENERAL */
+
+.centered {
+	display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.wkhighlighter_highlighted {
-	background: #4d70d1 !important;
-	color: white !important;
-	display: unset !important;
-	font-size: 100% !important;
+.clickable { 
+	cursor: pointer;
+	transition: 0.2s;
 }
 
-.wkhighlighter_highlighted_underlined {
-	display: unset !important;
-    background: unset !important;
-	font-size: 100% !important;
-    color: inherit !important;
-    border-bottom: 3px solid #4d70d1 !important;
+.clickable:hover {
+	opacity: 0.5;
 }
 
-.wkhighlighter_highlighted_bold {
-	display: unset !important;
-    background: unset !important;
-	font-size: 100% !important;
-    color: #4d70d1 !important;
-    font-weight: bold !important;
+.verticalAlign {
+	display: flex;
+    align-items: center;
 }
 
-.settings_highlight_style_option {
-	padding: 0px 2px;
-    margin-left: 10px;
+.button {
+    background-color: var(--default-color);
+    border-radius: 5px;
+    color: white;
+    padding: 4px;
+	cursor: pointer;
+	transition: 0.3s;
+	text-align: center;
+}
+
+.button:hover {
+	filter: brightness(1.5);
+}
+
+#submit {
+	text-align: center;
+	margin: 5px 0;
+}
+
+#reloadPage {
+	text-align: center;
+    margin-top: 15px;
+    margin-bottom: 20px;
+}
+
+#message {
+	margin-top: 5px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
 }
 
 .simple_shadow {
 	box-shadow: 0px 0px 4px 0px black;
+}
+
+/* 4. SECUNDARY PAGES */
+
+.topNav {
+	position: fixed;
+    background-color: white;
+    top: 0;
+    width: 100%;
+    padding: 6px;
+    display: inline-flex;
+}
+
+#goBack {
+	margin: 2px;
+	cursor: pointer;
+}
+
+/* 5. API KEY INPUT PAGE */
+
+#whatIsAPIKey {
+	font-size: 11px;
+}
+
+/* 6. WHAT IS API KEY PAGE */
+
+.apiKeyStep,
+.apiKeyStep img {
+    margin-top: 6px;
+}
+
+.apiKeyStep {
+	background-color: var(--default-color);
+    color: white;
+    padding: 6px;
+	border-radius: 5px;
+}
+
+
+/* 7. LOGGED IN PAGE */
+
+	/* 7.1 NAVBAR */
+.navbar_icon>img {
+	width: 18px;
+}
+	
+
+	/* 7.2 USER INFO */
+
+#userInfoNavbar {
+	font-size: 15px;
+}
+
+#userInfoNavbar li {
+	margin-bottom: 3px;
+	overflow: hidden;
+}
+
+#nmrKanjiIndicator {
+	background-color: var(--highlight-default-color);
+    color: white;
+    padding: 2px;
+}
+
+#notRunAtWK {
+	color: var(--wanikani);
+    font-size: 14px;
+    margin-top: 15px;
+}
+
+/* 8. BLACKLISTED SITE PAGE */
+
+#warningWrapper {
+	text-align: center;
+    background-color: var(--dark-back);
+    border-radius: 5px;
+    color: white;
+    padding: 8px;
+}
+
+#warningWrapper span {
+	font-size: 40px;
+    border-radius: 50px;
+    color: var(--default-color);
+}
+
+#runHighlighterButton {
+	margin: 9px 0;
+}
+
+
+/* 9. RUN OR NOT HIGHLIGHTER SITE INFO */
+
+.locationDiv {
+    background-color: var(--dark-back);
+    color: white;
+    padding: 4px;
+    overflow: auto;
+    font-size: 18px;
+    margin: 5px;
+}
+
+/* 10. SETTINGS */
+
+#settingsContent {
+	padding-top: 20px;
+    font-size: 16px;
+    display: grid;
+    margin: 10px 0;
+}
+
+#settingsContent>div {
+	padding: 15px 0;
+}
+
+
+	/* 10.1 BLACKLISTED SITES */
+
+#blacklistedSitesWrapper {
+	border: 2px solid black;
+	padding: 5px;
+	display: grid;
+	max-height: 150px;
+	overflow: auto;
 }
 
 .blacklisted_site_wrapper {
@@ -288,7 +297,77 @@ transform: rotate(134deg);
 	width: 17px;
 }
 
+
+	/* 10.2 SETTINGS OPTIONS */
+
 .checkbox_wrapper {
 	text-align: right;
-    margin-right: 15px;
+	margin-right: 15px;
+}
+
+.settingsItemCheckbox { 
+	margin-left: 8px;
+    margin-top: 3px;
+	cursor: pointer;
+}
+
+.settings_highlight_style_option {
+	padding: 0px 2px;
+    margin-left: 10px;
+}
+
+
+	/* 10.3 DANGER ZONE */
+
+.dangerItem>.button {
+	width: fit-content;
+    padding: 5px;
+}
+
+.dangerItemDescription {
+	background-color: var(--dark-back);
+    color: white;
+    padding: 7px;
+	margin-left: 4px;
+	border-radius: 0 7px 7px 7px;
+	font-size: 12px;
+}
+
+/* 11. HIGHLIGHTS */
+.wkhighlighter_highlighted,
+.wkhighlighter_highlighted_underlined,
+.wkhighlighter_highlighted_bold {
+	font-size: 100% !important;
+	display: unset !important;
+}
+
+.wkhighlighter_highlighted {
+	all: unset !important;
+	background: var(--highlight-default-color)!important;
+	color: white !important;
+}
+
+.wkhighlighter_highlighted_underlined {
+    background: unset !important;
+    color: inherit !important;
+    border-bottom: 3px solid var(--highlight-default-color) !important;
+}
+
+.wkhighlighter_highlighted_bold {	
+    background: unset !important;
+    color: var(--highlight-default-color) !important;
+    font-weight: bold !important;
+}
+
+
+/* 12. FOOTER */
+
+#footerWarning {
+	font-size: 9px;
+    margin-bottom: 4px;
+}
+
+/* 13. UNKNOWN */
+.linkArrow {
+	border-color: var(--default-color);
 }
