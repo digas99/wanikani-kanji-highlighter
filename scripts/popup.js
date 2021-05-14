@@ -460,7 +460,13 @@ document.addEventListener("click", e => {
 		blackListedlink.href = "#";
 		blackListedlink.id = "blacklistedSitesList";
 		blackListedlink.appendChild(document.createTextNode("Blacklisted sites"));
-		chrome.storage.local.get(["wkhighlight_blacklist"], result => blackListedlink.innerText += ` (${result["wkhighlight_blacklist"].length})`);
+		const arrow = document.createElement("i");
+		arrow.classList.add("right", "blacklisted_title_arrow");
+		console.log(arrow);
+		chrome.storage.local.get(["wkhighlight_blacklist"], result => {
+			blackListedlink.innerText += ` (${result["wkhighlight_blacklist"].length})`;
+			blackListedlink.appendChild(arrow);
+		});
 
 		const settingsChecks = document.createElement("div");
 		settingsChecks.style.display = "grid";
@@ -475,10 +481,12 @@ document.addEventListener("click", e => {
 					div.style.display = "inline-flex";
 					div.style.padding = "3px 0";
 		
-					const titleDiv = document.createElement("div");
-					div.appendChild(titleDiv);
-					titleDiv.style.width = "100%";
-					titleDiv.appendChild(document.createTextNode(title));
+					idValue = "settings"+count;
+					const label = document.createElement("label");
+					div.appendChild(label);
+					label.classList.add("settingsItemLabel");
+					label.appendChild(document.createTextNode(title));
+					label.htmlFor = idValue;
 		
 					const inputDiv = document.createElement("div");
 					inputDiv.classList.add("checkbox_wrapper");
@@ -487,8 +495,10 @@ document.addEventListener("click", e => {
 					inputDiv.appendChild(checkbox);
 					checkbox.checked = settings[count];
 					checkbox.type = "checkbox";
-					checkbox.id = "settings"+(count++);
-					checkbox.classList.add("settingsItemCheckbox");
+					checkbox.id = idValue;
+					checkbox.classList.add("settingsItemCheckbox", "clickable");
+					
+					count++;
 				});
 
 				const div = document.createElement("div");
@@ -496,11 +506,10 @@ document.addEventListener("click", e => {
 				div.style.display = "inline-flex";
 				div.style.padding = "3px 0";
 
-				const titleDiv = document.createElement("div");
-				div.appendChild(titleDiv);
-				titleDiv.style.width = "100%";
-				titleDiv.appendChild(document.createTextNode("Highlight style"));
-				titleDiv.style.marginRight = "5px";
+				const label = document.createElement("label");
+				div.appendChild(label);
+				label.classList.add("settingsItemLabel");
+				label.appendChild(document.createTextNode("Highlight style"));
 
 				const inputDiv = document.createElement("div");
 				inputDiv.classList.add("checkbox_wrapper");
@@ -540,17 +549,25 @@ document.addEventListener("click", e => {
 
 	}
 
-	if (targetElem.className === "settingsItemCheckbox") {
+	if (targetElem.classList.contains("settingsItemCheckbox")) {
 		chrome.storage.local.get(["wkhighlight_settings"], data => {
 			let settings = data["wkhighlight_settings"];
 			if (!settings) {
 				settings = {};
 			}
+			console.log(settings);
 			const settingsID = targetElem.id.replace("settings", "");
 			
+			console.log(settingsID);
+
 			// if user removed badges in settings
-			if (settingsID === "1" && !targetElem.checked)
-				chrome.browserAction.setBadgeText({text: ''});
+			if (settingsID === "1") {
+				let value = "";
+				console.log(targetElem);
+				if (targetElem.checked)
+					value = nmrKanjiHighlighted+"";
+				chrome.browserAction.setBadgeText({text: value});
+			}
 			
 			settings[settingsID] = targetElem.checked;
 			chrome.storage.local.set({"wkhighlight_settings":settings});

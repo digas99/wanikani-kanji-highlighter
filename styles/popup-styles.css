@@ -59,11 +59,48 @@ ul {
 	margin: 0;
 }
 
-input,
-input:focus {
+input[type="text"],
+input[type="text"]:focus {
 	border: none;
 	border-bottom: 1px solid black;
 	outline: none;
+}
+
+label {
+	cursor: pointer;
+	transition: 0.2s;
+}
+
+label:hover {
+	opacity: 0.5;
+}
+
+input[type="checkbox"] { 
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #7c7c7c;
+    border-radius: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	outline: none;
+}
+
+input[type="checkbox"]:after {
+	content: '\2713';
+	font-weight: 900;
+	color: white;
+	font-size: 17px;
+	display: none;
+} 
+
+input[type="checkbox"]:checked {
+	background-color: var(--highlight-default-color);
+}
+
+input[type="checkbox"]:checked:after {
+	display: block;
 }
 
 /* 2. ARROWS */
@@ -275,6 +312,7 @@ transform: rotate(134deg);
 	display: grid;
 	max-height: 150px;
 	overflow: auto;
+	border-bottom-right-radius: 8px;
 }
 
 .blacklisted_site_wrapper {
@@ -297,6 +335,14 @@ transform: rotate(134deg);
 	width: 17px;
 }
 
+.blacklisted_title_arrow {
+	padding: 3px;
+    border-color: var(--default-color);
+    margin-bottom: 1px;
+	margin-left: 2px;
+	pointer-events: none;
+}
+
 
 	/* 10.2 SETTINGS OPTIONS */
 
@@ -305,17 +351,17 @@ transform: rotate(134deg);
 	margin-right: 15px;
 }
 
-.settingsItemCheckbox { 
-	margin-left: 8px;
-    margin-top: 3px;
-	cursor: pointer;
-}
-
 .settings_highlight_style_option {
-	padding: 0px 2px;
+	padding: 0px 3px;
     margin-left: 10px;
+    border: 2px solid #7c7c7c;
+    border-radius: 4px;
 }
 
+.settingsItemLabel {
+	width: 100%;
+	font-weight: bold;
+}
 
 	/* 10.3 DANGER ZONE */
 
