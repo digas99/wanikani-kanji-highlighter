@@ -261,7 +261,7 @@ transform: rotate(134deg);
 
 .settings_highlight_style_option {
 	padding: 0px 2px;
-    margin: 0px 5px;
+    margin-left: 10px;
 }
 
 .simple_shadow {
@@ -286,4 +286,9 @@ transform: rotate(134deg);
 
 .bin_icon {
 	width: 17px;
+}
+
+.checkbox_wrapper {
+	text-align: right;
+    margin-right: 15px;
 }

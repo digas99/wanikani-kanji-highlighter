@@ -481,10 +481,14 @@ document.addEventListener("click", e => {
 		
 					const titleDiv = document.createElement("div");
 					div.appendChild(titleDiv);
+					titleDiv.style.width = "100%";
 					titleDiv.appendChild(document.createTextNode(title));
 		
+					const inputDiv = document.createElement("div");
+					inputDiv.classList.add("checkbox_wrapper");
 					const checkbox = document.createElement("input");
-					div.appendChild(checkbox);
+					div.appendChild(inputDiv);
+					inputDiv.appendChild(checkbox);
 					checkbox.checked = settings[count];
 					checkbox.type = "checkbox";
 					checkbox.id = "settings"+(count++);
@@ -498,12 +502,16 @@ document.addEventListener("click", e => {
 
 				const titleDiv = document.createElement("div");
 				div.appendChild(titleDiv);
+				titleDiv.style.width = "100%";
 				titleDiv.appendChild(document.createTextNode("Highlight style"));
 				titleDiv.style.marginRight = "5px";
 
+				const inputDiv = document.createElement("div");
+				inputDiv.classList.add("checkbox_wrapper");
+				div.appendChild(inputDiv);
 				["wkhighlighter_highlighted", "wkhighlighter_highlighted_underlined", "wkhighlighter_highlighted_bold"].forEach(className => {
 					const span = document.createElement("span");
-					div.appendChild(span);
+					inputDiv.appendChild(span);
 					span.classList.add(className);
 					span.appendChild(document.createTextNode("A"));
 					span.classList.add("settings_highlight_style_option", "clickable");
