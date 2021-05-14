@@ -342,7 +342,6 @@ transform: rotate(134deg);
 }
 
 .wkhighlighter_highlighted {
-	all: unset !important;
 	background: var(--highlight-default-color)!important;
 	color: white !important;
 }
