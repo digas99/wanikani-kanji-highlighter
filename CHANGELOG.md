@@ -5,6 +5,9 @@ Not released yet
 - The button that feeds the list of blacklisted sites now has the number of blacklisted sites
 - Changes in the style of the options in settings
 
+## Bug Fixes
+- Clicking outside the settings and exit buttons, in the popup extension, no longer triggers them by mistake
+
 ---
 
 # [Changelog v0.2.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.2.2)

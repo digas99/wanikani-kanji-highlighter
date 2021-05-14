@@ -400,7 +400,7 @@ document.addEventListener("click", e => {
 		document.body.style.width = "200px";
 	}
 
-	if (targetElem.id === "exit" || targetElem.querySelector("#exit")) {
+	if (targetElem.id === "exit" || (targetElem.childNodes[0] && targetElem.childNodes[0].id === "exit")) {
 		const main = document.getElementById("main");
 		chrome.storage.local.remove("wkhighlight_apiKey");
 		if (main) {
@@ -449,7 +449,7 @@ document.addEventListener("click", e => {
 		});
 	}
 
-	if (targetElem.id === "settings" || targetElem.querySelector("#settings")) {
+	if (targetElem.id === "settings" || (targetElem.childNodes[0] && targetElem.childNodes[0].id === "settings")) {
 		const content = secundaryPage("Settings");
 		content.id = "settingsContent";
 		
