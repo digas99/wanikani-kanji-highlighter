@@ -32,9 +32,9 @@ const footer = () => {
 	const version = document.createElement("a");
 	versionWrapper.appendChild(version);
 
-	reposLastVersion("digas99", "wanikani-kanji-highlighter").then(result => {
+	reposFirstVersion("digas99", "wanikani-kanji-highlighter").then(result => {
 		version.href = `https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/${result}`;
-		version.appendChild(document.createTextNode(`v${result}`));
+		version.appendChild(document.createTextNode(result));
 		version.target = "_blank";
 		versionWrapper.style.marginTop = "4px";
 		version.style.color = "black";
@@ -95,163 +95,159 @@ window.onload = () => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			var activeTab = tabs[0];
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, response => {
-				const url = response["windowLocation"];
-				if (!window.chrome.runtime.lastError) {
-					if (!userData["wkhighlight_blacklist"] || userData["wkhighlight_blacklist"].length === 0 || !blacklisted(userData["wkhighlight_blacklist"], url)) {
-						const apiKey = userData["wkhighlight_apiKey"];
-						// if the user did not add a key yet
-						if (!apiKey) {
-							chrome.browserAction.setBadgeText({text: ''});
-	
-							// key input
-							const apiInputWrapper = document.createElement("div");
-							apiInputWrapper.classList.add("apiKey_wrapper");
-							main.appendChild(apiInputWrapper);
-	
-							const apiLabel = document.createElement("p");
-							apiLabel.style.textAlign = "center";
-							apiLabel.style.marginBottom = "5px";
-							apiLabel.style.fontSize = "16px";
-							apiLabel.appendChild(document.createTextNode("API Key: "));
-							apiInputWrapper.appendChild(apiLabel);
-	
-							const apiInput = document.createElement("input");
-							apiInput.placeholder = "Input here the key...";
-							apiInput.type = "text";
-							apiInput.id = "apiInput";
-							apiInput.style.fontSize = "15px";
-							apiInput.style.width = "100%";
-							apiInputWrapper.appendChild(apiInput);
-	
-							// submit button
-							const button = document.createElement("div");
-							button.appendChild(document.createTextNode("Submit"));
-							button.classList.add("button");
-							button.id = "submit";
-							apiInputWrapper.appendChild(button);
-	
-							// what is an api key
-							const whatIsAPIKey = document.createElement("div");
-							whatIsAPIKey.style.marginTop = "2px";
-							apiInputWrapper.appendChild(whatIsAPIKey);
-							const whatIsAPIKeyLink = document.createElement("a");
-							whatIsAPIKeyLink.href = "#";
-							whatIsAPIKeyLink.id = "whatIsAPIKey";
-							whatIsAPIKeyLink.appendChild(document.createTextNode("What is an API Key?"));
-							whatIsAPIKey.appendChild(whatIsAPIKeyLink);
-						}
-						else {
-							main.appendChild(logoDiv);
-							chrome.storage.local.get(["wkhighlight_userInfo_updated"], response => {
-								const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatDate(new Date());
-								modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
-									.then(modified => {
-										// if user info has been updated in wanikani, then update cache
-										if (modified) {
-											fetchPage(apiKey, "https://api.wanikani.com/v2/user")
-												.then(user => {
-													if (!window.chrome.runtime.lastError && user) 
-														chrome.storage.local.set({"wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
-											});
-										}
-		
-										const userInfo = userData["wkhighlight_userInfo"]["data"];
-										if (userInfo) {
-											//const loggedInWrapper = document.createElement("div");
-											//main.appendChild(loggedInWrapper);
-				
-											const userInfoWrapper = document.createElement("div");
-											userInfoWrapper.style.margin = "0 7px";
-											main.appendChild(userInfoWrapper);
-				
-											const userElementsList = document.createElement("ul");
-											userElementsList.id = "userInfoNavbar";
-											userInfoWrapper.appendChild(userElementsList);
-											const topRightNavbar = document.createElement("li");
-											userElementsList.appendChild(topRightNavbar);
-											topRightNavbar.style.textAlign = "right";
-											topRightNavbar.style.marginBottom = "7px";
-											["../images/settings.png", "../images/exit.png"].forEach(img => {
-												const link = document.createElement("a");
-												link.style.padding = "0 5px";
-												link.href = "#";
-												link.className = "navbar_icon clickable";
-												const icon_img = document.createElement("img");
-												icon_img.id = img.split("/")[2].split(".")[0];
-												icon_img.src = img;
-												link.appendChild(icon_img);
-												topRightNavbar.appendChild(link);
-											});
-				
-											const greetings = document.createElement("li");
-											greetings.innerHTML = `Hello, <a href="${userInfo["profile_url"]}" target="_blank">${userInfo["username"]}</a>!`;
-											userElementsList.appendChild(greetings);
-				
-											const level = document.createElement("li");
-											level.innerHTML = `Level: <strong>${userInfo["level"]}</strong> / ${userInfo["subscription"]["max_level_granted"]}`;
-											userElementsList.appendChild(level);
-											
-											const kanjiFound = document.createElement("li");
-											kanjiFound.id = "nmrKanjiHighlighted";
-											kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: (in the page)`;
-											userElementsList.appendChild(kanjiFound);
+				const url = response ? response["windowLocation"] : "";
+				if (!userData["wkhighlight_blacklist"] || userData["wkhighlight_blacklist"].length === 0 || !blacklisted(userData["wkhighlight_blacklist"], url)) {
+					const apiKey = userData["wkhighlight_apiKey"];
+					// if the user did not add a key yet
+					if (!apiKey) {
+						chrome.browserAction.setBadgeText({text: ''});
 
-											if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {
-												chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-													var activeTab = tabs[0];
-													chrome.tabs.sendMessage(activeTab.id, {nmrKanjiHighlighted: "popup"}, response => {
-														if (!window.chrome.runtime.lastError && response) {
-															const nmrKanjiHighlighted = response["nmrKanjiHighlighted"] ? response["nmrKanjiHighlighted"] : 0;
-															kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${nmrKanjiHighlighted}</strong> (in the page)`;
-														}
-													});
-												});
-											}
-											else {
-												const notRunAtWK = document.createElement("li");
-												notRunAtWK.appendChild(document.createTextNode("I don't run @wanikani, sorry!"));
-												notRunAtWK.id = "notRunAtWK";
-												userElementsList.appendChild(notRunAtWK);
-											}
-				
-											const blacklistButtonWrapper = document.createElement("div");
-											userInfoWrapper.appendChild(blacklistButtonWrapper);
-											const blacklistButton = document.createElement("div");
-											blacklistButton.id = "blacklistButton";
-											blacklistButtonWrapper.appendChild(blacklistButton);
-											blacklistButton.classList.add("button");
-											blacklistButton.style.margin = "16px 0";
-											blacklistButton.appendChild(document.createTextNode("Don't Run On This Site"));
-										}
-									});
-							});
-						}
+						// key input
+						const apiInputWrapper = document.createElement("div");
+						apiInputWrapper.classList.add("apiKey_wrapper");
+						main.appendChild(apiInputWrapper);
+
+						const apiLabel = document.createElement("p");
+						apiLabel.style.textAlign = "center";
+						apiLabel.style.marginBottom = "5px";
+						apiLabel.style.fontSize = "16px";
+						apiLabel.appendChild(document.createTextNode("API Key: "));
+						apiInputWrapper.appendChild(apiLabel);
+
+						const apiInput = document.createElement("input");
+						apiInput.placeholder = "Input here the key...";
+						apiInput.type = "text";
+						apiInput.id = "apiInput";
+						apiInput.style.fontSize = "15px";
+						apiInput.style.width = "100%";
+						apiInputWrapper.appendChild(apiInput);
+
+						// submit button
+						const button = document.createElement("div");
+						button.appendChild(document.createTextNode("Submit"));
+						button.classList.add("button");
+						button.id = "submit";
+						apiInputWrapper.appendChild(button);
+
+						// what is an api key
+						const whatIsAPIKey = document.createElement("div");
+						whatIsAPIKey.style.marginTop = "2px";
+						apiInputWrapper.appendChild(whatIsAPIKey);
+						const whatIsAPIKeyLink = document.createElement("a");
+						whatIsAPIKeyLink.href = "#";
+						whatIsAPIKeyLink.id = "whatIsAPIKey";
+						whatIsAPIKeyLink.appendChild(document.createTextNode("What is an API Key?"));
+						whatIsAPIKey.appendChild(whatIsAPIKeyLink);
 					}
 					else {
-						const blacklistWrapper = document.createElement("div");
-						main.appendChild(blacklistWrapper);
+						main.appendChild(logoDiv);
+						chrome.storage.local.get(["wkhighlight_userInfo_updated"], response => {
+							const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatDate(new Date());
+							modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
+								.then(modified => {
+									// if user info has been updated in wanikani, then update cache
+									if (modified) {
+										fetchPage(apiKey, "https://api.wanikani.com/v2/user")
+											.then(user => {
+												if (!window.chrome.runtime.lastError && user) 
+													chrome.storage.local.set({"wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
+										});
+									}
 	
-						const warningWrapper = document.createElement("div");
-						blacklistWrapper.appendChild(warningWrapper);
-						warningWrapper.id = "warningWrapper";
-						const exclamationMark = document.createElement("span");
-						warningWrapper.appendChild(exclamationMark);
-						exclamationMark.appendChild(document.createTextNode("!"));
-						exclamationMark.style.color = "#dc6560";
-						exclamationMark.style.fontSize = "40px";
-						const warningMessage = document.createElement("p");
-						warningWrapper.appendChild(warningMessage);
-						warningMessage.appendChild(document.createTextNode("This page was blacklisted by you."));
-						warningMessage.style.fontSize = "18px";
-	
-						const warningButton = document.createElement("div");
-						
-						warningButton.classList.add("button");
-						blacklistWrapper.appendChild(warningButton);
-						warningButton.appendChild(document.createTextNode("Run Highlighter On This Page"));
-						warningButton.id = "runHighlighterButton";
-					}	
+									const userInfo = userData["wkhighlight_userInfo"]["data"];
+									if (userInfo) {
+										//const loggedInWrapper = document.createElement("div");
+										//main.appendChild(loggedInWrapper);
+			
+										const userInfoWrapper = document.createElement("div");
+										userInfoWrapper.style.margin = "0 7px";
+										main.appendChild(userInfoWrapper);
+			
+										const userElementsList = document.createElement("ul");
+										userElementsList.id = "userInfoNavbar";
+										userInfoWrapper.appendChild(userElementsList);
+										const topRightNavbar = document.createElement("li");
+										userElementsList.appendChild(topRightNavbar);
+										topRightNavbar.style.textAlign = "right";
+										topRightNavbar.style.marginBottom = "7px";
+										["../images/settings.png", "../images/exit.png"].forEach(img => {
+											const link = document.createElement("a");
+											link.style.padding = "0 5px";
+											link.href = "#";
+											link.classList.add("navbar_icon");
+											const icon_img = document.createElement("img");
+											icon_img.id = img.split("/")[2].split(".")[0];
+											icon_img.src = img;
+											link.appendChild(icon_img);
+											topRightNavbar.appendChild(link);
+										});
+			
+										const greetings = document.createElement("li");
+										greetings.innerHTML = `Hello, <a href="${userInfo["profile_url"]}" target="_blank">${userInfo["username"]}</a>!`;
+										userElementsList.appendChild(greetings);
+			
+										const level = document.createElement("li");
+										level.innerHTML = `Level: <strong>${userInfo["level"]}</strong> / ${userInfo["subscription"]["max_level_granted"]}`;
+										userElementsList.appendChild(level);
+										
+										const kanjiFound = document.createElement("li");
+										kanjiFound.id = "nmrKanjiHighlighted";
+										kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: (in the page)`;
+										userElementsList.appendChild(kanjiFound);
+
+										if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {
+											chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+												var activeTab = tabs[0];
+												chrome.tabs.sendMessage(activeTab.id, {nmrKanjiHighlighted: "popup"}, response => {
+													const nmrKanjiHighlighted = response && response["nmrKanjiHighlighted"] ? response["nmrKanjiHighlighted"] : 0;
+													kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${nmrKanjiHighlighted}</strong> (in the page)`;
+												});
+											});
+										}
+										else {
+											const notRunAtWK = document.createElement("li");
+											notRunAtWK.appendChild(document.createTextNode("I don't run @wanikani, sorry!"));
+											notRunAtWK.id = "notRunAtWK";
+											userElementsList.appendChild(notRunAtWK);
+										}
+			
+										const blacklistButtonWrapper = document.createElement("div");
+										userInfoWrapper.appendChild(blacklistButtonWrapper);
+										const blacklistButton = document.createElement("div");
+										blacklistButton.id = "blacklistButton";
+										blacklistButtonWrapper.appendChild(blacklistButton);
+										blacklistButton.classList.add("button");
+										blacklistButton.style.margin = "16px 0";
+										blacklistButton.appendChild(document.createTextNode("Don't Run On This Site"));
+									}
+								});
+						});
+					}
 				}
+				else {
+					const blacklistWrapper = document.createElement("div");
+					main.appendChild(blacklistWrapper);
+
+					const warningWrapper = document.createElement("div");
+					blacklistWrapper.appendChild(warningWrapper);
+					warningWrapper.id = "warningWrapper";
+					const exclamationMark = document.createElement("span");
+					warningWrapper.appendChild(exclamationMark);
+					exclamationMark.appendChild(document.createTextNode("!"));
+					exclamationMark.style.color = "#dc6560";
+					exclamationMark.style.fontSize = "40px";
+					const warningMessage = document.createElement("p");
+					warningWrapper.appendChild(warningMessage);
+					warningMessage.appendChild(document.createTextNode("This page was blacklisted by you."));
+					warningMessage.style.fontSize = "18px";
+
+					const warningButton = document.createElement("div");
+					
+					warningButton.classList.add("button");
+					blacklistWrapper.appendChild(warningButton);
+					warningButton.appendChild(document.createTextNode("Run Highlighter On This Page"));
+					warningButton.id = "runHighlighterButton";
+				}	
 			});
 		});
 		

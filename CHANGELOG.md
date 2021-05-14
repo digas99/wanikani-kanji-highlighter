@@ -6,8 +6,18 @@ Not released yet
 
 ---
 
-# Changelog v0.2.0
-Pending approval
+# [Changelog v0.2.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.2.2)
+Released on 13/05/2021
+## Bug Fixes
+- Fixed extension popup not fully loading on certain websites
+
+# [Changelog v0.2.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.2.1)
+Released on 12/05/2021
+## Bug Fixes
+- Fixed wrong version number displaying on the extension popup
+
+# [Changelog v0.2.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.2.0)
+Released on 11/05/2021
 ## Popup
 - Changed navbar buttons from text to icons
 - Added option in settings to change the style of the highlighting
@@ -20,7 +30,7 @@ Pending approval
 
 ---
 
-# [Changelog v0.1.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/0.1.1)
+# [Changelog v0.1.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.1.1)
 Released on 07/05/2021
 ## Bug Fixes
 - Fixed page loading issues when navigating through pages of a same website

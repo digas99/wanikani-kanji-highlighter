@@ -5,12 +5,12 @@ This is an unofficial chrome extension for Kanji Highlighting, matching the kanj
 It works with any website, and provides detailed information about any kanji that is highlighted.
 **Because it would be cheating, the extension doesn't work on [WaniKani.com](https://www.wanikani.com/).**
 
-#### VERSION 0.1.1
+#### VERSION 0.2.2
 
 ## [Get it on Chrome Webstore](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/)
 
 ## Table of contents:
-1. [Latest Features](#changelog-v011)
+1. [Latest Features](#changelog-v022)
 2. [Usage Guide](#usage-guide)
    * 2.1. [WaniKani API Token](#wanikani-api-token)
    * 2.2. [Kanji Details](#kanji-details)
@@ -18,10 +18,11 @@ It works with any website, and provides detailed information about any kanji tha
    * 2.4. [Settings](#settings)
 3. [Pictures](#pictures)
 
-## Changelog v0.1.1
-### Bug Fixes 
-- Fixed page loading issues when navigating through pages of a same website
-- The extension now works on subdomains of Wanikani
+## Changelog v0.2.2
+### Bug Fixes
+- Fixed extension popup not fully loading on certain websites
+
+#### [(All changelogs)](CHANGELOG.md)
 
 #### [(All changelogs)](CHANGELOG.md)
 
@@ -53,6 +54,7 @@ You can see the list of blacklisted sites in *Settings*, within the extension po
 On the extension popup, you will find the app settings.
 - **Kanji info popup:** show the popup with the details of a highlighted kanji, when hover over it
 - **Kanji counter on icon:** show the number of highlighted Kanji in the page on the icon of the extension (doesn't count above *99* kanji for readability purposes)
+- **Highlight style:** choose how do you want the kanji to be highlighted
 
 ## Pictures
 ![screenshot1](https://i.imgur.com/9euvCGE.jpg)
