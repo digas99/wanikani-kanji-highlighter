@@ -306,6 +306,10 @@ transform: rotate(134deg);
 
 	/* 10.1 BLACKLISTED SITES */
 
+#blacklistedSitesList {
+	font-weight: 900;
+}
+
 #blacklistedSitesWrapper {
 	border: 2px solid black;
 	padding: 5px;
