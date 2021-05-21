@@ -210,6 +210,19 @@ window.onload = () => {
 											notRunAtWK.id = "notRunAtWK";
 											userElementsList.appendChild(notRunAtWK);
 										}
+
+										const searchWrapper = document.createElement("li");
+										userElementsList.appendChild(searchWrapper);
+										searchWrapper.id = "kanjiSearchWrapper";
+										const searchIcon = document.createElement("img");
+										searchIcon.id = "kanjiSearchIcon";
+										searchIcon.src = "../images/search.png";
+										searchWrapper.appendChild(searchIcon);
+										const searchInput = document.createElement("input");
+										searchWrapper.appendChild(searchInput);
+										searchInput.type = "text";
+										searchInput.placeholder = "Gold / 金 / kin";
+										searchInput.id = "kanjiSearchInput";
 			
 										const blacklistButtonWrapper = document.createElement("div");
 										userInfoWrapper.appendChild(blacklistButtonWrapper);

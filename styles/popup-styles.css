@@ -252,6 +252,28 @@ transform: rotate(134deg);
     padding: 2px;
 }
 
+#kanjiSearchWrapper {
+	display: flex;
+    border: 1px solid silver;
+    border-radius: 17px;
+    padding: 4px;
+    margin-top: 10px;
+}
+
+#kanjiSearchInput {
+	width: 100%;
+	border: 0;
+}
+
+#kanjiSearchIcon {
+    margin-right: 5px;
+    padding-right: 5px;
+    border-right: 1px solid #797979;
+    width: 14px;
+    height: 14px;
+	opacity: 0.7;
+}
+
 #notRunAtWK {
 	color: var(--wanikani);
     font-size: 14px;
