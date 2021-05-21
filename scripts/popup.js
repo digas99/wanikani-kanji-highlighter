@@ -1,4 +1,5 @@
 nmrKanjiHighlighted = 0;
+kanjiList = [];
 
 const footer = () => {
 	const wrapper = document.createElement("div");
@@ -77,9 +78,7 @@ window.onload = () => {
 	// logo
 	const logoDiv = document.createElement("div");
 	main.appendChild(logoDiv);
-	logoDiv.style.marginBottom = "25px";
-	logoDiv.style.textAlign = "center";
-	logoDiv.style.fontSize = "11px";
+	logoDiv.id = "logoWrapper";
 	const logo = document.createElement("img");
 	logo.src="logo/logo.png";
 	logo.classList.add("centered");
@@ -163,11 +162,8 @@ window.onload = () => {
 										userInfoWrapper.style.margin = "0 7px";
 										main.appendChild(userInfoWrapper);
 			
-										const userElementsList = document.createElement("ul");
-										userElementsList.id = "userInfoNavbar";
-										userInfoWrapper.appendChild(userElementsList);
-										const topRightNavbar = document.createElement("li");
-										userElementsList.appendChild(topRightNavbar);
+										const topRightNavbar = document.createElement("div");
+										userInfoWrapper.appendChild(topRightNavbar);
 										topRightNavbar.style.textAlign = "right";
 										topRightNavbar.style.marginBottom = "7px";
 										["../images/settings.png", "../images/exit.png"].forEach(img => {
@@ -181,6 +177,10 @@ window.onload = () => {
 											link.appendChild(icon_img);
 											topRightNavbar.appendChild(link);
 										});
+
+										const userElementsList = document.createElement("ul");
+										userElementsList.id = "userInfoNavbar";
+										userInfoWrapper.appendChild(userElementsList);
 			
 										const greetings = document.createElement("li");
 										greetings.innerHTML = `Hello, <a href="${userInfo["profile_url"]}" target="_blank">${userInfo["username"]}</a>!`;
@@ -202,7 +202,24 @@ window.onload = () => {
 													const nmrKanjiHighlighted = response && response["nmrKanjiHighlighted"] ? response["nmrKanjiHighlighted"] : 0;
 													kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${nmrKanjiHighlighted}</strong> (in the page)`;
 												});
-											});
+											});										
+
+											const searchArea = document.createElement("div");
+											userInfoWrapper.appendChild(searchArea);
+											searchArea.id = "searchArea";
+											const searchWrapper = document.createElement("div");
+											searchArea.appendChild(searchWrapper);
+											searchWrapper.id = "kanjiSearchWrapper";
+											const searchIcon = document.createElement("img");
+											searchIcon.id = "kanjiSearchIcon";
+											searchIcon.src = "../images/search.png";
+											searchWrapper.appendChild(searchIcon);
+											const searchInput = document.createElement("input");
+											searchWrapper.appendChild(searchInput);
+											searchInput.type = "text";
+											searchInput.placeholder = "Gold / 金";
+											searchInput.oninput = searchKanji;
+											searchInput.id = "kanjiSearchInput";
 										}
 										else {
 											const notRunAtWK = document.createElement("li");
@@ -211,19 +228,6 @@ window.onload = () => {
 											userElementsList.appendChild(notRunAtWK);
 										}
 
-										const searchWrapper = document.createElement("li");
-										userElementsList.appendChild(searchWrapper);
-										searchWrapper.id = "kanjiSearchWrapper";
-										const searchIcon = document.createElement("img");
-										searchIcon.id = "kanjiSearchIcon";
-										searchIcon.src = "../images/search.png";
-										searchWrapper.appendChild(searchIcon);
-										const searchInput = document.createElement("input");
-										searchWrapper.appendChild(searchInput);
-										searchInput.type = "text";
-										searchInput.placeholder = "Gold / 金 / kin";
-										searchInput.id = "kanjiSearchInput";
-			
 										const blacklistButtonWrapper = document.createElement("div");
 										userInfoWrapper.appendChild(blacklistButtonWrapper);
 										const blacklistButton = document.createElement("div");
@@ -328,7 +332,7 @@ const submitAction = () => {
 }
 
 const secundaryPage = (titleText) => {
-	document.body.style.width = "250px";
+	document.documentElement.style.setProperty('--body-base-width', '250px');
 
 	document.getElementById("main").style.display = "none";
 
@@ -363,7 +367,6 @@ const secundaryPage = (titleText) => {
 
 document.addEventListener("click", e => {
 	const targetElem = e.target;
-	console.log(targetElem);
 
 	if (targetElem.id === "submit")
 		submitAction();
@@ -410,7 +413,8 @@ document.addEventListener("click", e => {
 	if (targetElem.id === "goBack" || targetElem.localName === "i") {
 		document.getElementById("secPageMain").remove();
 		document.getElementById("main").style.display = "inherit";
-		document.body.style.width = "200px";
+		document.documentElement.style.setProperty('--body-base-width', '200px');
+
 	}
 
 	if (targetElem.id === "exit" || (targetElem.childNodes[0] && targetElem.childNodes[0].id === "exit")) {
@@ -475,7 +479,6 @@ document.addEventListener("click", e => {
 		blackListedlink.appendChild(document.createTextNode("Blacklisted sites"));
 		const arrow = document.createElement("i");
 		arrow.classList.add("right", "blacklisted_title_arrow");
-		console.log(arrow);
 		chrome.storage.local.get(["wkhighlight_blacklist"], result => {
 			blackListedlink.innerText += ` (${result["wkhighlight_blacklist"].length})`;
 			blackListedlink.appendChild(arrow);
@@ -680,6 +683,54 @@ document.addEventListener("click", e => {
 			}
 		});
 	}
+
+	if (targetElem.id == "kanjiSearchInput") {
+		document.documentElement.style.setProperty('--body-base-width', '240px');
+
+		document.getElementById("userInfoNavbar").style.display = "none";
+
+		if (!document.getElementById("searchResultWrapper")) {
+			const searchResultWrapper = document.createElement("div");
+			searchResultWrapper.id = "searchResultWrapper";
+			targetElem.parentElement.parentElement.appendChild(searchResultWrapper);
+			const searchResultUL = document.createElement("ul");
+			searchResultUL.id = "searchResultKanjiWrapper";
+			searchResultWrapper.appendChild(searchResultUL);
+		}
+
+		if (kanjiList.length == 0) {
+			chrome.storage.local.get(["wkhighlight_allkanji"], result => {
+				const allKanji = result["wkhighlight_allkanji"];
+				for (const index in allKanji) {
+					const kanji = allKanji[index];
+					kanjiList.push({
+						"id": index, 
+						"character": kanji["characters"],
+						"meanings": kanji["meanings"],
+						"level": kanji["level"],
+						"readings": kanji["readings"],
+						"smiliar_kanji": kanji["visually_similar_subject_ids"]
+					});
+				}
+			});
+		}
+	}
+
+	if (!document.getElementById("searchArea").contains(targetElem)) {
+		const wrapper = document.getElementById("searchResultKanjiWrapper");
+		if (wrapper) {
+			document.documentElement.style.setProperty('--body-base-width', '200px');
+
+			document.getElementById("kanjiSearchInput").value = "";
+
+			document.getElementById("userInfoNavbar").style.display = "inline-block";
+
+			wrapper.remove();
+			const searchResultUL = document.createElement("ul");
+			searchResultUL.id = "searchResultKanjiWrapper";
+			document.getElementById("searchResultWrapper").appendChild(searchResultUL);
+		}
+	}
 });
 
 document.addEventListener("keydown", e => {
@@ -692,6 +743,65 @@ document.addEventListener("keydown", e => {
 		inputKey.value = inputKey.value.trim();
 
 });
+
+const searchKanji = () => {
+	document.getElementById("searchResultKanjiWrapper").remove();
+	const searchResultUL = document.createElement("ul");
+	searchResultUL.id = "searchResultKanjiWrapper";
+	document.getElementById("searchResultWrapper").appendChild(searchResultUL);
+
+	const input = document.getElementById("kanjiSearchInput");
+	const value = input.value.toLowerCase().trim();
+	let filteredKanji;
+	// if it is a chinese character
+	if (value.match(/[\u3400-\u9FBF]/)) {
+		filteredKanji = kanjiList.filter(kanji => value == kanji["character"]);
+		if (filteredKanji.length > 0)
+			filteredKanji[0]["smiliar_kanji"].forEach(id => filteredKanji.push(kanjiList.filter(kanji => kanji.id==id)[0]));
+	}
+	else
+		filteredKanji = kanjiList.filter(kanji => matchesMeanings(input.value.toLowerCase().trim(), kanji["meanings"]));
+
+	if (filteredKanji.length > 0) {
+		for (const index in filteredKanji) {
+			const li = document.createElement("li");
+			li.classList.add("searchResultKanjiLine"); 
+			searchResultUL.appendChild(li);
+
+			const kanji = filteredKanji[index];
+			
+			const kanjiSpan = document.createElement("span");
+			kanjiSpan.classList.add("searchResultKanji");
+			li.appendChild(kanjiSpan);
+			kanjiSpan.appendChild(document.createTextNode(kanji["character"]));
+
+			const kanjiInfoWrapper = document.createElement("div");
+			kanjiInfoWrapper.style.display = "grid";
+			li.appendChild(kanjiInfoWrapper);
+			const meaning = document.createElement("span");
+			kanjiInfoWrapper.appendChild(meaning);
+			meaning.classList.add("searchResultKanjiTitle");
+			meaning.appendChild(document.createTextNode(kanji["meanings"].map(kanji => kanji.meaning).join(", ")));
+			const on = document.createElement("span");
+			kanjiInfoWrapper.appendChild(on); 
+			on.appendChild(document.createTextNode("on: "));
+			on.appendChild(document.createTextNode(kanji["readings"].filter(reading => reading.type == "onyomi").map(kanji => kanji.reading).join(", ")));
+			const kun = document.createElement("span");
+			kanjiInfoWrapper.appendChild(kun); 
+			kun.appendChild(document.createTextNode("kun: "));
+			kun.appendChild(document.createTextNode(kanji["readings"].filter(reading => reading.type == "kunyomi").map(kanji => kanji.reading).join(", ")));
+		}
+	}
+}
+
+const matchesMeanings = (input, meanings) => {
+	for (const index in meanings) {
+		if (meanings[index].meaning.toLowerCase() == input) {
+			return true;
+		}
+	}
+	return false;
+}
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.nmrKanjiHighlighted) {

@@ -190,6 +190,16 @@ transform: rotate(134deg);
 	box-shadow: 0px 0px 4px 0px black;
 }
 
+/* 4. Logo */
+#logoWrapper {
+	margin-bottom: 25px !important;
+    text-align: center;
+    font-size: 11px;
+    width: 200px;
+    margin: auto;
+}
+
+
 /* 4. SECUNDARY PAGES */
 
 .topNav {
@@ -252,12 +262,15 @@ transform: rotate(134deg);
     padding: 2px;
 }
 
+#searchArea {
+	margin-top: 10px;
+}
+
 #kanjiSearchWrapper {
 	display: flex;
     border: 1px solid silver;
     border-radius: 17px;
     padding: 4px;
-    margin-top: 10px;
 }
 
 #kanjiSearchInput {
@@ -272,6 +285,42 @@ transform: rotate(134deg);
     width: 14px;
     height: 14px;
 	opacity: 0.7;
+}
+
+#searchResultKanjiWrapper {
+	font-size: 15px;
+    margin-top: 10px;
+	max-height: 150px;
+    overflow: auto;
+}
+
+.searchResultKanjiLine {
+	display: flex;
+    padding: 6px 0px;
+	transition: 0.2s;
+	cursor: pointer;
+}
+
+.searchResultKanjiLine:hover {
+	background-color: #e3e1e1;
+    border-radius: 6px; 
+}
+
+.searchResultKanjiLine span {
+	padding: 0px 4px;
+}
+
+.searchResultKanji {
+	border-right: 1px solid;
+    padding-right: 4px;
+    font-size: 35px;
+    padding-right: 7px !important;
+}
+
+.searchResultKanjiTitle {
+	font-size: 17px;
+    font-weight: 900;
+    margin-bottom: 2px;
 }
 
 #notRunAtWK {
