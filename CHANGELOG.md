@@ -1,9 +1,13 @@
 # Changelog v0.3.0
-Not released yet
+Pending Release
 ## Popup
 - Added a delete option to the blacklisted sites list within settings for every blacklisted site
 - The button that feeds the list of blacklisted sites now has the number of blacklisted sites
 - Changes in the style of the options in settings
+- Added Kanji Search:
+    - Search kanji thorugh it's name or it's character (also shows similar kanji)
+    - When something matches, it shows the character, the names and the readings for the kanji
+    - Any kanji will show up, even the ones you haven't learned yet
 
 ## Bug Fixes
 - Clicking outside the settings and exit buttons, in the popup extension, no longer triggers them by mistake
