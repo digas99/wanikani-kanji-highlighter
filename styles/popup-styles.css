@@ -23,7 +23,7 @@
 /* 0. VARIABLES */
 
 :root {
-	--body-base-width: 200px;
+	--body-base-width: 225px;
 	--default-color: #dc6560;
 	--highlight-default-color: #4d70d1;
 	--wanikani: #f100a1;
@@ -240,10 +240,20 @@ transform: rotate(134deg);
 /* 7. LOGGED IN PAGE */
 
 	/* 7.1 NAVBAR */
+
+.navbar_icon {
+	margin-top: 3px;
+}
+
 .navbar_icon>img {
 	width: 18px;
 }
-	
+
+#topRightNavbar {
+	text-align: right;
+    margin-bottom: 7px;
+	display: flex;
+}
 
 	/* 7.2 USER INFO */
 
@@ -256,6 +266,10 @@ transform: rotate(134deg);
 	overflow: hidden;
 }
 
+#userInfoWrapper {
+	margin: 0px 7px;
+}
+
 #nmrKanjiIndicator {
 	background-color: var(--highlight-default-color);
     color: white;
@@ -263,7 +277,8 @@ transform: rotate(134deg);
 }
 
 #searchArea {
-	margin-top: 10px;
+	width: 100%;
+	margin-right: 10px;
 }
 
 #kanjiSearchWrapper {

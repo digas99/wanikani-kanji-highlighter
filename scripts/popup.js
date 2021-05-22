@@ -159,13 +159,12 @@ window.onload = () => {
 										//main.appendChild(loggedInWrapper);
 			
 										const userInfoWrapper = document.createElement("div");
-										userInfoWrapper.style.margin = "0 7px";
+										userInfoWrapper.id = "userInfoWrapper";
 										main.appendChild(userInfoWrapper);
 			
 										const topRightNavbar = document.createElement("div");
 										userInfoWrapper.appendChild(topRightNavbar);
-										topRightNavbar.style.textAlign = "right";
-										topRightNavbar.style.marginBottom = "7px";
+										topRightNavbar.id = "topRightNavbar";
 										["../images/settings.png", "../images/exit.png"].forEach(img => {
 											const link = document.createElement("a");
 											link.style.padding = "0 5px";
@@ -205,7 +204,7 @@ window.onload = () => {
 											});										
 
 											const searchArea = document.createElement("div");
-											userInfoWrapper.appendChild(searchArea);
+											topRightNavbar.insertBefore(searchArea, topRightNavbar.firstChild);
 											searchArea.id = "searchArea";
 											const searchWrapper = document.createElement("div");
 											searchArea.appendChild(searchWrapper);
@@ -413,7 +412,7 @@ document.addEventListener("click", e => {
 	if (targetElem.id === "goBack" || targetElem.localName === "i") {
 		document.getElementById("secPageMain").remove();
 		document.getElementById("main").style.display = "inherit";
-		document.documentElement.style.setProperty('--body-base-width', '200px');
+		document.documentElement.style.setProperty('--body-base-width', '225px');
 
 	}
 
@@ -685,14 +684,14 @@ document.addEventListener("click", e => {
 	}
 
 	if (targetElem.id == "kanjiSearchInput") {
-		document.documentElement.style.setProperty('--body-base-width', '240px');
+		document.documentElement.style.setProperty('--body-base-width', '250px');
 
 		document.getElementById("userInfoNavbar").style.display = "none";
 
 		if (!document.getElementById("searchResultWrapper")) {
 			const searchResultWrapper = document.createElement("div");
 			searchResultWrapper.id = "searchResultWrapper";
-			targetElem.parentElement.parentElement.appendChild(searchResultWrapper);
+			document.getElementById("userInfoWrapper").insertBefore(searchResultWrapper, document.getElementById("blacklistButton").parentElement);
 			const searchResultUL = document.createElement("ul");
 			searchResultUL.id = "searchResultKanjiWrapper";
 			searchResultWrapper.appendChild(searchResultUL);
@@ -716,20 +715,16 @@ document.addEventListener("click", e => {
 		}
 	}
 
-	if (!document.getElementById("searchArea").contains(targetElem)) {
+	if (!document.getElementById("searchArea").contains(targetElem) && !document.getElementById("searchResultWrapper").contains(targetElem)) {
 		const wrapper = document.getElementById("searchResultKanjiWrapper");
-		if (wrapper) {
-			document.documentElement.style.setProperty('--body-base-width', '200px');
-
-			document.getElementById("kanjiSearchInput").value = "";
-
-			document.getElementById("userInfoNavbar").style.display = "inline-block";
-
+		if (wrapper)
 			wrapper.remove();
-			const searchResultUL = document.createElement("ul");
-			searchResultUL.id = "searchResultKanjiWrapper";
-			document.getElementById("searchResultWrapper").appendChild(searchResultUL);
-		}
+		
+		document.documentElement.style.setProperty('--body-base-width', '225px');
+
+		document.getElementById("kanjiSearchInput").value = "";
+
+		document.getElementById("userInfoNavbar").style.display = "inline-block";
 	}
 });
 
@@ -745,7 +740,9 @@ document.addEventListener("keydown", e => {
 });
 
 const searchKanji = () => {
-	document.getElementById("searchResultKanjiWrapper").remove();
+	const wrapper = document.getElementById("searchResultKanjiWrapper");
+	if (wrapper)
+		wrapper.remove();
 	const searchResultUL = document.createElement("ul");
 	searchResultUL.id = "searchResultKanjiWrapper";
 	document.getElementById("searchResultWrapper").appendChild(searchResultUL);
