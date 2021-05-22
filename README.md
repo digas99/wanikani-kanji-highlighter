@@ -55,7 +55,7 @@ You can search for any Kanji taught on WaniKani, even if you didn't learn it yet
 
 The search can be done in two ways:
 - **Name of the kanji:** writing the name of a kanji will show immediately all matches for that name (sometimes, different kanji have the same name)
-- **Kanji itself:** writing the kanji itslef, will show, not only that kanji, but all the similar kanji
+- **Character of the Kanji:** writing the kanji itself, will show, not only that kanji, but all the similar kanji
 
 The result of the search is the character for the kanji, followed by its names and readings.
 
