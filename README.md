@@ -5,22 +5,33 @@ This is an unofficial chrome extension for Kanji Highlighting, matching the kanj
 It works with any website, and provides detailed information about any kanji that is highlighted.
 **Because it would be cheating, the extension doesn't work on [WaniKani.com](https://www.wanikani.com/).**
 
-#### VERSION 0.2.2
+#### VERSION 0.3.0
 
 ## [Get it on Chrome Webstore](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/)
 
 ## Table of contents:
-1. [Latest Features](#changelog-v022)
+1. [Latest Features](#changelog-v030)
 2. [Usage Guide](#usage-guide)
    * 2.1. [WaniKani API Token](#wanikani-api-token)
    * 2.2. [Kanji Details](#kanji-details)
-   * 2.3. [Blacklisting a Site](#blacklisting-a-site)
-   * 2.4. [Settings](#settings)
+   * 2.3. [Kanji Search](#kanji-search)
+   * 2.4. [Blacklisting a Site](#blacklisting-a-site)
+   * 2.5. [Settings](#settings)
 3. [Pictures](#pictures)
 
-## Changelog v0.2.2
+## Changelog v0.3.0
+Released on 22/05/2021
+### Popup
+- Added a delete option to the blacklisted sites list within settings for every blacklisted site
+- The button that feeds the list of blacklisted sites now has the number of blacklisted sites
+- Changes in the style of the options in settings
+- Added Kanji Search:
+    - Search kanji thorugh it's name or it's character (also shows similar kanji)
+    - When something matches, it shows the character, the names and the readings for the kanji
+    - Any kanji will show up, even the ones you haven't learned yet
+
 ### Bug Fixes
-- Fixed extension popup not fully loading on certain websites
+- Clicking outside the settings and exit buttons, in the popup extension, no longer triggers them by mistake
 
 #### [(All changelogs)](CHANGELOG.md)
 
@@ -38,6 +49,15 @@ When you find a Kanji you already learned, it will be highlighted. If you hover 
 If you hover over another highlighted kanji, the popup with the details will automatically update.
 
 When you no longer wish to have the popup visible, you can click anywhere on the page not covered by it, and it will collapse.
+
+### Kanji Search:
+You can search for any Kanji taught on WaniKani, even if you didn't learn it yet, through the search bar in the extension popup.
+
+The search can be done in two ways:
+- **Name of the kanji:** writing the name of a kanji will show immediately all matches for that name (sometimes, different kanji have the same name)
+- **Kanji itself:** writing the kanji itslef, will show, not only that kanji, but all the similar kanji
+
+The result of the search is the character for the kanji, followed by its names and readings.
 
 ### Blacklisting a Site:
 If you feel like the extension is being problematic on a specific website, or you simply don't want it to run in it, you can blacklist it on the extension popup. There will be a red button saying **Don't Run On This Site**.

@@ -1,5 +1,5 @@
 # Changelog v0.3.0
-Pending Release
+Released on 22/05/2021
 ## Popup
 - Added a delete option to the blacklisted sites list within settings for every blacklisted site
 - The button that feeds the list of blacklisted sites now has the number of blacklisted sites
