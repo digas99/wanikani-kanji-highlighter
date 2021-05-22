@@ -278,7 +278,7 @@ transform: rotate(134deg);
 
 #searchArea {
 	width: 100%;
-	margin-right: 10px;
+	margin-right: 5px;
 }
 
 #kanjiSearchWrapper {
@@ -304,8 +304,7 @@ transform: rotate(134deg);
 
 #searchResultKanjiWrapper {
 	font-size: 15px;
-    margin-top: 10px;
-	max-height: 150px;
+	max-height: 300px;
     overflow: auto;
 }
 
@@ -314,6 +313,7 @@ transform: rotate(134deg);
     padding: 6px 0px;
 	transition: 0.2s;
 	cursor: pointer;
+	position: relative;
 }
 
 .searchResultKanjiLine:hover {
@@ -332,10 +332,23 @@ transform: rotate(134deg);
     padding-right: 7px !important;
 }
 
+.searchResultKanjiLevel {
+	position: absolute;
+    background-color: #dc6560;
+    color: white;
+    padding: 3px !important;
+    font-size: 12px;
+    right: 0;
+    font-weight: 900;
+	width: 14px;
+    text-align: center;
+}
+
 .searchResultKanjiTitle {
 	font-size: 17px;
     font-weight: 900;
     margin-bottom: 2px;
+	margin-right: 20px;
 }
 
 #notRunAtWK {

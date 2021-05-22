@@ -216,7 +216,7 @@ window.onload = () => {
 											const searchInput = document.createElement("input");
 											searchWrapper.appendChild(searchInput);
 											searchInput.type = "text";
-											searchInput.placeholder = "Gold / 金";
+											searchInput.placeholder = "Gold / 金 / 5";
 											searchInput.oninput = searchKanji;
 											searchInput.id = "kanjiSearchInput";
 										}
@@ -756,6 +756,9 @@ const searchKanji = () => {
 		if (filteredKanji.length > 0)
 			filteredKanji[0]["smiliar_kanji"].forEach(id => filteredKanji.push(kanjiList.filter(kanji => kanji.id==id)[0]));
 	}
+	// if is number check for level
+	else if (!isNaN(value))
+		filteredKanji = kanjiList.filter(kanji => value == kanji["level"]);
 	else
 		filteredKanji = kanjiList.filter(kanji => matchesMeanings(input.value.toLowerCase().trim(), kanji["meanings"]));
 
@@ -775,6 +778,10 @@ const searchKanji = () => {
 			const kanjiInfoWrapper = document.createElement("div");
 			kanjiInfoWrapper.style.display = "grid";
 			li.appendChild(kanjiInfoWrapper);
+			const level = document.createElement("span");
+			kanjiInfoWrapper.appendChild(level);
+			level.classList.add("searchResultKanjiLevel");
+			level.appendChild(document.createTextNode(kanji["level"]));
 			const meaning = document.createElement("span");
 			kanjiInfoWrapper.appendChild(meaning);
 			meaning.classList.add("searchResultKanjiTitle");

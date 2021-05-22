@@ -2,6 +2,8 @@
 Not released yet
 ## Popup
 - Changed the position of the search bar to fit better the interface
+- Added level of kanji to the results of Kanji Searching
+- Added the possibility to search kanji by level
 
 # [Changelog v0.3.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.3.0)
 Released on 22/05/2021
