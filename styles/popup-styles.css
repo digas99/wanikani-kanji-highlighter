@@ -259,6 +259,7 @@ transform: rotate(134deg);
 
 #userInfoNavbar {
 	font-size: 15px;
+	margin-top: 10px;
 }
 
 #userInfoNavbar li {
@@ -286,6 +287,7 @@ transform: rotate(134deg);
     border: 1px solid silver;
     border-radius: 17px;
     padding: 4px;
+	position: relative;
 }
 
 #kanjiSearchInput {
@@ -300,6 +302,33 @@ transform: rotate(134deg);
     width: 14px;
     height: 14px;
 	opacity: 0.7;
+}
+
+.kanjiSearchTypeWrapper {
+    color: white;
+    padding: 0px;
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    border-top-right-radius: 11px;
+    border-bottom-right-radius: 11px;
+    cursor: pointer;	
+	width: 26px;
+	text-align: center;
+}
+
+#kanjiSearchTypeRomaji {
+	font-size: 19px;
+	background-color: #dc60cd;
+}
+
+#kanjiSearchTypeKana {
+	font-size: 16px;
+	background-color: #60aedc;
+}
+
+#kanjiSearchType {
+    margin: 0 5px;
 }
 
 #searchResultKanjiWrapper {
@@ -334,7 +363,7 @@ transform: rotate(134deg);
 
 .searchResultKanjiLevel {
 	position: absolute;
-    background-color: #dc6560;
+    background-color: var(--default-color);
     color: white;
     padding: 3px !important;
     font-size: 12px;
