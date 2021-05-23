@@ -700,9 +700,14 @@ document.addEventListener("click", e => {
 			const searchResultWrapper = document.createElement("div");
 			searchResultWrapper.id = "searchResultWrapper";
 			document.getElementById("userInfoWrapper").insertBefore(searchResultWrapper, document.getElementById("blacklistButton").parentElement);
-			const searchResultUL = document.createElement("ul");
-			searchResultUL.id = "searchResultKanjiWrapper";
-			searchResultWrapper.appendChild(searchResultUL);
+		}
+
+		if (!document.getElementById("nmrKanjiFound")) {
+			const nmrKanjiFound = document.createElement("div");
+			searchResultWrapper.appendChild(nmrKanjiFound);
+			nmrKanjiFound.innerHTML = "Found <strong>0</strong> kanji";
+			nmrKanjiFound.style.paddingBottom = "5px";
+			nmrKanjiFound.id = "nmrKanjiFound";
 		}
 
 		if (kanjiList.length == 0) {
@@ -733,6 +738,11 @@ document.addEventListener("click", e => {
 		document.getElementById("kanjiSearchInput").value = "";
 
 		document.getElementById("userInfoNavbar").style.display = "inline-block";
+
+		const nmrKanjiFound = document.getElementById("nmrKanjiFound");
+		if (nmrKanjiFound) {
+			nmrKanjiFound.remove();
+		}
 	}
 
 	if (document.getElementsByClassName("kanjiSearchTypeWrapper")[0].contains(targetElem) || targetElem.classList.contains("kanjiSearchTypeWrapper")) {
@@ -769,9 +779,10 @@ document.addEventListener("keydown", e => {
 });
 
 const searchKanji = () => {
-	const wrapper = document.getElementById("searchResultKanjiWrapper");
+	let wrapper = document.getElementById("searchResultKanjiWrapper");
 	if (wrapper)
 		wrapper.remove();
+
 	const searchResultUL = document.createElement("ul");
 	searchResultUL.id = "searchResultKanjiWrapper";
 	document.getElementById("searchResultWrapper").appendChild(searchResultUL);
@@ -809,7 +820,11 @@ const searchKanji = () => {
 			filteredKanji = kanjiList.filter(kanji => matchesMeanings(input.value.toLowerCase().trim(), kanji["meanings"]));
 	}
 
-	if (filteredKanji && filteredKanji.length > 0) {
+	if (filteredKanji) {
+		const nmrKanjiFound = document.getElementById("nmrKanjiFound");
+		if (nmrKanjiFound) 
+			nmrKanjiFound.innerHTML = `Found <strong>${filteredKanji.length}</strong> kanji`;
+
 		for (const index in filteredKanji) {
 			const li = document.createElement("li");
 			li.classList.add("searchResultKanjiLine"); 

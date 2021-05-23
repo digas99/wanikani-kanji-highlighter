@@ -4,8 +4,8 @@ Not released yet
 - Changed the position of the search bar to fit better the interface
 - Added level of kanji to the results of Kanji Searching
 - Added the possibility to search kanji by level and reading
-- Added a button in search bar to allow the user to change between writing romaji and kana (if the kana option is selected, the user will still write romaji through their keyboard but it will be automatically converted to kana)
-- Within search, if romaji is selected, user can search through the name of the kanji, the character or the level. If kana is selected, user can search through the reading
+- Added a button in search bar to allow the user to change between writing romaji and kana (if the kana option is selected, the user will still write romaji through their keyboard but it will be automatically converted to kana) 
+- Added the number of kanji found when using the search bar
 
 # [Changelog v0.3.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.3.0)
 Released on 22/05/2021
