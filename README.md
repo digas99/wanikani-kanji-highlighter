@@ -5,33 +5,30 @@ This is an unofficial chrome extension for Kanji Highlighting, matching the kanj
 It works with any website, and provides detailed information about any kanji that is highlighted.
 **Because it would be cheating, the extension doesn't work on [WaniKani.com](https://www.wanikani.com/).**
 
-#### VERSION 0.3.0
+#### VERSION 0.3.1
 
 ## [Get it on Chrome Webstore](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/)
 
 ## Table of contents:
-1. [Latest Features](#changelog-v030)
+1. [Latest Features](#changelog-v031)
 2. [Usage Guide](#usage-guide)
    * 2.1. [WaniKani API Token](#wanikani-api-token)
    * 2.2. [Kanji Details](#kanji-details)
    * 2.3. [Kanji Search](#kanji-search)
-   * 2.4. [Blacklisting a Site](#blacklisting-a-site)
-   * 2.5. [Settings](#settings)
+   * 2.4. [Writing Kana](#writing-kana)
+   * 2.5. [Blacklisting a Site](#blacklisting-a-site)
+   * 2.6. [Settings](#settings)
 3. [Pictures](#pictures)
 
-## Changelog v0.3.0
-Released on 22/05/2021
+## Changelog v0.3.1
+Pending Release
 ### Popup
-- Added a delete option to the blacklisted sites list within settings for every blacklisted site
-- The button that feeds the list of blacklisted sites now has the number of blacklisted sites
-- Changes in the style of the options in settings
-- Added Kanji Search:
-    - Search kanji thorugh it's name or it's character (also shows similar kanji)
-    - When something matches, it shows the character, the names and the readings for the kanji
-    - Any kanji will show up, even the ones you haven't learned yet
+- Changed the position of the search bar to fit better the interface
+- Added level of kanji to the results of Kanji Searching
+- Added the possibility to search kanji by level and reading
+- Added a button in search bar to allow the user to change between writing romaji and kana (if the kana option is selected, the user will still write romaji through their keyboard but it will be automatically converted to kana) 
+- Added the number of kanji found when using the search bar
 
-### Bug Fixes
-- Clicking outside the settings and exit buttons, in the popup extension, no longer triggers them by mistake
 
 #### [(All changelogs)](CHANGELOG.md)
 
@@ -53,11 +50,28 @@ When you no longer wish to have the popup visible, you can click anywhere on the
 ### Kanji Search:
 You can search for any Kanji taught on WaniKani, even if you didn't learn it yet, through the search bar in the extension popup.
 
-The search can be done in two ways:
-- **Name of the kanji:** writing the name of a kanji will show immediately all matches for that name (sometimes, different kanji have the same name)
-- **Character of the Kanji:** writing the kanji itself, will show, not only that kanji, but all the similar kanji
+The search can be done by writing in the search bar in two ways, which can be toggled by clicking a button with either 'あ' or 'A':
+- **Kana (きん):**
+  - **Hiragana:** writing the reading in Hiragana (lowercase) will show all kanji with that reading, either kunyomi or onyomi
+- **Romaji/Kanji/Number (Gold/金/5):**
+  - **Name of the kanji:** writing the name of a kanji will show immediately all matches for that name (sometimes, different kanji have the same name)
+  - **Character of the Kanji:** writing the kanji itself, will show, not only that kanji, but all the similar kanji
+  - **Level:** writing a number 1-60 will show all kanji from that level
 
-The result of the search is the character for the kanji, followed by its names and readings.
+The result of the search is the character for the kanji, followed by its names, readings and level.
+
+### Writing Kana:
+Within the search bar, if you change the writing type from Romaji to Kana, by clicking on the button with the character 'あ', everything you type with your keyboard on that search bar will be automatically converted to Kana. If you write in **Lower Case** then **Hiragana** will show up. If you write in **Uper Case** then **Katakana** will show up.
+
+So, if you write **kya**, you will see **きゃ**. If you instead write **KYA**, you will se **キャ**.
+
+"Special characters":
+- **ぁぃぅぇぉ (small):** l+(a|i|u|e|o) or x+(a|i|u|e|o)
+- **っ (small)**: ll or xx
+- **ゃゅょ (small):** l+(ya|yu|yo) or x+(ya|yu|yo)
+- **ん:** nn
+
+(Same goes for all it's counterparts in **Katakana**, using Upper Case)
 
 ### Blacklisting a Site:
 If you feel like the extension is being problematic on a specific website, or you simply don't want it to run in it, you can blacklist it on the extension popup. There will be a red button saying **Don't Run On This Site**.
