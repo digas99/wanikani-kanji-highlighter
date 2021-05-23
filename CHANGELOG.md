@@ -1,5 +1,5 @@
 # Changelog v0.3.1
-Not released yet
+Pending Release
 ## Popup
 - Changed the position of the search bar to fit better the interface
 - Added level of kanji to the results of Kanji Searching
