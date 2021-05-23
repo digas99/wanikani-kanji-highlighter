@@ -62,7 +62,6 @@ ul {
 input[type="text"],
 input[type="text"]:focus {
 	border: none;
-	border-bottom: 1px solid black;
 	outline: none;
 }
 
@@ -277,12 +276,12 @@ transform: rotate(134deg);
     padding: 2px;
 }
 
-#searchArea {
+.searchArea {
 	width: 100%;
 	margin-right: 5px;
 }
 
-#kanjiSearchWrapper {
+.textInputWrapper {
 	display: flex;
     border: 1px solid silver;
     border-radius: 17px;
@@ -290,12 +289,17 @@ transform: rotate(134deg);
 	position: relative;
 }
 
+.textInputWrapper input {
+	width: 100%;
+    margin-right: 8px;
+}
+
 #kanjiSearchInput {
 	width: 100%;
 	border: 0;
 }
 
-#kanjiSearchIcon {
+.textInputIcon {
     margin-right: 5px;
     padding-right: 5px;
     border-right: 1px solid #797979;

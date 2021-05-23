@@ -1,3 +1,8 @@
+# Changelog v0.3.2
+Not Released Yet
+## Popup
+- Improved Api Key text input to match the Kanji Search text input interface
+
 # Changelog v0.3.1
 Pending Release
 ## Popup

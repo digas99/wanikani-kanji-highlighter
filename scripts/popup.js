@@ -112,13 +112,8 @@ window.onload = () => {
 						apiLabel.style.fontSize = "16px";
 						apiLabel.appendChild(document.createTextNode("API Key: "));
 						apiInputWrapper.appendChild(apiLabel);
-
-						const apiInput = document.createElement("input");
-						apiInput.placeholder = "Input here the key...";
-						apiInput.type = "text";
-						apiInput.id = "apiInput";
-						apiInput.style.fontSize = "15px";
-						apiInput.style.width = "100%";
+					
+						const apiInput = textInput("apiKey", "../images/key.png", "Input the key here...");
 						apiInputWrapper.appendChild(apiInput);
 
 						// submit button
@@ -203,22 +198,9 @@ window.onload = () => {
 												});
 											});										
 
-											const searchArea = document.createElement("div");
+											const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchKanji); 
 											topRightNavbar.insertBefore(searchArea, topRightNavbar.firstChild);
-											searchArea.id = "searchArea";
-											const searchWrapper = document.createElement("div");
-											searchArea.appendChild(searchWrapper);
-											searchWrapper.id = "kanjiSearchWrapper";
-											const searchIcon = document.createElement("img");
-											searchIcon.id = "kanjiSearchIcon";
-											searchIcon.src = "../images/search.png";
-											searchWrapper.appendChild(searchIcon);
-											const searchInput = document.createElement("input");
-											searchWrapper.appendChild(searchInput);
-											searchInput.type = "text";
-											searchInput.placeholder = "Gold / 金 / 5";
-											searchInput.oninput = searchKanji;
-											searchInput.id = "kanjiSearchInput";
+											const searchWrapper = searchArea.firstChild;
 											const searchTypeWrapper = document.createElement("div");
 											searchWrapper.appendChild(searchTypeWrapper);
 											searchTypeWrapper.classList.add("kanjiSearchTypeWrapper");
@@ -288,7 +270,7 @@ const submitAction = () => {
 		msg.remove();
 
 	// check if key is valid
-	const apiKey = document.getElementById("apiInput").value.trim();
+	const apiKey = document.getElementById("apiKeyInput").value.trim();
 	const splitKey = apiKey.split("-");
 	const keyPartsLength = [8, 4, 4, 4, 12];
 	let keyPart, partLength;
@@ -728,7 +710,8 @@ document.addEventListener("click", e => {
 		}
 	}
 
-	if (!document.getElementById("searchArea").contains(targetElem) && !document.getElementById("searchResultWrapper").contains(targetElem)) {
+	const resultWrapper = document.getElementById("searchResultWrapper");
+	if (!document.getElementsByClassName("searchArea")[0].contains(targetElem) && resultWrapper && !resultWrapper.contains(targetElem)) {
 		const wrapper = document.getElementById("searchResultKanjiWrapper");
 		if (wrapper)
 			wrapper.remove();
@@ -745,7 +728,8 @@ document.addEventListener("click", e => {
 		}
 	}
 
-	if (document.getElementsByClassName("kanjiSearchTypeWrapper")[0].contains(targetElem) || targetElem.classList.contains("kanjiSearchTypeWrapper")) {
+	const typeWrapper = document.getElementsByClassName("kanjiSearchTypeWrapper")[0];
+	if ((typeWrapper && typeWrapper.contains(targetElem)) || targetElem.classList.contains("kanjiSearchTypeWrapper")) {
 		const input = document.getElementById("kanjiSearchInput");
 		const target = targetElem.classList.contains("kanjiSearchTypeWrapper") ? targetElem.firstChild : targetElem;
 		
@@ -766,6 +750,30 @@ document.addEventListener("click", e => {
 			searchResultWrapper.remove();
 	}
 });
+
+const textInput = (id, iconSrc, placeholder, action) => {
+	const searchArea = document.createElement("div");
+	searchArea.classList.add("searchArea");
+
+	const searchWrapper = document.createElement("div");
+	searchWrapper.id = id+"InputWrapper";
+	searchWrapper.classList.add("textInputWrapper");
+	searchArea.appendChild(searchWrapper);
+
+	const iconImg = document.createElement("img");
+	iconImg.classList.add("textInputIcon");
+	iconImg.src = iconSrc;
+	searchWrapper.appendChild(iconImg);
+
+	const textInput = document.createElement("input");
+	textInput.type = "text";
+	textInput.placeholder = placeholder;
+	textInput.id = id+"Input";
+	if (action) textInput.oninput = action;
+	searchWrapper.appendChild(textInput);
+
+	return searchArea;
+}
 
 document.addEventListener("keydown", e => {
 	// if user hit Enter key
