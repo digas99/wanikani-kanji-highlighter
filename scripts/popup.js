@@ -898,8 +898,6 @@ const searchKanji = (event) => {
 			
 			const itemSpan = document.createElement("span");
 			itemSpan.classList.add("searchResultItem");
-			if (vocabAlike)
-				itemSpan.style.marginLeft = "5px";
 
 			li.appendChild(itemSpan);
 			itemSpan.appendChild(document.createTextNode(chars));
