@@ -357,6 +357,20 @@ transform: rotate(134deg);
     overflow: auto;
 }
 
+#searchResultItemWrapper::-webkit-scrollbar {
+	width: 10px;
+}
+  
+#searchResultItemWrapper::-webkit-scrollbar-track {
+	background: gray;
+}
+
+#searchResultItemWrapper::-webkit-scrollbar-thumb {
+	background-color: var(--dark-back);    
+	border-radius: 20px;        
+}
+
+
 .searchResultItemLine {
 	display: flex;
     padding: 6px 0px;
