@@ -147,12 +147,27 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 											.then(kanji_data => {
 												const kanji_dict = {};
 												const kanji_assoc = {};
+												//console.log(kanji_data);
 												kanji_data
 													.map(content => content.data)
 													.flat(1)
 													.forEach(kanji => {
-														kanji_dict[kanji.id] = kanji.data;
-														kanji_assoc[kanji.data.slug] = kanji.id;
+														const data = kanji.data;
+														kanji_dict[kanji.id] = {
+															"amalgamation_subject_ids" : data.amalgamation_subject_ids,
+															"characters" : data.characters,
+															"component_subject_ids" : data.component_subject_ids,
+															"document_url" : data.document_url,
+															"level" : data.level,
+															"meaning_hint" : data.meaning_hint,
+															"meaning_mnemonic" : data.meaning_mnemonic,
+															"meanings" : data.meanings.map(data => data.meaning),
+															"reading_hint" : data.reading_hint,
+															"reading_mnemonic" : data.reading_mnemonic,
+															"readings" : data.readings,
+															"visually_similar_subject_ids" : data.visually_similar_subject_ids
+														};
+														kanji_assoc[data.slug] = kanji.id;
 													});
 												
 												setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", {"wkhighlight_allkanji":kanji_dict});
@@ -174,11 +189,46 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 													.map(content => content.data)
 													.flat(1)
 													.forEach(radical => {
-														radical_dict[radical.id] = radical.data;
+														const data = radical.data;
+														radical_dict[radical.id] = {
+															"characters" : data.characters,
+															"character_images" : data.character_images,
+															"document_url" : data.document_url,
+															"level" : data.level
+														};
 													});
 												
 												// saving all radical
 												chrome.storage.local.set({"wkhighlight_allradicals": radical_dict});
+											})
+											.catch(errorHandling);
+									}
+
+									if (!result['wkhighlight_allvocab']) {
+										fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=vocabulary")
+											.then(vocab => {
+												const vocab_dict = {};
+												vocab
+													.map(content => content.data)
+													.flat(1)
+													.forEach(vocab => {
+														const data = vocab.data;
+														vocab_dict[vocab.id] = {
+															"characters" : data.characters,
+															"component_subject_ids" : data.component_subject_ids, 
+															"context_sentences" : data.context_sentences,
+															"document_url" : data.document_url,
+															"level" : data.level,
+															"meaning_mnemonic" : data.meaning_mnemonic,
+															"meanings" : data.meanings.map(data => data.meaning),
+															"parts_of_speech" : data.parts_of_speech,
+															"pronounciation_audios" : data.pronounciation_audios,
+															"reading_mnemonic" : data.reading_mnemonic,
+															"readings" : data.readings.map(data => data.reading)
+
+														};
+													});
+												chrome.storage.local.set({'wkhighlight_allvocab':vocab_dict});
 											})
 											.catch(errorHandling);
 									}

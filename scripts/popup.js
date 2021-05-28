@@ -653,7 +653,7 @@ document.addEventListener("click", e => {
 		document.documentElement.style.setProperty('--body-base-width', '250px');
 
 		document.getElementById("userInfoNavbar").style.display = "none";
-
+		
 		if (!document.getElementById("searchResultWrapper")) {
 			const searchResultWrapper = document.createElement("div");
 			searchResultWrapper.id = "searchResultWrapper";

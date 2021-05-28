@@ -4,6 +4,8 @@ allKanji = {};
 chrome.storage.local.get(["wkhighlight_allkanji"], data => allKanji = data["wkhighlight_allkanji"]);
 allRadicals = {};
 chrome.storage.local.get(["wkhighlight_allradicals"], data => allRadicals = data["wkhighlight_allradicals"]);
+allVocab = {};
+chrome.storage.local.get(["wkhighlight_allvocab"], data => allVocab = data["wkhighlight_allvocab"]);
 
 loaded = false;
 
@@ -120,7 +122,7 @@ document.addEventListener("mouseover", e => {
 		const meaning = document.createElement("div");
 		meaning.classList.add("wkhighlighter_popupDetails_kanjiTitle");
 		const meaningTitle = document.createElement("strong");
-		meaningTitle.appendChild(document.createTextNode(Array.from(kanjiInfo["meanings"]).map(meaning => meaning.meaning).join(", ")));
+		meaningTitle.appendChild(document.createTextNode(kanjiInfo["meanings"].join(", ")));
 		meaning.appendChild(meaningTitle);
 		details.appendChild(meaning);
 
@@ -141,6 +143,12 @@ document.addEventListener("mouseover", e => {
 		similarKanji.classList.add("wkhighlighter_detailsPopup_sectionContainer");
 		details.appendChild(similarKanji);
 		similarKanji.appendChild(kanjiCards(kanjiInfo["visually_similar_subject_ids"], allKanji, "wkhighlighter_detailsPopup_similarKanji_row"));
+
+		// vocab with kanji
+		const vocab = infoTable("Vocabulary:", []);
+		vocab.classList.add("wkhighlighter_detailsPopup_sectionContainer");
+		details.appendChild(vocab);
+		vocab.appendChild(kanjiCards(kanjiInfo["amalgamation_subject_ids"], allVocab, "wkhighlighter_detailsPopup_vocab_row"));
 	
 		return detailedInfoWrapper;
 	}

@@ -34,6 +34,7 @@
 
 body {
 	width: var(--body-base-width);
+	transition: 0.3s;
 }
 
 a {

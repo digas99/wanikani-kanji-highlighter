@@ -15,6 +15,7 @@
 	--default-color: #4d70d1;
 	--radical-tag-color: #00ffe7;
 	--kanji-tag-color: #fff700;
+	--vocab-tag-color: #eb4c78;
 	--reading-tag-bkcolor: #2e2e2e;
 	--popup-details-title-color: white;
 	--popup-details-title-bkcolor: #434141;
@@ -119,6 +120,7 @@ a {
 	border-bottom: 3px solid white;
 	transition: 0.5s;
 	text-align: center !important;
+	z-index: 1;
 }
 
 .wkhighlighter_auto_height {
@@ -222,7 +224,8 @@ a {
 }
 
 .wkhighlighter_detailsPopup_usedRadicals_row,
-.wkhighlighter_detailsPopup_similarKanji_row {
+.wkhighlighter_detailsPopup_similarKanji_row,
+.wkhighlighter_detailsPopup_vocab_row {
     padding: 5px;
     margin: 7px;
     color: black;
@@ -242,7 +245,12 @@ a {
 	background-color: var(--kanji-tag-color);
 }
 
+.wkhighlighter_detailsPopup_vocab_row {
+	background-color: var(--vocab-tag-color);
+}
+
 .wkhighlighter_detailsPopup_similarKanji_row:hover,
+.wkhighlighter_detailsPopup_vocab_row:hover,
 .wkhighlighter_detailsPopup_usedRadicals_row:hover {
 	transform: scale(1.1);
 }
