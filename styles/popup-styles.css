@@ -193,6 +193,10 @@ transform: rotate(134deg);
 	box-shadow: 0px 0px 4px 0px black;
 }
 
+.full_opacity {
+	opacity: 1 !important;
+}
+
 .radical_back {
 	background-color: var(--radical-tag-color) !important;
 }
@@ -552,6 +556,11 @@ transform: rotate(134deg);
     margin-left: 10px;
     border: 2px solid #7c7c7c;
     border-radius: 4px;
+	opacity: 0.5;
+}
+
+.settings_highlight_style_option:hover {
+	opacity: 1 !important;
 }
 
 .settingsItemLabel {
