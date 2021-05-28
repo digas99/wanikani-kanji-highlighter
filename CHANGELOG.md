@@ -1,5 +1,5 @@
-# Changelog v0.4.0
-Not Released Yet
+# [Changelog v0.4.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.0)
+Released on 28/05/2021
 
 ### - Vocabulary is here!
 
