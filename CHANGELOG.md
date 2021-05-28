@@ -1,12 +1,14 @@
 # Changelog v0.4.0
 Not Released Yet
 
-### Vocabulary is here!
+### - Vocabulary is here!
 
 ## Content
 - Kanji info that appears when hovering over a kanji now has every vocabulary word, provided by WaniKani, associated to that kanji
 
 ## Popup
+- Implemented vocabulary results in Kanji Search
+- When clicking the kanji of a result in Kanji Search, a new search will be made with the kanji that was clicked
 - Improved Api Key text input to match the Kanji Search text input interface
 
 ---

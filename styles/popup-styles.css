@@ -25,6 +25,9 @@
 :root {
 	--body-base-width: 225px;
 	--default-color: #dc6560;
+	--radical-tag-color: #00ffe7;
+	--kanji-tag-color: #fff700;
+	--vocab-tag-color: #eb4c78;
 	--highlight-default-color: #4d70d1;
 	--wanikani: #f100a1;
 	--dark-back: #383838;
@@ -190,6 +193,18 @@ transform: rotate(134deg);
 	box-shadow: 0px 0px 4px 0px black;
 }
 
+.radical_back {
+	background-color: var(--radical-tag-color) !important;
+}
+
+.kanji_back {
+	background-color: var(--kanji-tag-color) !important;
+}
+
+.vocab_back {
+	background-color: var(--vocab-tag-color) !important;
+}
+
 /* 4. Logo */
 #logoWrapper {
 	margin-bottom: 25px !important;
@@ -336,53 +351,83 @@ transform: rotate(134deg);
     margin: 0 5px;
 }
 
-#searchResultKanjiWrapper {
+#searchResultItemWrapper {
 	font-size: 15px;
 	max-height: 265px;
     overflow: auto;
 }
 
-.searchResultKanjiLine {
+.searchResultItemLine {
 	display: flex;
     padding: 6px 0px;
 	transition: 0.2s;
 	cursor: pointer;
 	position: relative;
+    margin: 7px 3px;
+	box-shadow: rgb(0 0 0) 0px 4px 0px 2px;
+	border-radius: 6px;
 }
 
-.searchResultKanjiLine:hover {
-	background-color: #e3e1e1;
-    border-radius: 6px; 
+.searchResultItemLine:hover {
+	background-color: #e3e1e1 !important;
+    border-radius: 10px !important; 
 }
 
-.searchResultKanjiLine span {
+.searchResultItemLine span {
 	padding: 0px 4px;
+	
 }
 
-.searchResultKanji {
-	border-right: 1px solid;
-    padding-right: 4px;
+.searchResultItem {
     font-size: 35px;
-    padding-right: 7px !important;
+    padding-right: 0px !important;
 }
 
-.searchResultKanjiLevel {
-	position: absolute;
-    background-color: var(--default-color);
-    color: white;
+.searchResultItem:hover {
+	opacity: 0.6;
+}
+
+.searchResultVocab {
+	writing-mode: vertical-rl;
+	text-orientation: upright;
+	padding: 0px !important;
+	margin-left: -5px;
+}
+
+.searchResultItemLevel {
+    position: absolute;
+    background-color: white;
+    color: black;
     padding: 3px !important;
     font-size: 12px;
     right: 0;
     font-weight: 900;
-	width: 14px;
+    width: 14px;
     text-align: center;
+    top: 0;
+    box-shadow: black 0px 3px 0px 0px;
+    background: white;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 4px;
 }
 
-.searchResultKanjiTitle {
+.searchResultItemTitle {
 	font-size: 17px;
     font-weight: 900;
     margin-bottom: 2px;
-	margin-right: 20px;
+	padding-right: 20px !important;
+	border-bottom: 1px solid #a3a3a3;
+    padding-bottom: 2px !important;
+}
+
+.searchResultItemInfo {
+	display: grid;
+    background-color: white;
+    box-shadow: inset 0px 0px 5px black;
+    padding: 2px;
+    margin: 0 7px;
+    border-radius: 8px;
 }
 
 #notRunAtWK {

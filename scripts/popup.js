@@ -1,5 +1,6 @@
 nmrKanjiHighlighted = 0;
 kanjiList = [];
+vocabList = [];
 
 const footer = () => {
 	const wrapper = document.createElement("div");
@@ -674,12 +675,32 @@ document.addEventListener("click", e => {
 				for (const index in allKanji) {
 					const kanji = allKanji[index];
 					kanjiList.push({
+						"type" : "kanji",
 						"id": index, 
-						"character": kanji["characters"],
+						"characters": kanji["characters"],
 						"meanings": kanji["meanings"],
 						"level": kanji["level"],
 						"readings": kanji["readings"],
-						"smiliar_kanji": kanji["visually_similar_subject_ids"]
+						"visually_similar_subject_ids": kanji["visually_similar_subject_ids"],
+						"amalgamation_subject_ids": kanji["amalgamation_subject_ids"]
+					});
+				}
+			});
+		}
+
+		if (vocabList.length == 0) {
+			chrome.storage.local.get(["wkhighlight_allvocab"], result => {
+				const allVocab = result["wkhighlight_allvocab"];
+				for (const index in allVocab) {
+					const vocab = allVocab[index];
+					vocabList.push({
+						"type" : "vocabulary",
+						"id": index,
+						"characters": vocab["characters"],
+						"meanings": vocab["meanings"],
+						"level": vocab["level"],
+						"readings": vocab["readings"],
+						"component_subject_ids": vocab["component_subject_ids"] 
 					});
 				}
 			});
@@ -688,7 +709,7 @@ document.addEventListener("click", e => {
 
 	const resultWrapper = document.getElementById("searchResultWrapper");
 	if (!document.getElementsByClassName("searchArea")[0].contains(targetElem) && resultWrapper && !resultWrapper.contains(targetElem)) {
-		const wrapper = document.getElementById("searchResultKanjiWrapper");
+		const wrapper = document.getElementById("searchResultItemWrapper");
 		if (wrapper)
 			wrapper.remove();
 		
@@ -721,9 +742,15 @@ document.addEventListener("click", e => {
 		}
 
 		input.value = "";
-		const searchResultWrapper = document.getElementById("searchResultKanjiWrapper");
+		const searchResultWrapper = document.getElementById("searchResultItemWrapper");
 		if (searchResultWrapper)
 			searchResultWrapper.remove();
+	}
+
+	// if clicked in the kanji on item search
+	if (targetElem.classList.contains("searchResultItem")) {
+		document.getElementById("kanjiSearchInput").value = targetElem.innerText;
+		searchKanji(document.getElementById("kanjiSearchInput"));
 	}
 });
 
@@ -788,19 +815,21 @@ document.addEventListener("keydown", e => {
 });
 
 const searchKanji = (event) => {
-	let wrapper = document.getElementById("searchResultKanjiWrapper");
+	let wrapper = document.getElementById("searchResultItemWrapper");
 	if (wrapper)
 		wrapper.remove();
 
 	const searchResultUL = document.createElement("ul");
-	searchResultUL.id = "searchResultKanjiWrapper";
+	searchResultUL.id = "searchResultItemWrapper";
 	document.getElementById("searchResultWrapper").appendChild(searchResultUL);
 
 	const type = document.getElementById("kanjiSearchType").innerText;
-	const input = event.target; 
+	const input = event.tagName && event.tagName == "INPUT" ? event : event.target; 
 	const value = (type == "A" ? input.value : input.value.toLowerCase()).trim();
 
-	let filteredKanji;
+	let filteredKanji = [];
+	let filteredVocab = [];
+
 	if (type == "A") {
 		let finalValue = "";
 		const split = separateRomaji(value);
@@ -813,65 +842,106 @@ const searchKanji = (event) => {
 		// if it is hiragana
 		if (finalValue.match(/[\u3040-\u309f]/)) {
 			filteredKanji = kanjiList.filter(kanji => matchesReadings(finalValue, kanji["readings"]));
+			filteredVocab = vocabList.filter(vocab => matchesReadings(finalValue, vocab["readings"]));
 		}
 	}
 	else {
 		// if it is a chinese character
 		if (value.match(/[\u3400-\u9FBF]/)) {
-			filteredKanji = kanjiList.filter(kanji => value == kanji["character"]);
-			if (filteredKanji.length > 0)
-				filteredKanji[0]["smiliar_kanji"].forEach(id => filteredKanji.push(kanjiList.filter(kanji => kanji.id==id)[0]));
+			filteredKanji = filteredKanji.concat(kanjiList.filter(kanji => value == kanji["characters"]));
+			if (filteredKanji.length > 0) {
+				const mainKanji = filteredKanji[0];
+				mainKanji["visually_similar_subject_ids"].forEach(id => filteredKanji.push(kanjiList.filter(kanji => kanji.id==id)[0]));
+				mainKanji["amalgamation_subject_ids"].forEach(id => filteredVocab.push(vocabList.filter(vocab => vocab.id == id)[0]));
+			}
+			filteredVocab = filteredVocab.concat(vocabList.filter(vocab => value == vocab["characters"]));
+			if (filteredVocab.length > 0) {
+				filteredVocab[0]["component_subject_ids"].forEach(id => filteredKanji.push(kanjiList.filter(kanji => kanji.id==id)[0]));
+			}
 		}
 		// if is number check for level
-		else if (!isNaN(value))
+		else if (!isNaN(value)) {
 			filteredKanji = kanjiList.filter(kanji => value == kanji["level"]);
-		else
+			filteredVocab = vocabList.filter(vocab => value == vocab["level"]);
+		}
+		else {
 			filteredKanji = kanjiList.filter(kanji => matchesMeanings(input.value.toLowerCase().trim(), kanji["meanings"]));
+			filteredVocab = vocabList.filter(vocab => matchesMeanings(input.value.toLowerCase().trim(), vocab["meanings"]));
+		}
 	}
 
-	if (filteredKanji) {
-		const nmrKanjiFound = document.getElementById("nmrKanjiFound");
-		if (nmrKanjiFound) 
-			nmrKanjiFound.innerHTML = `Found <strong>${filteredKanji.length}</strong> kanji`;
+	if (filteredKanji || filteredVocab) {
+		const filteredContent = [...new Set(filteredKanji.concat(filteredVocab))];
+		const nmrItemsFound = document.getElementById("nmrKanjiFound");
+		if (nmrItemsFound) 
+			nmrItemsFound.innerHTML = `Found <strong>${filteredContent.length}</strong> items`;
 
-		for (const index in filteredKanji) {
-			const li = document.createElement("li");
-			li.classList.add("searchResultKanjiLine"); 
-			searchResultUL.appendChild(li);
+		for (const index in filteredContent) {
+			const data = filteredContent[index];
+			const type = data["type"];
+			const chars = data["characters"];
 
-			const kanji = filteredKanji[index];
+			const kanjiAlike = type == "kanji" || chars.length == 1;
+			const vocabAlike = type == "vocabulary" && chars.length > 1;
+
+			let colorClass;
+			if (type == "kanji")
+				colorClass = "kanji_back";
+			else if (type == "vocabulary")
+				colorClass = "vocab_back";
 			
-			const kanjiSpan = document.createElement("span");
-			kanjiSpan.classList.add("searchResultKanji");
-			li.appendChild(kanjiSpan);
-			kanjiSpan.appendChild(document.createTextNode(kanji["character"]));
+			const li = document.createElement("li");
+			li.classList.add("searchResultItemLine", colorClass); 
+			if (vocabAlike)
+				li.style.display = "inherit";
+			searchResultUL.appendChild(li);
+			
+			const itemSpan = document.createElement("span");
+			itemSpan.classList.add("searchResultItem");
+			if (vocabAlike)
+				itemSpan.style.marginLeft = "5px";
 
-			const kanjiInfoWrapper = document.createElement("div");
-			kanjiInfoWrapper.style.display = "grid";
-			li.appendChild(kanjiInfoWrapper);
+			li.appendChild(itemSpan);
+			itemSpan.appendChild(document.createTextNode(chars));
+
+			const itemInfoWrapper = document.createElement("div");
+			itemInfoWrapper.classList.add("searchResultItemInfo");
+			li.appendChild(itemInfoWrapper);
+			if (kanjiAlike)
+				itemInfoWrapper.style.width = "100%";
 			const level = document.createElement("span");
-			kanjiInfoWrapper.appendChild(level);
-			level.classList.add("searchResultKanjiLevel");
-			level.appendChild(document.createTextNode(kanji["level"]));
+			itemInfoWrapper.appendChild(level);
+			level.classList.add("searchResultItemLevel");
+			level.appendChild(document.createTextNode(data["level"]));
 			const meaning = document.createElement("span");
-			kanjiInfoWrapper.appendChild(meaning);
-			meaning.classList.add("searchResultKanjiTitle");
-			meaning.appendChild(document.createTextNode(kanji["meanings"].map(kanji => kanji.meaning).join(", ")));
-			const on = document.createElement("span");
-			kanjiInfoWrapper.appendChild(on); 
-			on.appendChild(document.createTextNode("on: "));
-			on.appendChild(document.createTextNode(kanji["readings"].filter(reading => reading.type == "onyomi").map(kanji => kanji.reading).join(", ")));
-			const kun = document.createElement("span");
-			kanjiInfoWrapper.appendChild(kun); 
-			kun.appendChild(document.createTextNode("kun: "));
-			kun.appendChild(document.createTextNode(kanji["readings"].filter(reading => reading.type == "kunyomi").map(kanji => kanji.reading).join(", ")));
+			itemInfoWrapper.appendChild(meaning);
+			meaning.classList.add("searchResultItemTitle");
+			meaning.appendChild(document.createTextNode(data["meanings"].join(", ")));
+
+			if (type == "kanji") {
+				const on = document.createElement("span");
+				itemInfoWrapper.appendChild(on); 
+				on.appendChild(document.createTextNode("on: "));
+				on.appendChild(document.createTextNode(data["readings"].filter(reading => reading.type == "onyomi").map(kanji => kanji.reading).join(", ")));
+				const kun = document.createElement("span");
+				itemInfoWrapper.appendChild(kun); 
+				kun.appendChild(document.createTextNode("kun: "));
+				kun.appendChild(document.createTextNode(data["readings"].filter(reading => reading.type == "kunyomi").map(kanji => kanji.reading).join(", ")));
+			}
+
+			if (type == "vocabulary") {
+				const read = document.createElement("span");
+				itemInfoWrapper.appendChild(read);
+				read.appendChild(document.createTextNode(data["readings"].join(", ")));
+			}
 		}
 	}
 }
 
+
 const matchesMeanings = (input, meanings) => {
 	for (const index in meanings) {
-		if (meanings[index].meaning.toLowerCase() == input) {
+		if (meanings[index].toLowerCase() == input) {
 			return true;
 		}
 	}
@@ -880,7 +950,8 @@ const matchesMeanings = (input, meanings) => {
 
 const matchesReadings = (input, readings) => {
 	for (const index in readings) {
-		if (readings[index].reading == input) {
+		const reads = readings[index];
+		if ((reads.reading ? reads.reading : reads)  == input) {
 			return true;
 		}
 	}
