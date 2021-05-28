@@ -213,8 +213,8 @@ a {
 
 .kanjiLevelCard {
 	position: absolute;
-    right: -10px;
-    bottom: -15px;
+    right: -13px;
+    bottom: -5px;
     background: white;
     border: 2px solid black;
     padding: 3px;
@@ -227,7 +227,7 @@ a {
 .wkhighlighter_detailsPopup_similarKanji_row,
 .wkhighlighter_detailsPopup_vocab_row {
     padding: 5px;
-    margin: 7px;
+    margin: 5px 8px;
     color: black;
 	border-radius: 2px;
 	display: inline-flex;
