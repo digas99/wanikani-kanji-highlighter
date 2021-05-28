@@ -403,6 +403,7 @@ transform: rotate(134deg);
 
 .searchResultItem:hover {
 	opacity: 0.6;
+	font-weight: 900;
 }
 
 .searchResultVocab {
@@ -556,7 +557,7 @@ transform: rotate(134deg);
     margin-left: 10px;
     border: 2px solid #7c7c7c;
     border-radius: 4px;
-	opacity: 0.5;
+	opacity: 0.4;
 }
 
 .settings_highlight_style_option:hover {

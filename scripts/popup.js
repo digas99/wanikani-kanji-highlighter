@@ -874,12 +874,15 @@ const searchKanji = (event) => {
 		}
 	}
 
-	if (filteredKanji || filteredVocab) {
+	if (filteredKanji.length > 0 || filteredVocab.length > 0) {
 		const firstKanji = filteredKanji[0];
 		const firstVocab = filteredVocab[0];
-		filteredKanji.sort((a,b) => a["level"] > b["level"] ? 1 : -1).unshift(firstKanji);
-		filteredVocab.sort((a,b) => a["level"] > b["level"] ? 1 : -1).unshift(firstVocab);
+
+		const sortObjectByLevel = itemList => itemList.sort((a,b) => a["level"] > b["level"] ? 1 : -1);
+		if (filteredKanji.length > 0) sortObjectByLevel(filteredKanji).unshift(firstKanji);
+		if (filteredVocab.length > 0) sortObjectByLevel(filteredVocab).unshift(firstVocab);
 		const filteredContent = [...new Set(filteredKanji.concat(filteredVocab))];
+
 		const nmrItemsFound = document.getElementById("nmrKanjiFound");
 		if (nmrItemsFound) 
 			nmrItemsFound.innerHTML = `Found <strong>${filteredContent.length}</strong> items`;

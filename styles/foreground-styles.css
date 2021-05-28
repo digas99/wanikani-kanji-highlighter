@@ -253,4 +253,5 @@ a {
 .wkhighlighter_detailsPopup_vocab_row:hover,
 .wkhighlighter_detailsPopup_usedRadicals_row:hover {
 	transform: scale(1.1);
+	z-index: 1;
 }
