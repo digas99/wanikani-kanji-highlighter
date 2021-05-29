@@ -75,7 +75,7 @@ document.addEventListener("mouseover", e => {
 
 			const a = document.createElement("a");
 			a.target = "_blank";
-			a.href = thisKanjiData["document_url"];
+			//a.href = thisKanjiData["document_url"];
 			a.style.color = "black";
 			a.style.textDecoration = "none";
 
@@ -89,6 +89,7 @@ document.addEventListener("mouseover", e => {
 				p.appendChild(img);
 			}
 			p.className = `wkhighlighter_detailsPopup_cards ${highlightingClass}`;
+			p.setAttribute('data-item-id', ID);
 			li.appendChild(a);
 			a.appendChild(p);
 			const kanjiLevel = document.createElement("div");
@@ -263,5 +264,13 @@ document.addEventListener("click", e => {
 		if (node.classList.contains("wkhighlighter_detailsPopup_usedRadicals_row")) {
 			
 		}
+	}
+
+	if (node.classList.contains("wkhighlighter_detailsPopup_cards")) {
+		const id = node.getAttribute("data-item-id");
+		const audio = new Audio();
+		const audioList = allVocab[id]["pronunciation_audios"];
+		audio.src = audioList[Math.floor(Math.random() * audioList.length)].url;
+		audio.play();
 	}
 });

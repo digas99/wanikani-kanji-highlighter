@@ -210,6 +210,7 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 										fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=vocabulary")
 											.then(vocab => {
 												const vocab_dict = {};
+												console.log(vocab);
 												vocab
 													.map(content => content.data)
 													.flat(1)
@@ -224,9 +225,9 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 															"meaning_mnemonic" : data.meaning_mnemonic,
 															"meanings" : data.meanings.map(data => data.meaning),
 															"parts_of_speech" : data.parts_of_speech,
-															"pronounciation_audios" : data.pronounciation_audios,
 															"reading_mnemonic" : data.reading_mnemonic,
-															"readings" : data.readings.map(data => data.reading)
+															"readings" : data.readings.map(data => data.reading),
+															"pronunciation_audios" : data.pronunciation_audios
 
 														};
 													});
