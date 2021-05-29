@@ -84,8 +84,9 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 						.then(kanji => scripts(kanji))
 						.catch(errorHandling);
 				}
-				else
+				else {
 					scripts(response["wkhighlight_learnedKanji"]);
+				}
 			})
 			.catch(errorHandling);
 	});
@@ -165,7 +166,8 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 															"reading_hint" : data.reading_hint,
 															"reading_mnemonic" : data.reading_mnemonic,
 															"readings" : data.readings,
-															"visually_similar_subject_ids" : data.visually_similar_subject_ids
+															"visually_similar_subject_ids" : data.visually_similar_subject_ids,
+															"slug": data.slug
 														};
 														kanji_assoc[data.slug] = kanji.id;
 													});

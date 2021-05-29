@@ -1,3 +1,9 @@
+# Changelog v0.4.1
+Pending Release
+
+## Bug Fixed
+- Fixed bug where name of kanji wouldn't show up properly in the Kanji Info Popup
+
 # [Changelog v0.4.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.0)
 Released on 28/05/2021
 
