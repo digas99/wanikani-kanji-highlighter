@@ -20,10 +20,10 @@ It works with any website, and provides detailed information about any kanji tha
    * 2.6. [Settings](#settings)
 3. [Pictures](#pictures)
 
-# Changelog v0.4.1
+## Changelog v0.4.1
 Released on 30/05/2021
 
-## Bug Fixed
+### Bug Fixed
 - Fixed bug where name of kanji wouldn't show up properly in the Kanji Info Popup
 
 ## Changelog v0.4.0
