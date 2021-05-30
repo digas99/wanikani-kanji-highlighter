@@ -728,6 +728,7 @@ document.addEventListener("click", e => {
 	const typeWrapper = document.getElementsByClassName("kanjiSearchTypeWrapper")[0];
 	if ((typeWrapper && typeWrapper.contains(targetElem)) || targetElem.classList.contains("kanjiSearchTypeWrapper")) {
 		const input = document.getElementById("kanjiSearchInput");
+		input.select();
 		const target = targetElem.classList.contains("kanjiSearchTypeWrapper") ? targetElem.firstChild : targetElem;
 		
 		if (target.innerText == "あ") {
