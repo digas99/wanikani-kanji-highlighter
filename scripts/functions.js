@@ -32,20 +32,20 @@ const formatDate = date => {
 // check if the data in the endpoints has been modified since the given date
 const modifiedSince = async (apiKey, date, url) => {
 	var requestHeaders = new Headers();
-		requestHeaders.append('Authorization', `Bearer ${apiKey}`);
-		requestHeaders.append('Wanikani-Revision', '20170710');
-		requestHeaders.append('If-Modified-Since', date);
-		var requestInit = { method: 'GET', headers: requestHeaders };
-		var endpoint = new Request(url, requestInit);
+	requestHeaders.append('Authorization', `Bearer ${apiKey}`);
+	requestHeaders.append('Wanikani-Revision', '20170710');
+	requestHeaders.append('If-Modified-Since', date);
+	var requestInit = { method: 'GET', headers: requestHeaders };
+	var endpoint = new Request(url, requestInit);
 
-		return await fetch(endpoint)
-			.then(response => {
-				const result = response.status !== 304;
-				console.log("MODIFIED: "+result);
-				return result;
-			
-			})
-			.catch(errorHandling);
+	return await fetch(endpoint)
+		.then(response => {
+			const result = response.status !== 304;
+			console.log("MODIFIED: "+result);
+			return result;
+		
+		})
+		.catch(errorHandling);
 }
 
 // clears cache of this extension from chrome storage

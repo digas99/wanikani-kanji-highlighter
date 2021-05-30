@@ -1,12 +1,13 @@
 /* Table Of Contents 			*/
 /* 0. VARIABLES 				*/
 /* 1. DEFAULTS 					*/
-/* 2. HIGHLIGHTS 				*/
-/* 3. DETAILS POPUP 			*/
-/*		3.1 SCROLLBAR 			*/
-/*		3.2 POPUP UPPER DIV 	*/
-/*		3.3 POPUP INFO DIV 		*/
-/* 			3.3.1 SECTIONS		*/
+/* 2. GENERAL 					*/
+/* 3. HIGHLIGHTS 				*/
+/* 4. DETAILS POPUP 			*/
+/*		4.1 SCROLLBAR 			*/
+/*		4.2 POPUP UPPER DIV 	*/
+/*		4.3 POPUP INFO DIV 		*/
+/* 			4.3.1 SECTIONS		*/
 
 
 /* 0. VARIABLES */
@@ -28,8 +29,21 @@ a {
 	text-decoration: none;
 }
 
+li {
+	list-style-type: none !important;
+}
 
-/* 2. HIGHGLGHTS */
+/* 2. GENERAL */
+.clickable { 
+	cursor: pointer;
+	transition: 0.2s;
+}
+
+.clickable:hover {
+	opacity: 0.5;
+}
+
+/* 3. HIGHGLGHTS */
 
 .wkhighlighter_highlighted,
 .wkhighlighter_highlighted_underlined,
@@ -57,7 +71,7 @@ a {
 }
 
 
-/* 3. DETAILS POPUP */
+/* 4. DETAILS POPUP */
 
 .wkhighlighter_detailsPopup_kanji {
 	background-color: inherit !important;
@@ -94,7 +108,7 @@ a {
 	transition: 0.3s;
 }
 
-	/* 3.1 SCROLLBAR */
+	/* 4.1 SCROLLBAR */
 
 .wkhighlighter_detailsPopup::-webkit-scrollbar {
 	width: 10px;
@@ -110,7 +124,7 @@ a {
 }
 
 
-	/* 3.2 POPUP UPPER DIV */
+	/* 4.2 POPUP UPPER DIV */
 
 .wkhighlighter_focusPopup_kanji {
 	margin-top: 0 !important;
@@ -148,7 +162,7 @@ a {
 }
 
 
-	/* 3.3 POPUP INFO DIV */
+	/* 4.3 POPUP INFO DIV */
 
 .wkhighlighter_popupDetails_detailedInfoWrapper {
     color: white;
@@ -172,7 +186,7 @@ a {
 	margin-bottom: 15px;
 }
 
-		/* 3.3.1 SECTIONS */
+		/* 4.3.1 SECTIONS */
 
 .wkhighlighter_detailsPopup_sectionContainer { 
 	margin: 15px 0;
@@ -223,9 +237,7 @@ a {
     border-radius: 4px;
 }
 
-.wkhighlighter_detailsPopup_usedRadicals_row,
-.wkhighlighter_detailsPopup_similarKanji_row,
-.wkhighlighter_detailsPopup_vocab_row {
+.wkhighlighter_detailsPopup_cardRow {
     padding: 5px;
     margin: 5px 8px;
     color: black;
@@ -235,6 +247,7 @@ a {
 	position: relative;
 	cursor: pointer;
 	transition: 0.2s;
+	max-width: 180px;
 }
 
 .wkhighlighter_detailsPopup_usedRadicals_row {
@@ -249,9 +262,39 @@ a {
 	background-color: var(--vocab-tag-color);
 }
 
-.wkhighlighter_detailsPopup_similarKanji_row:hover,
-.wkhighlighter_detailsPopup_vocab_row:hover,
-.wkhighlighter_detailsPopup_usedRadicals_row:hover {
+.wkhighlighter_detailsPopup_cardRow:hover {
 	transform: scale(1.1);
 	z-index: 1;
+}
+
+.wkhighlighter_detailsPopup_vocab_row:hover,
+.wkhighlighter_detailsPopup_similarKanji_row:hover {
+	border-radius: 2px 0px 0px 2px;
+}
+
+.wkhighlighter_detailsPopup_cardSideBar {
+	width: 30px;
+    background-color: white;
+    position: absolute;
+    height: 100%;
+    right: -30px;
+    top: 0;
+	text-align: center;
+    box-shadow: rgb(0 0 0) 2px 4px 0px 2px;
+    border-radius: 0px 2px 2px 0px;
+}
+
+.wkhighlighter_detailsPopup_cardSideBar > ul li {
+	border-bottom: 1px solid rgb(172, 172, 172);
+}
+
+.wkhighlighter_detailsPopup_cardSideBar > ul li:last-child {
+	border-bottom: none;
+}
+
+.wkhighlighter_detailsPopup_cardSideBar_icon {
+	pointer-events: none;
+	width: 16px;
+	height: 16px;
+	vertical-align: text-bottom;
 }

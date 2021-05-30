@@ -210,7 +210,6 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 										fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=vocabulary")
 											.then(vocab => {
 												const vocab_dict = {};
-												console.log(vocab);
 												vocab
 													.map(content => content.data)
 													.flat(1)
@@ -270,5 +269,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.badge && settings["1"]) {
 		chrome.browserAction.setBadgeText({text: request.badge.toString()});
 		chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
+	}
+
+	if (request.imgUrl) {
+		sendResponse({imgUrl: imgUrlTest});
 	}
 });

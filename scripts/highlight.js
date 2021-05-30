@@ -6,15 +6,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (!loaded) {
 		loaded = true;
 
-		console.log("here");
-
 		const functionDelay = request.functionDelay;
 		const values = request.values;
 		const unwantedTags = request.unwantedTags;
 		highlightingClass = request.highlightingClass
 
 		if (functionDelay && values && unwantedTags && highlightingClass) {	
-			console.log("here2");
 			const textChildNodes = obj => Array.from(obj.childNodes)
 				.filter(node => node.nodeName === "#text");
 
@@ -40,7 +37,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					//node.data = '';
 					// insert new child after the old child
 					//node.after(fragment);
-					console.log("highlighted");
 					return !matches ? 0 : matches.length;
 				}
 			}
@@ -64,11 +60,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					return test !== null ? test.length > 0 : false;
 				});
 
-				console.log("inside highlighter");
-
 				let nmrHighlightedKanji = 0;
 				if (nodesToBeHighlighted.length > 0) {
-					console.log(nodesToBeHighlighted);
 					const span = document.createElement("span");
 					span.className = className;
 					nodesToBeHighlighted.filter(tag => tagFilteringConditions(tag)).forEach(node => nmrHighlightedKanji += replaceMatchesWithElem(node, kanjiRegex, span));

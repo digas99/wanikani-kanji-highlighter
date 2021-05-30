@@ -67,7 +67,7 @@ document.addEventListener("mouseover", e => {
 		
 		kanjiIDs.forEach(ID => {
 			const li = document.createElement("li");
-			li.classList.add(className);
+			li.classList.add("wkhighlighter_detailsPopup_cardRow", className);
 			wrapper.appendChild(li);
 
 			const p = document.createElement("p");
@@ -75,7 +75,7 @@ document.addEventListener("mouseover", e => {
 
 			const a = document.createElement("a");
 			a.target = "_blank";
-			//a.href = thisKanjiData["document_url"];
+			a.href = thisKanjiData["document_url"];
 			a.style.color = "black";
 			a.style.textDecoration = "none";
 
@@ -242,6 +242,70 @@ document.addEventListener("mouseover", e => {
 		});
 		infoInPopup = true;
 	}
+	
+	const fetchImage = async src => {
+		var requestHeaders = new Headers({
+			"Access-Control-Allow-Origin": "https://imgur.com/",
+		});
+		let content = new Request(src, {
+			method : 'GET',
+			headers: requestHeaders
+		});
+		return await fetch(content)
+			.then(response => response.blob())
+			.then(image => URL.createObjectURL(image));
+	}	
+
+	// if hovering over a kanji card
+	if (node.classList.contains("wkhighlighter_detailsPopup_vocab_row") || node.classList.contains("wkhighlighter_detailsPopup_similarKanji_row") || (node.classList.contains("wkhighlighter_detailsPopup_cards") && (node.parentElement.parentElement.classList.contains("wkhighlighter_detailsPopup_similarKanji_row") || node.parentElement.parentElement.classList.contains("wkhighlighter_detailsPopup_vocab_row")))) {
+		document.querySelectorAll(".kanjiLevelCard").forEach(levelCard => levelCard.style.display = "inline");
+		document.querySelectorAll(".wkhighlighter_detailsPopup_cardSideBar").forEach(node => node.remove());
+		const target = node.classList.contains("wkhighlighter_detailsPopup_cards") ? node.parentElement.parentElement : node;
+		const type = target.classList.contains("wkhighlighter_detailsPopup_vocab_row") ? "vocabulary" : "kanji";
+		let id = "";
+		target.childNodes.forEach(child => {
+			if (child.tagName == "A")
+				id = child.childNodes[0].getAttribute("data-item-id");
+
+			if (child.classList.contains("kanjiLevelCard"))
+				child.style.display = "none";
+		});
+
+		if (target.childNodes.length == 2) {
+			const sideBar = document.createElement("div");
+			target.appendChild(sideBar);
+			sideBar.classList.add("wkhighlighter_detailsPopup_cardSideBar");
+			const ul = document.createElement("ul");
+			sideBar.appendChild(ul);
+			const classes = ["wkhighlighter_detailsPopup_cardSideBarAudio", "wkhighlighter_detailsPopup_cardSideBarInfo"];
+			const icons = ["https://i.imgur.com/ETwuWqJ.png", "https://i.imgur.com/z5eKtlN.png"];
+			if (type == "kanji") {
+				classes.shift();
+				icons.shift();
+			}
+			for (const [i, src] of icons.entries()) {
+				const li = document.createElement("li");
+				ul.appendChild(li);
+				li.classList.add("clickable" ,classes[i]);
+				const img = document.createElement("img");
+				li.appendChild(img);
+				img.classList.add("wkhighlighter_detailsPopup_cardSideBar_icon");
+				img.src = src;
+			}
+			const li = document.createElement("li");
+			ul.appendChild(li);
+			li.style.fontWeight = "900";
+			const list = type == "kanji" ? allKanji[id] : allVocab[id];
+			if (list)
+				li.appendChild(document.createTextNode(list["level"]));
+		}
+	}
+
+	// if hovering outside kanji card wrapper
+	if (node && !(node.classList.contains("wkhighlighter_detailsPopup_cardRow") || (node.parentElement && node.parentElement.classList.contains("wkhighlighter_detailsPopup_cardRow")) || node.classList.contains("wkhighlighter_detailsPopup_cards") || (node.parentElement && node.parentElement.classList.contains("wkhighlighter_detailsPopup_cardSideBar")) || (node.parentElement.parentElement && node.parentElement.parentElement.classList.contains("wkhighlighter_detailsPopup_cardSideBar")) || (node.parentElement.parentElement.parentElement && node.parentElement.parentElement.parentElement.classList.contains("wkhighlighter_detailsPopup_cardSideBar")))) {
+		document.querySelectorAll(".kanjiLevelCard").forEach(levelCard => levelCard.style.display = "inline");
+		document.querySelectorAll(".wkhighlighter_detailsPopup_cardSideBar").forEach(node => node.remove());
+	}
 });
 
 document.addEventListener("click", e => {
@@ -260,17 +324,22 @@ document.addEventListener("click", e => {
 			}, 200);
 		}
 
-		// clicked on a kanji card
-		if (node.classList.contains("wkhighlighter_detailsPopup_usedRadicals_row")) {
-			
+		// clicked on sidebar audio
+		if (node.classList.contains("wkhighlighter_detailsPopup_cardSideBarAudio")) {
+			const target = node.parentElement.parentElement.parentElement.childNodes;
+			if (target && target.length > 0) {
+				for (const node of target) {
+					node.childNodes.forEach(node => {
+						const id = node.getAttribute ? node.getAttribute("data-item-id") : null;
+						if (id) {
+							const audio = new Audio();
+							const audioList = allVocab[id]["pronunciation_audios"];
+							audio.src = audioList[Math.floor(Math.random() * audioList.length)].url;
+							audio.play();
+						}
+					});
+				}
+			}
 		}
-	}
-
-	if (node.classList.contains("wkhighlighter_detailsPopup_cards")) {
-		const id = node.getAttribute("data-item-id");
-		const audio = new Audio();
-		const audioList = allVocab[id]["pronunciation_audios"];
-		audio.src = audioList[Math.floor(Math.random() * audioList.length)].url;
-		audio.play();
 	}
 });
