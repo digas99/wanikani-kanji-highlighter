@@ -7,8 +7,8 @@ Not Released Yet
 ## Bug Fix
 - Fix issue where the extension popup wouldn't load correctly and would stay that way
 
-# Changelog v0.4.1
-Pending Release
+# [Changelog v0.4.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.1)
+Released on 30/05/2021
 
 ## Bug Fixed
 - Fixed bug where name of kanji wouldn't show up properly in the Kanji Info Popup

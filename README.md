@@ -5,12 +5,12 @@ This is an unofficial chrome extension for Kanji Highlighting, matching the kanj
 It works with any website, and provides detailed information about any kanji that is highlighted.
 **Because it would be cheating, the extension doesn't work on [WaniKani.com](https://www.wanikani.com/).**
 
-#### VERSION 0.4.0
+#### VERSION 0.4.1
 
 ## [Get it on Chrome Webstore](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/)
 
 ## Table of contents:
-1. [Latest Features](#changelog-v040)
+1. [Latest Features](#changelog-v041)
 2. [Usage Guide](#usage-guide)
    * 2.1. [WaniKani API Token](#wanikani-api-token)
    * 2.2. [Kanji Details](#kanji-details)
@@ -19,6 +19,12 @@ It works with any website, and provides detailed information about any kanji tha
    * 2.5. [Blacklisting a Site](#blacklisting-a-site)
    * 2.6. [Settings](#settings)
 3. [Pictures](#pictures)
+
+## Changelog v0.4.1
+Released on 30/05/2021
+
+### Bug Fixed
+- Fixed bug where name of kanji wouldn't show up properly in the Kanji Info Popup
 
 ## Changelog v0.4.0
 Released on 28/05/2021
@@ -32,8 +38,6 @@ Released on 28/05/2021
 - Implemented vocabulary results in Kanji Search
 - When clicking the kanji of a result in Kanji Search, a new search will be made with the kanji that was clicked
 - Improved Api Key text input to match the Kanji Search text input interface
-
-
 
 #### [(All changelogs)](CHANGELOG.md)
 
