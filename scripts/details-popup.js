@@ -250,25 +250,14 @@ document.addEventListener("mouseover", e => {
 		});
 		infoInPopup = true;
 	}
-	
-	const fetchImage = async src => {
-		var requestHeaders = new Headers({
-			"Access-Control-Allow-Origin": "https://imgur.com/",
-		});
-		let content = new Request(src, {
-			method : 'GET',
-			headers: requestHeaders
-		});
-		return await fetch(content)
-			.then(response => response.blob())
-			.then(image => URL.createObjectURL(image));
-	}	
 
 	// if hovering over a kanji card
 	if (node.classList.contains("wkhighlighter_detailsPopup_vocab_row") || node.classList.contains("wkhighlighter_detailsPopup_similarKanji_row") || (node.classList.contains("wkhighlighter_detailsPopup_cards") && (node.parentElement.parentElement.classList.contains("wkhighlighter_detailsPopup_similarKanji_row") || node.parentElement.parentElement.classList.contains("wkhighlighter_detailsPopup_vocab_row")))) {
 		document.querySelectorAll(".itemLevelCard").forEach(levelCard => levelCard.style.display = "inline");
+		document.querySelectorAll(".wkhighlighter_detailsPopup_cardRow").forEach(card => card.style.filter = "brightness(0.5)");
 		document.querySelectorAll(".wkhighlighter_detailsPopup_cardSideBar").forEach(node => node.remove());
 		const target = node.classList.contains("wkhighlighter_detailsPopup_cards") ? node.parentElement.parentElement : node;
+		target.style.filter = "unset";
 		const type = target.classList.contains("wkhighlighter_detailsPopup_vocab_row") ? "vocabulary" : "kanji";
 		let id = "";
 		target.childNodes.forEach(child => {
@@ -312,6 +301,7 @@ document.addEventListener("mouseover", e => {
 	// if hovering outside kanji card wrapper
 	if (node && !(node.classList.contains("wkhighlighter_detailsPopup_cardRow") || (node.parentElement && node.parentElement.classList.contains("wkhighlighter_detailsPopup_cardRow")) || node.classList.contains("wkhighlighter_detailsPopup_cards") || (node.parentElement && node.parentElement.classList.contains("wkhighlighter_detailsPopup_cardSideBar")) || (node.parentElement.parentElement && node.parentElement.parentElement.classList.contains("wkhighlighter_detailsPopup_cardSideBar")) || (node.parentElement.parentElement.parentElement && node.parentElement.parentElement.parentElement.classList.contains("wkhighlighter_detailsPopup_cardSideBar")))) {
 		document.querySelectorAll(".itemLevelCard").forEach(levelCard => levelCard.style.display = "inline");
+		document.querySelectorAll(".wkhighlighter_detailsPopup_cardRow").forEach(card => card.style.filter = "unset");
 		document.querySelectorAll(".wkhighlighter_detailsPopup_cardSideBar").forEach(node => node.remove());
 	}
 });
