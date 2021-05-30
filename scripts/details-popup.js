@@ -61,29 +61,29 @@ document.addEventListener("mouseover", e => {
 		return finalString;
 	}
 
-	const kanjiCards = (kanjiIDs, kanjisData, className) => {
+	const itemCards = (ids, data, className) => {
 		const wrapper = document.createElement("ul");
 		wrapper.style.padding = "0";
 		
-		kanjiIDs.forEach(ID => {
+		ids.forEach(ID => {
 			const li = document.createElement("li");
 			li.classList.add("wkhighlighter_detailsPopup_cardRow", className);
 			wrapper.appendChild(li);
 
 			const p = document.createElement("p");
-			const thisKanjiData = kanjisData[ID];
+			const thisData = data[ID];
 
 			const a = document.createElement("a");
 			a.target = "_blank";
-			a.href = thisKanjiData["document_url"];
+			a.href = thisData["document_url"];
 			a.style.color = "black";
 			a.style.textDecoration = "none";
 
-			if (thisKanjiData.characters)
-				p.appendChild(document.createTextNode(thisKanjiData.characters));
+			if (thisData.characters)
+				p.appendChild(document.createTextNode(thisData.characters));
 			else {
 				const img = document.createElement("img");
-				const svgs = thisKanjiData.character_images.filter(img => img["content_type"] === "image/png" && img["metadata"]["dimensions"] === "64x64");
+				const svgs = thisData.character_images.filter(img => img["content_type"] === "image/png" && img["metadata"]["dimensions"] === "64x64");
 				img.src = svgs[0].url;
 				img.style.width = "40px";
 				p.appendChild(img);
@@ -92,13 +92,13 @@ document.addEventListener("mouseover", e => {
 			p.setAttribute('data-item-id', ID);
 			li.appendChild(a);
 			a.appendChild(p);
-			const kanjiLevel = document.createElement("div");
-			kanjiLevel.classList.add("kanjiLevelCard");
-			li.appendChild(kanjiLevel);
-			kanjiLevel.appendChild(document.createTextNode(thisKanjiData.level));
+			const level = document.createElement("div");
+			level.classList.add("itemLevelCard");
+			li.appendChild(level);
+			level.appendChild(document.createTextNode(thisData.level));
 		});
 
-		return kanjiIDs.length > 0 ? wrapper : document.createDocumentFragment();
+		return ids.length > 0 ? wrapper : document.createDocumentFragment();
 	}
 
 	const createKanjiDetailedInfo = (kanjiInfo) => {
@@ -133,24 +133,32 @@ document.addEventListener("mouseover", e => {
 		// reading mnemonic container
 		details.appendChild(infoTable("Reading Mnemonic:", [parseTags(kanjiInfo["reading_mnemonic"]), parseTags(kanjiInfo["reading_hint"])]));
 	
+		const itemCardsSection = (idsTag, title, itemCardsclass, list) => {
+			const ids = kanjiInfo[idsTag];
+			const nmrItems = ids.length;
+			const table = infoTable(`${title} (${nmrItems}):`, []);
+			table.classList.add("wkhighlighter_detailsPopup_sectionContainer");
+			if (nmrItems > 0)
+				table.appendChild(itemCards(ids, list, itemCardsclass));
+			else {
+				const nonefound = document.createElement("p");
+				table.appendChild(nonefound);
+				nonefound.appendChild(document.createTextNode("(None found)"));
+				nonefound.style.fontWeight = "900";
+				nonefound.style.paddingLeft = "5px";
+			}
+			return table;
+		}
+
 		// used radicals cards
-		const usedRadicals = infoTable("Radicals from kanji:", []);
-		usedRadicals.classList.add("wkhighlighter_detailsPopup_sectionContainer");
-		details.appendChild(usedRadicals);
-		usedRadicals.appendChild(kanjiCards(kanjiInfo["component_subject_ids"], allRadicals, "wkhighlighter_detailsPopup_usedRadicals_row"));
+		details.appendChild(itemCardsSection("component_subject_ids", "Radicals from kanji", "wkhighlighter_detailsPopup_usedRadicals_row", allRadicals));
 
 		// similar kanji cards
-		const similarKanji = infoTable("Similar kanji:", []);
-		similarKanji.classList.add("wkhighlighter_detailsPopup_sectionContainer");
-		details.appendChild(similarKanji);
-		similarKanji.appendChild(kanjiCards(kanjiInfo["visually_similar_subject_ids"], allKanji, "wkhighlighter_detailsPopup_similarKanji_row"));
+		details.appendChild(itemCardsSection("visually_similar_subject_ids", "Similar kanji", "wkhighlighter_detailsPopup_similarKanji_row", allKanji));
 
-		// vocab with kanji
-		const vocab = infoTable("Vocabulary:", []);
-		vocab.classList.add("wkhighlighter_detailsPopup_sectionContainer");
-		details.appendChild(vocab);
-		vocab.appendChild(kanjiCards(kanjiInfo["amalgamation_subject_ids"], allVocab, "wkhighlighter_detailsPopup_vocab_row"));
-	
+		// vocab with that kanji
+		details.appendChild(itemCardsSection("amalgamation_subject_ids", "Vocabulary", "wkhighlighter_detailsPopup_vocab_row", allVocab));
+
 		return detailedInfoWrapper;
 	}
 
@@ -258,7 +266,7 @@ document.addEventListener("mouseover", e => {
 
 	// if hovering over a kanji card
 	if (node.classList.contains("wkhighlighter_detailsPopup_vocab_row") || node.classList.contains("wkhighlighter_detailsPopup_similarKanji_row") || (node.classList.contains("wkhighlighter_detailsPopup_cards") && (node.parentElement.parentElement.classList.contains("wkhighlighter_detailsPopup_similarKanji_row") || node.parentElement.parentElement.classList.contains("wkhighlighter_detailsPopup_vocab_row")))) {
-		document.querySelectorAll(".kanjiLevelCard").forEach(levelCard => levelCard.style.display = "inline");
+		document.querySelectorAll(".itemLevelCard").forEach(levelCard => levelCard.style.display = "inline");
 		document.querySelectorAll(".wkhighlighter_detailsPopup_cardSideBar").forEach(node => node.remove());
 		const target = node.classList.contains("wkhighlighter_detailsPopup_cards") ? node.parentElement.parentElement : node;
 		const type = target.classList.contains("wkhighlighter_detailsPopup_vocab_row") ? "vocabulary" : "kanji";
@@ -267,7 +275,7 @@ document.addEventListener("mouseover", e => {
 			if (child.tagName == "A")
 				id = child.childNodes[0].getAttribute("data-item-id");
 
-			if (child.classList.contains("kanjiLevelCard"))
+			if (child.classList.contains("itemLevelCard"))
 				child.style.display = "none";
 		});
 
@@ -303,7 +311,7 @@ document.addEventListener("mouseover", e => {
 
 	// if hovering outside kanji card wrapper
 	if (node && !(node.classList.contains("wkhighlighter_detailsPopup_cardRow") || (node.parentElement && node.parentElement.classList.contains("wkhighlighter_detailsPopup_cardRow")) || node.classList.contains("wkhighlighter_detailsPopup_cards") || (node.parentElement && node.parentElement.classList.contains("wkhighlighter_detailsPopup_cardSideBar")) || (node.parentElement.parentElement && node.parentElement.parentElement.classList.contains("wkhighlighter_detailsPopup_cardSideBar")) || (node.parentElement.parentElement.parentElement && node.parentElement.parentElement.parentElement.classList.contains("wkhighlighter_detailsPopup_cardSideBar")))) {
-		document.querySelectorAll(".kanjiLevelCard").forEach(levelCard => levelCard.style.display = "inline");
+		document.querySelectorAll(".itemLevelCard").forEach(levelCard => levelCard.style.display = "inline");
 		document.querySelectorAll(".wkhighlighter_detailsPopup_cardSideBar").forEach(node => node.remove());
 	}
 });
