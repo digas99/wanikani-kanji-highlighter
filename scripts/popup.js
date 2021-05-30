@@ -144,13 +144,17 @@ window.onload = () => {
 									if (modified) {
 										fetchPage(apiKey, "https://api.wanikani.com/v2/user")
 											.then(user => {
-												if (!window.chrome.runtime.lastError && user) 
+												// code 429 is Rate limit exceeded
+												if (!window.chrome.runtime.lastError && user && user.code != 429) 
 													chrome.storage.local.set({"wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
 										});
 									}
 	
 									const userInfo = userData["wkhighlight_userInfo"]["data"];
+									console.log(userData);
 									if (userInfo) {
+										console.log("userInfo");
+										console.log(userData);
 										//const loggedInWrapper = document.createElement("div");
 										//main.appendChild(loggedInWrapper);
 			

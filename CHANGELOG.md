@@ -4,6 +4,9 @@ Not Released Yet
 ## Content
 - Hovering an item card in Kanji Info Popup now shows a small sidebar where you can listen to the audio of vocabulary
 
+## Bug Fix
+- Fix issue where the extension popup wouldn't load correctly and would stay that way
+
 # Changelog v0.4.1
 Pending Release
 

@@ -94,7 +94,7 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 tabs.onActivated.addListener(activeInfo => {
 	const tabId = activeInfo["tabId"];
 	chrome.tabs.get(tabId, response => {
-		if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(response["url"])) {
+		if (response && !/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(response["url"])) {
 			if (settings["1"] && injectedHighlighter) {
 				tabs.sendMessage(tabId, {nmrKanjiHighlighted:"popup"}, response => {
 					if (!window.chrome.runtime.lastError) {
