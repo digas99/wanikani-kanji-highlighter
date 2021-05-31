@@ -63,7 +63,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				let nmrHighlightedKanji = 0;
 				if (nodesToBeHighlighted.length > 0) {
 					const span = document.createElement("span");
-					span.className = className;
+					span.classList.add(className, "clickable");
+					span.style.setProperty("cursor", "pointer", "important");
 					nodesToBeHighlighted.filter(tag => tagFilteringConditions(tag)).forEach(node => nmrHighlightedKanji += replaceMatchesWithElem(node, kanjiRegex, span));
 				}
 				return nmrHighlightedKanji;

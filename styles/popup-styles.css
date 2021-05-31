@@ -28,7 +28,7 @@
 	--radical-tag-color: #00ffe7;
 	--kanji-tag-color: #fff700;
 	--vocab-tag-color: #eb4c78;
-	--highlight-default-color: #4d70d1;
+	--highlight-default-color: #2c5091;
 	--wanikani: #f100a1;
 	--dark-back: #383838;
 }
@@ -447,6 +447,7 @@ transform: rotate(134deg);
     padding: 2px;
     margin: 0 7px;
     border-radius: 8px;
+	pointer-events: none;
 }
 
 #notRunAtWK {

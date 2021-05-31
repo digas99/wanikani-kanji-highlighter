@@ -2,7 +2,9 @@
 Not Released Yet
 
 ## Content
-- Hovering an item card in Kanji Info Popup now shows a small sidebar where you can listen to the audio of vocabulary
+- Hovering an item card in Kanji Info Popup now shows a small sidebar where you can open the Kanji Info Popup of that item or listen to the its audio, if it is a vocabulary
+- With the implementation of the feature above, vocabulary now have a Kanji Info Popup (before this, only kanji had it). This new Kanji Info Popup has information about the vocabulary, such as mnemonics, example sentences with that vocabulary, etc...
+- Kanji highlighted within the example sentences can be clicked, which creates a new Kanji Info Popup for that kanji
 
 ## Bug Fix
 - Fix issue where the extension popup wouldn't load correctly and would stay that way

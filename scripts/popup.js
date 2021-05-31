@@ -474,7 +474,7 @@ document.addEventListener("click", e => {
 		const arrow = document.createElement("i");
 		arrow.classList.add("right", "blacklisted_title_arrow");
 		chrome.storage.local.get(["wkhighlight_blacklist"], result => {
-			blackListedlink.innerText += ` (${result["wkhighlight_blacklist"].length})`;
+			blackListedlink.innerText += result["wkhighlight_blacklist"] ? ` (${result["wkhighlight_blacklist"].length})` : " (0)";
 			blackListedlink.appendChild(arrow);
 		});
 
@@ -752,10 +752,18 @@ document.addEventListener("click", e => {
 			searchResultWrapper.remove();
 	}
 
-	// if clicked in the kanji on item search
+	// clicked in the kanji on item search
 	if (targetElem.classList.contains("searchResultItem")) {
 		document.getElementById("kanjiSearchInput").value = targetElem.innerText;
 		searchKanji(document.getElementById("kanjiSearchInput"));
+	}
+
+	// clicked in a search result line, but not the character itself
+	if (targetElem.classList.contains("searchResultItemLine")) {
+		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+			var activeTab = tabs[0];
+			chrome.tabs.sendMessage(activeTab.id, {infoPopupFromSearch: {characters: targetElem.firstChild.textContent, type: targetElem.classList.contains("kanji_back") ? "kanji" : "vocabulary"}}, () => window.chrome.runtime.lastError);
+		});
 	}
 });
 
