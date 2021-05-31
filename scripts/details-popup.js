@@ -64,13 +64,13 @@ const itemCards = (ids, data, className) => {
 	const wrapper = document.createElement("ul");
 	wrapper.style.padding = "0";
 	
-	ids.forEach(ID => {
+	ids.forEach(id => {
 		const li = document.createElement("li");
 		li.classList.add("wkhighlighter_detailsPopup_cardRow", className);
 		wrapper.appendChild(li);
 
 		const p = document.createElement("p");
-		const thisData = data[ID];
+		const thisData = data[id];
 
 		const a = document.createElement("a");
 		a.target = "_blank";
@@ -78,6 +78,7 @@ const itemCards = (ids, data, className) => {
 
 		const characters = thisData.characters;
 		if (characters) {
+			console.log(characters.length);
 			p.appendChild(document.createTextNode(characters));
 			if (characters.length > 4)
 				p.style.setProperty("font-size", (35-5*(characters.length - 5))+"px", "important");
@@ -90,7 +91,7 @@ const itemCards = (ids, data, className) => {
 			p.appendChild(img);
 		}
 		p.classList.add("wkhighlighter_detailsPopup_cards", highlightingClass);
-		p.setAttribute('data-item-id', ID);
+		p.setAttribute('data-item-id', id);
 		li.appendChild(a);
 		a.appendChild(p);
 		const level = document.createElement("div");
