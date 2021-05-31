@@ -91,6 +91,10 @@ window.onload = () => {
 	title.textContent = "WaniKani Kanji Highlighter";
 	logoDiv.appendChild(title);
 
+	const loadingVal = loading();
+	const loadingElem = loadingVal[0];
+	main.appendChild(loadingElem);
+
 	chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_blacklist"], userData => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			var activeTab = tabs[0];
@@ -151,10 +155,7 @@ window.onload = () => {
 									}
 	
 									const userInfo = userData["wkhighlight_userInfo"]["data"];
-									console.log(userData);
 									if (userInfo) {
-										console.log("userInfo");
-										console.log(userData);
 										//const loggedInWrapper = document.createElement("div");
 										//main.appendChild(loggedInWrapper);
 			
@@ -203,7 +204,26 @@ window.onload = () => {
 												});
 											});										
 
-											const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchKanji); 
+											const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchKanji);
+											chrome.storage.local.get(["wkhighlight_contextMenuSelectedText"], result => {
+												const selectedText = result["wkhighlight_contextMenuSelectedText"];
+												if (selectedText) {
+													const loadingVal = loading();
+													const loadingElem = loadingVal[0];
+													document.getElementById("userInfoWrapper").insertBefore(loadingElem, document.getElementById("blacklistButton").parentElement);
+													const input = [...searchArea.firstChild.childNodes].filter(child => child.tagName == "INPUT")[0];
+													input.value = selectedText;
+													const userInfoNav = document.getElementById("userInfoNavbar");
+													if (userInfoNav)
+														userInfoNav.style.display = "none";
+													loadItemsLists(() => {
+														loadingElem.remove();
+														searchKanji(input);
+														clearInterval(loadingVal[1]);
+													});
+													chrome.storage.local.remove(["wkhighlight_contextMenuSelectedText"]);
+												}
+											});
 											topRightNavbar.insertBefore(searchArea, topRightNavbar.firstChild);
 											const searchWrapper = searchArea.firstChild;
 											const searchTypeWrapper = document.createElement("div");
@@ -258,12 +278,13 @@ window.onload = () => {
 					blacklistWrapper.appendChild(warningButton);
 					warningButton.appendChild(document.createTextNode("Run Highlighter On This Page"));
 					warningButton.id = "runHighlighterButton";
-				}	
+				}
+				loadingElem.remove();
+				clearInterval(loadingVal[1]);
 			});
 		});
 		
 		document.body.appendChild(footer());
-
 	});
 
 }
@@ -673,42 +694,7 @@ document.addEventListener("click", e => {
 			nmrKanjiFound.id = "nmrKanjiFound";
 		}
 
-		if (kanjiList.length == 0) {
-			chrome.storage.local.get(["wkhighlight_allkanji"], result => {
-				const allKanji = result["wkhighlight_allkanji"];
-				for (const index in allKanji) {
-					const kanji = allKanji[index];
-					kanjiList.push({
-						"type" : "kanji",
-						"id": index, 
-						"characters": kanji["characters"],
-						"meanings": kanji["meanings"],
-						"level": kanji["level"],
-						"readings": kanji["readings"],
-						"visually_similar_subject_ids": kanji["visually_similar_subject_ids"],
-						"amalgamation_subject_ids": kanji["amalgamation_subject_ids"]
-					});
-				}
-			});
-		}
-
-		if (vocabList.length == 0) {
-			chrome.storage.local.get(["wkhighlight_allvocab"], result => {
-				const allVocab = result["wkhighlight_allvocab"];
-				for (const index in allVocab) {
-					const vocab = allVocab[index];
-					vocabList.push({
-						"type" : "vocabulary",
-						"id": index,
-						"characters": vocab["characters"],
-						"meanings": vocab["meanings"],
-						"level": vocab["level"],
-						"readings": vocab["readings"],
-						"component_subject_ids": vocab["component_subject_ids"] 
-					});
-				}
-			});
-		}
+		loadItemsLists();
 	}
 
 	const resultWrapper = document.getElementById("searchResultWrapper");
@@ -754,8 +740,9 @@ document.addEventListener("click", e => {
 
 	// clicked in the kanji on item search
 	if (targetElem.classList.contains("searchResultItem")) {
-		document.getElementById("kanjiSearchInput").value = targetElem.innerText;
-		searchKanji(document.getElementById("kanjiSearchInput"));
+		const input = document.getElementById("kanjiSearchInput");
+		input.value = targetElem.innerText;
+		searchKanji(input);
 	}
 
 	// clicked in a search result line, but not the character itself
@@ -834,6 +821,12 @@ const searchKanji = (event) => {
 
 	const searchResultUL = document.createElement("ul");
 	searchResultUL.id = "searchResultItemWrapper";
+
+	if (!document.getElementById("searchResultWrapper")) {
+		const searchResultWrapper = document.createElement("div");
+		searchResultWrapper.id = "searchResultWrapper";
+		document.getElementById("userInfoWrapper").insertBefore(searchResultWrapper, document.getElementById("blacklistButton").parentElement);
+	}
 	document.getElementById("searchResultWrapper").appendChild(searchResultUL);
 
 	const type = document.getElementById("kanjiSearchType").innerText;
@@ -989,3 +982,62 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		}
 	}
 });
+
+const loadItemsLists = (callback) => {
+	chrome.storage.local.get(["wkhighlight_allkanji", "wkhighlight_allvocab"], result => {
+		const allKanji = result["wkhighlight_allkanji"];
+		const allVocab = result["wkhighlight_allvocab"];
+		if (allKanji) {
+			for (const index in allKanji) {
+				const kanji = allKanji[index];
+				kanjiList.push({
+					"type" : "kanji",
+					"id": index, 
+					"characters": kanji["characters"],
+					"meanings": kanji["meanings"],
+					"level": kanji["level"],
+					"readings": kanji["readings"],
+					"visually_similar_subject_ids": kanji["visually_similar_subject_ids"],
+					"amalgamation_subject_ids": kanji["amalgamation_subject_ids"]
+				});
+			}
+		}
+		if (allVocab) {
+			for (const index in allVocab) {
+				const vocab = allVocab[index];
+				vocabList.push({
+					"type" : "vocabulary",
+					"id": index,
+					"characters": vocab["characters"],
+					"meanings": vocab["meanings"],
+					"level": vocab["level"],
+					"readings": vocab["readings"],
+					"component_subject_ids": vocab["component_subject_ids"] 
+				});
+			}
+		}
+		
+		if (callback)
+			callback();
+	});
+}
+
+const loading = () => {
+	const wrapper = document.createElement("div");
+	wrapper.style.textAlign = "center";
+
+	const img = document.createElement("img");
+	wrapper.appendChild(img);
+	img.src = "../images/refresh.png";
+	img.style.width = "35px";
+	
+	let counter = 0;
+	const interval = setInterval(() => {
+		if (counter == 360)
+			counter = 0;
+		
+		img.style.transform="rotate("+(counter++)+"deg)";
+	}, 4);
+
+	return [wrapper, interval];
+}

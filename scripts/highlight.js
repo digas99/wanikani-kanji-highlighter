@@ -118,3 +118,7 @@ document.addEventListener("keydown", e => {
 	if (!e.getModifierState(e.key))
 		chrome.runtime.sendMessage({key: "down"});
 });
+
+document.addEventListener("click", e => {
+	chrome.runtime.sendMessage({selectedText: window.getSelection().toString().trim()});
+});

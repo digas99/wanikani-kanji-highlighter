@@ -268,7 +268,31 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
 	}
 
-	if (request.imgUrl) {
+	if (request.imgUrl)
 		sendResponse({imgUrl: imgUrlTest});
+
+	if (request.selectedText)
+		chrome.contextMenus.update("wkhighlighterSearchKanji", {title: `Search WaniKani for "${request.selectedText}"`});
+});
+
+const contextMenuItem = {
+	id: "wkhighlighterSearchKanji",
+	title: "Search With WKHighlighter",
+	contexts: ["selection"]
+};
+
+chrome.contextMenus.create(contextMenuItem);
+
+chrome.contextMenus.onClicked.addListener(data => {
+	let selectedText = data["selectionText"];
+	if (data["menuItemId"] == "wkhighlighterSearchKanji" && selectedText) {
+		selectedText = selectedText.trim();
+		chrome.storage.local.set({wkhighlight_contextMenuSelectedText:selectedText});
+		chrome.notifications.create({
+			type: "basic",
+			title: "Searching with WK Kanji Highlighter",
+			message: `Open the extension to search for "${selectedText}"`,
+			iconUrl: "../logo/logo.png"
+		});
 	}
 });

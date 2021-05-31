@@ -26,6 +26,8 @@
         "http://*/",
         "https://*/",
         "storage",
-        "unlimitedStorage"
+        "unlimitedStorage",
+        "contextMenus",
+        "notifications"
     ]
 }
