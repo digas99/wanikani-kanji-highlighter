@@ -288,9 +288,11 @@ chrome.contextMenus.onClicked.addListener(data => {
 	if (data["menuItemId"] == "wkhighlighterSearchKanji" && selectedText) {
 		selectedText = selectedText.trim();
 		chrome.storage.local.set({wkhighlight_contextMenuSelectedText:selectedText});
+		chrome.browserAction.setBadgeText({text: '\u2B06'});
+		chrome.browserAction.setBadgeBackgroundColor({color: "green"});
 		chrome.notifications.create({
 			type: "basic",
-			title: "Searching with WK Kanji Highlighter",
+			title: "Searching with WaniKani Kanji Highlighter",
 			message: `Open the extension to search for "${selectedText}"`,
 			iconUrl: "../logo/logo.png"
 		});

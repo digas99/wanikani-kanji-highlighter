@@ -222,6 +222,8 @@ window.onload = () => {
 														clearInterval(loadingVal[1]);
 													});
 													chrome.storage.local.remove(["wkhighlight_contextMenuSelectedText"]);
+													chrome.browserAction.setBadgeText({text: nmrKanjiHighlighted.toString()});
+													chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
 												}
 											});
 											topRightNavbar.insertBefore(searchArea, topRightNavbar.firstChild);
@@ -697,6 +699,7 @@ document.addEventListener("click", e => {
 		loadItemsLists();
 	}
 
+	// clicked outside search area and searching related
 	const resultWrapper = document.getElementById("searchResultWrapper");
 	if (!document.getElementsByClassName("searchArea")[0].contains(targetElem) && resultWrapper && !resultWrapper.contains(targetElem)) {
 		const wrapper = document.getElementById("searchResultItemWrapper");
@@ -972,6 +975,20 @@ const matchesReadings = (input, readings) => {
 	}
 	return false;
 }
+
+document.addEventListener("mouseover", e => {
+	const targetElem = e.target;
+
+	// hovering outside search area and searching related when userInfoWrapper is hidden
+	const resultWrapper = document.getElementById("searchResultWrapper");
+	if (!document.getElementsByClassName("searchArea")[0].contains(targetElem) && resultWrapper && !resultWrapper.contains(targetElem) && document.getElementById("userInfoWrapper").style.display == "none") {
+	
+	}
+	else {
+
+	}
+
+});
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.nmrKanjiHighlighted) {
