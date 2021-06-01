@@ -1,9 +1,13 @@
 # Changelog v0.4.3
-Not Released Yet
+Pending Release
 
 ## Content
 - Selecting any word in a page and then right clicking it will show an option in the context menu to allow the user to search for that word in the Search Bar in the extension popup
 - Kanji counter in the extension icon doesn't have a cap of 99 kanji anymore
+
+## Bug Fix
+- The Kanji Info Popup is now the same in every page, and no longer gets all wrongly formated depending on the page it is in
+- Fixed an issue where if you were to click a kanji from a Search Result while there is already a Kanji Info Popup open, the Bottom Right Kanji Popup would become unclickable
 
 # Changelog v0.4.2
 Pending Release

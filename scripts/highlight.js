@@ -103,7 +103,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 	// if extension pooup is asking for number of highlighted kanji
 	if (request.nmrKanjiHighlighted === "popup") {
-		console.log(totalHighlightedKanji);
 		sendResponse({nmrKanjiHighlighted: totalHighlightedKanji});
 	}
 

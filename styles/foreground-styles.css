@@ -25,11 +25,22 @@
 
 /* 1. DEFAULTS */
 
-a {
-	text-decoration: none;
+.wkhighlighter_detailsPopup a {
+	text-decoration: none !important;
 }
 
-li {
+.wkhighlighter_detailsPopup div,
+.wkhighlighter_detailsPopup a,
+.wkhighlighter_detailsPopup ul,
+.wkhighlighter_detailsPopup li,
+.wkhighlighter_detailsPopup strong,
+.wkhighlighter_detailsPopup p,
+.wkhighlighter_detailsPopup span {
+	padding: 0px;
+	margin: 0px;
+}
+
+.wkhighlighter_detailsPopup li {
 	list-style-type: none !important;
 }
 
@@ -79,7 +90,6 @@ li {
 	font-size: 60px !important;
 	text-align: center;
 	color: white !important;
-	margin: 0;
 }
 
 .wkhighlighter_detailsPopup {
@@ -94,11 +104,13 @@ li {
 	transition: 0.3s;
 	overflow: hidden;
 	box-shadow: 0px 0px 5px 1px black;
+	font-family: Arial, Helvetica, sans-serif !important;
 }
 
-/* details popup base style */
-.wkhighlighter_detailsPopup ul {
-	margin: 0;
+.wkhighlighter_detailsPopup > div {
+	text-align: center;
+    margin-top: 10px;
+	pointer-events: none;
 }
 
 .wkhighlighter_focusPopup {
@@ -106,6 +118,12 @@ li {
 	opacity: 1;
 	overflow: hidden;
 	transition: 0.3s;
+}
+
+.wkhighlighter_focusPopup > div {
+	text-align: left;
+    margin-top: unset;
+	pointer-events: all;
 }
 
 	/* 4.1 SCROLLBAR */
@@ -128,7 +146,7 @@ li {
 
 .wkhighlighter_focusPopup_kanji {
 	margin-top: 0 !important;
-	padding: 10px 0;
+	padding: 10px 0 !important;
     position: fixed;
     background-color: var(--default-color);
 	border-bottom: 3px solid white;
@@ -149,15 +167,13 @@ li {
 	text-align: center;
 	color: white;
 	font-size: 15px;
-	margin: 0;
-	padding: 0;
 }
 
 .wkhighlighter_popupDetails_readings_row {
 	overflow: hidden;
     height: 20px;
-    padding-left: 15px;
-    padding-right: 15px;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
 	display: inline-flex;
 }
 
@@ -167,7 +183,7 @@ li {
 .wkhighlighter_popupDetails_detailedInfoWrapper {
     color: white;
 	font-size: 15px;
-	margin-top: 140px;
+	margin-top: 140px !important;
 	transition: 0.3s;
 	text-align: left;
 }
@@ -178,26 +194,25 @@ li {
 }
 
 .wkhighlighter_popupDetails_p {
-	margin: 5px 0;
+	margin: 5px 0 !important;
 }
 
 .wkhighlighter_popupDetails_kanjiTitle {
 	font-size: 25px;
-	margin-bottom: 15px;
+	margin-bottom: 15px !important;
 }
 
 		/* 4.3.1 SECTIONS */
 
 .wkhighlighter_detailsPopup_sectionContainer { 
-	margin: 15px 0;
+	margin: 15px 0 !important;
 }
 
 .wkhighlighter_popupDetails_title {
 	color: var(--popup-details-title-color);
     background-color: var(--popup-details-title-bkcolor);
-    padding: 2px;
+    padding: 2px 2px 2px 5px !important;
 	border-left: 3px solid white;
-	padding-left: 5px;
 }
 
 .wkhighlighter_radicalTag {
@@ -227,7 +242,6 @@ li {
 	background-color: inherit !important;
 	color: inherit !important;
 	font-size: 40px !important;
-    margin: 0;
 }
 
 .itemLevelCard {
@@ -236,15 +250,15 @@ li {
     bottom: -5px;
     background: white;
     border: 2px solid black;
-    padding: 3px;
+    padding: 3px !important;
     font-weight: bold;
     box-shadow: 0px 3px 0px 0px black;
     border-radius: 4px;
 }
 
 .wkhighlighter_detailsPopup_cardRow {
-    padding: 5px;
-    margin: 5px 8px;
+    padding: 5px !important;
+    margin: 5px 8px !important;
     color: black;
 	border-radius: 2px;
 	display: inline-flex;
@@ -313,7 +327,7 @@ li {
 
 .wkhighlighter_detailsPopup_sentencesWrapper {
 	border-left: 3px solid white;
-    margin: 8px 0px;
+    margin: 8px 0px !important;
     background-color: rgb(32, 32, 32);
     border-bottom-right-radius: 8px;
 	transition: 0.3s;
