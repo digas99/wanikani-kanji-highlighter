@@ -1,5 +1,5 @@
 # Changelog v0.4.2
-Pending Release
+Released on 01/06/2021
 
 ## Content
 - Hovering an item card in Kanji Info Popup now shows a small sidebar where you can open the Kanji Info Popup of that item or listen to the its audio, if it is a vocabulary
