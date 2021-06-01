@@ -1,4 +1,3 @@
-nmrKanjiHighlighted = 0;
 kanjiList = [];
 vocabList = [];
 
@@ -202,7 +201,7 @@ window.onload = () => {
 													const nmrKanjiHighlighted = response && response["nmrKanjiHighlighted"] ? response["nmrKanjiHighlighted"] : 0;
 													kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${nmrKanjiHighlighted}</strong> (in the page)`;
 												});
-											});										
+											});					
 
 											const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchKanji);
 											chrome.storage.local.get(["wkhighlight_contextMenuSelectedText"], result => {
@@ -222,8 +221,10 @@ window.onload = () => {
 														clearInterval(loadingVal[1]);
 													});
 													chrome.storage.local.remove(["wkhighlight_contextMenuSelectedText"]);
-													chrome.browserAction.setBadgeText({text: nmrKanjiHighlighted.toString()});
-													chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
+													chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
+														chrome.browserAction.setBadgeText({text: result["wkhighlight_nmrHighLightedKanji"].toString()});
+														chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
+													});
 												}
 											});
 											topRightNavbar.insertBefore(searchArea, topRightNavbar.firstChild);
@@ -573,9 +574,14 @@ document.addEventListener("click", e => {
 			if (settingsID === "1") {
 				let value = "";
 				console.log(targetElem);
-				if (targetElem.checked)
-					value = nmrKanjiHighlighted+"";
-				chrome.browserAction.setBadgeText({text: value});
+				if (targetElem.checked) {
+					chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
+						value = (result && result["wkhighlight_nmrHighLightedKanji"] ? result["wkhighlight_nmrHighLightedKanji"] : 0).toString();
+						chrome.browserAction.setBadgeText({text: value});
+					});
+				}
+				else
+					chrome.browserAction.setBadgeText({text: ''});
 			}
 			
 			settings[settingsID] = targetElem.checked;

@@ -93,30 +93,32 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 
 tabs.onActivated.addListener(activeInfo => {
 	const tabId = activeInfo["tabId"];
-	chrome.tabs.get(tabId, response => {
-		if (response) {
-			if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(response["url"])) {
-				if (settings["1"] && injectedHighlighter) {
-					tabs.sendMessage(tabId, {nmrKanjiHighlighted:"popup"}, response => {
-						if (!window.chrome.runtime.lastError) {
-							if (response) {
-								const value = response["nmrKanjiHighlighted"];
-								chrome.browserAction.setBadgeText({text:value >= 99 ? "99" : value.toString()});
-							}
+	setTimeout(() => {
+		if (!window.chrome.runtime.lastError) {
+			chrome.tabs.get(tabId, response => {
+				if (response) {
+					if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(response["url"])) {
+						if (settings["1"] && injectedHighlighter) {
+							tabs.sendMessage(tabId, {nmrKanjiHighlighted:"popup"}, response => {
+								if (!window.chrome.runtime.lastError) {
+									if (response)
+										chrome.browserAction.setBadgeText({text:response["nmrKanjiHighlighted"].toString()});
+								}
+								else
+									chrome.browserAction.setBadgeText({text: "0"});
+					
+								chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
+							});
 						}
-						else
-							chrome.browserAction.setBadgeText({text: "0"});
-			
-						chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
-					});
+					}
+					else {
+						chrome.browserAction.setBadgeText({text: "W"});
+						chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1"});
+					}
 				}
-			}
-			else {
-				chrome.browserAction.setBadgeText({text: "W"});
-				chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1"});
-			}
+			});
 		}
-	});
+	}, 200);
 });
 
 tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {

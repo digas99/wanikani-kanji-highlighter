@@ -71,12 +71,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			}
 			
 			setTimeout(() => {
-				valueBefore = totalHighlightedKanji;
 				totalHighlightedKanji += highlighter(values, highlightingClass, Array.from(document.getElementsByTagName("*")));
-				if (valueBefore < 99) {
-					valueToSend = valueBefore + totalHighlightedKanji > 98 ? 99 : totalHighlightedKanji;
-					chrome.runtime.sendMessage({badge:valueToSend, nmrKanjiHighlighted:totalHighlightedKanji});
-				}
+				chrome.runtime.sendMessage({badge:totalHighlightedKanji, nmrKanjiHighlighted:totalHighlightedKanji});
+				chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlightedKanji});
 			} ,functionDelay);
 
 			let lastNmrElements = 0;
@@ -89,12 +86,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				if (nmrElements !== lastNmrElements) {
 					lastNmrElements = nmrElements;
 					setTimeout(() => {
-						const valueBefore = totalHighlightedKanji;
-						totalHighlightedKanji += highlighter(values, highlightingClass, allTags);
-						if (valueBefore < 99) {
-							valueToSend = valueBefore + totalHighlightedKanji > 98 ? 99 : totalHighlightedKanji;
-							chrome.runtime.sendMessage({badge:valueToSend, nmrKanjiHighlighted:totalHighlightedKanji});
-						}
+					totalHighlightedKanji += highlighter(values, highlightingClass, allTags);	
+					chrome.runtime.sendMessage({badge:totalHighlightedKanji, nmrKanjiHighlighted:totalHighlightedKanji});
+					chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlightedKanji});
 					} ,20);
 				}
 			}, 3000);
@@ -108,8 +102,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		clearInterval(request.intervalFunction);
 
 	// if extension pooup is asking for number of highlighted kanji
-	if (request.nmrKanjiHighlighted === "popup")
+	if (request.nmrKanjiHighlighted === "popup") {
+		console.log(totalHighlightedKanji);
 		sendResponse({nmrKanjiHighlighted: totalHighlightedKanji});
+	}
+
 });
 
 // message to the background saying a key was pressed
