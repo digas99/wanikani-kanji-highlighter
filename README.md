@@ -5,12 +5,12 @@ This is an unofficial chrome extension for Kanji Highlighting, matching the kanj
 It works with any website, and provides detailed information about any kanji that is highlighted.
 **Because it would be cheating, the extension doesn't work on [WaniKani.com](https://www.wanikani.com/).**
 
-#### VERSION 0.4.1
+#### VERSION 0.4.2
 
 ## [Get it on Chrome Webstore](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/)
 
 ## Table of contents:
-1. [Latest Features](#changelog-v041)
+1. [Latest Features](#changelog-v042)
 2. [Usage Guide](#usage-guide)
    * 2.1. [WaniKani API Token](#wanikani-api-token)
    * 2.2. [Kanji Details](#kanji-details)
@@ -19,6 +19,20 @@ It works with any website, and provides detailed information about any kanji tha
    * 2.5. [Blacklisting a Site](#blacklisting-a-site)
    * 2.6. [Settings](#settings)
 3. [Pictures](#pictures)
+
+## Changelog v0.4.2
+Released on 01/06/2021
+
+### Content
+- Hovering an item card in Kanji Info Popup now shows a small sidebar where you can open the Kanji Info Popup of that item or listen to the its audio, if it is a vocabulary
+- With the implementation of the feature above, vocabulary now have a Kanji Info Popup (before this, only kanji had it). This new Kanji Info Popup has information about the vocabulary, such as mnemonics, example sentences with that vocabulary, etc...
+- Kanji highlighted within the example sentences can be clicked, which creates a new Kanji Info Popup for that kanji
+
+### Popup
+- When clicking a result of a search that is a kanji, the info popup for that kanji will appear in the bottom right corner of the webpage, as if that kanji was highlighted and the user hovered over it
+
+### Bug Fix
+- Fix issue where the extension popup wouldn't load correctly and would stay that way
 
 ## Changelog v0.4.1
 Released on 30/05/2021

@@ -10,7 +10,7 @@ Pending Release
 - Fixed an issue where if you were to click a kanji from a Search Result while there is already a Kanji Info Popup open, the Bottom Right Kanji Popup would become unclickable
 
 # Changelog v0.4.2
-Pending Release
+Released on 01/06/2021
 
 ## Content
 - Hovering an item card in Kanji Info Popup now shows a small sidebar where you can open the Kanji Info Popup of that item or listen to the its audio, if it is a vocabulary
