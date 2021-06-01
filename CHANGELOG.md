@@ -3,6 +3,7 @@ Not Released Yet
 
 ## Content
 - Selecting any word in a page and then right clicking it will show an option in the context menu to allow the user to search for that word in the Search Bar in the extension popup
+- Kanji counter in the extension icon doesn't have a cap of 99 kanji anymore
 
 # Changelog v0.4.2
 Pending Release
