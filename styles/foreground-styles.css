@@ -313,13 +313,13 @@
     border-radius: 0px 2px 2px 0px;
 }
 
-.wkhighlighter_detailsPopup_cardSideBar > ul li {
+.wkhighlighter_detailsPopup_cardSideBar > ul li:not(:last-child) {
 	border-bottom: 1px solid rgb(172, 172, 172);
 }
 
-.wkhighlighter_detailsPopup_cardSideBar > ul li:last-child {
+/* .wkhighlighter_detailsPopup_cardSideBar > ul li:last-child {
 	border-bottom: none;
-}
+} */
 
 .wkhighlighter_detailsPopup_cardSideBar_icon {
 	pointer-events: none;

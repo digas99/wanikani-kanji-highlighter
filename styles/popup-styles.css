@@ -218,7 +218,6 @@ transform: rotate(134deg);
     margin: auto;
 }
 
-
 /* 4. SECUNDARY PAGES */
 
 .topNav {
@@ -357,8 +356,9 @@ transform: rotate(134deg);
 
 #searchResultItemWrapper {
 	font-size: 15px;
-	max-height: 265px;
+	max-height: 252px;
     overflow: auto;
+	text-align: center;
 }
 
 #searchResultItemWrapper::-webkit-scrollbar {
@@ -384,6 +384,7 @@ transform: rotate(134deg);
     margin: 7px 3px;
 	box-shadow: rgb(0 0 0) 0px 4px 0px 2px;
 	border-radius: 6px;
+	text-align: left;
 }
 
 .searchResultItemLine:hover {
@@ -396,6 +397,21 @@ transform: rotate(134deg);
 	
 }
 
+.searchResultItemSquare,
+.searchResultItemSquareSmall {
+	display: inline-flex !important;
+	padding: 0px;
+}
+
+.searchResultItemSquare > span,
+.searchResultItemSquareSmall > span {
+	padding: 4px !important;
+}
+
+.searchResultItemSquareSmall > span {
+	font-size: 22px !important;
+}
+	
 .searchResultItem {
     font-size: 35px;
     padding-right: 0px !important;
@@ -448,6 +464,40 @@ transform: rotate(134deg);
     margin: 0 7px;
     border-radius: 8px;
 	pointer-events: none;
+}
+
+#searchResultNavbar {
+	display: flex;
+	border-top: 1px solid silver;
+    padding-top: 7px;
+}
+
+.searchResultNavbarOption {
+	padding: 0 4px;
+	opacity: 0.5;
+}
+
+.searchResultNavbarOption:hover {
+	opacity: 1 !important;
+}
+
+.searchResultNavbarOption:not(:last-child) {
+	padding: 0 4px;
+}
+
+.searchResultNavbarOption > img {
+	width: 22px;
+	pointer-events: none;
+}
+
+#nmrKanjiFound { 
+	width: 100%;
+	margin: auto;
+	font-size: 13px;
+}
+
+#nmrKanjiFound > span {
+	vertical-align: middle;
 }
 
 #notRunAtWK {
