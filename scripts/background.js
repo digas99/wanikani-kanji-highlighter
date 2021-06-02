@@ -3,7 +3,7 @@ const urlChecker = new RegExp("^(chrome||devtools)(-[a-zA-Z0-9]+)?:\/\/");
 let thisTabId, apiToken;
 // highlighting properties
 const unwantedTags = ["html", "body", "head", "title", "style", "link", "meta", "script", "noscript", "img", "svg"];
-const functionDelay = "2000";
+const functionDelay = "20";
 let highlightingClass = "";
 
 let injectedHighlighter = false;
@@ -95,7 +95,7 @@ tabs.onActivated.addListener(activeInfo => {
 	const tabId = activeInfo["tabId"];
 	setTimeout(() => {
 		if (!window.chrome.runtime.lastError) {
-			chrome.tabs.get(tabId, response => {
+			tabs.get(tabId, response => {
 				if (response) {
 					if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(response["url"])) {
 						if (settings["1"] && injectedHighlighter) {
