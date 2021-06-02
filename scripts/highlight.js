@@ -1,4 +1,5 @@
 totalHighlightedKanji = 0;
+allHighlightedKanji = [];
 loaded = false;
 highlightingClass = "";
 
@@ -18,27 +19,25 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			// replace a matching regex in a text node with a document element, preserving everything else, even other 
 			// none text node siblings from that text node (the parent node must have atleast one text node as a childNode)
 			const replaceMatchesWithElem = (parentNode, regex, elem) => {
+				let allMatches = [];
 				for (const node of textChildNodes(parentNode)) {
 					const fragment = document.createDocumentFragment();
 					const matches = node.textContent.match(regex);
-					const split = node.textContent.split(regex);
-					split.forEach((content, i) => {
-						fragment.appendChild(document.createTextNode(content));
-						if (i !== split.length-1) {
-							const clone = elem.cloneNode(true);
-							clone.appendChild(document.createTextNode(matches[i]));
-							fragment.appendChild(clone);
-						}
-					});
-					// can't do the replaceChild because it will throw an error 
-					// when React tries to access the old child that was replaced
-					node.parentElement.replaceChild(fragment, node);
-					// solution: keep the child there, with empty data
-					//node.data = '';
-					// insert new child after the old child
-					//node.after(fragment);
-					return !matches ? 0 : matches.length;
+					if (matches) {
+						const split = node.textContent.split(regex);
+						split.forEach((content, i) => {
+							fragment.appendChild(document.createTextNode(content));
+							if (i !== split.length-1) {
+								const clone = elem.cloneNode(true);
+								clone.appendChild(document.createTextNode(matches[i]));
+								fragment.appendChild(clone);
+							}
+						});
+						node.parentElement.replaceChild(fragment, node);
+						allMatches = allMatches.concat(matches);
+					}
 				}
+				return allMatches;
 			}
 
 			const hasDirectChildHighlighted = (node, className) => {
@@ -60,20 +59,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					return test !== null ? test.length > 0 : false;
 				});
 
-				let nmrHighlightedKanji = 0;
+				let highlightedKanji = [];
 				if (nodesToBeHighlighted.length > 0) {
 					const span = document.createElement("span");
 					span.classList.add(className, "clickable");
 					span.style.setProperty("cursor", "pointer", "important");
-					nodesToBeHighlighted.filter(tag => tagFilteringConditions(tag)).forEach(node => nmrHighlightedKanji += replaceMatchesWithElem(node, kanjiRegex, span));
+					nodesToBeHighlighted.filter(tag => tagFilteringConditions(tag)).forEach(node => highlightedKanji = highlightedKanji.concat(replaceMatchesWithElem(node, kanjiRegex, span)));
 				}
-				return nmrHighlightedKanji;
+
+				return highlightedKanji;
 			}
 			
 			setTimeout(() => {
-				totalHighlightedKanji += highlighter(values, highlightingClass, Array.from(document.getElementsByTagName("*")));
+				allHighlightedKanji = [... new Set(allHighlightedKanji.concat(highlighter(values, highlightingClass, Array.from(document.getElementsByTagName("*")))))];
+				totalHighlightedKanji = allHighlightedKanji.length;
 				chrome.runtime.sendMessage({badge:totalHighlightedKanji, nmrKanjiHighlighted:totalHighlightedKanji});
-				chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlightedKanji});
+				chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlightedKanji, "wkhighlight_allHighLightedKanji":allHighlightedKanji});
 			} ,functionDelay);
 
 			let lastNmrElements = 0;
@@ -86,9 +87,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				if (nmrElements !== lastNmrElements) {
 					lastNmrElements = nmrElements;
 					setTimeout(() => {
-					totalHighlightedKanji += highlighter(values, highlightingClass, allTags);	
+					allHighlightedKanji = [...new Set(allHighlightedKanji.concat(highlighter(values, highlightingClass, allTags)))];	
+					totalHighlightedKanji = allHighlightedKanji.length;
 					chrome.runtime.sendMessage({badge:totalHighlightedKanji, nmrKanjiHighlighted:totalHighlightedKanji});
-					chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlightedKanji});
+					chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlightedKanji, "wkhighlight_allHighLightedKanji":allHighlightedKanji});
 					} ,20);
 				}
 			}, 3000);

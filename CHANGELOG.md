@@ -1,3 +1,11 @@
+# Changelog v0.5.0
+Not Released Yet
+
+## Content
+- Extension no longer counts repeated kanji on each page. This means that the number of kanji that is now being shown is only the number of different kanji in the page
+
+---
+
 # [Changelog v0.4.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.3)
 Released on 02/06/2021
 

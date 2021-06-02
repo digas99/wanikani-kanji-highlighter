@@ -137,8 +137,8 @@ const createItemCharContainer = (width, characters, highlightingClass, itemId, i
 	if (characters.length > 4) 
 		charsWrapper.style.setProperty("font-size", (48-6*(characters.length - 5))+"px", "important");
 
-	// charsWrapper.classList.add("wkhighlighter_detailsPopup_kanji", highlightingClass);
-	charsWrapper.classList.add("wkhighlighter_detailsPopup_kanji");
+	charsWrapper.classList.add("wkhighlighter_detailsPopup_kanji", highlightingClass);
+	//charsWrapper.classList.add("wkhighlighter_detailsPopup_kanji");
 
 	const itemInfo = type == "kanji" ? allKanji[itemId] : allVocab[itemId];
 	link.href = itemInfo["document_url"];
@@ -442,7 +442,7 @@ document.addEventListener("click", e => {
 				const detailsPopup = document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
 				// replace item from top
 				detailsPopup.firstChild.remove();
-				detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, item["characters"], " ", id, true));
+				detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, item["characters"], highlightingClass, id, true));
 
 				detailsPopup.querySelectorAll(".wkhighlighter_popupDetails_detailedInfoWrapper").forEach(wrapper => wrapper.remove());
 				detailsPopup.appendChild(type == "kanji" ? createKanjiDetailedInfo(detailsPopup, allKanji[id]) : createVocabDetailedInfo(detailsPopup, allVocab[id]));
@@ -485,7 +485,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			chrome.storage.local.get(["wkhighlight_kanji_assoc"], data => {
 				const assocList = data["wkhighlight_kanji_assoc"];
 				if (assocList) 
-					detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, characters, " ", assocList[characters], false));
+					detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, characters, highlightingClass, assocList[characters], false));
 			});
 		}
 		// else {
