@@ -1,5 +1,5 @@
-# Changelog v0.4.3
-Pending Release
+# [Changelog v0.4.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.3)
+Released on 02/06/2021
 
 ## Content
 - Selecting any word in a page and then right clicking it will show an option in the context menu to allow the user to search for that word in the Search Bar in the extension popup
