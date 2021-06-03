@@ -4,6 +4,10 @@ Not Released Yet
 ## Content
 - Extension no longer counts repeated kanji on each page. This means that the number of kanji that is now being shown is only the number of different kanji in the page
 
+## Popup
+- Possibility to change the display of the kanji cards in the search result
+- Possibility to make the search results more broaden (is now the default option) or more restrict
+
 ---
 
 # [Changelog v0.4.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.3)

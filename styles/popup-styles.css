@@ -495,6 +495,12 @@ transform: rotate(134deg);
 	border-radius: 2px;
 }
 
+#searchResultOptiontarget {
+	border-right: 1px solid silver;
+    margin-right: 4px;
+    padding-right: 6px;
+}
+
 #nmrKanjiFound { 
 	width: 100%;
 	margin: auto;

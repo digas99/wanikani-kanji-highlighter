@@ -718,7 +718,7 @@ document.addEventListener("click", e => {
 			const listOfOptions = document.createElement("ul");
 			navbarOptions.appendChild(listOfOptions);
 			listOfOptions.style.display = "flex";
-			["list", "menu", "grid"].forEach(option => {
+			["target", "list", "menu", "grid"].forEach(option => {
 				const li = document.createElement("li");
 				listOfOptions.appendChild(li);
 				li.classList.add("searchResultNavbarOption", "clickable");
@@ -1049,9 +1049,20 @@ const searchKanji = (event) => {
 
 
 const matchesMeanings = (input, meanings) => {
-	for (const index in meanings) {
-		if (meanings[index].toLowerCase() == input) {
-			return true;
+	if (input.length > 3) {
+		expr = new RegExp(input, "g");
+		for (const index in meanings) {
+			if (expr.test(meanings[index].toLowerCase())) {
+				return true;
+			}
+		}
+	}
+	else {
+		expr = input;
+		for (const index in meanings) {
+			if (expr == meanings[index].toLowerCase()) {
+				return true;
+			}
 		}
 	}
 	return false;
