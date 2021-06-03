@@ -135,7 +135,6 @@ const createItemCharContainer = (width, characters, highlightingClass, itemId, i
 	link.appendChild(charsWrapper);
 	charsWrapper.appendChild(document.createTextNode(characters));
 	charsWrapper.setAttribute('data-item-type', type);
-	console.log(charsWrapper);
 	if (characters.length > 4) 
 		charsWrapper.style.setProperty("font-size", (48-6*(characters.length - 5))+"px", "important");
 
@@ -294,11 +293,8 @@ document.addEventListener("mouseover", e => {
 
 	// If hovering over a kanji
 	if (highlightingClass && node.classList.contains(highlightingClass) && !(detailsPopup && detailsPopup.contains(node))) {
-		//let inPopup = true;
-		if (!detailsPopup) {
+		if (!detailsPopup)
 			detailsPopup = createPopup();
-			//inPopup = false;
-		}
 		
 		const kanji = node.textContent;
 		chrome.storage.local.get(["wkhighlight_kanji_assoc"], data => {
@@ -325,6 +321,10 @@ document.addEventListener("mouseover", e => {
 
 	// if hovering over the details popup or any of it's children
 	if (!infoInPopup && detailsPopup && (node === detailsPopup || detailsPopup.contains(node))) {
+		const resizer = document.createElement("div");
+		resizer.classList.add("wkhighlighter_detailsPopup_resizer");
+		document.body.insertBefore(resizer, document.getElementsByClassName("wkhighlighter_detailsPopup")[0]);
+
 		detailsPopup.classList.add("wkhighlighter_focusPopup");
 		detailsPopup.style.height = window.innerHeight+"px";
 

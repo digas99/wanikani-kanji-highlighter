@@ -110,6 +110,15 @@
 	line-height: 1.34;
 }
 
+.wkhighlighter_detailsPopup_resizer {
+	position: fixed;
+    right: 275px;
+    top: 0px;
+    width: 10px;
+    height: 100%;
+    cursor: col-resize;
+}
+
 .wkhighlighter_detailsPopup > div {
 	text-align: center;
     margin-top: 10px;
@@ -124,9 +133,12 @@
 }
 
 .wkhighlighter_focusPopup > div {
-	text-align: left;
     margin-top: unset;
 	pointer-events: all;
+}
+
+.wkhighlighter_focusPopup > .wkhighlighter_popupDetails_detailedInfoWrapper {
+	text-align: left;
 }
 
 	/* 4.1 SCROLLBAR */
@@ -316,10 +328,6 @@
 .wkhighlighter_detailsPopup_cardSideBar > ul li:not(:last-child) {
 	border-bottom: 1px solid rgb(172, 172, 172);
 }
-
-/* .wkhighlighter_detailsPopup_cardSideBar > ul li:last-child {
-	border-bottom: none;
-} */
 
 .wkhighlighter_detailsPopup_cardSideBar_icon {
 	pointer-events: none;

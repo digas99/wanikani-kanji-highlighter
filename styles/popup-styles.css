@@ -408,6 +408,10 @@ transform: rotate(134deg);
 	padding: 4px !important;
 }
 
+.searchResultItemSquare > span {
+	font-size: 42px !important;
+}
+
 .searchResultItemSquareSmall > span {
 	font-size: 22px !important;
 }
@@ -488,6 +492,7 @@ transform: rotate(134deg);
 .searchResultNavbarOption > img {
 	width: 22px;
 	pointer-events: none;
+	border-radius: 2px;
 }
 
 #nmrKanjiFound { 
