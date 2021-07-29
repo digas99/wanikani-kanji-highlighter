@@ -476,12 +476,17 @@ transform: rotate(134deg);
     padding: 7px 0;
 }
 
+.searchResultNavbarOptionsWrapper img {
+	width: 22px;
+	pointer-events: none;
+}
+
 .searchResultNavbarOption {
 	padding: 0 4px;
 	opacity: 0.5;
 }
 
-.searchResultNavbarOption:hover {
+.searchResultNavbarTarget:hover, .searchResultNavbarOption:hover {
 	opacity: 1 !important;
 }
 
@@ -490,15 +495,15 @@ transform: rotate(134deg);
 }
 
 .searchResultNavbarOption > img {
-	width: 22px;
 	pointer-events: none;
 	border-radius: 2px;
 }
 
-#searchResultOptiontarget {
+.searchResultNavbarTarget {
 	border-right: 1px solid silver;
-    margin-right: 4px;
-    padding-right: 6px;
+    margin-right: 7px;
+    padding-right: 9px;
+	opacity: 0.5;
 }
 
 #nmrKanjiFound { 

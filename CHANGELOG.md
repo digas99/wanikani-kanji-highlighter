@@ -1,3 +1,9 @@
+# Changelog v0.4.5
+Not Yet Released
+
+## Popup
+- Possibility to make the kanji search results more or less broaden through the target icon in the search results navbar. If target is not activated, then the result of the search will be exactly what was typed in (i.e.: searching gold will only show results with gold (results as goldfish, for example, will not be shown))
+
 # Changelog v0.4.4
 Pending Release
 
