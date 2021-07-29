@@ -94,7 +94,7 @@ window.onload = () => {
 	const loadingElem = loadingVal[0];
 	main.appendChild(loadingElem);
 
-	chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_blacklist"], userData => {
+	chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_blacklist, wkhighlight_rateme"], userData => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			var activeTab = tabs[0];
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, response => {
@@ -297,6 +297,29 @@ window.onload = () => {
 		});
 		
 		document.body.appendChild(footer());
+
+		// rate message
+		chrome.storage.local.get(["wkhighlight_rateme"], result => {
+			if (!result["wkhighlight_rateme"] || !result["wkhighlight_rateme"]["closed"]) {
+				const rateMeWrapper = document.createElement("div");
+				document.body.appendChild(rateMeWrapper);
+				rateMeWrapper.classList.add("rateMeWrapper");
+
+				rateMeWrapper.appendChild(document.createTextNode("Enjoying the app? "));
+				const rateMeLink = document.createElement("a");
+				rateMeWrapper.appendChild(rateMeLink);
+				rateMeLink.href = "https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/reviews#:~:text=Rate%20this%20extension";
+				rateMeLink.appendChild(document.createTextNode("Give me a Rate!"));
+				rateMeLink.target = "_blank";
+				rateMeWrapper.appendChild(document.createTextNode(" :)"));
+				const rateMeX = document.createElement("div");
+				rateMeWrapper.appendChild(rateMeX);
+				rateMeX.id = "rateMeX";
+				rateMeX.classList.add("clickable");
+				rateMeX.appendChild(document.createTextNode("X"));
+				chrome.storage.local.set({"wkhighlight_rateme":{closed:false}});
+			}
+		});
 	});
 
 }
@@ -561,11 +584,12 @@ document.addEventListener("click", e => {
 		clearCashDescription.classList.add("dangerItemDescription");
 		clearCashDescription.appendChild(document.createTextNode("Clears local data. This won't affect your WaniKani account!"));
 
-		const rateApp = document.createElement("div");
-		content.parentNode.appendChild(rateApp);
-		rateApp.style.fontSize = "16px";
-		rateApp.innerHTML = "Enjoying the app? <a target='_blank' href='https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/reviews#:~:text=Rate%20this%20extension'>Rate me!</a>";
-
+		if (!document.getElementById("rateMeX")) {
+			const rateApp = document.createElement("div");
+			content.parentNode.appendChild(rateApp);
+			rateApp.style.fontSize = "16px";
+			rateApp.innerHTML = "Enjoying the app? <a target='_blank' href='https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/reviews#:~:text=Rate%20this%20extension'>Rate me!</a>";
+		}
 	}
 
 	if (targetElem.classList.contains("settingsItemCheckbox")) {
@@ -885,6 +909,12 @@ document.addEventListener("click", e => {
 				chrome.storage.local.set({"wkhighlight_settings":settings});
 			}
 		});
+	}
+
+	// if clicked on rateMeX
+	if (targetElem.id == "rateMeX") {
+		document.getElementsByClassName("rateMeWrapper")[0].remove();
+		chrome.storage.local.set({"wkhighlight_rateme":{closed:true}});
 	}
 });
 
