@@ -356,7 +356,7 @@ transform: rotate(134deg);
 
 #searchResultItemWrapper {
 	font-size: 15px;
-	max-height: 252px;
+	max-height: 245px;
     overflow: auto;
 	text-align: center;
 }
@@ -473,7 +473,7 @@ transform: rotate(134deg);
 #searchResultNavbar {
 	display: flex;
 	border-top: 1px solid silver;
-    padding-top: 7px;
+    padding: 7px 0;
 }
 
 .searchResultNavbarOption {

@@ -718,15 +718,22 @@ document.addEventListener("click", e => {
 			const listOfOptions = document.createElement("ul");
 			navbarOptions.appendChild(listOfOptions);
 			listOfOptions.style.display = "flex";
-			["target", "list", "menu", "grid"].forEach(option => {
-				const li = document.createElement("li");
-				listOfOptions.appendChild(li);
-				li.classList.add("searchResultNavbarOption", "clickable");
-				li.id = "searchResultOption"+option;
+			chrome.storage.local.get(["wkhighlight_settings"], result => {
+				const settings = result["wkhighlight_settings"];
+				if (settings) {
+					["list", "menu", "grid"].forEach(option => {
+						const li = document.createElement("li");
+						listOfOptions.appendChild(li);
+						li.classList.add("searchResultNavbarOption", "clickable");
+						li.id = "searchResultOption"+option;
+						if (settings[3] == li.id)
+							li.classList.add("full_opacity");
 
-				const img = document.createElement("img");
-				li.appendChild(img);
-				img.src = "../images/"+option+".png";
+						const img = document.createElement("img");
+						li.appendChild(img);
+						img.src = "../images/"+option+".png";
+					});
+				}
 			});
 		}
 	}
@@ -806,6 +813,14 @@ document.addEventListener("click", e => {
 		});
 		targetElem.classList.add("full_opacity");
 
+		chrome.storage.local.get(["wkhighlight_settings"], result => {
+			console.log("here");
+			let settings = result["wkhighlight_settings"];
+			if (settings)
+				settings[3] = targetElem.id;
+			chrome.storage.local.set({"wkhighlight_settings":settings});
+		});
+
 		const removeSquareClasses = elem => {
 			const classes = elem.classList;
 			if (classes.contains("searchResultItemSquare")) classes.remove("searchResultItemSquare");
@@ -819,6 +834,10 @@ document.addEventListener("click", e => {
 				parent.classList.add(targetElem.id == "searchResultOptionmenu" ? "searchResultItemSquare" : "searchResultItemSquareSmall");
 				elem.style.display = "none";
 			});
+			// if there are results in the search
+			const resultsWrapper = document.getElementById("searchResultItemWrapper");
+			if (resultsWrapper && resultsWrapper.childNodes.length > 0)
+				document.documentElement.style.setProperty('--body-base-width', '700px');
 		}
 		else {
 			Array.from(document.getElementsByClassName("searchResultItemLine")).forEach(elem => {
@@ -835,6 +854,7 @@ document.addEventListener("click", e => {
 			if (classes.contains("searchResultItemSquare")) classes.remove("searchResultItemSquare");
 			if (classes.contains("searchResultItemSquareSmall")) classes.remove("searchResultItemSquareSmall");
 		});
+		document.documentElement.style.setProperty('--body-base-width', '250px');
 	}
 });
 
@@ -980,70 +1000,81 @@ const searchKanji = (event) => {
 		if (nmrItemsFound) 
 			nmrItemsFound.innerHTML = `<span>Found <strong>${filteredContent.length}</strong> items<span>`;
 
-		for (const index in filteredContent) {
-			const data = filteredContent[index];
-			const type = data["type"];
-			const chars = data["characters"];
+		chrome.storage.local.get(["wkhighlight_settings"], result => {
+			const settings = result["wkhighlight_settings"];
+			if (settings) {
+				for (const index in filteredContent) {
+					const data = filteredContent[index];
+					const type = data["type"];
+					const chars = data["characters"];
 
-			const kanjiAlike = type == "kanji" || chars.length == 1;
-			const vocabAlike = type == "vocabulary" && chars.length > 1;
+					const kanjiAlike = type == "kanji" || chars.length == 1;
+					const vocabAlike = type == "vocabulary" && chars.length > 1;
 
-			let colorClass;
-			if (type == "kanji")
-				colorClass = "kanji_back";
-			else if (type == "vocabulary")
-				colorClass = "vocab_back";
-			
-			const li = document.createElement("li");
-			li.classList.add("searchResultItemLine", colorClass); 
-			searchResultUL.appendChild(li);
-			li.setAttribute('data-item-id', data["id"]);
-			
-			const itemSpan = document.createElement("span");
-			itemSpan.classList.add("searchResultItem");
+					let colorClass;
+					if (type == "kanji")
+						colorClass = "kanji_back";
+					else if (type == "vocabulary")
+						colorClass = "vocab_back";
+					
+					const li = document.createElement("li");
+					li.classList.add("searchResultItemLine", colorClass); 
+					searchResultUL.appendChild(li);
+					li.setAttribute('data-item-id', data["id"]);
+					
+					const itemSpan = document.createElement("span");
+					itemSpan.classList.add("searchResultItem");
 
-			li.appendChild(itemSpan);
-			itemSpan.appendChild(document.createTextNode(chars));
+					li.appendChild(itemSpan);
+					itemSpan.appendChild(document.createTextNode(chars));
 
-			if (false) {
-				li.classList.add("searchResultItemSquare");
-				continue
-			} else {
-				if (vocabAlike)
-			 		li.style.display = "inherit";
+					if (vocabAlike)
+						li.style.display = "inherit";
+
+					const itemInfoWrapper = document.createElement("div");
+					itemInfoWrapper.classList.add("searchResultItemInfo");
+					li.appendChild(itemInfoWrapper);
+					if (kanjiAlike)
+						itemInfoWrapper.style.width = "100%";
+					const level = document.createElement("span");
+					itemInfoWrapper.appendChild(level);
+					level.classList.add("searchResultItemLevel");
+					level.appendChild(document.createTextNode(data["level"]));
+					const meaning = document.createElement("span");
+					itemInfoWrapper.appendChild(meaning);
+					meaning.classList.add("searchResultItemTitle");
+					meaning.appendChild(document.createTextNode(data["meanings"].join(", ")));
+
+					if (type == "kanji") {
+						const on = document.createElement("span");
+						itemInfoWrapper.appendChild(on); 
+						on.appendChild(document.createTextNode("on: "));
+						on.appendChild(document.createTextNode(data["readings"].filter(reading => reading.type == "onyomi").map(kanji => kanji.reading).join(", ")));
+						const kun = document.createElement("span");
+						itemInfoWrapper.appendChild(kun); 
+						kun.appendChild(document.createTextNode("kun: "));
+						kun.appendChild(document.createTextNode(data["readings"].filter(reading => reading.type == "kunyomi").map(kanji => kanji.reading).join(", ")));
+					}
+
+					if (type == "vocabulary") {
+						const read = document.createElement("span");
+						itemInfoWrapper.appendChild(read);
+						read.appendChild(document.createTextNode(data["readings"].join(", ")));
+					}
+
+					// if it is not in list type
+					if (settings[3] != "searchResultOptionlist") {
+						if (settings[3] == "searchResultOptionmenu")
+							li.classList.add("searchResultItemSquare");
+						else if (settings[3] == "searchResultOptiongrid")
+							li.classList.add("searchResultItemSquareSmall");
+						itemInfoWrapper.style.display = "none";
+					}
+				}
+				if (settings[3] != "searchResultOptionlist")
+					document.documentElement.style.setProperty('--body-base-width', '700px');
 			}
-
-			const itemInfoWrapper = document.createElement("div");
-			itemInfoWrapper.classList.add("searchResultItemInfo");
-			li.appendChild(itemInfoWrapper);
-			if (kanjiAlike)
-				itemInfoWrapper.style.width = "100%";
-			const level = document.createElement("span");
-			itemInfoWrapper.appendChild(level);
-			level.classList.add("searchResultItemLevel");
-			level.appendChild(document.createTextNode(data["level"]));
-			const meaning = document.createElement("span");
-			itemInfoWrapper.appendChild(meaning);
-			meaning.classList.add("searchResultItemTitle");
-			meaning.appendChild(document.createTextNode(data["meanings"].join(", ")));
-
-			if (type == "kanji") {
-				const on = document.createElement("span");
-				itemInfoWrapper.appendChild(on); 
-				on.appendChild(document.createTextNode("on: "));
-				on.appendChild(document.createTextNode(data["readings"].filter(reading => reading.type == "onyomi").map(kanji => kanji.reading).join(", ")));
-				const kun = document.createElement("span");
-				itemInfoWrapper.appendChild(kun); 
-				kun.appendChild(document.createTextNode("kun: "));
-				kun.appendChild(document.createTextNode(data["readings"].filter(reading => reading.type == "kunyomi").map(kanji => kanji.reading).join(", ")));
-			}
-
-			if (type == "vocabulary") {
-				const read = document.createElement("span");
-				itemInfoWrapper.appendChild(read);
-				read.appendChild(document.createTextNode(data["readings"].join(", ")));
-			}
-		}
+		});
 	}
 }
 

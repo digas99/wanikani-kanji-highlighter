@@ -110,15 +110,6 @@
 	line-height: 1.34;
 }
 
-.wkhighlighter_detailsPopup_resizer {
-	position: fixed;
-    right: 275px;
-    top: 0px;
-    width: 10px;
-    height: 100%;
-    cursor: col-resize;
-}
-
 .wkhighlighter_detailsPopup > div {
 	text-align: center;
     margin-top: 10px;
@@ -346,4 +337,8 @@
 
 .wkhighlighter_detailsPopup_sentencesWrapper:hover {
 	transform: scale(1.1);
+}
+
+.wkhighlighter_detailsPopup_sentencesWrapper .wkhighlighter_highlighted {
+	cursor: pointer !important;
 }

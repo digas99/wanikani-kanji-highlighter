@@ -15,7 +15,7 @@ const setSettings = () => {
 		settings = result["wkhighlight_settings"];
 		if (!settings) {
 			settings = {};
-			[true, true, "wkhighlighter_highlighted"].forEach((value, i) => settings[i] = value);
+			[true, true, "wkhighlighter_highlighted", "searchResultOptionlist"].forEach((value, i) => settings[i] = value);
 		}
 		// setup highlighting class value from settings
 		highlightingClass = settings[2];

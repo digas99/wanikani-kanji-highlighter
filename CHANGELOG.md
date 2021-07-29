@@ -1,12 +1,14 @@
-# Changelog v0.5.0
-Not Released Yet
+# Changelog v0.4.4
+Pending Release
 
 ## Content
 - Extension no longer counts repeated kanji on each page. This means that the number of kanji that is now being shown is only the number of different kanji in the page
 
 ## Popup
 - Possibility to change the display of the kanji cards in the search result
-- Possibility to make the search results more broaden (is now the default option) or more restrict
+    - List: one result per line with detailed info
+    - Big and Small Grid: results in a grid but with no detailed info, only card with kanji
+- The results of kanji search is now more broaden (i.e.: searching gold will also show GOLDfish)
 
 ---
 

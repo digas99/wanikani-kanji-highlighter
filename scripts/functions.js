@@ -1,3 +1,8 @@
+/*
+	GENERAL
+*/
+
+// GENERAL
 const errorHandling = error => console.log(error);
 
 // fetch a single page from the WaniKani API
