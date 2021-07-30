@@ -20,13 +20,13 @@ It works with any website, and provides detailed information about any kanji tha
    * 2.6. [Settings](#settings)
 3. [Pictures](#pictures)
 
-# Changelog v0.4.4
+## Changelog v0.4.4
 Released on 30/07/2021
 
-## Content
+### Content
 - Extension no longer counts repeated kanji on each page. This means that the number of kanji that is now being shown is only the number of different kanji in the page
 
-## Popup
+### Popup
 - Possibility to change the display of the kanji cards in the search result
     - List: one result per line with detailed info
     - Big and Small Grid: results in a grid but with no detailed info, only card with kanji
