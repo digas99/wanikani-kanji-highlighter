@@ -5,12 +5,12 @@ This is an unofficial chrome extension for Kanji Highlighting, matching the kanj
 It works with any website, and provides detailed information about any kanji that is highlighted.
 **Because it would be cheating, the extension doesn't work on [WaniKani.com](https://www.wanikani.com/).**
 
-#### VERSION 0.4.3
+#### VERSION 0.4.4
 
 ## [Get it on Chrome Webstore](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/)
 
 ## Table of contents:
-1. [Latest Features](#changelog-v043)
+1. [Latest Features](#changelog-v044)
 2. [Usage Guide](#usage-guide)
    * 2.1. [WaniKani API Token](#wanikani-api-token)
    * 2.2. [Kanji Details](#kanji-details)
@@ -19,6 +19,18 @@ It works with any website, and provides detailed information about any kanji tha
    * 2.5. [Blacklisting a Site](#blacklisting-a-site)
    * 2.6. [Settings](#settings)
 3. [Pictures](#pictures)
+
+## Changelog v0.4.4
+Released on 30/07/2021
+
+### Content
+- Extension no longer counts repeated kanji on each page. This means that the number of kanji that is now being shown is only the number of different kanji in the page
+
+### Popup
+- Possibility to change the display of the kanji cards in the search result
+    - List: one result per line with detailed info
+    - Big and Small Grid: results in a grid but with no detailed info, only card with kanji
+- The results of kanji search is now more broaden (i.e.: searching gold will also show GOLDfish)
 
 ## Changelog v0.4.3
 Released on 02/06/2021

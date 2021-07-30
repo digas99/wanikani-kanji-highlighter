@@ -4,8 +4,8 @@ Not Yet Released
 ## Popup
 - Possibility to make the kanji search results more or less broaden through the target icon in the search results navbar. If target is not activated, then the result of the search will be exactly what was typed in (i.e.: searching gold will only show results with gold (results as goldfish, for example, will not be shown))
 
-# Changelog v0.4.4
-Pending Release
+# [Changelog v0.4.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.4)
+Released on 30/07/2021
 
 ## Content
 - Extension no longer counts repeated kanji on each page. This means that the number of kanji that is now being shown is only the number of different kanji in the page
@@ -15,8 +15,6 @@ Pending Release
     - List: one result per line with detailed info
     - Big and Small Grid: results in a grid but with no detailed info, only card with kanji
 - The results of kanji search is now more broaden (i.e.: searching gold will also show GOLDfish)
-
----
 
 # [Changelog v0.4.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.3)
 Released on 02/06/2021
