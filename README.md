@@ -136,6 +136,4 @@ On the extension popup, you will find the app settings.
 - **Highlight style:** choose how do you want the kanji to be highlighted
 
 ## Pictures
-![howto]("images/how-to-banner.jpg");
-
-![logo](https://github.com/digas99/wanikani-kanji-highlighter/blob/master/logo/logo.png)
+![howto](images/how-to-banner.jpg)
