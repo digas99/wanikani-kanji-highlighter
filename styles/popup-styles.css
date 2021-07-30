@@ -213,11 +213,24 @@ transform: rotate(134deg);
 
 /* 4. Logo */
 #logoWrapper {
-	margin-bottom: 25px !important;
-    text-align: center;
-    font-size: 11px;
-    width: 200px;
+	margin-bottom: 10px !important;
+    font-size: 10px;
     margin: auto;
+	display: flex;
+	margin-left: 7px;
+}
+
+#logoWrapper > img {
+	width: 40px;
+	background-color: var(--dark-back);
+	border-radius: 9px;
+}
+
+#logoWrapper > h2 {
+	margin: auto;
+	margin-left: 10px;
+	border-left: 1px solid silver;
+	padding-left: 10px;
 }
 
 /* 4. SECUNDARY PAGES */
@@ -280,21 +293,72 @@ transform: rotate(134deg);
 #userInfoNavbar {
 	font-size: 15px;
 	margin-top: 10px;
+	width: 100%;
 }
 
-#userInfoNavbar li {
+#userInfoNavbar > li {
 	margin-bottom: 3px;
 	overflow: hidden;
 }
 
 #userInfoWrapper {
 	margin: 0px 7px;
+	border-top: 1px solid silver;
+	padding-top: 13px;
+
+}
+
+#nmrKanjiHighlighted {
+	text-align: center;
+    margin-top: 8px;
+    background-color: var(--dark-back);
+    color: white;
+    padding: 4px;
 }
 
 #nmrKanjiIndicator {
 	background-color: var(--highlight-default-color);
     color: white;
     padding: 2px;
+}
+
+#kanjiHighlightedList {
+	overflow-y: auto !important;
+    border-bottom: 1px solid silver;
+    border-left: 1px solid silver;
+    border-right: 1px solid silver;
+    border-radius: 0px 0px 7px 7px;
+	max-height: 100px;
+}
+
+#kanjiHighlightedList ul {
+	display: block;
+    padding: 0px 0px 4px 4px;
+}
+
+#kanjiHighlightedList li {
+	font-size: 25.2px;
+    padding: 0px 5px;
+    display: inline-flex;
+    border: 1px solid silver;
+}
+
+#kanjiHighlightedList li:hover {
+	background-color: var(--highlight-default-color);
+	color: white;
+	opacity: 1 !important;
+}
+
+#kanjiHighlightedList::-webkit-scrollbar {
+	width: 15px;
+}
+  
+#kanjiHighlightedList::-webkit-scrollbar-track {
+	background:silver;
+}
+
+#kanjiHighlightedList::-webkit-scrollbar-thumb {
+	background-color: var(--dark-back);        
 }
 
 .searchArea {
@@ -358,7 +422,7 @@ transform: rotate(134deg);
 
 #searchResultItemWrapper {
 	font-size: 15px;
-	max-height: 245px;
+	max-height: 352px;
     overflow: auto;
 	text-align: center;
 }

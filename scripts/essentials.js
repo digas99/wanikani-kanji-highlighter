@@ -8,3 +8,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.windowLocation === "origin")
 		sendResponse({windowLocation: window.location.origin});
 });
+
+window.onbeforeunload = () => {
+	chrome.runtime.sendMessage({leavingSite:window.location.href});
+}

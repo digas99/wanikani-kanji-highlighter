@@ -81,8 +81,6 @@ window.onload = () => {
 	logoDiv.id = "logoWrapper";
 	const logo = document.createElement("img");
 	logo.src="logo/logo.png";
-	logo.classList.add("centered");
-	logo.style.width = "110px";
 	logoDiv.appendChild(logo);
 
 	// extension title
@@ -94,7 +92,7 @@ window.onload = () => {
 	const loadingElem = loadingVal[0];
 	main.appendChild(loadingElem);
 
-	chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_blacklist, wkhighlight_rateme"], userData => {
+	chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_blacklist"], userData => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			var activeTab = tabs[0];
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, response => {
@@ -194,17 +192,23 @@ window.onload = () => {
 										kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: (in the page)`;
 										userElementsList.appendChild(kanjiFound);
 
+										const kanjiFoundList = document.createElement("li");
+										userElementsList.appendChild(kanjiFoundList);
+										kanjiFoundList.id = "kanjiHighlightedList";
+										const kanjiFoundUl = document.createElement("ul");
+										kanjiFoundList.appendChild(kanjiFoundUl);
+
 										if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {
-											chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-												var activeTab = tabs[0];
-												chrome.tabs.sendMessage(activeTab.id, {nmrKanjiHighlighted: "popup"}, response => {
-													const nmrKanjiHighlighted = response && response["nmrKanjiHighlighted"] ? response["nmrKanjiHighlighted"] : 0;
-													kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${nmrKanjiHighlighted}</strong> (in the page)`;
-												});
-											});					
+											// chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+											// 	var activeTab = tabs[0];
+											// 	chrome.tabs.sendMessage(activeTab.id, {nmrKanjiHighlighted: "popup"}, response => {
+											// 		const nmrKanjiHighlighted = response && response["nmrKanjiHighlighted"] ? response["nmrKanjiHighlighted"] : 0;
+											// 		kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${nmrKanjiHighlighted}</strong> (in the page)`;
+											// 	});
+											// });					
 
 											const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchKanji);
-											chrome.storage.local.get(["wkhighlight_contextMenuSelectedText"], result => {
+											chrome.storage.local.get(["wkhighlight_contextMenuSelectedText", "wkhighlight_kanjiPerSite"], result => {
 												const selectedText = result["wkhighlight_contextMenuSelectedText"];
 												if (selectedText) {
 													const input = [...searchArea.firstChild.childNodes].filter(child => child.tagName == "INPUT")[0];
@@ -228,6 +232,22 @@ window.onload = () => {
 													chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
 														chrome.browserAction.setBadgeText({text: result["wkhighlight_nmrHighLightedKanji"].toString()});
 														chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
+													});
+												}
+
+												const kanjiPerSite = result["wkhighlight_kanjiPerSite"];
+												if (kanjiPerSite) {
+													chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+														const currentTabUrl = tabs[0]["url"];
+														kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${kanjiPerSite[currentTabUrl]["number"]}</strong> (in the page)`;
+														if (kanjiPerSite[currentTabUrl]["number"] <= 5)
+															kanjiFoundUl.style.textAlign = "center";
+														kanjiPerSite[currentTabUrl]["kanji"].forEach(kanji => {
+															const kanjiFoundLi = document.createElement("li");
+															kanjiFoundUl.appendChild(kanjiFoundLi);
+															kanjiFoundLi.classList.add("clickable");
+															kanjiFoundLi.appendChild(document.createTextNode(kanji));
+														});
 													});
 												}
 											});

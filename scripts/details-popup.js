@@ -440,6 +440,7 @@
 	
 			// clicked on sidebar info
 			if (node.classList.contains("wkhighlighter_detailsPopup_cardSideBarInfo")) {
+				console.log("here");
 				const target = node.parentElement.parentElement.parentElement;
 				const type = target.classList.contains("wkhighlighter_detailsPopup_vocab_row") ? "vocabulary" : "kanji";
 				const id = getItemIdFromSideBar(target);
