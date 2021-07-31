@@ -184,7 +184,18 @@ window.onload = () => {
 										userElementsList.appendChild(greetings);
 			
 										const level = document.createElement("li");
-										level.innerHTML = `Level: <strong>${userInfo["level"]}</strong> / ${userInfo["subscription"]["max_level_granted"]}`;
+										level.style.display = "flex";
+										const div1 = document.createElement("div");
+										level.appendChild(div1);
+										div1.style.width = "100%";
+										div1.innerHTML = `Level: <strong>${userInfo["level"]}</strong> / ${userInfo["subscription"]["max_level_granted"]}`;
+										const div2 = document.createElement("div");
+										level.appendChild(div2);
+										div2.id = "levelBarWrapper";
+										const levelBar = document.createElement("div");
+										div2.appendChild(levelBar);
+										setTimeout(() => levelBar.style.width = (userInfo["level"]/userInfo["subscription"]["max_level_granted"])*100+"%", 100);
+										levelBar.id = "levelBar";
 										userElementsList.appendChild(level);
 										
 										const kanjiFound = document.createElement("li");
@@ -240,7 +251,7 @@ window.onload = () => {
 													chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 														const currentTabUrl = tabs[0]["url"];
 														kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${kanjiPerSite[currentTabUrl]["number"]}</strong> (in the page)`;
-														if (kanjiPerSite[currentTabUrl]["number"] <= 5)
+														if (kanjiPerSite[currentTabUrl]["number"] <= 10)
 															kanjiFoundUl.style.textAlign = "center";
 														kanjiPerSite[currentTabUrl]["kanji"].forEach(kanji => {
 															const kanjiFoundLi = document.createElement("li");
@@ -1207,11 +1218,24 @@ document.addEventListener("mouseover", e => {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.nmrKanjiHighlighted) {
-		nmrKanjiHighlighted = request.nmrKanjiHighlighted;
 		const nmrKanjiHighlightedElem = document.getElementById("nmrKanjiHighlighted");
 		if (nmrKanjiHighlightedElem) {
-			nmrKanjiHighlightedElem.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${nmrKanjiHighlighted}</strong> (in the page)`;
+			nmrKanjiHighlightedElem.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${request.nmrKanjiHighlighted}</strong> (in the page)`;
 		}
+	}
+	if (request.kanjiHighlighted) {
+		const kanjiFoundWrapper = document.getElementById("kanjiHighlightedList");
+		kanjiFoundWrapper.childNodes[0].remove();
+		const kanjiFoundUl = document.createElement("ul");
+		kanjiFoundWrapper.appendChild(kanjiFoundUl);
+		if (request.kanjiHighlighted.length <= 10)
+			kanjiFoundUl.style.textAlign = "center";
+		request.kanjiHighlighted.forEach(kanji => {
+			const kanjiFoundLi = document.createElement("li");
+			kanjiFoundUl.appendChild(kanjiFoundLi);
+			kanjiFoundLi.classList.add("clickable");
+			kanjiFoundLi.appendChild(document.createTextNode(kanji));
+		});
 	}
 });
 

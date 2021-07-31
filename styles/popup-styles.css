@@ -308,6 +308,19 @@ transform: rotate(134deg);
 
 }
 
+#levelBarWrapper {
+	width: 100%;
+    border: 1px solid silver;
+    border-radius: 3px;
+}
+
+#levelBar {
+	width: 0%;
+    background-color: var(--default-color);
+    height: 100%;
+    transition: 0.5s;
+}
+
 #nmrKanjiHighlighted {
 	text-align: center;
     margin-top: 8px;

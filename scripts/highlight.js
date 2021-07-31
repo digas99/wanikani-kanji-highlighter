@@ -6,6 +6,8 @@
 	let allHighlightedKanji = [];
 	let loaded = false;
 	let highlightingClass = "";
+	let thisPageUrl = "";
+	let currentUrl = "";
 
 	chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		if (!loaded) {
@@ -74,11 +76,9 @@
 				}
 				
 				setTimeout(() => {
-					// console.log("kanji before: ", allHighlightedKanji);
 					allHighlightedKanji = [... new Set(allHighlightedKanji.concat(highlighter(values, highlightingClass, Array.from(document.getElementsByTagName("*")))))];
-					// console.log("kanji after: ", allHighlightedKanji);
 					totalHighlightedKanji = allHighlightedKanji.length;
-					chrome.runtime.sendMessage({badge:totalHighlightedKanji, nmrKanjiHighlighted:totalHighlightedKanji});
+					chrome.runtime.sendMessage({badge:totalHighlightedKanji, nmrKanjiHighlighted:totalHighlightedKanji, kanjiHighlighted:allHighlightedKanji});
 					chrome.storage.local.get(["wkhighlight_kanjiPerSite"], result => {
 						const kanjiPerSite = result["wkhighlight_kanjiPerSite"] ? result["wkhighlight_kanjiPerSite"] : {};
 						const site = window.location.href;
@@ -95,26 +95,29 @@
 				// continuously check for the number of elements in the page
 				// if that number updates, then run highlighter again
 				const highlightUpdate = setInterval(() => {
-					const allTags = Array.from(document.getElementsByTagName("*"));
-					nmrElements = allTags.length;
-					if (nmrElements !== lastNmrElements) {
-						lastNmrElements = nmrElements;
-						setTimeout(() => {
-						// console.log("kanji before: ", allHighlightedKanji);
-						allHighlightedKanji = [...new Set(allHighlightedKanji.concat(highlighter(values, highlightingClass, allTags)))];
-						// console.log("kanji after: ", allHighlightedKanji);
-						totalHighlightedKanji = allHighlightedKanji.length;
-						chrome.runtime.sendMessage({badge:totalHighlightedKanji, nmrKanjiHighlighted:totalHighlightedKanji});
-						chrome.storage.local.get(["wkhighlight_kanjiPerSite"], result => {
-							const kanjiPerSite = result["wkhighlight_kanjiPerSite"] ? result["wkhighlight_kanjiPerSite"] : {};
-							const site = window.location.href;
-							if (kanjiPerSite) {
-								kanjiPerSite[site] = {"number":totalHighlightedKanji,"kanji":allHighlightedKanji};
-							}
-							chrome.storage.local.set({"wkhighlight_kanjiPerSite":kanjiPerSite});
-						});
-						chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlightedKanji, "wkhighlight_allHighLightedKanji":allHighlightedKanji});
-						} ,20);
+					// make sure that the script only runs for its url (pages like facebook keep the script running
+					// even when on other urls of facebook, which causes more than one instance of the script to be
+					// running at the same time, scripts injected in different pages)
+					if (currentUrl == thisPageUrl) {
+						const allTags = Array.from(document.getElementsByTagName("*"));
+						nmrElements = allTags.length;
+						if (nmrElements !== lastNmrElements) {
+							lastNmrElements = nmrElements;
+							setTimeout(() => {
+							allHighlightedKanji = [...new Set(allHighlightedKanji.concat(highlighter(values, highlightingClass, allTags)))];
+							totalHighlightedKanji = allHighlightedKanji.length;
+							chrome.runtime.sendMessage({badge:totalHighlightedKanji, nmrKanjiHighlighted:totalHighlightedKanji, kanjiHighlighted:allHighlightedKanji});
+							chrome.storage.local.get(["wkhighlight_kanjiPerSite"], result => {
+								const kanjiPerSite = result["wkhighlight_kanjiPerSite"] ? result["wkhighlight_kanjiPerSite"] : {};
+								const site = window.location.href;
+								if (kanjiPerSite) {
+									kanjiPerSite[site] = {"number":totalHighlightedKanji,"kanji":allHighlightedKanji};
+								}
+								chrome.storage.local.set({"wkhighlight_kanjiPerSite":kanjiPerSite});
+							});
+							chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlightedKanji, "wkhighlight_allHighLightedKanji":allHighlightedKanji});
+							} ,20);
+						}
 					}
 				}, 2000);
 
@@ -129,6 +132,13 @@
 		// if extension pooup is asking for number of highlighted kanji
 		if (request.nmrKanjiHighlighted === "popup") {
 			sendResponse({nmrKanjiHighlighted: totalHighlightedKanji});
+		}
+
+		// check for the user's current url
+		if (request.pageUrl) {
+			if (thisPageUrl == "")
+				thisPageUrl = request.pageUrl;
+			currentUrl = request.pageUrl;
 		}
 
 	});

@@ -71,7 +71,8 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 				functionDelay: functionDelay, 
 				values: kanji,
 				unwantedTags: unwantedTags,
-				highlightingClass: highlightingClass
+				highlightingClass: highlightingClass,
+				pageUrl: currentUrl
 			});
 			chrome.runtime.lastError;
 		});
@@ -127,6 +128,7 @@ tabs.onActivated.addListener(activeInfo => {
 });
 
 tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
+	lastUrl = "";
 	if (canInject(tabInfo)) {
 		currentUrl = tabInfo.url;
 		if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(tabInfo.url)) {
@@ -176,6 +178,7 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 														};
 														kanji_assoc[data.slug] = kanji.id;
 													});
+												// only run the scripts once
 												if (currentUrl != lastUrl) {
 													setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", {"wkhighlight_allkanji":kanji_dict});
 													lastUrl = currentUrl;
@@ -186,6 +189,7 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 											.catch(errorHandling);
 									}
 									else {
+										// only run the scripts once
 										if (currentUrl != lastUrl) {
 											setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", result)
 											lastUrl = currentUrl;
