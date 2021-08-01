@@ -6,10 +6,17 @@ const unwantedTags = ["html", "body", "head", "title", "style", "link", "meta", 
 const functionDelay = "20";
 let highlightingClass = "";
 
+let lastHost = "";
+let currentHost = "";
 let lastUrl = "";
 let currentUrl = "";
+let currentPageReloaded = false;
+let delayFinished = true;
 
+let injectScripts = false;
 let injectedHighlighter = false;
+
+let isBlacklisted = false;
 
 let settings;
 // set settings
@@ -61,9 +68,9 @@ const setupLearnedKanji = async (apiToken, page, kanji) => {
 const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	const scripts = kanji => {
 		tabs.insertCSS(null, {file: 'styles/foreground-styles.css'});
-		if (settings["0"]) {
+
+		if (settings["0"])
 			tabs.executeScript(null, {file: 'scripts/details-popup.js'}, () => chrome.runtime.lastError);
-		}
 
 		tabs.executeScript(null, {file: 'scripts/highlight.js'}, () => {
 			injectedHighlighter = true;
@@ -72,7 +79,6 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 				values: kanji,
 				unwantedTags: unwantedTags,
 				highlightingClass: highlightingClass,
-				pageUrl: currentUrl
 			});
 			chrome.runtime.lastError;
 		});
@@ -94,8 +100,10 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 			})
 			.catch(errorHandling);
 	});
-	
 }
+
+// reset kanji per site list
+chrome.storage.local.set({"wkhighlight_kanjiPerSite":{}});
 
 tabs.onActivated.addListener(activeInfo => {
 	const tabId = activeInfo["tabId"];
@@ -128,132 +136,149 @@ tabs.onActivated.addListener(activeInfo => {
 });
 
 tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
-	lastUrl = "";
 	if (canInject(tabInfo)) {
-		currentUrl = tabInfo.url;
 		if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(tabInfo.url)) {
-			setSettings();
 			chrome.storage.local.get(["wkhighlight_blacklist"], blacklist => {
 				// check if the site is blacklisted
 				if (!blacklist["wkhighlight_blacklist"] || blacklist["wkhighlight_blacklist"].length === 0 || !blacklisted(blacklist["wkhighlight_blacklist"], tabInfo.url)) {
+					isBlacklisted = false;
 					thisTabId = tabId;
 					if (changeInfo.status === "complete") {
-						chrome.storage.local.get(["wkhighlight_apiKey"], key => {
-							if (key["wkhighlight_apiKey"]) {
-								apiToken = key["wkhighlight_apiKey"];
-			
-								if (settings["1"]) {
-									chrome.browserAction.setBadgeText({text: "0"});
-									chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
-								}
-								
-								// see if all kanji is already saved in storage
-								chrome.storage.local.get(['wkhighlight_allkanji', 'wkhighlight_allradicals'], result => {
-									// do this only if all the kanji hasn't been saved yet
-									if (!result['wkhighlight_allkanji']) {
-										// fetch all kanji
-										fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=kanji")
-											.then(kanji_data => {
-												const kanji_dict = {};
-												const kanji_assoc = {};
-												kanji_data
-													.map(content => content.data)
-													.flat(1)
-													.forEach(kanji => {
-														const data = kanji.data;
-														kanji_dict[kanji.id] = {
-															"amalgamation_subject_ids" : data.amalgamation_subject_ids,
-															"characters" : data.characters,
-															"component_subject_ids" : data.component_subject_ids,
-															"document_url" : data.document_url,
-															"level" : data.level,
-															"meaning_hint" : data.meaning_hint,
-															"meaning_mnemonic" : data.meaning_mnemonic,
-															"meanings" : data.meanings.map(data => data.meaning),
-															"reading_hint" : data.reading_hint,
-															"reading_mnemonic" : data.reading_mnemonic,
-															"readings" : data.readings,
-															"visually_similar_subject_ids" : data.visually_similar_subject_ids,
-															"slug": data.slug
-														};
-														kanji_assoc[data.slug] = kanji.id;
-													});
-												// only run the scripts once
-												if (currentUrl != lastUrl) {
-													setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", {"wkhighlight_allkanji":kanji_dict});
-													lastUrl = currentUrl;
-												}
-												// saving all kanji
-												chrome.storage.local.set({"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc});
-											})
-											.catch(errorHandling);
-									}
-									else {
-										// only run the scripts once
-										if (currentUrl != lastUrl) {
-											setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", result)
-											lastUrl = currentUrl;
-										}
-									}
-								
-									if (!result['wkhighlight_allradicals']) {
-										// fetch all radicals
-										fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=radical")
-											.then(radical_data => {
-												const radical_dict = {};
-												radical_data
-													.map(content => content.data)
-													.flat(1)
-													.forEach(radical => {
-														const data = radical.data;
-														radical_dict[radical.id] = {
-															"characters" : data.characters,
-															"character_images" : data.character_images,
-															"document_url" : data.document_url,
-															"level" : data.level
-														};
-													});
-												
-												// saving all radical
-												chrome.storage.local.set({"wkhighlight_allradicals": radical_dict});
-											})
-											.catch(errorHandling);
-									}
-
-									if (!result['wkhighlight_allvocab']) {
-										fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=vocabulary")
-											.then(vocab => {
-												const vocab_dict = {};
-												vocab
-													.map(content => content.data)
-													.flat(1)
-													.forEach(vocab => {
-														const data = vocab.data;
-														vocab_dict[vocab.id] = {
-															"characters" : data.characters,
-															"component_subject_ids" : data.component_subject_ids, 
-															"context_sentences" : data.context_sentences,
-															"document_url" : data.document_url,
-															"level" : data.level,
-															"meaning_mnemonic" : data.meaning_mnemonic,
-															"meanings" : data.meanings.map(data => data.meaning),
-															"parts_of_speech" : data.parts_of_speech,
-															"reading_mnemonic" : data.reading_mnemonic,
-															"readings" : data.readings.map(data => data.reading),
-															"pronunciation_audios" : data.pronunciation_audios
-
-														};
-													});
-												chrome.storage.local.set({'wkhighlight_allvocab':vocab_dict});
-											})
-											.catch(errorHandling);
-									}
-								});
+						// get info on page host, url and if it was reloaded
+						chrome.tabs.sendMessage(tabId, {windowLocation:"host", reloaded:"check", windowHref:"href"}, response => {
+							currentHost = response["windowLocation"];
+							currentUrl = response["windowHref"];
+							currentPageReloaded = response["reloaded"];
+							console.log(currentUrl, " reloaded?", currentPageReloaded);
+							
+							setSettings();
+							
+							// allow another injection if going to another domain or if the
+							// page was reloaded
+							if ((lastHost != currentHost || currentPageReloaded) && delayFinished) {
+								injectScripts = false;
+								// set a delay to prevent multiple injections
+								delayFinished = false;
+								setTimeout(() => {delayFinished = true;console.log("delayFinished: ", delayFinished);}, 2000);
 							}
+
+							chrome.storage.local.get(["wkhighlight_apiKey"], key => {
+								if (key["wkhighlight_apiKey"]) {
+									apiToken = key["wkhighlight_apiKey"];
+				
+									if (settings["1"]) {
+										chrome.browserAction.setBadgeText({text: "0"});
+										chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
+									}
+									// only run the scripts once
+									if (!injectScripts && ((lastHost != currentHost) || (lastUrl == currentUrl))) {
+										// see if all kanji is already saved in storage
+										chrome.storage.local.get(['wkhighlight_allkanji', 'wkhighlight_allradicals'], result => {
+											// do this only if all the kanji hasn't been saved yet
+											if (!result['wkhighlight_allkanji']) {
+												// fetch all kanji
+												fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=kanji")
+													.then(kanji_data => {
+														const kanji_dict = {};
+														const kanji_assoc = {};
+														kanji_data
+															.map(content => content.data)
+															.flat(1)
+															.forEach(kanji => {
+																const data = kanji.data;
+																kanji_dict[kanji.id] = {
+																	"amalgamation_subject_ids" : data.amalgamation_subject_ids,
+																	"characters" : data.characters,
+																	"component_subject_ids" : data.component_subject_ids,
+																	"document_url" : data.document_url,
+																	"level" : data.level,
+																	"meaning_hint" : data.meaning_hint,
+																	"meaning_mnemonic" : data.meaning_mnemonic,
+																	"meanings" : data.meanings.map(data => data.meaning),
+																	"reading_hint" : data.reading_hint,
+																	"reading_mnemonic" : data.reading_mnemonic,
+																	"readings" : data.readings,
+																	"visually_similar_subject_ids" : data.visually_similar_subject_ids,
+																	"slug": data.slug
+																};
+																kanji_assoc[data.slug] = kanji.id;
+															});
+														
+														setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", {"wkhighlight_allkanji":kanji_dict});
+														// saving all kanji
+														chrome.storage.local.set({"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc});
+													})
+													.catch(errorHandling);
+											}
+											else {
+												setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", result);
+											}
+										
+											if (!result['wkhighlight_allradicals']) {
+												// fetch all radicals
+												fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=radical")
+													.then(radical_data => {
+														const radical_dict = {};
+														radical_data
+															.map(content => content.data)
+															.flat(1)
+															.forEach(radical => {
+																const data = radical.data;
+																radical_dict[radical.id] = {
+																	"characters" : data.characters,
+																	"character_images" : data.character_images,
+																	"document_url" : data.document_url,
+																	"level" : data.level
+																};
+															});
+														
+														// saving all radical
+														chrome.storage.local.set({"wkhighlight_allradicals": radical_dict});
+													})
+													.catch(errorHandling);
+											}
+		
+											if (!result['wkhighlight_allvocab']) {
+												fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=vocabulary")
+													.then(vocab => {
+														const vocab_dict = {};
+														vocab
+															.map(content => content.data)
+															.flat(1)
+															.forEach(vocab => {
+																const data = vocab.data;
+																vocab_dict[vocab.id] = {
+																	"characters" : data.characters,
+																	"component_subject_ids" : data.component_subject_ids, 
+																	"context_sentences" : data.context_sentences,
+																	"document_url" : data.document_url,
+																	"level" : data.level,
+																	"meaning_mnemonic" : data.meaning_mnemonic,
+																	"meanings" : data.meanings.map(data => data.meaning),
+																	"parts_of_speech" : data.parts_of_speech,
+																	"reading_mnemonic" : data.reading_mnemonic,
+																	"readings" : data.readings.map(data => data.reading),
+																	"pronunciation_audios" : data.pronunciation_audios
+		
+																};
+															});
+														chrome.storage.local.set({'wkhighlight_allvocab':vocab_dict});
+													})
+													.catch(errorHandling);
+											}
+										});
+
+										injectScripts = true;
+										lastUrl = currentUrl;
+										lastHost = currentHost;
+									}
+								}
+							});
 						});
 					}
 				}
 				else {
+					isBlacklisted = true;
 					chrome.browserAction.setBadgeText({text: '!'});
 					chrome.browserAction.setBadgeBackgroundColor({color: "#dc6560"});
 				}
@@ -302,6 +327,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 						aux[url] = kanjiPerSite[url];
 				}
 				chrome.storage.local.set({"wkhighlight_kanjiPerSite":aux});
+			}
+		});
+	}
+
+	// inject scripts again
+	if (request.forceScriptInjection && !isBlacklisted) {
+		chrome.storage.local.get(['wkhighlight_allkanji'], result => {
+			const allKanji = result["wkhighlight_allkanji"];
+			if (allKanji) {
+				console.log("forcing injection");
+				setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", allKanji);
 			}
 		});
 	}

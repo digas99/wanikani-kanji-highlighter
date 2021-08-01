@@ -5,6 +5,9 @@ Not Yet Released
 - Possibility to make the kanji search results more or less broaden through the target icon in the search results navbar. If target is not activated, then the result of the search will be exactly what was typed in (i.e.: searching gold will only show results with gold (results as goldfish, for example, will not be shown))
 - Added the list of kanji that were highlighted in that page to the extension popup
 
+## Bug Fix
+- Content inside kanji details popup no longer loads multiple times, which was also causing problems when navigating through kanji and vocabulary within the kanji details popup.
+
 # [Changelog v0.4.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.4)
 Released on 30/07/2021
 

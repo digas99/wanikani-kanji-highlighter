@@ -256,7 +256,7 @@ window.onload = () => {
 														kanjiPerSite[currentTabUrl]["kanji"].forEach(kanji => {
 															const kanjiFoundLi = document.createElement("li");
 															kanjiFoundUl.appendChild(kanjiFoundLi);
-															kanjiFoundLi.classList.add("clickable");
+															kanjiFoundLi.classList.add("clickable", "kanjiDetails");
 															kanjiFoundLi.appendChild(document.createTextNode(kanji));
 														});
 													});
@@ -947,6 +947,13 @@ document.addEventListener("click", e => {
 		document.getElementsByClassName("rateMeWrapper")[0].remove();
 		chrome.storage.local.set({"wkhighlight_rateme":{closed:true}});
 	}
+
+	// if clicked on a kanji that can generate detail info popup
+	if (targetElem.classList.contains("kanjiDetails")) {
+		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+			chrome.tabs.sendMessage(tabs[0].id, {infoPopupFromSearch: {characters: targetElem.innerText, type: "kanji"}}, () => window.chrome.runtime.lastError);
+		});
+	}
 });
 
 const singleOptionCheck = (id, labelTitle, checked) => {
@@ -1233,7 +1240,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		request.kanjiHighlighted.forEach(kanji => {
 			const kanjiFoundLi = document.createElement("li");
 			kanjiFoundUl.appendChild(kanjiFoundLi);
-			kanjiFoundLi.classList.add("clickable");
+			kanjiFoundLi.classList.add("clickable", "kanjiDetails");
 			kanjiFoundLi.appendChild(document.createTextNode(kanji));
 		});
 	}

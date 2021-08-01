@@ -654,12 +654,13 @@ transform: rotate(134deg);
 }
 
 #blacklistedSitesWrapper {
-	border: 2px solid black;
+	border: 1px solid silver;
 	padding: 5px;
 	display: grid;
 	max-height: 150px;
 	overflow: auto;
 	border-bottom-right-radius: 8px;
+	margin-top: 3px;
 }
 
 .blacklisted_site_wrapper {
