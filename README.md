@@ -154,3 +154,4 @@ On the extension popup, you will find the app settings.
 
 ## Pictures
 ![howto](images/how-to-banner.jpg)
+![features1](images/features1.jpg)
