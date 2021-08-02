@@ -3,14 +3,14 @@
 
 This is an unofficial chrome extension for Kanji Highlighting, matching the kanji learned with [WaniKani.com](https://www.wanikani.com/).
 It works with any website, and provides detailed information about any kanji that is highlighted.
-**Because it would be cheating, the extension doesn't work on [WaniKani.com](https://www.wanikani.com/).**
+**Because it would be "cheating", the extension doesn't work on [WaniKani.com](https://www.wanikani.com/).**
 
-#### VERSION 0.4.4
+#### VERSION 0.4.5
 
 ## [Get it on Chrome Webstore](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/)
 
 ## Table of contents:
-1. [Latest Features](#changelog-v044)
+1. [Latest Features](#changelog-v045)
 2. [Usage Guide](#usage-guide)
    * 2.1. [WaniKani API Token](#wanikani-api-token)
    * 2.2. [Kanji Details](#kanji-details)
@@ -19,6 +19,17 @@ It works with any website, and provides detailed information about any kanji tha
    * 2.5. [Blacklisting a Site](#blacklisting-a-site)
    * 2.6. [Settings](#settings)
 3. [Pictures](#pictures)
+
+
+## Changelog v0.4.5
+Released on 02/08/2021
+
+### Popup
+- Possibility to make the kanji search results more or less broaden through the targeted search icon in the search results navbar. If targeted search is activated, then the result of the search will be exactly what was typed in (i.e.: searching gold will only show results with gold (results as goldfish, for example, will not be included))
+- Added the list of kanji that were highlighted in that page to the extension popup
+
+### Bug Fix
+- Content inside kanji details popup no longer loads multiple times, which was also causing problems when navigating through kanji and vocabulary within the kanji details popup.
 
 ## Changelog v0.4.4
 Released on 30/07/2021
@@ -104,8 +115,14 @@ The search can be done by writing in the search bar in two ways, which can be to
   - **Character of the Kanji:** writing the kanji itself, will show, not only that kanji, but all the similar kanji, and all vocabulary with that kanji
   - **Level:** writing a number 1-60 will show all material from that level
 
-The result of the search is the character for the material, followed by its names, readings and level.
+The display of the results can be one of three options:
+- Vertically listed material (one per line), followed by its names, readings and level
+- Medium sized squares with only the material kanji
+- Small sized squares with only the material kanji
+
 If it is a Kanji, then it will be on yellow, if it is a vocabulary, it will be on red.
+
+The search results can be more or less broaden, by clikcing the targeted search icon within the search area. If activated, then only material with the exact same text as what was typed will show up. Otherwise, material with similar text will also appear (i.e.: if you search for gold, if targeted search is not activated, then goldfish will be one of the search results because it contains the word gold).
 
 ### Writing Kana:
 Within the search bar, if you change the writing type from Romaji to Kana, by clicking on the button with the character 'あ', everything you type with your keyboard on that search bar will be automatically converted to Kana. If you write in **Lower Case** then **Hiragana** will show up. If you write in **Uper Case** then **Katakana** will show up.
@@ -132,7 +149,7 @@ You can see the list of blacklisted sites in *Settings*, within the extension po
 ### Settings:
 On the extension popup, you will find the app settings.
 - **Kanji info popup:** show the popup with the details of a highlighted kanji, when hover over it
-- **Kanji counter on icon:** show the number of highlighted Kanji in the page on the icon of the extension (doesn't count above *99* kanji for readability purposes)
+- **Kanji counter on icon:** show the number of highlighted Kanji in the page, on the icon of the extension
 - **Highlight style:** choose how do you want the kanji to be highlighted
 
 ## Pictures

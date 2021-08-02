@@ -1,7 +1,7 @@
 {
     "name": "WaniKani Kanji Highlighter",
     "description": "Unofficial kanji highlighter, matching kanji learned with WaniKani.",
-    "version": "0.4.4",
+    "version": "0.4.5",
     "manifest_version": 2,
     "icons": {
         "16":  "logo/logo_bb.png",
