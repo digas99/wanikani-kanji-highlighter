@@ -61,7 +61,7 @@ const fetchReviewedKanjiID = async (apiToken, page) => {
 const setupLearnedKanji = async (apiToken, page, kanji) => {
 	const IDs = await fetchReviewedKanjiID(apiToken, page);
 	const learnedKanji = IDs.map(id => kanji["wkhighlight_allkanji"][id].slug);
-	chrome.storage.local.set({"wkhighlight_learnedKanji": learnedKanji, "wkhighlight_learnedKanji_updated":formatDate(new Date())});
+	chrome.storage.local.set({"wkhighlight_learnedKanji": learnedKanji, "wkhighlight_learnedKanji_updated":formatWKDate(new Date())});
 	return learnedKanji;
 }
 
@@ -70,7 +70,10 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 		tabs.insertCSS(null, {file: 'styles/foreground-styles.css'});
 
 		if (settings["0"])
-			tabs.executeScript(null, {file: 'scripts/details-popup.js'}, () => chrome.runtime.lastError);
+			tabs.executeScript(null, {file: 'scripts/details-popup.js'}, () => {
+				chrome.runtime.lastError;
+				tabs.executeScript(null, {file: 'lib/raphael-min.js'}, () => tabs.executeScript(null, {file: 'lib/dmak.js'}, () => tabs.executeScript(null, {file: 'lib/dmakLoader.js'}, () => chrome.runtime.lastError)));
+			});
 
 		tabs.executeScript(null, {file: 'scripts/highlight.js'}, () => {
 			injectedHighlighter = true;
@@ -85,9 +88,10 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	}
 
 	chrome.storage.local.get(["wkhighlight_learnedKanji", "wkhighlight_learnedKanji_updated"], response => {
-		const date = response["wkhighlight_learnedKanji_updated"] ? response["wkhighlight_learnedKanji_updated"] : formatDate(new Date());
+		const date = response["wkhighlight_learnedKanji_updated"] ? response["wkhighlight_learnedKanji_updated"] : formatWKDate(new Date());
 		modifiedSince(apiToken, date, learnedKanjiSource)
 			.then(modified => {
+				// even if not modified, fetch if learnedKanji not found in storage
 				if (!response["wkhighlight_learnedKanji"] || modified) {
 					console.log("Fetching learned kanji");
 					setupLearnedKanji(apiToken, learnedKanjiSource, allkanji)
@@ -166,6 +170,28 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 								if (key["wkhighlight_apiKey"]) {
 									apiToken = key["wkhighlight_apiKey"];
 				
+									// fetch lessons and reviews
+									chrome.storage.local.get(["wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons"], response => {
+										const date = response["wkhighlight_summary_updated"] ? response["wkhighlight_summary_updated"] : formatWKDate(new Date());
+										modifiedSince(apiToken, date, "https://api.wanikani.com/v2/summary")
+											.then(modified => {
+												console.log(modified);
+												if (!response["wkhighlight_reviews"] || !response["wkhighlight_lessons"] || modified) {
+													fetchPage(apiToken, "https://api.wanikani.com/v2/summary")
+														.then(result => {
+															console.log(result);
+															if (result) {
+																const data = result["data"];
+																chrome.storage.local.set({
+																	"wkhighlight_reviews": data["reviews"],
+																	"wkhighlight_lessons": data["lessons"][0],
+																	"wkhighlight_summary_updated":formatWKDate(new Date())});
+															}
+														});
+												}
+											});
+									});
+
 									if (settings["1"]) {
 										chrome.browserAction.setBadgeText({text: "0"});
 										chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});

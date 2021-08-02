@@ -138,7 +138,7 @@ window.onload = () => {
 					else {
 						main.appendChild(logoDiv);
 						chrome.storage.local.get(["wkhighlight_userInfo_updated"], response => {
-							const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatDate(new Date());
+							const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatWKDate(new Date());
 							modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
 								.then(modified => {
 									// if user info has been updated in wanikani, then update cache
@@ -147,7 +147,7 @@ window.onload = () => {
 											.then(user => {
 												// code 429 is Rate limit exceeded
 												if (!window.chrome.runtime.lastError && user && user.code != 429) 
-													chrome.storage.local.set({"wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
+													chrome.storage.local.set({"wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatWKDate(new Date())});
 										});
 									}
 	
@@ -209,6 +209,105 @@ window.onload = () => {
 										const kanjiFoundUl = document.createElement("ul");
 										kanjiFoundList.appendChild(kanjiFoundUl);
 
+										const summaryWrapper = document.createElement("li");
+										userElementsList.appendChild(summaryWrapper);
+										summaryWrapper.style.textAlign = "center";
+										const summaryUl = document.createElement("ul");
+										summaryWrapper.appendChild(summaryUl);
+										summaryUl.style.display = "inline-flex";
+										summaryUl.style.width = "100%";
+										["Lessons", "Reviews"].forEach(topic => {
+											const summaryLi = document.createElement("li");
+											summaryUl.appendChild(summaryLi);
+											summaryLi.style.width = "100%";
+											summaryLi.style.color = "white";
+
+											const title = document.createElement("div");
+											summaryLi.appendChild(title);
+											title.appendChild(document.createTextNode(topic));
+											title.classList.add("summaryTitle");
+
+											const value = document.createElement("div");
+											summaryLi.appendChild(value);
+											value.appendChild(document.createTextNode("0"));
+											value.classList.add("summaryValue", "clickable");
+											value.style.backgroundColor = topic == "Lessons" ? "#4f7b61" : "#2c7080";
+											value.id = "summary"+topic;
+										});
+										const moreReviews = document.createElement("p");
+										summaryWrapper.appendChild(moreReviews);
+										moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
+
+										// fetch values for summary
+										chrome.storage.local.get(["wkhighlight_reviews", "wkhighlight_lessons"], result => {
+											const reviews = result["wkhighlight_reviews"];
+											const lessons = result["wkhighlight_lessons"];
+											
+											if (reviews) {
+												const currentTime = new Date().getTime();
+												console.log(reviews);
+												// get reviews that have time stamps lower than the current time
+												const availableReviews = reviews.filter(review => new Date(review["available_at"]).getTime() <= currentTime);
+												// get length of each available review and sum all of them
+												document.getElementById("summaryReviews").innerText = availableReviews.length > 0 ? availableReviews.map(review => review["subject_ids"].length).reduce((a,b) => a + b) : "0";
+												for (let review of reviews) {
+													// stop in the review that is greater than current time and has reviews
+													const thisDate = new Date(review["available_at"]).getTime(); 
+													if (review["subject_ids"].length > 0 && thisDate > currentTime) {
+														const remainingTime = msToTime(thisDate - currentTime);
+														moreReviews.innerHTML = `<b>${review["subject_ids"].length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
+														
+														// create interval delay
+														// 10% of a day are 8640000 milliseconds
+														// 10% of an hour are 360000 milliseconds
+														// 10% of a minute are 6000 milliseconds
+														// 10% of a second are 100 milliseconds
+														const delays = {
+															"Days":8640000,
+															"Hrs":360000,
+															"Min":6000,
+															"Sec":100
+														}
+
+														// timeUnit = "Days, Hrs, etc..."
+														let timeUnit = remainingTime.split(" ")[1];
+
+														const timeStampRefresher = () => {
+															const newCurrentDate = new Date().getTime();
+															const newTimeStamp = msToTime(thisDate - newCurrentDate);
+															const newTimeUnit = newTimeStamp.split(" ")[1];
+															// check if has changed the unit of time
+															if (newTimeUnit != timeUnit) {
+																timeUnit = newTimeUnit;
+																// if so then clear the current interval
+																clearInterval(timeStampInterval);
+																// and start a new one with a new interval delay
+																timeStampInterval = setInterval(timeStampRefresher, delays[newTimeUnit]);
+															}
+
+															// if time stamp reached 0
+															if (thisDate <= newCurrentDate) {
+																moreReviews.innerHTML = `<b>${review["subject_ids"].length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> available <b class="refresh clickable">now</b>`;
+																// refresh popup automatically
+																setTimeout(() => window.location.reload(), 1000);
+																clearInterval(timeStampInterval);
+																return;
+															}
+
+															// refresh time stamp
+															moreReviews.getElementsByTagName("B")[1].innerText = newTimeStamp;
+														}
+
+														let timeStampInterval = setInterval(timeStampRefresher, delays[timeUnit]);
+														// 10% of a minute are 6000 milliseconds
+														break;
+													}
+												}
+											}
+											if (lessons)
+												document.getElementById("summaryLessons").innerText = lessons["subject_ids"].length;
+										});
+
 										if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {
 											// chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 											// 	var activeTab = tabs[0];
@@ -230,7 +329,7 @@ window.onload = () => {
 
 													document.getElementById("kanjiSearchInput").click();
 													if (kanjiList.length == 0 || vocabList.length == 0) {
-														document.body.style.cursor = "progress";
+														document.body.style.setProperty("cursor", "progress", "important");
 														loadItemsLists(() => {
 															document.body.style.cursor = "inherit";
 															searchKanji(input)
@@ -383,7 +482,7 @@ const submitAction = () => {
 				if (!window.chrome.runtime.lastError && user) {
 					let msg, color;
 					if (user.data.subscription.active) {
-						chrome.storage.local.set({"wkhighlight_apiKey":apiKey, "wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
+						chrome.storage.local.set({"wkhighlight_apiKey":apiKey, "wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatWKDate(new Date())});
 						msg = "The API key was accepted!";
 						color = "green";
 					}
@@ -953,6 +1052,10 @@ document.addEventListener("click", e => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			chrome.tabs.sendMessage(tabs[0].id, {infoPopupFromSearch: {characters: targetElem.innerText, type: "kanji"}}, () => window.chrome.runtime.lastError);
 		});
+	}
+
+	if (targetElem.classList.contains("refresh")) {
+		window.location.reload();
 	}
 });
 

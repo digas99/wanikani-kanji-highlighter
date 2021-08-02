@@ -28,8 +28,21 @@ const fetchAllPages = async (apiToken, page) => {
 	return [result].concat(await fetchAllPages(apiToken, result.pages.next_url));
 }
 
+// millisecond to readable format
+// stole from: https://stackoverflow.com/questions/19700283/how-to-convert-time-in-milliseconds-to-hours-min-sec-format-in-javascript/32180863#32180863
+function msToTime(ms) {
+  let seconds = (ms / 1000).toFixed(1);
+  let minutes = (ms / (1000 * 60)).toFixed(1);
+  let hours = (ms / (1000 * 60 * 60)).toFixed(1);
+  let days = (ms / (1000 * 60 * 60 * 24)).toFixed(1);
+  if (seconds < 60) return seconds + " Sec";
+  else if (minutes < 60) return minutes + " Min";
+  else if (hours < 24) return hours + " Hrs";
+  else return days + " Days"
+}
+
 // format date into <day-name>, <day> <month> <year> <hour>:<minute>:<second> GMT
-const formatDate = date => {
+const formatWKDate = (date, type) => {
 	const split = date.toString().split(" ");
 	return `${split[0]}, ${split[2]} ${split[1]} ${split[3]} ${split[4]} GMT`;
 }

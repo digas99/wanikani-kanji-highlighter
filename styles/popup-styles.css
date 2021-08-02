@@ -374,6 +374,19 @@ transform: rotate(134deg);
 	background-color: var(--dark-back);        
 }
 
+/* SUMMARY */
+.summaryTitle {
+	background-color: var(--dark-back);
+    padding: 1px;
+}
+
+.summaryValue {
+	font-size: 35px;
+    padding: 7px 17px;
+}
+
+/* SEARCHING */
+
 .searchArea {
 	width: 100%;
 	margin-right: 5px;

@@ -205,6 +205,12 @@ var injectedDetailsPopup = true;
 		// reading mnemonic container
 		details.appendChild(infoTable("Reading Mnemonic:", [parseTags(kanjiInfo["reading_mnemonic"]), parseTags(kanjiInfo["reading_hint"])]));
 	
+		// kanji drawing
+		// const drawingTable = infoTable("Drawing:", []);
+		// details.appendChild(drawingTable);
+		// const drawWrapper = document.createElement("div");
+		// drawingTable.appendChild(drawWrapper);
+		
 		// used radicals cards
 		details.appendChild(itemCardsSection(kanjiInfo, "component_subject_ids", "Used Radicals", "wkhighlighter_detailsPopup_usedRadicals_row", allRadicals));
 	
