@@ -17,6 +17,7 @@ let injectScripts = false;
 let injectedHighlighter = false;
 
 let isBlacklisted = false;
+let isWanikani = false;
 
 let settings;
 // set settings
@@ -66,6 +67,19 @@ const setupLearnedKanji = async (apiToken, page, kanji) => {
 }
 
 const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
+	// setup all learnable kanji if not yet
+	chrome.storage.local.get(["wkhighlight_allLearnableKanji"], result => {
+		let allLearnableKanji = result["wkhighlight_allLearnableKanji"];
+		const kanjiList = [];
+		if (!allLearnableKanji) {
+			allLearnableKanji = allkanji["wkhighlight_allkanji"];
+			for (let kanjiId in allLearnableKanji) {
+				kanjiList.push(allLearnableKanji[kanjiId]["slug"]);
+			}
+			chrome.storage.local.set({"wkhighlight_allLearnableKanji":kanjiList});
+		}
+	});
+
 	const scripts = kanji => {
 		tabs.insertCSS(null, {file: 'styles/foreground-styles.css'});
 
@@ -77,11 +91,18 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 
 		tabs.executeScript(null, {file: 'scripts/highlight.js'}, () => {
 			injectedHighlighter = true;
-			tabs.sendMessage(thisTabId, {
-				functionDelay: functionDelay, 
-				values: kanji,
-				unwantedTags: unwantedTags,
-				highlightingClass: highlightingClass,
+
+			chrome.storage.local.get(["wkhighlight_allLearnableKanji"], result => {
+				const allKanji = result["wkhighlight_allLearnableKanji"];
+				if (allKanji) {
+					tabs.sendMessage(thisTabId, {
+						functionDelay: functionDelay, 
+						values: kanji,
+						notLearnedYet: allKanji.filter(k => !kanji.includes(k)),
+						unwantedTags: unwantedTags,
+						highlightingClass: highlightingClass,
+					});
+				}
 			});
 			chrome.runtime.lastError;
 		});
@@ -120,18 +141,18 @@ tabs.onActivated.addListener(activeInfo => {
 							tabs.sendMessage(tabId, {nmrKanjiHighlighted:"popup"}, response => {
 								if (!window.chrome.runtime.lastError) {
 									if (response)
-										chrome.browserAction.setBadgeText({text:response["nmrKanjiHighlighted"].toString()});
+										chrome.browserAction.setBadgeText({text:response["nmrKanjiHighlighted"].toString(), tabId:thisTabId});
 								}
 								else
-									chrome.browserAction.setBadgeText({text: "0"});
+									chrome.browserAction.setBadgeText({text: "0", tabId:thisTabId});
 					
-								chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
+								chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 							});
 						}
 					}
 					else {
-						chrome.browserAction.setBadgeText({text: "W"});
-						chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1"});
+						chrome.browserAction.setBadgeText({text: "W", tabId:thisTabId});
+						chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1", tabId:thisTabId});
 					}
 				}
 			});
@@ -170,31 +191,9 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 								if (key["wkhighlight_apiKey"]) {
 									apiToken = key["wkhighlight_apiKey"];
 				
-									// fetch lessons and reviews
-									chrome.storage.local.get(["wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons"], response => {
-										const date = response["wkhighlight_summary_updated"] ? response["wkhighlight_summary_updated"] : formatWKDate(new Date());
-										modifiedSince(apiToken, date, "https://api.wanikani.com/v2/summary")
-											.then(modified => {
-												console.log(modified);
-												if (!response["wkhighlight_reviews"] || !response["wkhighlight_lessons"] || modified) {
-													fetchPage(apiToken, "https://api.wanikani.com/v2/summary")
-														.then(result => {
-															console.log(result);
-															if (result) {
-																const data = result["data"];
-																chrome.storage.local.set({
-																	"wkhighlight_reviews": data["reviews"],
-																	"wkhighlight_lessons": data["lessons"][0],
-																	"wkhighlight_summary_updated":formatWKDate(new Date())});
-															}
-														});
-												}
-											});
-									});
-
 									if (settings["1"]) {
-										chrome.browserAction.setBadgeText({text: "0"});
-										chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
+										chrome.browserAction.setBadgeText({text: "0", tabId:thisTabId});
+										chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 									}
 									// only run the scripts once
 									if (!injectScripts && ((lastHost != currentHost) || (lastUrl == currentUrl))) {
@@ -225,7 +224,8 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 																	"reading_mnemonic" : data.reading_mnemonic,
 																	"readings" : data.readings,
 																	"visually_similar_subject_ids" : data.visually_similar_subject_ids,
-																	"slug": data.slug
+																	"slug": data.slug,
+																	"id":kanji.id
 																};
 																kanji_assoc[data.slug] = kanji.id;
 															});
@@ -254,7 +254,8 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 																	"characters" : data.characters,
 																	"character_images" : data.character_images,
 																	"document_url" : data.document_url,
-																	"level" : data.level
+																	"level" : data.level,
+																	"id":radical.id
 																};
 															});
 														
@@ -284,8 +285,8 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 																	"parts_of_speech" : data.parts_of_speech,
 																	"reading_mnemonic" : data.reading_mnemonic,
 																	"readings" : data.readings.map(data => data.reading),
-																	"pronunciation_audios" : data.pronunciation_audios
-		
+																	"pronunciation_audios" : data.pronunciation_audios,
+																	"id":vocab.id
 																};
 															});
 														chrome.storage.local.set({'wkhighlight_allvocab':vocab_dict});
@@ -305,14 +306,15 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 				}
 				else {
 					isBlacklisted = true;
-					chrome.browserAction.setBadgeText({text: '!'});
-					chrome.browserAction.setBadgeBackgroundColor({color: "#dc6560"});
+					chrome.browserAction.setBadgeText({text: '!', tabId:thisTabId});
+					chrome.browserAction.setBadgeBackgroundColor({color: "#dc6560", tabId:thisTabId});
 				}
 			});
 		}
 		else {
-			chrome.browserAction.setBadgeText({text: "W"});
-			chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1"});
+			isWanikani = true;
+			chrome.browserAction.setBadgeText({text: "W", tabId:thisTabId});
+			chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1", tabId:thisTabId});
 		}
 	}
 });
@@ -332,8 +334,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		tabs.sendMessage(thisTabId, {popupDetails: request.popupDetails});
 
 	if (request.badge && settings["1"]) {
-		chrome.browserAction.setBadgeText({text: request.badge.toString()});
-		chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1"});
+		chrome.browserAction.setBadgeText({text: request.badge.toString(), tabId:thisTabId});
+		chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 	}
 
 	if (request.imgUrl)
@@ -358,7 +360,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 
 	// inject scripts again
-	if (request.forceScriptInjection && !isBlacklisted) {
+	if (request.forceScriptInjection && !isBlacklisted && !isWanikani) {
 		chrome.storage.local.get(['wkhighlight_allkanji'], result => {
 			const allKanji = result["wkhighlight_allkanji"];
 			if (allKanji) {
@@ -382,8 +384,8 @@ chrome.contextMenus.onClicked.addListener(data => {
 	if (data["menuItemId"] == "wkhighlighterSearchKanji" && selectedText) {
 		selectedText = selectedText.trim();
 		chrome.storage.local.set({wkhighlight_contextMenuSelectedText:selectedText});
-		chrome.browserAction.setBadgeText({text: '\u2B06'});
-		chrome.browserAction.setBadgeBackgroundColor({color: "green"});
+		chrome.browserAction.setBadgeText({text: '\u2B06', tabId:thisTabId});
+		chrome.browserAction.setBadgeBackgroundColor({color: "green", tabId:thisTabId});
 		chrome.notifications.create({
 			type: "basic",
 			title: "Searching with WaniKani Kanji Highlighter",

@@ -4,7 +4,8 @@ var injectedHighlight = true;
 
 (() => {
 	let totalHighlightedKanji = 0;
-	let allHighlightedKanji = [];
+	let learnedHighlightedKanji = [];
+	let notLearnedHighlightedKanji = [];
 	let loaded = false;
 	let highlightingClass = "";
 
@@ -14,10 +15,11 @@ var injectedHighlight = true;
 
 			const functionDelay = request.functionDelay;
 			const values = request.values;
+			const notLearnedYet = request.notLearnedYet;
 			const unwantedTags = request.unwantedTags;
 			highlightingClass = request.highlightingClass
 
-			if (functionDelay && values && unwantedTags && highlightingClass) {	
+			if (functionDelay && values && unwantedTags && highlightingClass && notLearnedYet) {	
 				const textChildNodes = obj => Array.from(obj.childNodes)
 					.filter(node => node.nodeName === "#text");
 
@@ -53,10 +55,11 @@ var injectedHighlight = true;
 					return false;
 				}
 
-				const tagFilteringConditions = tag => !unwantedTags.includes(tag.localName) && textChildNodes(tag).length > 0 && !(hasDirectChildHighlighted(tag, highlightingClass) || tag.classList.contains(highlightingClass));
+				const tagFilteringConditions = (tag, highlightClass) => !unwantedTags.includes(tag.localName) && textChildNodes(tag).length > 0 && !(hasDirectChildHighlighted(tag, highlightClass) || tag.classList.contains(highlightClass));
 
 				const highlighter = (values, className, allTags) => {
 					const kanjiRegex = new RegExp(`[${values.join('')}]`, "g");
+					//console.log(kanjiRegex);
 					// check if there is any character to be highlighted
 					const nodesToBeHighlighted = allTags.filter(tag => {
 						const test = tag.textContent.match(kanjiRegex);
@@ -67,26 +70,26 @@ var injectedHighlight = true;
 					let highlightedKanji = [];
 					if (nodesToBeHighlighted.length > 0) {
 						const span = document.createElement("span");
-						span.classList.add(className, "clickable");
-						nodesToBeHighlighted.filter(tag => tagFilteringConditions(tag)).forEach(node => highlightedKanji = highlightedKanji.concat(replaceMatchesWithElem(node, kanjiRegex, span)));
+						span.classList.add(className, "clickable", "wkhighlighter_hoverable");
+						nodesToBeHighlighted.filter(tag => tagFilteringConditions(tag, className)).forEach(node => highlightedKanji = highlightedKanji.concat(replaceMatchesWithElem(node, kanjiRegex, span)));
 					}
-
 					return highlightedKanji;
 				}
 				
 				setTimeout(() => {
-					allHighlightedKanji = [... new Set(allHighlightedKanji.concat(highlighter(values, highlightingClass, Array.from(document.getElementsByTagName("*")))))];
-					totalHighlightedKanji = allHighlightedKanji.length;
-					chrome.runtime.sendMessage({badge:totalHighlightedKanji, nmrKanjiHighlighted:totalHighlightedKanji, kanjiHighlighted:allHighlightedKanji});
+					learnedHighlightedKanji = [... new Set(learnedHighlightedKanji.concat(highlighter(values, highlightingClass, Array.from(document.getElementsByTagName("*")))))];
+					notLearnedHighlightedKanji = [... new Set(notLearnedHighlightedKanji.concat(highlighter(notLearnedYet, "wkhighlighter_highlightedNotLearned", Array.from(document.getElementsByTagName("*")))))];
+					totalHighlightedKanji = learnedHighlightedKanji.length + notLearnedHighlightedKanji.length;
+					chrome.runtime.sendMessage({badge:totalHighlightedKanji, nmrKanjiHighlighted:totalHighlightedKanji, kanjiHighlighted:{learned:learnedHighlightedKanji, notLearned:notLearnedHighlightedKanji}});
 					chrome.storage.local.get(["wkhighlight_kanjiPerSite"], result => {
 						const kanjiPerSite = result["wkhighlight_kanjiPerSite"] ? result["wkhighlight_kanjiPerSite"] : {};
 						const site = window.location.href;
 						if (kanjiPerSite) {
-							kanjiPerSite[site] = {"number":totalHighlightedKanji,"kanji":allHighlightedKanji};
+							kanjiPerSite[site] = {"number":totalHighlightedKanji,"kanji":{learned:learnedHighlightedKanji, notLearned:notLearnedHighlightedKanji}};
 						}
 						chrome.storage.local.set({"wkhighlight_kanjiPerSite":kanjiPerSite});
 					});
-					chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlightedKanji, "wkhighlight_allHighLightedKanji":allHighlightedKanji});
+					chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlightedKanji, "wkhighlight_allHighLightedKanji":{learned:learnedHighlightedKanji, notLearned:notLearnedHighlightedKanji}});
 				} ,functionDelay);
 
 				let lastNmrElements = 0;
@@ -99,18 +102,19 @@ var injectedHighlight = true;
 					if (nmrElements !== lastNmrElements) {
 						lastNmrElements = nmrElements;
 						setTimeout(() => {
-						allHighlightedKanji = [...new Set(allHighlightedKanji.concat(highlighter(values, highlightingClass, allTags)))];
-						totalHighlightedKanji = allHighlightedKanji.length;
-						chrome.runtime.sendMessage({badge:totalHighlightedKanji, nmrKanjiHighlighted:totalHighlightedKanji, kanjiHighlighted:allHighlightedKanji});
+						learnedHighlightedKanji = [... new Set(learnedHighlightedKanji.concat(highlighter(values, highlightingClass, allTags)))];
+						notLearnedHighlightedKanji = [... new Set(notLearnedHighlightedKanji.concat(highlighter(notLearnedYet, "wkhighlighter_highlightedNotLearned", allTags)))];
+						totalHighlightedKanji = learnedHighlightedKanji.length + notLearnedHighlightedKanji.length;
+						chrome.runtime.sendMessage({badge:totalHighlightedKanji, nmrKanjiHighlighted:totalHighlightedKanji, kanjiHighlighted:{learned:learnedHighlightedKanji, notLearned:notLearnedHighlightedKanji}});
 						chrome.storage.local.get(["wkhighlight_kanjiPerSite"], result => {
 							const kanjiPerSite = result["wkhighlight_kanjiPerSite"] ? result["wkhighlight_kanjiPerSite"] : {};
 							const site = window.location.href;
 							if (kanjiPerSite) {
-								kanjiPerSite[site] = {"number":totalHighlightedKanji,"kanji":allHighlightedKanji};
+								kanjiPerSite[site] = {"number":totalHighlightedKanji,"kanji":{learned:learnedHighlightedKanji, notLearned:notLearnedHighlightedKanji}};
 							}
 							chrome.storage.local.set({"wkhighlight_kanjiPerSite":kanjiPerSite});
 						});
-						chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlightedKanji, "wkhighlight_allHighLightedKanji":allHighlightedKanji});
+						chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlightedKanji, "wkhighlight_allHighLightedKanji":{learned:learnedHighlightedKanji, notLearned:notLearnedHighlightedKanji}});
 						} ,20);
 					}
 				}, 2000);

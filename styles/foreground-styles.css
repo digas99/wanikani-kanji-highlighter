@@ -13,10 +13,12 @@
 /* 0. VARIABLES */
 
 :root {
-	--default-color: #2c5091;
-	--radical-tag-color: #00ffe7;
-	--kanji-tag-color: #fff700;
-	--vocab-tag-color: #eb4c78;
+	--highlight-default-color: #2c5091;
+	--default-color: #475058;
+	--notLearned-color: #a32727;
+	--radical-tag-color: #65b6ae;
+	--kanji-tag-color: #e7e485;
+	--vocab-tag-color: #fc759b;
 	--reading-tag-bkcolor: #2e2e2e;
 	--popup-details-title-color: white;
 	--popup-details-title-bkcolor: #434141;
@@ -60,26 +62,33 @@
 
 .wkhighlighter_highlighted,
 .wkhighlighter_highlighted_underlined,
-.wkhighlighter_highlighted_bold {
+.wkhighlighter_highlighted_bold,
+.wkhighlighter_highlightedNotLearned {
 	font-size: 100% !important;
 	display: unset !important;
 }
 
+.wkhighlighter_highlightedNotLearned {
+	all: unset !important;
+	background: var(--notLearned-color) !important;
+	color: white !important;
+}
+
 .wkhighlighter_highlighted {
 	all: unset !important;
-	background: var(--default-color) !important;
+	background: var(--highlight-default-color) !important;
 	color: white !important;
 }
 
 .wkhighlighter_highlighted_underlined {
     background: unset !important;
     color: inherit !important;
-    border-bottom: 3px solid var(--default-color) !important;
+    border-bottom: 3px solid var(--highlight-default-color) !important;
 }
 
 .wkhighlighter_highlighted_bold {	
     background: unset !important;
-    color: var(--default-color) !important;
+    color: var(--highlight-default-color) !important;
     font-weight: bold !important;
 }
 
@@ -102,7 +111,7 @@
 	bottom: 0;
     opacity: var(--detailsPopup-opacity);
     width: 150px;
-	height: 150px;
+	height: 170px;
 	transition: 0.3s;
 	overflow: hidden;
 	box-shadow: 0px 0px 5px 1px black;
@@ -112,7 +121,7 @@
 
 .wkhighlighter_detailsPopup > div {
 	text-align: center;
-    margin-top: 10px;
+    /* margin-top: 10px; */
 	pointer-events: none;
 }
 
@@ -161,6 +170,19 @@
 	z-index: 1;
 }
 
+#wkhighlighter_detailsPopupCloseX {
+	position: absolute;
+    top: 8px;
+    right: 9px;
+	display: none;
+}
+
+#wkhighlighter_detailsPopupCloseX>img {
+	width: 18px;
+    filter: invert(1);
+	pointer-events: none;
+}
+
 .wkhighlighter_auto_height {
 	height: auto !important;
 }
@@ -170,7 +192,8 @@
 }
 
 .wkhighlighter_popupDetails_readings {
-	text-align: center;
+	display: flex;
+    flex-direction: column;
 	color: white;
 	font-size: 15px;
 }
@@ -181,6 +204,7 @@
     padding-left: 15px !important;
     padding-right: 15px !important;
 	display: inline-flex;
+	margin: auto;
 }
 
 
@@ -339,6 +363,6 @@
 	transform: scale(1.1);
 }
 
-.wkhighlighter_detailsPopup_sentencesWrapper .wkhighlighter_highlighted {
+.wkhighlighter_detailsPopup_sentencesWrapper .wkhighlighter_highlighted, .wkhighlighter_highlightedNotLearned {
 	cursor: pointer !important;
 }

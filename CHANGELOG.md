@@ -1,3 +1,21 @@
+# Changelog v0.5.0
+Not Released Yet
+
+### - Reviews and Lessons tracking! Extra Highlight!
+
+## Content
+- Kanji you haven't learned yet are now also highlighted when they show up in the page, in a different color from the ones you learned. They work the same way as the ones you already learned, meaning they also have a details popup, etc...
+- The small details popup, that shows up in the bottom right corner of the page after hovering over a kanji, now also displays the main meaning of that kanji
+
+## Popup
+- Extension popup's first page now shows number of Lessons and Reviews available at the moment. It also shows when more reviews will be available
+- The list of kanji that were highlighted now have colors to distinguish the kanji you learned from the kanji you didn't
+
+## Bug Fix
+- Fixed weird placements of elements inside kanji details popup (extra blank spaces, content too big for its container, etc...)
+
+---
+
 # [Changelog v0.4.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.5)
 Released on 02/08/2021
 
@@ -6,7 +24,7 @@ Released on 02/08/2021
 - Added the list of kanji that were highlighted in that page to the extension popup
 
 ## Bug Fix
-- Content inside kanji details popup no longer loads multiple times, which was also causing problems when navigating through kanji and vocabulary within the kanji details popup.
+- Content inside kanji details popup no longer loads multiple times, which was also causing problems when navigating through kanji and vocabulary within the kanji details popup
 
 # [Changelog v0.4.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.4)
 Released on 30/07/2021

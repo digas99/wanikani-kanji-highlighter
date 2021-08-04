@@ -2,7 +2,20 @@
 
 var injectedDetailsPopup = true;
 
-(() => {	
+(() => {
+
+	let infoInPopup = false;
+	let allKanji = {};
+	chrome.storage.local.get(["wkhighlight_allkanji"], data => allKanji = data["wkhighlight_allkanji"]);
+	let allRadicals = {};
+	chrome.storage.local.get(["wkhighlight_allradicals"], data => allRadicals = data["wkhighlight_allradicals"]);
+	let allVocab = {};
+	chrome.storage.local.get(["wkhighlight_allvocab"], data => allVocab = data["wkhighlight_allvocab"]);
+
+	let highlightingClass;
+	chrome.storage.local.get(["wkhighlight_settings"], result => highlightingClass = result["wkhighlight_settings"][2]);
+
+	let extraContainersRemoverInterval;
 
 	const createPopup = () => {
 		const div = document.createElement("div");
@@ -84,7 +97,7 @@ var injectedDetailsPopup = true;
 				img.style.width = "40px";
 				p.appendChild(img);
 			}
-			p.classList.add("wkhighlighter_detailsPopup_cards", highlightingClass);
+			p.classList.add("wkhighlighter_detailsPopup_cards", highlightingClass, "wkhighlighter_highlightedNotLearned");
 			p.setAttribute('data-item-id', id);
 			li.appendChild(a);
 			a.appendChild(p);
@@ -114,14 +127,37 @@ var injectedDetailsPopup = true;
 		return table;
 	}
 	
-	const createItemCharContainer = (width, characters, highlightingClass, itemId, inSideBar) => {
+	const createItemCharContainer = (width, characters, highlightingClasses, itemId, inSideBar) => {
 		const type = allKanji[itemId] ? "kanji" : "vocabulary";
+		const itemInfo = type == "kanji" ? allKanji[itemId] : allVocab[itemId];
+
 		const itemWrapper = document.createElement("div");
 		if (inSideBar) {
 			itemWrapper.classList.add("wkhighlighter_focusPopup_kanji");
 			itemWrapper.style.width = width+"px";
 		}
-	
+		else {
+			// add kanji first meaning to small details popup
+			const kanjiTitle = document.createElement("p");
+			itemWrapper.appendChild(kanjiTitle);
+			kanjiTitle.style.color = "black";
+			kanjiTitle.style.fontSize = "19px";
+			kanjiTitle.style.backgroundColor = "white";
+			kanjiTitle.style.marginBottom = "8px";
+			kanjiTitle.appendChild(document.createTextNode(itemInfo["meanings"][0]));
+			kanjiTitle.id = "wkhighlighter_smallDetailsPopupKanjiTitle";
+		}
+
+		// close details popup X
+		const closeXWrapper = document.createElement("div");
+		itemWrapper.appendChild(closeXWrapper);
+		closeXWrapper.id = "wkhighlighter_detailsPopupCloseX";
+		closeXWrapper.classList.add("clickable");
+		const closeX = document.createElement("img");
+		closeX.src = "https://i.imgur.com/E1OSzfu.png";
+		closeX.alt = "close";
+		closeXWrapper.appendChild(closeX);
+
 		const link = document.createElement("a");
 		link.target = "_blank";
 		itemWrapper.appendChild(link);
@@ -134,10 +170,9 @@ var injectedDetailsPopup = true;
 			charsWrapper.style.setProperty("font-size", (48-6*(characters.length - 5))+"px", "important");
 	
 		charsWrapper.classList.add("wkhighlighter_detailsPopup_kanji");
-		if (highlightingClass)
-			charsWrapper.classList.add(highlightingClass);
+		if (highlightingClasses)
+			highlightingClasses.forEach(highlightingClass => charsWrapper.classList.add(highlightingClass));
 	
-		const itemInfo = type == "kanji" ? allKanji[itemId] : allVocab[itemId];
 		link.href = itemInfo["document_url"];
 	
 		const ul = document.createElement("ul");
@@ -178,7 +213,10 @@ var injectedDetailsPopup = true;
 		const detailedInfoWrapper = document.createElement("div");
 		detailedInfoWrapper.classList.add("wkhighlighter_popupDetails_detailedInfoWrapper");
 		detailsPopup.appendChild(detailedInfoWrapper);
-	
+		const kanjiWrapper = document.getElementsByClassName("wkhighlighter_focusPopup_kanji")[0];
+		if (kanjiWrapper)
+			detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
+
 		// details container
 		const details = document.createElement("div");
 		details.style.padding = "15px";
@@ -229,6 +267,22 @@ var injectedDetailsPopup = true;
 		const detailedInfoWrapper = document.createElement("div");
 		detailedInfoWrapper.classList.add("wkhighlighter_popupDetails_detailedInfoWrapper");
 		detailsPopup.appendChild(detailedInfoWrapper);
+		let kanjiWrapper = document.getElementsByClassName("wkhighlighter_focusPopup_kanji")[0];
+		if (kanjiWrapper)
+			detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
+		else {
+			// guarantee that the kanjiWrapper exists and is full setup to get its correct size
+			const heightUpdaterInterval = setInterval(() => {
+				kanjiWrapper = document.getElementsByClassName("wkhighlighter_focusPopup_kanji")[0];
+				if (kanjiWrapper && kanjiWrapper.childElementCount > 1) {
+					// wait for the elements to be all setup
+					setTimeout(() => {
+						detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
+						clearInterval(heightUpdaterInterval);
+					}, 200);
+				}
+			}, 100);
+		}
 	
 		// details container
 		const details = document.createElement("div");
@@ -285,17 +339,6 @@ var injectedDetailsPopup = true;
 		return detailedInfoWrapper;
 	}	
 
-	let infoInPopup = false;
-	let allKanji = {};
-	chrome.storage.local.get(["wkhighlight_allkanji"], data => allKanji = data["wkhighlight_allkanji"]);
-	let allRadicals = {};
-	chrome.storage.local.get(["wkhighlight_allradicals"], data => allRadicals = data["wkhighlight_allradicals"]);
-	let allVocab = {};
-	chrome.storage.local.get(["wkhighlight_allvocab"], data => allVocab = data["wkhighlight_allvocab"]);
-
-	let highlightingClass;
-	chrome.storage.local.get(["wkhighlight_settings"], result => highlightingClass = result["wkhighlight_settings"][2]);
-
 	chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		// create kanji details popup coming from search
 		const infoPopupFromSearch = request["infoPopupFromSearch"];
@@ -312,12 +355,12 @@ var injectedDetailsPopup = true;
 				chrome.storage.local.get(["wkhighlight_kanji_assoc"], data => {
 					const assocList = data["wkhighlight_kanji_assoc"];
 					if (assocList) 
-						detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, characters, highlightingClass, assocList[characters], false));
+						detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, characters, [highlightingClass, "wkhighlighter_highlightedNotLearned"], assocList[characters], false));
 				});
 			}
 			else {
 				const id = Object.entries(allVocab).filter(([key, val]) => val["characters"] == characters)[0][0];
-				detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, characters, highlightingClass, id, false));
+				detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, characters, [highlightingClass, "wkhighlighter_highlightedNotLearned"], id, false));
 			}
 		}
 	});
@@ -327,7 +370,8 @@ var injectedDetailsPopup = true;
 		let detailsPopup = document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
 	
 		// If hovering over a kanji
-		if (highlightingClass && node.classList.contains(highlightingClass) && !(detailsPopup && detailsPopup.contains(node))) {
+		if (highlightingClass && node.classList.contains("wkhighlighter_hoverable") && !(detailsPopup && detailsPopup.contains(node))) {
+
 			if (!detailsPopup)
 				detailsPopup = createPopup();
 				
@@ -335,7 +379,7 @@ var injectedDetailsPopup = true;
 			chrome.storage.local.get(["wkhighlight_kanji_assoc"], data => {
 				console.log("creating main wrapper for: ",kanji);
 
-				let mainWrapper = createItemCharContainer(detailsPopup.offsetWidth, kanji, highlightingClass, data["wkhighlight_kanji_assoc"][kanji], infoInPopup);
+				let mainWrapper = createItemCharContainer(detailsPopup.offsetWidth, kanji, [highlightingClass, "wkhighlighter_highlightedNotLearned"], data["wkhighlight_kanji_assoc"][kanji], infoInPopup);
 	
 				// replace kanji and readings
 				const firstChild = detailsPopup.firstChild;
@@ -347,12 +391,33 @@ var injectedDetailsPopup = true;
 	
 				// if popup expanded
 				if (infoInPopup) {
+					// show close X
+					const closeX = document.getElementById("wkhighlighter_detailsPopupCloseX");
+					if (closeX)
+						closeX.style.display = "inline";
+
 					chrome.storage.local.get(["wkhighlight_currentKanjiInfo"], info => {
 						detailsPopup.querySelectorAll(".wkhighlighter_popupDetails_detailedInfoWrapper").forEach(wrapper => wrapper.remove());
 						detailsPopup.appendChild(createKanjiDetailedInfo(detailsPopup, info["wkhighlight_currentKanjiInfo"]));
 					});
-					//infoInPopup = true;
 				}
+
+				// make sure only one interval is running
+				if (extraContainersRemoverInterval)
+					clearInterval(extraContainersRemoverInterval);
+
+				let containers;
+				// make sure there is only one info container
+				extraContainersRemoverInterval = setInterval(() => {
+					containers = document.getElementsByClassName("wkhighlighter_popupDetails_detailedInfoWrapper");
+					// i = 1 to ignore first container
+					if (containers) {
+						for (let i = 1; i < containers.length; i++) {
+							console.log("removed extra container!");
+							containers[i].remove();
+						}
+					}
+				}, 2000);
 			});
 		}
 	
@@ -360,6 +425,24 @@ var injectedDetailsPopup = true;
 		if (!infoInPopup && detailsPopup && (node === detailsPopup || detailsPopup.contains(node))) {
 			detailsPopup.classList.add("wkhighlighter_focusPopup");
 			detailsPopup.style.height = window.innerHeight+"px";
+
+			// show close X
+			const closeX = document.getElementById("wkhighlighter_detailsPopupCloseX");
+			if (closeX)
+				closeX.style.display = "inline";
+
+			// remove temp kanji info from small details popup
+			const tempKanjiTitle = document.getElementById("wkhighlighter_smallDetailsPopupKanjiTitle");
+			if (tempKanjiTitle)
+				tempKanjiTitle.remove();
+
+			// remove ... from readings
+			const readingsRow = Array.from(document.getElementsByClassName("wkhighlighter_popupDetails_readings_row"));
+			readingsRow.forEach(row => {
+				const ellipsis = row.childNodes[row.childNodes.length-1];
+				if (ellipsis && ellipsis.innerText == "...")
+					ellipsis.remove();
+			});
 	
 			const itemWrapper = detailsPopup.firstChild;
 			setTimeout(() => {
@@ -374,6 +457,7 @@ var injectedDetailsPopup = true;
 				console.log(type, info);
 				detailsPopup.appendChild(type == "kanji" ? createKanjiDetailedInfo(detailsPopup, info["wkhighlight_currentKanjiInfo"]) : createVocabDetailedInfo(detailsPopup, info["wkhighlight_currentVocabInfo"]));
 			});
+			
 			infoInPopup = true;
 		}
 	
@@ -439,11 +523,12 @@ var injectedDetailsPopup = true;
 		const detailsPopup = document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
 		
 		if (detailsPopup) {
-			// not clicked on details popup
-			if (node !== detailsPopup && !detailsPopup.contains(node) && getComputedStyle(node).cursor !== "pointer") {
+			// not clicked on details popup or clicked in close X
+			if ((node !== detailsPopup && !detailsPopup.contains(node) && getComputedStyle(node).cursor !== "pointer") || node.id == "wkhighlighter_detailsPopupCloseX") {
 				detailsPopup.classList.add("wkhighlighter_rightOverFlowPopup");
-				infoInPopup = false;
+				// little delay to make sure it is not overwriten
 				setTimeout(() => {
+					infoInPopup = false;
 					if (detailsPopup)
 						detailsPopup.remove();
 				}, 200);
@@ -485,7 +570,7 @@ var injectedDetailsPopup = true;
 					const detailsPopup = document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
 					// replace item from top
 					detailsPopup.firstChild.remove();
-					detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, item["characters"], highlightingClass, id, true));
+					detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, item["characters"], [highlightingClass, "wkhighlighter_highlightedNotLearned"], id, true));
 	
 					detailsPopup.querySelectorAll(".wkhighlighter_popupDetails_detailedInfoWrapper").forEach(wrapper => wrapper.remove());
 					detailsPopup.appendChild(type == "kanji" ? createKanjiDetailedInfo(detailsPopup, allKanji[id]) : createVocabDetailedInfo(detailsPopup, allVocab[id]));
@@ -493,8 +578,8 @@ var injectedDetailsPopup = true;
 				console.log("clicked");
 			}
 	
-			// clicked in a highlighted kanji (withing the info popup)
-			if (node.classList.contains("wkhighlighter_highlighted")) {
+			// clicked in a highlighted kanji (within the info popup)
+			if (node.classList.contains("wkhighlighter_highlighted") || node.classList.contains("wkhighlighter_highlightedNotLearned")) {
 				const character = node.textContent;
 				chrome.storage.local.get(["wkhighlight_kanji_assoc"], data => {
 					const assocList = data["wkhighlight_kanji_assoc"];
@@ -504,14 +589,13 @@ var injectedDetailsPopup = true;
 						const detailsPopup = document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
 						// replace item from top
 						detailsPopup.firstChild.remove();
-						detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, kanji["characters"], highlightingClass, id, true));
+						detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, kanji["characters"], [highlightingClass, "wkhighlighter_highlightedNotLearned"], id, true));
 	
 						detailsPopup.querySelectorAll(".wkhighlighter_popupDetails_detailedInfoWrapper").forEach(wrapper => wrapper.remove());
 						detailsPopup.appendChild(createKanjiDetailedInfo(detailsPopup, kanji));
 					}
 				});
 			}
-	
 		}
 	});
 	

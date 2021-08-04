@@ -27,10 +27,11 @@
 :root {
 	--body-base-width: 225px;
 	--default-color: #dc6560;
-	--radical-tag-color: #00ffe7;
-	--kanji-tag-color: #fff700;
-	--vocab-tag-color: #eb4c78;
+	--radical-tag-color: #65b6ae;
+	--kanji-tag-color: #e7e485;
+	--vocab-tag-color: #fc759b;
 	--highlight-default-color: #2c5091;
+	--notLearned-color: #a32727;
 	--wanikani: #f100a1;
 	--dark-back: #383838;
 }
@@ -237,16 +238,23 @@ transform: rotate(134deg);
 
 .topNav {
 	position: fixed;
-    background-color: white;
+    background-color: var(--dark-back);
     top: 0;
     width: 100%;
-    padding: 6px;
+    padding: 10px;
     display: inline-flex;
+	color: white;
+    margin-left: -8px;
+	z-index: 1;
 }
 
 #goBack {
 	margin: 2px;
 	cursor: pointer;
+}
+
+#goBack > i {
+	border-color: white;
 }
 
 /* 5. API KEY INPUT PAGE */
@@ -330,8 +338,6 @@ transform: rotate(134deg);
 }
 
 #nmrKanjiIndicator {
-	background-color: var(--highlight-default-color);
-    color: white;
     padding: 2px;
 }
 
@@ -356,10 +362,16 @@ transform: rotate(134deg);
     border: 1px solid silver;
 }
 
-#kanjiHighlightedList li:hover {
+.kanjiHighlightedLearned {
 	background-color: var(--highlight-default-color);
+}
+
+.kanjiHighlightedNotLearned {
+	background-color: var(--notLearned-color);
+}
+
+.kanjiHighlightedLearned, .kanjiHighlightedNotLearned {
 	color: white;
-	opacity: 1 !important;
 }
 
 #kanjiHighlightedList::-webkit-scrollbar {
@@ -448,7 +460,7 @@ transform: rotate(134deg);
 
 #searchResultItemWrapper {
 	font-size: 15px;
-	max-height: 352px;
+	max-height: 336px;;
     overflow: auto;
 	text-align: center;
 }
@@ -612,9 +624,22 @@ transform: rotate(134deg);
 	color: var(--wanikani);
     font-size: 14px;
     margin-top: 15px;
+	text-align: center;
 }
 
 /* 8. BLACKLISTED SITE PAGE */
+
+#blacklistButtonWrapper {
+	margin-top: 13px;
+    border-top: 1px solid silver;
+    padding-top: 13px;
+}
+
+#blacklistButton {
+	max-width: 125px;
+	padding: 7px;
+	margin: auto;
+}
 
 #warningWrapper {
 	text-align: center;

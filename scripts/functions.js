@@ -59,6 +59,7 @@ const modifiedSince = async (apiKey, date, url) => {
 	return await fetch(endpoint)
 		.then(response => {
 			const result = response.status !== 304;
+			console.log(response);
 			console.log("MODIFIED: "+result);
 			return result;
 		
@@ -75,6 +76,7 @@ const clearCache = () => {
 				keysToRemove.push(key);
 			}
 		});
+		window.location.reload();
 		chrome.storage.local.remove(keysToRemove, () => alert("Local data cleared! This didn't affect your WaniKani account!"));
 	});
 }
