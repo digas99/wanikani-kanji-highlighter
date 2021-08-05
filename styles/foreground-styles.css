@@ -58,6 +58,14 @@
 	opacity: 0.5 !important;
 }
 
+.hidden {
+	display: none !important;
+}
+
+.faded {
+	opacity: 0.3 !important;
+}
+
 /* 3. HIGHGLGHTS */
 
 .wkhighlighter_highlighted,
@@ -170,14 +178,37 @@
 	z-index: 1;
 }
 
-#wkhighlighter_detailsPopupCloseX {
-	position: absolute;
-    top: 8px;
-    right: 9px;
-	display: none;
+#wkhighlighter_detailsPopupKanjiLock {
+    bottom: 14px;
+    left: 9px;
 }
 
-#wkhighlighter_detailsPopupCloseX>img {
+#wkhighlighter_detailsPopupFix {
+    bottom: 40px;
+    left: 9px;
+}
+
+#wkhighlighter_detailsPopupGoUp {
+    bottom: 14px;
+    right: 9px;
+}
+
+#wkhighlighter_detailsPopupGoBack {
+    top: 8px;
+    left: 9px;
+	transform: rotate(-90deg);
+}
+
+#wkhighlighter_detailsPopupCloseX {
+    top: 8px;
+    right: 9px;
+}
+
+.wkhighlighter_detailsPopupButton {
+	position: absolute;
+}
+
+.wkhighlighter_detailsPopupButton>img {
 	width: 18px;
     filter: invert(1);
 	pointer-events: none;
@@ -236,6 +267,10 @@
 
 .wkhighlighter_detailsPopup_sectionContainer { 
 	margin: 15px 0 !important;
+}
+
+.wkhighlighter_detailsPopup_sectionContainer p:not(span) {
+    color: white;
 }
 
 .wkhighlighter_popupDetails_title {

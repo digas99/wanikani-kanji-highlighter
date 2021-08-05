@@ -62,7 +62,7 @@ const fetchReviewedKanjiID = async (apiToken, page) => {
 const setupLearnedKanji = async (apiToken, page, kanji) => {
 	const IDs = await fetchReviewedKanjiID(apiToken, page);
 	const learnedKanji = IDs.map(id => kanji["wkhighlight_allkanji"][id].slug);
-	chrome.storage.local.set({"wkhighlight_learnedKanji": learnedKanji, "wkhighlight_learnedKanji_updated":formatWKDate(new Date())});
+	chrome.storage.local.set({"wkhighlight_learnedKanji": learnedKanji, "wkhighlight_learnedKanji_updated":formatDate(new Date())});
 	return learnedKanji;
 }
 
@@ -109,7 +109,7 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	}
 
 	chrome.storage.local.get(["wkhighlight_learnedKanji", "wkhighlight_learnedKanji_updated"], response => {
-		const date = response["wkhighlight_learnedKanji_updated"] ? response["wkhighlight_learnedKanji_updated"] : formatWKDate(new Date());
+		const date = response["wkhighlight_learnedKanji_updated"] ? response["wkhighlight_learnedKanji_updated"] : formatDate(new Date());
 		modifiedSince(apiToken, date, learnedKanjiSource)
 			.then(modified => {
 				// even if not modified, fetch if learnedKanji not found in storage

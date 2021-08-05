@@ -139,7 +139,7 @@ window.onload = () => {
 					else {
 						main.appendChild(logoDiv);
 						chrome.storage.local.get(["wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons"], response => {
-							const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatWKDate(new Date());
+							const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatDate(new Date());
 							modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
 								.then(modified => {
 									// if user info has been updated in wanikani, then update cache
@@ -148,7 +148,7 @@ window.onload = () => {
 											.then(user => {
 												// code 429 is Rate limit exceeded
 												if (!window.chrome.runtime.lastError && user && user.code != 429) 
-													chrome.storage.local.set({"wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatWKDate(new Date())});
+													chrome.storage.local.set({"wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
 										});
 									}
 	
@@ -323,7 +323,7 @@ window.onload = () => {
 																		"data":lessons["data"]
 																	};
 																	setupSummary(updateReviews, updatedLessons);
-																	chrome.storage.local.set({"wkhighlight_reviews": updateReviews, "wkhighlight_lessons": updatedLessons, "wkhighlight_summary_updated":formatWKDate(new Date())});
+																	chrome.storage.local.set({"wkhighlight_reviews": updateReviews, "wkhighlight_lessons": updatedLessons, "wkhighlight_summary_updated":formatDate(new Date())});
 																}
 															});
 													});
@@ -503,7 +503,7 @@ const submitAction = () => {
 				if (!window.chrome.runtime.lastError && user) {
 					let msg, color;
 					if (user.data.subscription.active) {
-						chrome.storage.local.set({"wkhighlight_apiKey":apiKey, "wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatWKDate(new Date())});
+						chrome.storage.local.set({"wkhighlight_apiKey":apiKey, "wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
 						msg = "The API key was accepted!";
 						color = "green";
 					}

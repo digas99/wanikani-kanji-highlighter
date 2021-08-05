@@ -42,7 +42,7 @@ function msToTime(ms) {
 }
 
 // format date into <day-name>, <day> <month> <year> <hour>:<minute>:<second> GMT
-const formatWKDate = (date, type) => {
+const formatDate = (date, type) => {
 	const split = date.toString().split(" ");
 	return `${split[0]}, ${split[2]} ${split[1]} ${split[3]} ${split[4]} GMT`;
 }

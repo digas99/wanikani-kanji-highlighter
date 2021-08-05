@@ -58,6 +58,7 @@ var injectedHighlight = true;
 				const tagFilteringConditions = (tag, highlightClass) => !unwantedTags.includes(tag.localName) && textChildNodes(tag).length > 0 && !(hasDirectChildHighlighted(tag, highlightClass) || tag.classList.contains(highlightClass));
 
 				const highlighter = (values, className, allTags) => {
+					console.log("HIGHLIGHT: inside highlighter");
 					const kanjiRegex = new RegExp(`[${values.join('')}]`, "g");
 					//console.log(kanjiRegex);
 					// check if there is any character to be highlighted
@@ -76,34 +77,11 @@ var injectedHighlight = true;
 					return highlightedKanji;
 				}
 				
-				setTimeout(() => {
-					learnedHighlightedKanji = [... new Set(learnedHighlightedKanji.concat(highlighter(values, highlightingClass, Array.from(document.getElementsByTagName("*")))))];
-					notLearnedHighlightedKanji = [... new Set(notLearnedHighlightedKanji.concat(highlighter(notLearnedYet, "wkhighlighter_highlightedNotLearned", Array.from(document.getElementsByTagName("*")))))];
-					totalHighlightedKanji = learnedHighlightedKanji.length + notLearnedHighlightedKanji.length;
-					chrome.runtime.sendMessage({badge:totalHighlightedKanji, nmrKanjiHighlighted:totalHighlightedKanji, kanjiHighlighted:{learned:learnedHighlightedKanji, notLearned:notLearnedHighlightedKanji}});
-					chrome.storage.local.get(["wkhighlight_kanjiPerSite"], result => {
-						const kanjiPerSite = result["wkhighlight_kanjiPerSite"] ? result["wkhighlight_kanjiPerSite"] : {};
-						const site = window.location.href;
-						if (kanjiPerSite) {
-							kanjiPerSite[site] = {"number":totalHighlightedKanji,"kanji":{learned:learnedHighlightedKanji, notLearned:notLearnedHighlightedKanji}};
-						}
-						chrome.storage.local.set({"wkhighlight_kanjiPerSite":kanjiPerSite});
-					});
-					chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlightedKanji, "wkhighlight_allHighLightedKanji":{learned:learnedHighlightedKanji, notLearned:notLearnedHighlightedKanji}});
-				} ,functionDelay);
-
-				let lastNmrElements = 0;
-				let nmrElements;
-				// continuously check for the number of elements in the page
-				// if that number updates, then run highlighter again
-				const highlightUpdate = setInterval(() => {
-					const allTags = Array.from(document.getElementsByTagName("*"));
-					nmrElements = allTags.length;
-					if (nmrElements !== lastNmrElements) {
-						lastNmrElements = nmrElements;
-						setTimeout(() => {
-						learnedHighlightedKanji = [... new Set(learnedHighlightedKanji.concat(highlighter(values, highlightingClass, allTags)))];
-						notLearnedHighlightedKanji = [... new Set(notLearnedHighlightedKanji.concat(highlighter(notLearnedYet, "wkhighlighter_highlightedNotLearned", allTags)))];
+				const highlightSetup = (tags, highlightDelay) => {
+					setTimeout(() => {
+						console.log("HIGHLIGHT: inside highlightSetup");
+						learnedHighlightedKanji = [... new Set(learnedHighlightedKanji.concat(highlighter(values, highlightingClass, tags)))];
+						notLearnedHighlightedKanji = [... new Set(notLearnedHighlightedKanji.concat(highlighter(notLearnedYet, "wkhighlighter_highlightedNotLearned", tags)))];
 						totalHighlightedKanji = learnedHighlightedKanji.length + notLearnedHighlightedKanji.length;
 						chrome.runtime.sendMessage({badge:totalHighlightedKanji, nmrKanjiHighlighted:totalHighlightedKanji, kanjiHighlighted:{learned:learnedHighlightedKanji, notLearned:notLearnedHighlightedKanji}});
 						chrome.storage.local.get(["wkhighlight_kanjiPerSite"], result => {
@@ -115,7 +93,21 @@ var injectedHighlight = true;
 							chrome.storage.local.set({"wkhighlight_kanjiPerSite":kanjiPerSite});
 						});
 						chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlightedKanji, "wkhighlight_allHighLightedKanji":{learned:learnedHighlightedKanji, notLearned:notLearnedHighlightedKanji}});
-						} ,20);
+					}, highlightDelay);
+				}
+
+				highlightSetup(Array.from(document.getElementsByTagName("*")), functionDelay);
+
+				let lastNmrElements = 0;
+				let nmrElements;
+				// continuously check for the number of elements in the page
+				// if that number updates, then run highlighter again
+				const highlightUpdate = setInterval(() => {
+					const allTags = Array.from(document.getElementsByTagName("*"));
+					nmrElements = allTags.length;
+					if (nmrElements !== lastNmrElements) {
+						lastNmrElements = nmrElements;
+						highlightSetup(allTags, 20);
 					}
 				}, 2000);
 

@@ -6,6 +6,14 @@ Not Released Yet
 ## Content
 - Kanji you haven't learned yet are now also highlighted when they show up in the page, in a different color from the ones you learned. They work the same way as the ones you already learned, meaning they also have a details popup, etc...
 - The small details popup, that shows up in the bottom right corner of the page after hovering over a kanji, now also displays the main meaning of that kanji
+- Added shortcut keys to interact with the kanji details popup:
+  - **l/L:** Lock the kanji in the details popup, meaning it won't change when hover over other kanji (might come in hand when your mouse is surrounded by several highlighted kanji)   
+  - **f/F:** Fix the kanji details popup, not allowing it to close when clicking outside of it
+  - **x/X:** Close the kanji details popup
+  - **o/O:** Expand the small kanji details popup on the bottom right corner
+  - **u/U:** Scroll the kanji details popup all the way to the top
+  - **b/B:** Show information from the last kanji in the details popup
+- Added buttons to the kanji details popup, near the kanji container, to do the same thing as the sortcut keys, but manually
 
 ## Popup
 - Extension popup's first page now shows number of Lessons and Reviews available at the moment. It also shows when more reviews will be available
