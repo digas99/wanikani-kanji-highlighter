@@ -150,6 +150,10 @@ var injectedDetailsPopup = true;
 			kanjiTitle.style.marginBottom = "8px";
 			kanjiTitle.appendChild(document.createTextNode(itemInfo["meanings"][0]));
 			kanjiTitle.id = "wkhighlighter_smallDetailsPopupKanjiTitle";
+
+			const detailsPopup = document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
+			if (detailsPopup && characters.length >= 3)
+				detailsPopup.style.width = "275px";
 		}
 
 		// kanji container buttons
@@ -186,9 +190,13 @@ var injectedDetailsPopup = true;
 			openedKanji.push(infoToSave);
 		}
 
+		const kanjiContainerWrapper = document.createElement("div");
+		itemWrapper.appendChild(kanjiContainerWrapper);
+		kanjiContainerWrapper.style.margin = `${characters.length >= 4 ? 30 : 0}px 0`;
+
 		const link = document.createElement("a");
 		link.target = "_blank";
-		itemWrapper.appendChild(link);
+		kanjiContainerWrapper.appendChild(link);
 	
 		const charsWrapper = document.createElement("p");
 		link.appendChild(charsWrapper);
@@ -231,7 +239,7 @@ var injectedDetailsPopup = true;
 			li.appendChild(document.createTextNode(readings.join(", ")));
 			ul.appendChild(li);
 		}
-		itemWrapper.appendChild(ul);
+		kanjiContainerWrapper.appendChild(ul);
 	
 		return itemWrapper;
 	}
@@ -667,6 +675,23 @@ var injectedDetailsPopup = true;
 				kanjiLocked = !kanjiLocked;
 				switchClass(document.getElementById("wkhighlighter_detailsPopupKanjiLock"), "faded");
 			}
+		}
+
+		// if details popup is expanded
+		if (infoInPopup) {
+			if (key == 'f' || key == 'F') {
+				// FIX DETAILS POPUP
+				detailsPopupFixed = !detailsPopupFixed;
+				switchClass(document.getElementById("wkhighlighter_detailsPopupFix"), "faded");
+			}
+
+			if (key == 'u' || key == 'U') {
+				// SCROLL UP
+				const popup = detailsPopup ? detailsPopup : document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
+				if (popup) {
+					popup.scrollTo(0, 0);
+				}
+			}
 
 			if (key == 'b' || key == "B") {
 				// SHOW PREVIOUS KANJI INFO
@@ -689,23 +714,6 @@ var injectedDetailsPopup = true;
 					const buttons = Array.from(document.getElementsByClassName("wkhighlighter_detailsPopupButton"));
 					if (buttons)
 						buttons.forEach(button => button.classList.remove("hidden"));
-				}
-			}
-		}
-
-		// if details popup is expanded
-		if (infoInPopup) {
-			if (key == 'f' || key == 'F') {
-				// FIX DETAILS POPUP
-				detailsPopupFixed = !detailsPopupFixed;
-				switchClass(document.getElementById("wkhighlighter_detailsPopupFix"), "faded");
-			}
-
-			if (key == 'u' || key == 'U') {
-				// SCROLL UP
-				const popup = detailsPopup ? detailsPopup : document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
-				if (popup) {
-					popup.scrollTo(0, 0);
 				}
 			}
 		}
@@ -773,7 +781,7 @@ var injectedDetailsPopup = true;
 			const itemWrapper = detailsPopup.firstChild;
 			setTimeout(() => {
 				itemWrapper.classList.add("wkhighlighter_focusPopup_kanji");
-				itemWrapper.style.width = detailsPopup.offsetWidth+"px";
+				itemWrapper.style.width = "275px";
 				detailsPopup.style.overflowY = "auto";
 				detailsPopup.style.maxHeight = window.innerHeight+"px";
 			}, 200);

@@ -125,12 +125,12 @@ var injectedHighlight = true;
 		}
 	});
 
-	// message to the background saying a key was pressed
-	document.addEventListener("keydown", e => {
-		// if the key is not a modifier
-		if (!e.getModifierState(e.key))
-			chrome.runtime.sendMessage({key: "down"});
-	});
+	// // message to the background saying a key was pressed
+	// document.addEventListener("keydown", e => {
+	// 	// if the key is not a modifier
+	// 	if (!e.getModifierState(e.key))
+	// 		chrome.runtime.sendMessage({key: "down"});
+	// });
 
 	document.addEventListener("click", e => {
 		chrome.runtime.sendMessage({selectedText: window.getSelection().toString().trim()});

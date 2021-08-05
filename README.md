@@ -14,6 +14,7 @@ It works with any website, and provides detailed information about any kanji tha
 2. [Usage Guide](#usage-guide)
    * 2.1. [WaniKani API Token](#wanikani-api-token)
    * 2.2. [Kanji Details](#kanji-details)
+     * 2.2.1 [Shortcut Keys](#shortcut-keys)
    * 2.3. [Kanji Search](#kanji-search)
    * 2.4. [Writing Kana](#writing-kana)
    * 2.5. [Blacklisting a Site](#blacklisting-a-site)
@@ -103,6 +104,15 @@ When you find a Kanji you already learned, it will be highlighted. If you hover 
 If you hover over another highlighted kanji, the popup with the details will automatically update.
 
 When you no longer wish to have the popup visible, you can click anywhere on the page not covered by it, and it will collapse.
+
+#### Shortcut Keys:
+There a few shortcut keys that allow you to interact with the details popup through your keyboard. The shortcuts are:
+- **L**: Lock the kanji in the details popup, meaning it won't change when hover over other kanji (might come in hand when your mouse is surrounded by several highlighted kanji)   
+- **F**: Fix the kanji details popup, not allowing it to close when clicking outside of it
+- **X**: Close the kanji details popup
+- **O**: Expand the small kanji details popup on the bottom right corner
+- **U**: Scroll the kanji details popup all the way to the top
+- **B**: Show information from the last kanji in the details popup
 
 ### Kanji Search:
 You can search for any Kanji and Vocabulary taught on WaniKani, even if you didn't learn it yet, through the search bar in the extension popup.
