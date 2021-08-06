@@ -141,12 +141,8 @@ window.onload = () => {
 							document.body.style.cursor = "progress";
 							// only show content after loading everything
 							loadItemsLists(() => {
-								main.appendChild(logoDiv);
 								chrome.storage.local.get(["wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons"], response => {									
 									const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatDate(new Date());
-
-									loadingElem.remove();
-									clearInterval(loadingVal[1]);
 
 									modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
 										.then(modified => {
@@ -161,7 +157,11 @@ window.onload = () => {
 											}
 			
 											const userInfo = userData["wkhighlight_userInfo"]["data"];
-											if (userInfo) {					
+											if (userInfo) {
+												// remove loading animation
+												loadingElem.remove();
+												clearInterval(loadingVal[1]);	
+
 												const userInfoWrapper = document.createElement("div");
 												userInfoWrapper.id = "userInfoWrapper";
 												main.appendChild(userInfoWrapper);
@@ -251,7 +251,85 @@ window.onload = () => {
 												moreReviews.style.padding = "3px 0";
 												moreReviews.classList.add("bellow-border");
 												moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
+												
+												if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {					
+													const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchKanji);
+													chrome.storage.local.get(["wkhighlight_contextMenuSelectedText", "wkhighlight_kanjiPerSite"], result => {
+														const selectedText = result["wkhighlight_contextMenuSelectedText"];
+														if (selectedText) {
+															const input = [...searchArea.firstChild.childNodes].filter(child => child.tagName == "INPUT")[0];
+															input.value = selectedText;
+															const userInfoNav = document.getElementById("userInfoNavbar");
+															if (userInfoNav)
+																userInfoNav.style.display = "none";
 		
+															document.getElementById("kanjiSearchInput").click();
+															if (kanjiList.length == 0 || vocabList.length == 0) {
+																document.body.style.setProperty("cursor", "progress", "important");
+																loadItemsLists(() => {
+																	document.body.style.cursor = "inherit";
+																	searchKanji(input)
+																});
+															}
+															else
+																searchKanji(input);
+																
+															chrome.storage.local.remove(["wkhighlight_contextMenuSelectedText"]);
+															chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
+																chrome.browserAction.setBadgeText({text: result["wkhighlight_nmrHighLightedKanji"].toString(), tabId:activeTab.id});
+																chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:activeTab.id});
+															});
+														}
+		
+														const kanjiPerSite = result["wkhighlight_kanjiPerSite"];
+														if (kanjiPerSite) {
+															chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+																const currentTabUrl = tabs[0]["url"];
+																if (kanjiPerSite[currentTabUrl]) {
+																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${kanjiPerSite[currentTabUrl]["number"]}</strong> (in the page)`;
+																	if (kanjiPerSite[currentTabUrl]["number"] <= 10)
+																		kanjiFoundUl.style.textAlign = "center";
+																	const learned = kanjiPerSite[currentTabUrl]["kanji"]["learned"];
+																	const notLearned = kanjiPerSite[currentTabUrl]["kanji"]["notLearned"];
+																	[learned, notLearned].forEach(type => {
+																		type.forEach(kanji => {
+																			const kanjiFoundLi = document.createElement("li");
+																			kanjiFoundUl.appendChild(kanjiFoundLi);
+																			kanjiFoundLi.classList.add("clickable", "kanjiDetails", type === learned ? "kanjiHighlightedLearned" : "kanjiHighlightedNotLearned");
+																			kanjiFoundLi.appendChild(document.createTextNode(kanji));
+																		});
+																	});
+																}
+															});
+														}
+													});
+													topRightNavbar.insertBefore(searchArea, topRightNavbar.firstChild);
+													const searchWrapper = searchArea.firstChild;
+													const searchTypeWrapper = document.createElement("div");
+													searchWrapper.appendChild(searchTypeWrapper);
+													searchTypeWrapper.classList.add("kanjiSearchTypeWrapper");
+													searchTypeWrapper.id = "kanjiSearchTypeKana";
+													const searchType = document.createElement("span");
+													searchTypeWrapper.appendChild(searchType);
+													searchType.id = "kanjiSearchType";
+													searchType.appendChild(document.createTextNode("あ"));
+												}
+												else {
+													const notRunAtWK = document.createElement("li");
+													notRunAtWK.appendChild(document.createTextNode("Limited features while @wanikani, sorry!"));
+													notRunAtWK.id = "notRunAtWK";
+													userElementsList.appendChild(notRunAtWK);
+												}
+		
+												const blacklistButtonWrapper = document.createElement("div");
+												userInfoWrapper.appendChild(blacklistButtonWrapper);
+												blacklistButtonWrapper.id = "blacklistButtonWrapper";
+												const blacklistButton = document.createElement("div");
+												blacklistButton.id = "blacklistButton";
+												blacklistButtonWrapper.appendChild(blacklistButton);
+												blacklistButton.classList.add("button");
+												blacklistButton.appendChild(document.createTextNode("Don't Run On This Site"));
+
 												const nextExactHour = (date, hours) => {
 													return new Date(new Date(new Date(new Date().setHours(date.getHours()+hours)).setMinutes(0)).setSeconds(0));
 												}
@@ -306,8 +384,7 @@ window.onload = () => {
 		
 												const setupSummary = (reviews, lessons) => {
 													if (reviews) {
-														const currentTime = new Date().getTime();
-														console.log(reviews);
+														const currentTime = new Date().getTime();			
 														document.getElementById("summaryReviews").innerText = reviews["count"];
 		
 														// get all the reviews for the next 14 days
@@ -402,89 +479,6 @@ window.onload = () => {
 													});
 		
 												setupSummary(reviews, lessons);
-		
-												if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {					
-													const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchKanji);
-													chrome.storage.local.get(["wkhighlight_contextMenuSelectedText", "wkhighlight_kanjiPerSite"], result => {
-														const selectedText = result["wkhighlight_contextMenuSelectedText"];
-														if (selectedText) {
-															const input = [...searchArea.firstChild.childNodes].filter(child => child.tagName == "INPUT")[0];
-															input.value = selectedText;
-															const userInfoNav = document.getElementById("userInfoNavbar");
-															if (userInfoNav)
-																userInfoNav.style.display = "none";
-		
-															document.getElementById("kanjiSearchInput").click();
-															if (kanjiList.length == 0 || vocabList.length == 0) {
-																document.body.style.setProperty("cursor", "progress", "important");
-																loadItemsLists(() => {
-																	document.body.style.cursor = "inherit";
-																	searchKanji(input)
-																});
-															}
-															else
-																searchKanji(input);
-																
-															chrome.storage.local.remove(["wkhighlight_contextMenuSelectedText"]);
-															chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
-																chrome.browserAction.setBadgeText({text: result["wkhighlight_nmrHighLightedKanji"].toString(), tabId:activeTab.id});
-																chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:activeTab.id});
-															});
-														}
-		
-														const kanjiPerSite = result["wkhighlight_kanjiPerSite"];
-														if (kanjiPerSite) {
-															chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-																const currentTabUrl = tabs[0]["url"];
-																if (kanjiPerSite[currentTabUrl]) {
-																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${kanjiPerSite[currentTabUrl]["number"]}</strong> (in the page)`;
-																	if (kanjiPerSite[currentTabUrl]["number"] <= 10)
-																		kanjiFoundUl.style.textAlign = "center";
-																	const learned = kanjiPerSite[currentTabUrl]["kanji"]["learned"];
-																	const notLearned = kanjiPerSite[currentTabUrl]["kanji"]["notLearned"];
-																	[learned, notLearned].forEach(type => {
-																		type.forEach(kanji => {
-																			const kanjiFoundLi = document.createElement("li");
-																			kanjiFoundUl.appendChild(kanjiFoundLi);
-																			kanjiFoundLi.classList.add("clickable", "kanjiDetails", type === learned ? "kanjiHighlightedLearned" : "kanjiHighlightedNotLearned");
-																			kanjiFoundLi.appendChild(document.createTextNode(kanji));
-																		});
-																	});
-																}
-															});
-														}
-													});
-													topRightNavbar.insertBefore(searchArea, topRightNavbar.firstChild);
-													const searchWrapper = searchArea.firstChild;
-													const searchTypeWrapper = document.createElement("div");
-													searchWrapper.appendChild(searchTypeWrapper);
-													searchTypeWrapper.classList.add("kanjiSearchTypeWrapper");
-													searchTypeWrapper.id = "kanjiSearchTypeKana";
-													const searchType = document.createElement("span");
-													searchTypeWrapper.appendChild(searchType);
-													searchType.id = "kanjiSearchType";
-													searchType.appendChild(document.createTextNode("あ"));
-		
-													// if (kanjiList.length == 0 || vocabList.length == 0) {
-													// 	document.body.style.cursor = "progress";
-													// 	loadItemsLists(() => document.body.style.cursor = "inherit");
-													// }
-												}
-												else {
-													const notRunAtWK = document.createElement("li");
-													notRunAtWK.appendChild(document.createTextNode("Limited features while @wanikani, sorry!"));
-													notRunAtWK.id = "notRunAtWK";
-													userElementsList.appendChild(notRunAtWK);
-												}
-		
-												const blacklistButtonWrapper = document.createElement("div");
-												userInfoWrapper.appendChild(blacklistButtonWrapper);
-												blacklistButtonWrapper.id = "blacklistButtonWrapper";
-												const blacklistButton = document.createElement("div");
-												blacklistButton.id = "blacklistButton";
-												blacklistButtonWrapper.appendChild(blacklistButton);
-												blacklistButton.classList.add("button");
-												blacklistButton.appendChild(document.createTextNode("Don't Run On This Site"));
 											}
 										});
 								});
