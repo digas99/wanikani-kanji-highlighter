@@ -58,7 +58,6 @@ var injectedHighlight = true;
 				const tagFilteringConditions = (tag, highlightClass) => !unwantedTags.includes(tag.localName) && textChildNodes(tag).length > 0 && !(hasDirectChildHighlighted(tag, highlightClass) || tag.classList.contains(highlightClass));
 
 				const highlighter = (values, className, allTags) => {
-					console.log("HIGHLIGHT: inside highlighter");
 					const kanjiRegex = new RegExp(`[${values.join('')}]`, "g");
 					//console.log(kanjiRegex);
 					// check if there is any character to be highlighted
@@ -79,7 +78,6 @@ var injectedHighlight = true;
 				
 				const highlightSetup = (tags, highlightDelay) => {
 					setTimeout(() => {
-						console.log("HIGHLIGHT: inside highlightSetup");
 						learnedHighlightedKanji = [... new Set(learnedHighlightedKanji.concat(highlighter(values, highlightingClass, tags)))];
 						notLearnedHighlightedKanji = [... new Set(notLearnedHighlightedKanji.concat(highlighter(notLearnedYet, "wkhighlighter_highlightedNotLearned", tags)))];
 						totalHighlightedKanji = learnedHighlightedKanji.length + notLearnedHighlightedKanji.length;

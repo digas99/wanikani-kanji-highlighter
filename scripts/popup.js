@@ -239,18 +239,74 @@ window.onload = () => {
 										summaryWrapper.appendChild(moreReviews);
 										moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
 
+										const nextExactHour = (date, hours) => {
+											return new Date(new Date(new Date(new Date().setHours(date.getHours()+hours)).setMinutes(0)).setSeconds(0));
+										}
+
+										const changeDay = (date, days) => {
+											// getDay() + 1 gives today's day (starts at 0)
+											return new Date(new Date().setDate((date.getDay()+1)+days));
+										}
+
+										const filterAssignmentsByTime = (list, capDate) => {
+											const date = capDate ? new Date(capDate) : null;
+											const currentDate = new Date();
+											if (date) {
+												// if the given date is in the future
+												if (date.getTime() > new Date().getTime()) {
+													return list.filter(assignment =>
+															new Date(assignment["data"]["available_at"]).getTime() > currentDate.getTime()
+															&& new Date(assignment["data"]["available_at"]).getTime() <= date.getTime());
+												}
+												// if it is in the past
+												else {
+													return list.filter(assignment =>
+														new Date(assignment["data"]["available_at"]).getTime() <= currentDate.getTime()
+														&& new Date(assignment["data"]["available_at"]).getTime() >= date.getTime());
+												}
+											}
+											// if capDate is null then return all assignments with dates greater than today
+											return list.filter(assignment =>
+													new Date(assignment["data"]["available_at"]).getTime() > currentDate.getTime());
+										}
+
+										// get all assignments if there are none in storage or if they were modified
+										chrome.storage.local.get(["wkhighlight_assignments", "wkhighlight_assignments_updated"], result => {
+											const assignments = result["wkhighlight_assignments"];
+											modifiedSince(apiKey, result["wkhighlight_assignments_updated"], "https://api.wanikani.com/v2/assignments")
+												.then(modified => {
+													if (!assignments || modified) {
+														fetchAllPages(apiKey, "https://api.wanikani.com/v2/assignments")
+															.then(data => {
+																const allAssignments = data.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
+																const allFutureAssignments = filterAssignmentsByTime(allAssignments, null);
+																const allAvailableReviews = filterAssignmentsByTime(allAssignments, changeDay(new Date(), -1000));
+																chrome.storage.local.set({"wkhighlight_assignments":{
+																	"all":allAssignments,
+																	"future":allFutureAssignments,
+																	"past":allAvailableReviews
+																}, "wkhighlight_assignments_updated":formatDate(new Date())});
+															});
+													}
+												});
+										});
+
 										const setupSummary = (reviews, lessons) => {
 											if (reviews) {
 												const currentTime = new Date().getTime();
 												console.log(reviews);
 												document.getElementById("summaryReviews").innerText = reviews["count"];
 
-												for (let review of reviews["next_reviews"]) {
-													// stop in the review that is greater than current time and has reviews
-													const thisDate = new Date(review["available_at"]).getTime(); 
-													if (review["subject_ids"].length > 0 && thisDate > currentTime) {
+												// get all the reviews for the next 14 days
+												const nextReviews = reviews["next_reviews"];
+												const hoursIn14Days = 24*14;
+												// check reviews for the next hours, for every exact hour
+												for (let i = 1; i < hoursIn14Days; i++) {
+													const thisDate = nextExactHour(new Date(), i);
+													const reviewsForNextHour = filterAssignmentsByTime(nextReviews, thisDate);
+													if (reviewsForNextHour.length > 0) {
 														const remainingTime = msToTime(thisDate - currentTime);
-														moreReviews.innerHTML = `<b>${review["subject_ids"].length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
+														moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
 														
 														// create interval delay
 														// 10% of a day are 8640000 milliseconds
@@ -282,7 +338,7 @@ window.onload = () => {
 
 															// if time stamp reached 0
 															if (thisDate <= newCurrentDate) {
-																moreReviews.innerHTML = `<b>${review["subject_ids"].length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> <b class="refresh clickable">now</b>`;
+																moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> <b class="refresh clickable">now</b>`;
 																// refresh popup automatically
 																setTimeout(() => window.location.reload(), 1000);
 																clearInterval(timeStampInterval);
@@ -310,20 +366,20 @@ window.onload = () => {
 											.then(lessons => {
 												fetchPage(apiKey, "https://api.wanikani.com/v2/assignments?immediately_available_for_review")
 													.then(reviews => {
-														fetchPage(apiKey, "https://api.wanikani.com/v2/summary")
-															.then(summary => {
-																if (lessons && reviews && summary) {
+														chrome.storage.local.get(["wkhighlight_assignments"], result => {
+																const assignments = result["wkhighlight_assignments"];
+																if (lessons && reviews && assignments) {
 																	const updateReviews = {
 																		"count":reviews["total_count"],
 																		"data":reviews["data"],
-																		"next_reviews":summary["data"]["reviews"].filter(review => new Date(review["available_at"]).getTime() > new Date().getTime())
+																		"next_reviews":filterAssignmentsByTime(assignments["future"], changeDay(new Date(), 14))
 																	};
 																	const updatedLessons = {
 																		"count":lessons["total_count"],
 																		"data":lessons["data"]
 																	};
 																	setupSummary(updateReviews, updatedLessons);
-																	chrome.storage.local.set({"wkhighlight_reviews": updateReviews, "wkhighlight_lessons": updatedLessons, "wkhighlight_summary_updated":formatDate(new Date())});
+																	chrome.storage.local.set({"wkhighlight_reviews": updateReviews, "wkhighlight_lessons": updatedLessons});
 																}
 															});
 													});
@@ -832,9 +888,8 @@ document.addEventListener("click", e => {
 		targetElem.classList.add("full_opacity");
 		chrome.storage.local.get(["wkhighlight_settings"], data => {
 			let settings = data["wkhighlight_settings"];
-			if (!settings) {
+			if (!settings)
 				settings = {};
-			}
 			
 			settings[2] = targetElem.classList[0];
 			chrome.storage.local.set({"wkhighlight_settings":settings});
