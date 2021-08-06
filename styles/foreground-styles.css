@@ -207,6 +207,7 @@
 
 .wkhighlighter_detailsPopupButton {
 	position: absolute;
+	z-index: 1;
 }
 
 .wkhighlighter_detailsPopupButton>img {

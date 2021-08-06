@@ -19,7 +19,8 @@
  11. HIGHLIGHTS		 				
  12. FOOTER 							
  13. RATE ME MESSAGE
- 14. UNKNOW 							
+ 14. LOADING
+ 15. UNKNOW 							
 */
 
 /* 0. VARIABLES */
@@ -829,7 +830,18 @@ transform: rotate(134deg);
     font-weight: bold;
 }
 
-/* 14. UNKNOWN */
+/* 14. LOADING */
+.main-loading {
+	margin: 80px 0;
+}
+
+.main-loading > div {
+	display: inline;
+	padding: 14px;
+	border-radius: 40px;
+}
+
+/* 15. UNKNOWN */
 .linkArrow {
 	border-color: var(--default-color);
 }

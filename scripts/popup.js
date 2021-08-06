@@ -89,7 +89,7 @@ window.onload = () => {
 	title.textContent = "WaniKani Kanji Highlighter";
 	logoDiv.appendChild(title);
 
-	const loadingVal = loading();
+	const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50);
 	const loadingElem = loadingVal[0];
 	main.appendChild(loadingElem);
 
@@ -137,344 +137,361 @@ window.onload = () => {
 						whatIsAPIKey.appendChild(whatIsAPIKeyLink);
 					}
 					else {
-						main.appendChild(logoDiv);
-						chrome.storage.local.get(["wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons"], response => {
-							const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatDate(new Date());
-							modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
-								.then(modified => {
-									// if user info has been updated in wanikani, then update cache
-									if (modified) {
-										fetchPage(apiKey, "https://api.wanikani.com/v2/user")
-											.then(user => {
-												// code 429 is Rate limit exceeded
-												if (!window.chrome.runtime.lastError && user && user.code != 429) 
-													chrome.storage.local.set({"wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
-										});
-									}
-	
-									const userInfo = userData["wkhighlight_userInfo"]["data"];
-									if (userInfo) {
-										//const loggedInWrapper = document.createElement("div");
-										//main.appendChild(loggedInWrapper);
-			
-										const userInfoWrapper = document.createElement("div");
-										userInfoWrapper.id = "userInfoWrapper";
-										main.appendChild(userInfoWrapper);
-			
-										const topRightNavbar = document.createElement("div");
-										userInfoWrapper.appendChild(topRightNavbar);
-										topRightNavbar.id = "topRightNavbar";
-										["../images/settings.png", "../images/exit.png"].forEach(img => {
-											const link = document.createElement("a");
-											link.style.padding = "0 5px";
-											link.href = "#";
-											link.classList.add("navbar_icon");
-											const icon_img = document.createElement("img");
-											icon_img.id = img.split("/")[2].split(".")[0];
-											icon_img.src = img;
-											link.appendChild(icon_img);
-											topRightNavbar.appendChild(link);
-										});
+						if (kanjiList.length == 0 || vocabList.length == 0) {
+							document.body.style.cursor = "progress";
+							// only show content after loading everything
+							loadItemsLists(() => {
+								main.appendChild(logoDiv);
+								chrome.storage.local.get(["wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons"], response => {									
+									const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatDate(new Date());
 
-										const userElementsList = document.createElement("ul");
-										userElementsList.id = "userInfoNavbar";
-										userInfoWrapper.appendChild(userElementsList);
-			
-										const greetings = document.createElement("li");
-										greetings.innerHTML = `Hello, <a href="${userInfo["profile_url"]}" target="_blank">${userInfo["username"]}</a>!`;
-										userElementsList.appendChild(greetings);
-			
-										const level = document.createElement("li");
-										level.style.display = "flex";
-										const div1 = document.createElement("div");
-										level.appendChild(div1);
-										div1.style.width = "100%";
-										div1.innerHTML = `Level: <strong>${userInfo["level"]}</strong> / ${userInfo["subscription"]["max_level_granted"]}`;
-										const div2 = document.createElement("div");
-										level.appendChild(div2);
-										div2.id = "levelBarWrapper";
-										const levelBar = document.createElement("div");
-										div2.appendChild(levelBar);
-										setTimeout(() => levelBar.style.width = (userInfo["level"]/userInfo["subscription"]["max_level_granted"])*100+"%", 100);
-										levelBar.id = "levelBar";
-										userElementsList.appendChild(level);
-										
-										const kanjiFound = document.createElement("li");
-										kanjiFound.id = "nmrKanjiHighlighted";
-										kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: (in the page)`;
-										userElementsList.appendChild(kanjiFound);
+									loadingElem.remove();
+									clearInterval(loadingVal[1]);
 
-										const kanjiFoundList = document.createElement("li");
-										userElementsList.appendChild(kanjiFoundList);
-										kanjiFoundList.id = "kanjiHighlightedList";
-										kanjiFoundList.classList.add("bellow-border");
-										const kanjiFoundUl = document.createElement("ul");
-										kanjiFoundList.appendChild(kanjiFoundUl);
-
-										const summaryWrapper = document.createElement("li");
-										userElementsList.appendChild(summaryWrapper);
-										summaryWrapper.style.textAlign = "center";
-										const summaryUl = document.createElement("ul");
-										summaryWrapper.appendChild(summaryUl);
-										summaryUl.style.display = "inline-flex";
-										summaryUl.style.width = "100%";
-										["Lessons", "Reviews"].forEach(topic => {
-											const summaryLi = document.createElement("li");
-											summaryUl.appendChild(summaryLi);
-											summaryLi.style.width = "100%";
-											summaryLi.style.color = "white";
-
-											const title = document.createElement("div");
-											summaryLi.appendChild(title);
-											title.appendChild(document.createTextNode(topic));
-											title.classList.add("summaryTitle");
-
-											const value = document.createElement("div");
-											summaryLi.appendChild(value);
-											value.appendChild(document.createTextNode("0"));
-											value.classList.add("summaryValue", "clickable");
-											value.style.backgroundColor = topic == "Lessons" ? "#4f7b61" : "#2c7080";
-											value.id = "summary"+topic;
-										});
-										const moreReviews = document.createElement("p");
-										summaryWrapper.appendChild(moreReviews);
-										moreReviews.style.padding = "3px 0";
-										moreReviews.classList.add("bellow-border");
-										moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
-
-										const nextExactHour = (date, hours) => {
-											return new Date(new Date(new Date(new Date().setHours(date.getHours()+hours)).setMinutes(0)).setSeconds(0));
-										}
-
-										const changeDay = (date, days) => {
-											// getDay() + 1 gives today's day (starts at 0)
-											return new Date(new Date().setDate((date.getDay()+1)+days));
-										}
-
-										const filterAssignmentsByTime = (list, capDate) => {
-											const date = capDate ? new Date(capDate) : null;
-											const currentDate = new Date();
-											if (date) {
-												// if the given date is in the future
-												if (date.getTime() > new Date().getTime()) {
-													return list.filter(assignment =>
-															new Date(assignment["data"]["available_at"]).getTime() > currentDate.getTime()
-															&& new Date(assignment["data"]["available_at"]).getTime() <= date.getTime());
-												}
-												// if it is in the past
-												else {
-													return list.filter(assignment =>
-														new Date(assignment["data"]["available_at"]).getTime() <= currentDate.getTime()
-														&& new Date(assignment["data"]["available_at"]).getTime() >= date.getTime());
-												}
-											}
-											// if capDate is null then return all assignments with dates greater than today
-											return list.filter(assignment =>
-													new Date(assignment["data"]["available_at"]).getTime() > currentDate.getTime());
-										}
-
-										// get all assignments if there are none in storage or if they were modified
-										chrome.storage.local.get(["wkhighlight_assignments", "wkhighlight_assignments_updated"], result => {
-											const assignments = result["wkhighlight_assignments"];
-											modifiedSince(apiKey, result["wkhighlight_assignments_updated"], "https://api.wanikani.com/v2/assignments")
-												.then(modified => {
-													if (!assignments || modified) {
-														fetchAllPages(apiKey, "https://api.wanikani.com/v2/assignments")
-															.then(data => {
-																const allAssignments = data.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
-																const allFutureAssignments = filterAssignmentsByTime(allAssignments, null);
-																const allAvailableReviews = filterAssignmentsByTime(allAssignments, changeDay(new Date(), -1000));
-																chrome.storage.local.set({"wkhighlight_assignments":{
-																	"all":allAssignments,
-																	"future":allFutureAssignments,
-																	"past":allAvailableReviews
-																}, "wkhighlight_assignments_updated":formatDate(new Date())});
-															});
-													}
+									modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
+										.then(modified => {
+											// if user info has been updated in wanikani, then update cache
+											if (modified) {
+												fetchPage(apiKey, "https://api.wanikani.com/v2/user")
+													.then(user => {
+														// code 429 is Rate limit exceeded
+														if (!window.chrome.runtime.lastError && user && user.code != 429) 
+															chrome.storage.local.set({"wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
 												});
-										});
-
-										const setupSummary = (reviews, lessons) => {
-											if (reviews) {
-												const currentTime = new Date().getTime();
-												console.log(reviews);
-												document.getElementById("summaryReviews").innerText = reviews["count"];
-
-												// get all the reviews for the next 14 days
-												const nextReviews = reviews["next_reviews"];
-												const hoursIn14Days = 24*14;
-												// check reviews for the next hours, for every exact hour
-												for (let i = 1; i < hoursIn14Days; i++) {
-													const thisDate = nextExactHour(new Date(), i);
-													const reviewsForNextHour = filterAssignmentsByTime(nextReviews, thisDate);
-													if (reviewsForNextHour.length > 0) {
-														const remainingTime = msToTime(thisDate - currentTime);
-														moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
-														
-														// create interval delay
-														// 10% of a day are 8640000 milliseconds
-														// 10% of an hour are 360000 milliseconds
-														// 10% of a minute are 6000 milliseconds
-														// 10% of a second are 100 milliseconds
-														const delays = {
-															"Days":8640000,
-															"Hrs":360000,
-															"Min":6000,
-															"Sec":100
-														}
-
-														// timeUnit = "Days, Hrs, etc..."
-														let timeUnit = remainingTime.split(" ")[1];
-
-														const timeStampRefresher = () => {
-															const newCurrentDate = new Date().getTime();
-															const newTimeStamp = msToTime(thisDate - newCurrentDate);
-															const newTimeUnit = newTimeStamp.split(" ")[1];
-															// check if has changed the unit of time
-															if (newTimeUnit != timeUnit) {
-																timeUnit = newTimeUnit;
-																// if so then clear the current interval
-																clearInterval(timeStampInterval);
-																// and start a new one with a new interval delay
-																timeStampInterval = setInterval(timeStampRefresher, delays[newTimeUnit]);
-															}
-
-															// if time stamp reached 0
-															if (thisDate <= newCurrentDate) {
-																moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> <b class="refresh clickable">now</b>`;
-																// refresh popup automatically
-																setTimeout(() => window.location.reload(), 1000);
-																clearInterval(timeStampInterval);
-																return;
-															}
-
-															// refresh time stamp
-															moreReviews.getElementsByTagName("B")[1].innerText = newTimeStamp;
-														}
-
-														let timeStampInterval = setInterval(timeStampRefresher, delays[timeUnit]);
-														// 10% of a minute are 6000 milliseconds
-														break;
-													}
-												}
 											}
-											if (lessons)
-												document.getElementById("summaryLessons").innerText = lessons["count"];										
-										}
-
-										const reviews = response["wkhighlight_reviews"];
-										const lessons = response["wkhighlight_lessons"];
-										
-										fetchPage(apiKey, "https://api.wanikani.com/v2/assignments?immediately_available_for_lessons")
-											.then(lessons => {
-												fetchPage(apiKey, "https://api.wanikani.com/v2/assignments?immediately_available_for_review")
-													.then(reviews => {
-														chrome.storage.local.get(["wkhighlight_assignments"], result => {
-																const assignments = result["wkhighlight_assignments"];
-																if (lessons && reviews && assignments) {
-																	const updateReviews = {
-																		"count":reviews["total_count"],
-																		"data":reviews["data"],
-																		"next_reviews":filterAssignmentsByTime(assignments["future"], changeDay(new Date(), 14))
-																	};
-																	const updatedLessons = {
-																		"count":lessons["total_count"],
-																		"data":lessons["data"]
-																	};
-																	setupSummary(updateReviews, updatedLessons);
-																	chrome.storage.local.set({"wkhighlight_reviews": updateReviews, "wkhighlight_lessons": updatedLessons});
+			
+											const userInfo = userData["wkhighlight_userInfo"]["data"];
+											if (userInfo) {					
+												const userInfoWrapper = document.createElement("div");
+												userInfoWrapper.id = "userInfoWrapper";
+												main.appendChild(userInfoWrapper);
+					
+												const topRightNavbar = document.createElement("div");
+												userInfoWrapper.appendChild(topRightNavbar);
+												topRightNavbar.id = "topRightNavbar";
+												["../images/settings.png", "../images/exit.png"].forEach(img => {
+													const link = document.createElement("a");
+													link.style.padding = "0 5px";
+													link.href = "#";
+													link.classList.add("navbar_icon");
+													const icon_img = document.createElement("img");
+													icon_img.id = img.split("/")[2].split(".")[0];
+													icon_img.src = img;
+													link.appendChild(icon_img);
+													topRightNavbar.appendChild(link);
+												});
+		
+												const userElementsList = document.createElement("ul");
+												userElementsList.id = "userInfoNavbar";
+												userInfoWrapper.appendChild(userElementsList);
+					
+												const greetings = document.createElement("li");
+												greetings.innerHTML = `Hello, <a href="${userInfo["profile_url"]}" target="_blank">${userInfo["username"]}</a>!`;
+												userElementsList.appendChild(greetings);
+					
+												const level = document.createElement("li");
+												level.style.display = "flex";
+												const div1 = document.createElement("div");
+												level.appendChild(div1);
+												div1.style.width = "100%";
+												div1.innerHTML = `Level: <strong>${userInfo["level"]}</strong> / ${userInfo["subscription"]["max_level_granted"]}`;
+												const div2 = document.createElement("div");
+												level.appendChild(div2);
+												div2.id = "levelBarWrapper";
+												const levelBar = document.createElement("div");
+												div2.appendChild(levelBar);
+												setTimeout(() => levelBar.style.width = (userInfo["level"]/userInfo["subscription"]["max_level_granted"])*100+"%", 100);
+												levelBar.id = "levelBar";
+												userElementsList.appendChild(level);
+												
+												const kanjiFound = document.createElement("li");
+												kanjiFound.id = "nmrKanjiHighlighted";
+												kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: (in the page)`;
+												userElementsList.appendChild(kanjiFound);
+		
+												const kanjiFoundList = document.createElement("li");
+												userElementsList.appendChild(kanjiFoundList);
+												kanjiFoundList.id = "kanjiHighlightedList";
+												kanjiFoundList.classList.add("bellow-border");
+												const kanjiFoundUl = document.createElement("ul");
+												kanjiFoundList.appendChild(kanjiFoundUl);
+		
+												const summaryWrapper = document.createElement("li");
+												userElementsList.appendChild(summaryWrapper);
+												summaryWrapper.style.textAlign = "center";
+												const summaryUl = document.createElement("ul");
+												summaryWrapper.appendChild(summaryUl);
+												summaryUl.style.display = "inline-flex";
+												summaryUl.style.width = "100%";
+												["Lessons", "Reviews"].forEach(topic => {
+													const summaryLi = document.createElement("li");
+													summaryUl.appendChild(summaryLi);
+													summaryLi.style.width = "100%";
+													summaryLi.style.color = "white";
+		
+													const title = document.createElement("div");
+													summaryLi.appendChild(title);
+													title.appendChild(document.createTextNode(topic));
+													title.classList.add("summaryTitle");
+		
+													const value = document.createElement("div");
+													summaryLi.appendChild(value);
+													value.appendChild(document.createTextNode("0"));
+													value.classList.add("summaryValue", "clickable");
+													value.style.backgroundColor = topic == "Lessons" ? "#4f7b61" : "#2c7080";
+													value.id = "summary"+topic;
+												});
+		
+												const reviewsLoadingVal = loading([], [], 25);
+												const reviewsLoadingElem = reviewsLoadingVal[0];
+												summaryWrapper.appendChild(reviewsLoadingElem);
+		
+												const moreReviews = document.createElement("p");
+												summaryWrapper.appendChild(moreReviews);
+												moreReviews.style.padding = "3px 0";
+												moreReviews.classList.add("bellow-border");
+												moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
+		
+												const nextExactHour = (date, hours) => {
+													return new Date(new Date(new Date(new Date().setHours(date.getHours()+hours)).setMinutes(0)).setSeconds(0));
+												}
+		
+												const changeDay = (date, days) => {
+													// getDay() + 1 gives today's day (starts at 0)
+													return new Date(new Date().setDate((date.getDay()+1)+days));
+												}
+		
+												const filterAssignmentsByTime = (list, capDate) => {
+													const date = capDate ? new Date(capDate) : null;
+													const currentDate = new Date();
+													if (date) {
+														// if the given date is in the future
+														if (date.getTime() > new Date().getTime()) {
+															return list.filter(assignment =>
+																	new Date(assignment["data"]["available_at"]).getTime() > currentDate.getTime()
+																	&& new Date(assignment["data"]["available_at"]).getTime() <= date.getTime());
+														}
+														// if it is in the past
+														else {
+															return list.filter(assignment =>
+																new Date(assignment["data"]["available_at"]).getTime() <= currentDate.getTime()
+																&& new Date(assignment["data"]["available_at"]).getTime() >= date.getTime());
+														}
+													}
+													// if capDate is null then return all assignments with dates greater than today
+													return list.filter(assignment =>
+															new Date(assignment["data"]["available_at"]).getTime() > currentDate.getTime());
+												}
+		
+												// get all assignments if there are none in storage or if they were modified
+												chrome.storage.local.get(["wkhighlight_assignments", "wkhighlight_assignments_updated"], result => {
+													const assignments = result["wkhighlight_assignments"];
+													modifiedSince(apiKey, result["wkhighlight_assignments_updated"], "https://api.wanikani.com/v2/assignments")
+														.then(modified => {
+															if (!assignments || modified) {
+																fetchAllPages(apiKey, "https://api.wanikani.com/v2/assignments")
+																	.then(data => {
+																		const allAssignments = data.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
+																		const allFutureAssignments = filterAssignmentsByTime(allAssignments, null);
+																		const allAvailableReviews = filterAssignmentsByTime(allAssignments, changeDay(new Date(), -1000));
+																		chrome.storage.local.set({"wkhighlight_assignments":{
+																			"all":allAssignments,
+																			"future":allFutureAssignments,
+																			"past":allAvailableReviews
+																		}, "wkhighlight_assignments_updated":formatDate(new Date())});
+																	});
+															}
+														});
+												});
+		
+												const setupSummary = (reviews, lessons) => {
+													if (reviews) {
+														const currentTime = new Date().getTime();
+														console.log(reviews);
+														document.getElementById("summaryReviews").innerText = reviews["count"];
+		
+														// get all the reviews for the next 14 days
+														const nextReviews = reviews["next_reviews"];
+														const hoursIn14Days = 24*14;
+														// check reviews for the next hours, for every exact hour
+														for (let i = 1; i < hoursIn14Days; i++) {
+															const thisDate = nextExactHour(new Date(), i);
+															const reviewsForNextHour = filterAssignmentsByTime(nextReviews, thisDate);
+															if (reviewsForNextHour.length > 0) {
+																const remainingTime = msToTime(thisDate - currentTime);
+																moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
+																
+																// create interval delay
+																// 10% of a day are 8640000 milliseconds
+																// 10% of an hour are 360000 milliseconds
+																// 10% of a minute are 6000 milliseconds
+																// 10% of a second are 100 milliseconds
+																const delays = {
+																	"Days":8640000,
+																	"Hrs":360000,
+																	"Min":6000,
+																	"Sec":100
+																}
+		
+																// timeUnit = "Days, Hrs, etc..."
+																let timeUnit = remainingTime.split(" ")[1];
+		
+																const timeStampRefresher = () => {
+																	const newCurrentDate = new Date().getTime();
+																	const newTimeStamp = msToTime(thisDate - newCurrentDate);
+																	const newTimeUnit = newTimeStamp.split(" ")[1];
+																	// check if has changed the unit of time
+																	if (newTimeUnit != timeUnit) {
+																		timeUnit = newTimeUnit;
+																		// if so then clear the current interval
+																		clearInterval(timeStampInterval);
+																		// and start a new one with a new interval delay
+																		timeStampInterval = setInterval(timeStampRefresher, delays[newTimeUnit]);
+																	}
+		
+																	// if time stamp reached 0
+																	if (thisDate <= newCurrentDate) {
+																		moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> <b class="refresh clickable">now</b>`;
+																		// refresh popup automatically
+																		setTimeout(() => window.location.reload(), 1000);
+																		clearInterval(timeStampInterval);
+																		return;
+																	}
+		
+																	// refresh time stamp
+																	moreReviews.getElementsByTagName("B")[1].innerText = newTimeStamp;
+																}
+		
+																let timeStampInterval = setInterval(timeStampRefresher, delays[timeUnit]);
+																// 10% of a minute are 6000 milliseconds
+																break;
+															}
+														}
+													}
+													if (lessons)
+														document.getElementById("summaryLessons").innerText = lessons["count"];
+													
+													reviewsLoadingElem.remove();
+													clearInterval(reviewsLoadingVal[1]);
+												}
+		
+												const reviews = response["wkhighlight_reviews"];
+												const lessons = response["wkhighlight_lessons"];
+												
+												fetchPage(apiKey, "https://api.wanikani.com/v2/assignments?immediately_available_for_lessons")
+													.then(lessons => {
+														fetchPage(apiKey, "https://api.wanikani.com/v2/assignments?immediately_available_for_review")
+															.then(reviews => {
+																chrome.storage.local.get(["wkhighlight_assignments"], result => {
+																		const assignments = result["wkhighlight_assignments"];
+																		if (lessons && reviews && assignments) {
+																			const updateReviews = {
+																				"count":reviews["total_count"],
+																				"data":reviews["data"],
+																				"next_reviews":filterAssignmentsByTime(assignments["future"], changeDay(new Date(), 14))
+																			};
+																			const updatedLessons = {
+																				"count":lessons["total_count"],
+																				"data":lessons["data"]
+																			};
+																			setupSummary(updateReviews, updatedLessons);
+																			chrome.storage.local.set({"wkhighlight_reviews": updateReviews, "wkhighlight_lessons": updatedLessons});
+																		}
+																	});
+															});
+													});
+		
+												setupSummary(reviews, lessons);
+		
+												if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {					
+													const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchKanji);
+													chrome.storage.local.get(["wkhighlight_contextMenuSelectedText", "wkhighlight_kanjiPerSite"], result => {
+														const selectedText = result["wkhighlight_contextMenuSelectedText"];
+														if (selectedText) {
+															const input = [...searchArea.firstChild.childNodes].filter(child => child.tagName == "INPUT")[0];
+															input.value = selectedText;
+															const userInfoNav = document.getElementById("userInfoNavbar");
+															if (userInfoNav)
+																userInfoNav.style.display = "none";
+		
+															document.getElementById("kanjiSearchInput").click();
+															if (kanjiList.length == 0 || vocabList.length == 0) {
+																document.body.style.setProperty("cursor", "progress", "important");
+																loadItemsLists(() => {
+																	document.body.style.cursor = "inherit";
+																	searchKanji(input)
+																});
+															}
+															else
+																searchKanji(input);
+																
+															chrome.storage.local.remove(["wkhighlight_contextMenuSelectedText"]);
+															chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
+																chrome.browserAction.setBadgeText({text: result["wkhighlight_nmrHighLightedKanji"].toString(), tabId:activeTab.id});
+																chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:activeTab.id});
+															});
+														}
+		
+														const kanjiPerSite = result["wkhighlight_kanjiPerSite"];
+														if (kanjiPerSite) {
+															chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+																const currentTabUrl = tabs[0]["url"];
+																if (kanjiPerSite[currentTabUrl]) {
+																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${kanjiPerSite[currentTabUrl]["number"]}</strong> (in the page)`;
+																	if (kanjiPerSite[currentTabUrl]["number"] <= 10)
+																		kanjiFoundUl.style.textAlign = "center";
+																	const learned = kanjiPerSite[currentTabUrl]["kanji"]["learned"];
+																	const notLearned = kanjiPerSite[currentTabUrl]["kanji"]["notLearned"];
+																	[learned, notLearned].forEach(type => {
+																		type.forEach(kanji => {
+																			const kanjiFoundLi = document.createElement("li");
+																			kanjiFoundUl.appendChild(kanjiFoundLi);
+																			kanjiFoundLi.classList.add("clickable", "kanjiDetails", type === learned ? "kanjiHighlightedLearned" : "kanjiHighlightedNotLearned");
+																			kanjiFoundLi.appendChild(document.createTextNode(kanji));
+																		});
+																	});
 																}
 															});
-													});
-											});
-
-										setupSummary(reviews, lessons);
-
-										if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {					
-											const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchKanji);
-											chrome.storage.local.get(["wkhighlight_contextMenuSelectedText", "wkhighlight_kanjiPerSite"], result => {
-												const selectedText = result["wkhighlight_contextMenuSelectedText"];
-												if (selectedText) {
-													const input = [...searchArea.firstChild.childNodes].filter(child => child.tagName == "INPUT")[0];
-													input.value = selectedText;
-													const userInfoNav = document.getElementById("userInfoNavbar");
-													if (userInfoNav)
-														userInfoNav.style.display = "none";
-
-													document.getElementById("kanjiSearchInput").click();
-													if (kanjiList.length == 0 || vocabList.length == 0) {
-														document.body.style.setProperty("cursor", "progress", "important");
-														loadItemsLists(() => {
-															document.body.style.cursor = "inherit";
-															searchKanji(input)
-														});
-													}
-													else
-														searchKanji(input);
-														
-													chrome.storage.local.remove(["wkhighlight_contextMenuSelectedText"]);
-													chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
-														chrome.browserAction.setBadgeText({text: result["wkhighlight_nmrHighLightedKanji"].toString(), tabId:activeTab.id});
-														chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:activeTab.id});
-													});
-												}
-
-												const kanjiPerSite = result["wkhighlight_kanjiPerSite"];
-												if (kanjiPerSite) {
-													chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-														const currentTabUrl = tabs[0]["url"];
-														if (kanjiPerSite[currentTabUrl]) {
-															kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${kanjiPerSite[currentTabUrl]["number"]}</strong> (in the page)`;
-															if (kanjiPerSite[currentTabUrl]["number"] <= 10)
-																kanjiFoundUl.style.textAlign = "center";
-															const learned = kanjiPerSite[currentTabUrl]["kanji"]["learned"];
-															const notLearned = kanjiPerSite[currentTabUrl]["kanji"]["notLearned"];
-															[learned, notLearned].forEach(type => {
-																type.forEach(kanji => {
-																	const kanjiFoundLi = document.createElement("li");
-																	kanjiFoundUl.appendChild(kanjiFoundLi);
-																	kanjiFoundLi.classList.add("clickable", "kanjiDetails", type === learned ? "kanjiHighlightedLearned" : "kanjiHighlightedNotLearned");
-																	kanjiFoundLi.appendChild(document.createTextNode(kanji));
-																});
-															});
 														}
 													});
+													topRightNavbar.insertBefore(searchArea, topRightNavbar.firstChild);
+													const searchWrapper = searchArea.firstChild;
+													const searchTypeWrapper = document.createElement("div");
+													searchWrapper.appendChild(searchTypeWrapper);
+													searchTypeWrapper.classList.add("kanjiSearchTypeWrapper");
+													searchTypeWrapper.id = "kanjiSearchTypeKana";
+													const searchType = document.createElement("span");
+													searchTypeWrapper.appendChild(searchType);
+													searchType.id = "kanjiSearchType";
+													searchType.appendChild(document.createTextNode("あ"));
+		
+													// if (kanjiList.length == 0 || vocabList.length == 0) {
+													// 	document.body.style.cursor = "progress";
+													// 	loadItemsLists(() => document.body.style.cursor = "inherit");
+													// }
 												}
-											});
-											topRightNavbar.insertBefore(searchArea, topRightNavbar.firstChild);
-											const searchWrapper = searchArea.firstChild;
-											const searchTypeWrapper = document.createElement("div");
-											searchWrapper.appendChild(searchTypeWrapper);
-											searchTypeWrapper.classList.add("kanjiSearchTypeWrapper");
-											searchTypeWrapper.id = "kanjiSearchTypeKana";
-											const searchType = document.createElement("span");
-											searchTypeWrapper.appendChild(searchType);
-											searchType.id = "kanjiSearchType";
-											searchType.appendChild(document.createTextNode("あ"));
-
-											if (kanjiList.length == 0 || vocabList.length == 0) {
-												document.body.style.cursor = "progress";
-												loadItemsLists(() => document.body.style.cursor = "inherit");
+												else {
+													const notRunAtWK = document.createElement("li");
+													notRunAtWK.appendChild(document.createTextNode("Limited features while @wanikani, sorry!"));
+													notRunAtWK.id = "notRunAtWK";
+													userElementsList.appendChild(notRunAtWK);
+												}
+		
+												const blacklistButtonWrapper = document.createElement("div");
+												userInfoWrapper.appendChild(blacklistButtonWrapper);
+												blacklistButtonWrapper.id = "blacklistButtonWrapper";
+												const blacklistButton = document.createElement("div");
+												blacklistButton.id = "blacklistButton";
+												blacklistButtonWrapper.appendChild(blacklistButton);
+												blacklistButton.classList.add("button");
+												blacklistButton.appendChild(document.createTextNode("Don't Run On This Site"));
 											}
-										}
-										else {
-											const notRunAtWK = document.createElement("li");
-											notRunAtWK.appendChild(document.createTextNode("Limited features while @wanikani, sorry!"));
-											notRunAtWK.id = "notRunAtWK";
-											userElementsList.appendChild(notRunAtWK);
-										}
-
-										const blacklistButtonWrapper = document.createElement("div");
-										userInfoWrapper.appendChild(blacklistButtonWrapper);
-										blacklistButtonWrapper.id = "blacklistButtonWrapper";
-										const blacklistButton = document.createElement("div");
-										blacklistButton.id = "blacklistButton";
-										blacklistButtonWrapper.appendChild(blacklistButton);
-										blacklistButton.classList.add("button");
-										blacklistButton.appendChild(document.createTextNode("Don't Run On This Site"));
-									}
+										});
 								});
-						});
+								document.body.style.cursor = "inherit";
+							});
+						}
+					
 					}
 				}
 				else {
@@ -501,8 +518,6 @@ window.onload = () => {
 					warningButton.appendChild(document.createTextNode("Run Highlighter On This Page"));
 					warningButton.id = "runHighlighterButton";
 				}
-				loadingElem.remove();
-				clearInterval(loadingVal[1]);
 			});
 		});
 		
@@ -1474,9 +1489,11 @@ const loadItemsLists = (callback) => {
 	});
 }
 
-const loading = () => {
+const loading = (wrapperClasses, iconClasses, size) => {
 	const wrapper = document.createElement("div");
 	wrapper.style.textAlign = "center";
+	if (wrapperClasses)
+		wrapperClasses.forEach(className => wrapper.classList.add(className));
 
 	// Common and uncommon kanji ( 4e00 - 9faf)
 	const img = document.createElement("div");
@@ -1484,14 +1501,16 @@ const loading = () => {
 	// get random hexadecimal number from 0x4e00 to 9faf
 	const randHex = rand(parseInt("4e00", 16), parseInt("9faf", 16)).toString(16);
 	img.innerHTML = String.fromCharCode(`0x${randHex}`);
-	img.style.fontSize = "35px";
+	if (iconClasses)
+		iconClasses.forEach(className => img.classList.add(className));
+	img.style.fontSize = `${size}px`;
 	
-	let counter = 0;
+	let counter = rand(0, 360);
 	const interval = setInterval(() => {
 		if (counter == 360)
 			counter = 0;
 		
-		img.style.transform="rotate("+(counter++)+"deg)";
+		img.style.filter="hue-rotate("+(counter++)+"deg)";
 	}, 4);
 
 	return [wrapper, interval];
