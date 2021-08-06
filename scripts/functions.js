@@ -92,3 +92,7 @@ const reposFirstVersion = async (user, repos) => {
 const reposLastVersion = async (user, repos) => {
 	return await reposVersions(user, repos).then(result => result[result.length-1].name);
 }
+
+const rand = (min, max) => {
+	return Math.floor(Math.random() * (max - min) ) + min;
+}

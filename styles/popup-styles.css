@@ -212,6 +212,13 @@ transform: rotate(134deg);
 	background-color: var(--vocab-tag-color) !important;
 }
 
+.bellow-border {
+	border-bottom: 1px solid silver;
+    border-left: 1px solid silver;
+    border-right: 1px solid silver;
+    border-radius: 0px 0px 7px 7px;
+}
+
 /* 4. Logo */
 #logoWrapper {
 	margin-bottom: 10px !important;
@@ -343,10 +350,6 @@ transform: rotate(134deg);
 
 #kanjiHighlightedList {
 	overflow-y: auto !important;
-    border-bottom: 1px solid silver;
-    border-left: 1px solid silver;
-    border-right: 1px solid silver;
-    border-radius: 0px 0px 7px 7px;
 	max-height: 100px;
 }
 

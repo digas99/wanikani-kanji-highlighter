@@ -207,6 +207,7 @@ window.onload = () => {
 										const kanjiFoundList = document.createElement("li");
 										userElementsList.appendChild(kanjiFoundList);
 										kanjiFoundList.id = "kanjiHighlightedList";
+										kanjiFoundList.classList.add("bellow-border");
 										const kanjiFoundUl = document.createElement("ul");
 										kanjiFoundList.appendChild(kanjiFoundUl);
 
@@ -237,6 +238,8 @@ window.onload = () => {
 										});
 										const moreReviews = document.createElement("p");
 										summaryWrapper.appendChild(moreReviews);
+										moreReviews.style.padding = "3px 0";
+										moreReviews.classList.add("bellow-border");
 										moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
 
 										const nextExactHour = (date, hours) => {
@@ -1475,10 +1478,13 @@ const loading = () => {
 	const wrapper = document.createElement("div");
 	wrapper.style.textAlign = "center";
 
-	const img = document.createElement("img");
+	// Common and uncommon kanji ( 4e00 - 9faf)
+	const img = document.createElement("div");
 	wrapper.appendChild(img);
-	img.src = "../images/refresh.png";
-	img.style.width = "35px";
+	// get random hexadecimal number from 0x4e00 to 9faf
+	const randHex = rand(parseInt("4e00", 16), parseInt("9faf", 16)).toString(16);
+	img.innerHTML = String.fromCharCode(`0x${randHex}`);
+	img.style.fontSize = "35px";
 	
 	let counter = 0;
 	const interval = setInterval(() => {
