@@ -527,6 +527,7 @@ var injectedDetailsPopup = true;
 			if (node.classList.contains("wkhighlighter_detailsPopup_cardSideBarInfo")) {
 				const target = node.parentElement.parentElement.parentElement;
 				const id = getItemIdFromSideBar(target);
+				console.log(id);
 				if (id)
 					updateInfoPopup(id, null, [highlightingClass, "wkhighlighter_highlightedNotLearned"], true, true);
 			}
@@ -684,7 +685,7 @@ var injectedDetailsPopup = true;
 			}, 200);
 	
 			chrome.storage.local.get(["wkhighlight_currentKanjiInfo", "wkhighlight_currentVocabInfo"], info => {
-				const type = itemWrapper.getElementsByClassName("wkhighlighter_detailsPopup_kanji wkhighlighter_highlighted")[0].getAttribute('data-item-type');
+				const type = itemWrapper.getElementsByClassName("wkhighlighter_detailsPopup_kanji")[0].getAttribute('data-item-type');
 				console.log(type, info);
 				detailsPopup.appendChild(type == "kanji" ? createKanjiDetailedInfo(detailsPopup, info["wkhighlight_currentKanjiInfo"]) : createVocabDetailedInfo(detailsPopup, info["wkhighlight_currentVocabInfo"]));
 			});
@@ -699,6 +700,7 @@ var injectedDetailsPopup = true;
 	}
 
 	const updateInfoPopup = (id, detailsPopup, highlightClasses, insideBar, save) => {
+		console.log(id);
 		if (id) {
 			const type = allKanji[id] ? "kanji" : "vocabulary";
 			const item = type == "kanji" ? allKanji[id] : allVocab[id];
@@ -714,9 +716,10 @@ var injectedDetailsPopup = true;
 				const detailedInfoWrapper = popup.querySelectorAll(".wkhighlighter_popupDetails_detailedInfoWrapper");
 				if (detailedInfoWrapper)
 					detailedInfoWrapper.forEach(wrapper => wrapper.remove());
-				popup.appendChild(type == "kanji" ? createKanjiDetailedInfo(popup, item) : createVocabDetailedInfo(popup, item));
 
 				if (insideBar) {
+					popup.appendChild(type == "kanji" ? createKanjiDetailedInfo(popup, item) : createVocabDetailedInfo(popup, item));
+
 					// show kanji container buttons
 					const buttons = Array.from(document.getElementsByClassName("wkhighlighter_detailsPopupButton"));
 					if (buttons)

@@ -76,28 +76,45 @@
 	display: unset !important;
 }
 
-.wkhighlighter_highlightedNotLearned {
+.wkhighlighter_highlighted, .wkhighlighter_highlightedNotLearned {
 	all: unset !important;
-	background: var(--notLearned-color) !important;
 	color: white !important;
+}
+
+.wkhighlighter_highlightedNotLearned {
+	background-color: var(--notLearned-color) !important;
 }
 
 .wkhighlighter_highlighted {
-	all: unset !important;
-	background: var(--highlight-default-color) !important;
-	color: white !important;
+	background-color: var(--highlight-default-color) !important;
 }
 
 .wkhighlighter_highlighted_underlined {
-    background: unset !important;
-    color: inherit !important;
     border-bottom: 3px solid var(--highlight-default-color) !important;
 }
 
 .wkhighlighter_highlighted_bold {	
-    background: unset !important;
     color: var(--highlight-default-color) !important;
+}
+
+.wkhighlighter_highlightedNotLearned_underlined {
+	border-bottom: 3px solid var(--notLearned-color) !important;
+}
+
+.wkhighlighter_highlightedNotLearned_bold {
+	color: var(--notLearned-color) !important;
+}
+
+.wkhighlighter_highlighted_underlined, .wkhighlighter_highlightedNotLearned_underlined {
+    color: inherit !important;
+}
+
+.wkhighlighter_highlighted_bold, .wkhighlighter_highlightedNotLearned_bold {
     font-weight: bold !important;
+}
+
+.wkhighlighter_highlighted_underlined, .wkhighlighter_highlighted_bold, .wkhighlighter_highlightedNotLearned_underlined, .wkhighlighter_highlightedNotLearned_bold {
+    background: unset !important;
 }
 
 

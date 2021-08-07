@@ -1,6 +1,9 @@
 let kanjiList = [];
 let vocabList = [];
+let radicalList = [];
 let activeTab;
+
+let reviews, lessons;
 
 const footer = () => {
 	const wrapper = document.createElement("div");
@@ -212,7 +215,7 @@ window.onload = () => {
 												const kanjiFoundList = document.createElement("li");
 												userElementsList.appendChild(kanjiFoundList);
 												kanjiFoundList.id = "kanjiHighlightedList";
-												kanjiFoundList.classList.add("bellow-border");
+												kanjiFoundList.classList.add("simple-grid", "bellow-border");
 												const kanjiFoundUl = document.createElement("ul");
 												kanjiFoundList.appendChild(kanjiFoundUl);
 		
@@ -330,36 +333,6 @@ window.onload = () => {
 												blacklistButton.classList.add("button");
 												blacklistButton.appendChild(document.createTextNode("Don't Run On This Site"));
 
-												const nextExactHour = (date, hours) => {
-													return new Date(new Date(new Date(new Date().setHours(date.getHours()+hours)).setMinutes(0)).setSeconds(0));
-												}
-		
-												const changeDay = (date, days) => {
-													// getDay() + 1 gives today's day (starts at 0)
-													return new Date(new Date().setDate((date.getDay()+1)+days));
-												}
-		
-												const filterAssignmentsByTime = (list, capDate) => {
-													const date = capDate ? new Date(capDate) : null;
-													const currentDate = new Date();
-													if (date) {
-														// if the given date is in the future
-														if (date.getTime() > new Date().getTime()) {
-															return list.filter(assignment =>
-																	new Date(assignment["data"]["available_at"]).getTime() > currentDate.getTime()
-																	&& new Date(assignment["data"]["available_at"]).getTime() <= date.getTime());
-														}
-														// if it is in the past
-														else {
-															return list.filter(assignment =>
-																new Date(assignment["data"]["available_at"]).getTime() <= currentDate.getTime()
-																&& new Date(assignment["data"]["available_at"]).getTime() >= date.getTime());
-														}
-													}
-													// if capDate is null then return all assignments with dates greater than today
-													return list.filter(assignment =>
-															new Date(assignment["data"]["available_at"]).getTime() > currentDate.getTime());
-												}
 		
 												// get all assignments if there are none in storage or if they were modified
 												chrome.storage.local.get(["wkhighlight_assignments", "wkhighlight_assignments_updated"], result => {
@@ -452,8 +425,8 @@ window.onload = () => {
 													clearInterval(reviewsLoadingVal[1]);
 												}
 		
-												const reviews = response["wkhighlight_reviews"];
-												const lessons = response["wkhighlight_lessons"];
+												reviews = response["wkhighlight_reviews"];
+												lessons = response["wkhighlight_lessons"];
 												
 												fetchPage(apiKey, "https://api.wanikani.com/v2/assignments?immediately_available_for_lessons")
 													.then(lessons => {
@@ -904,7 +877,12 @@ document.addEventListener("click", e => {
 				settings = {};
 			
 			settings[2] = targetElem.classList[0];
-			chrome.storage.local.set({"wkhighlight_settings":settings});
+			chrome.storage.local.set({"wkhighlight_settings":settings})
+
+			// change highlight class immediately
+			chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+				chrome.tabs.sendMessage(tabs[0].id, {newHighlightClass:targetElem.classList[0]}, () => window.chrome.runtime.lastError);
+			});
 		});
 	}
 
@@ -1138,7 +1116,11 @@ document.addEventListener("click", e => {
 	// if clicked on a kanji that can generate detail info popup
 	if (targetElem.classList.contains("kanjiDetails")) {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-			chrome.tabs.sendMessage(tabs[0].id, {infoPopupFromSearch: {characters: targetElem.innerText, type: "kanji"}}, () => window.chrome.runtime.lastError);
+			chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
+				const kanjiAssoc = result["wkhighlight_kanji_assoc"];
+				if (kanjiAssoc)
+					chrome.tabs.sendMessage(tabs[0].id, {infoPopupFromSearch: {characters: targetElem.innerText, type: kanjiAssoc[targetElem.innerText] ? "kanji" : "vocabulary"}}, () => window.chrome.runtime.lastError);
+			});
 		});
 	}
 
@@ -1148,12 +1130,162 @@ document.addEventListener("click", e => {
 
 	// clicked in the number of reviews
 	if (targetElem.id == "summaryReviews") {
-		const content = secundaryPage("Reviews", 250);
+		const content = secundaryPage("Reviews", 400);
+
+		// future reviews chart
+		const futureReviewsWrapper = document.createElement("div");
+		content.appendChild(futureReviewsWrapper);
+		const reviewsList = document.createElement("div");
+		futureReviewsWrapper.appendChild(reviewsList);
+		reviewsList.classList.add("simple-grid");
+		reviewsList.id = "assignmentsMaterialList";
+		const reviewsListTitle = document.createElement("div");
+		reviewsList.appendChild(reviewsListTitle);
+		reviewsListTitle.innerHTML = `<b>${reviews && reviews["count"] ? reviews["count"] : 0}</b> Reviews available right now!`;
+		const reviewsListUl = document.createElement("ul");
+		reviewsList.appendChild(reviewsListUl);
+		reviewsListUl.classList.add("bellow-border");
+		const futureReviewsChart = document.createElement("div");
+		futureReviewsWrapper.appendChild(futureReviewsChart);
+		const futureReviewsCanvas = document.createElement("canvas");
+		futureReviewsChart.appendChild(futureReviewsCanvas);
+		const futureReviewsLabel = document.createElement("p");
+		futureReviewsChart.appendChild(futureReviewsLabel);
+		futureReviewsLabel.id = "reviewsPage-nmrReviews24hLabel";
+		futureReviewsLabel.innerHTML = "<b>0</b> more Reviews in the next 24 hours";
+
+		if (reviews) {
+			//setup list of material for current reviews
+			if (reviews["data"]) {
+				reviews["data"]
+					.map(review => review["data"])
+					.sort((rev1, rev2) => new Date(rev1["available_at"]).getTime() - new Date(rev2["available_at"]).getTime())
+					.map(review => ({"srs_stage":review["srs_stage"], "subject_id":review["subject_id"], "subject_type":review["subject_type"]}))
+					.forEach(review => {
+						const reviewsListLi = document.createElement("li");
+						reviewsListUl.appendChild(reviewsListLi);
+						let characters = "";
+						switch(review["subject_type"]) {
+							case "kanji":
+								characters = kanjiList.filter(kanji => kanji["id"] == review["subject_id"])[0]["characters"];
+								reviewsListLi.classList.add("kanji_back" , "kanjiDetails", "clickable");
+								break;
+							case "vocabulary":
+								characters = vocabList.filter(vocab => vocab["id"] == review["subject_id"])[0]["characters"];
+								reviewsListLi.classList.add("vocab_back" , "kanjiDetails", "clickable");
+								break;
+							case "radical":
+								characters = radicalList.filter(radical => radical["id"] == review["subject_id"])[0]["characters"];
+								reviewsListLi.classList.add("radical_back");
+								break;
+						}
+						reviewsListLi.innerHTML = characters;
+					});
+			}
+
+			// setup chart for the next reviews
+			if (reviews["next_reviews"]) {
+				const today = new Date();
+				console.log(reviews["next_reviews"]);
+				const nmrReviewsForNext24h = filterAssignmentsByTime(reviews["next_reviews"], changeDay(today, 1))
+												.map(review => new Date(review["available_at"]).getHours());
+				
+				futureReviewsLabel.getElementsByTagName("B")[0].innerText = nmrReviewsForNext24h.length;
+				
+				console.log(nmrReviewsForNext24h);
+				const currentHour = today.getHours();
+				const hours = [];
+				const reviewsPerHour = [];
+				let hour = currentHour + 1;
+				if (hour == 24) hour = 0;
+				// loop all the next 24 hours (i.e.: if right now the hour is 12h, loop until 12h (of the next day))
+				while (currentHour - hour != 0) {
+					hours.push(hour+"h");
+					reviewsPerHour.push(nmrReviewsForNext24h.filter(h => h == hour).length);
+
+					// make sure the hour after 23h is 00h and not 24h
+					if (++hour == 24)
+						hour = 0; 
+				}
+				
+				const data = {
+					labels: hours,
+					datasets: [{
+						label: 'Reviews',
+						backgroundColor: 'rgb(44, 112, 128)',
+						borderColor: 'rgb(255, 255, 255)',
+						data: reviewsPerHour,
+					}]
+				};
+				new Chart(futureReviewsCanvas, {
+					type: 'bar',
+					data,
+					options: {
+						plugins: {
+							title: {
+								display: true,
+								text: 'Reviews in the next 24 hours'
+							},
+							datalabels: {
+								color: '#2c7080',
+								anchor: 'end',
+								align: 'top',
+								display: ctx => ctx["dataset"]["data"][ctx["dataIndex"]] != 0
+							}
+						}
+					},
+					plugins: [ChartDataLabels]
+				});
+			}
+		}
 	}
 
 	// clicked in the number of lessons
 	if (targetElem.id == "summaryLessons") {
-		const content = secundaryPage("Lessons", 250);
+		const content = secundaryPage("Lessons", 400);
+
+		const lessonsWrapper = document.createElement("div");
+		content.appendChild(lessonsWrapper);
+		const lessonsList = document.createElement("div");
+		lessonsWrapper.appendChild(lessonsList);
+		lessonsList.classList.add("simple-grid");
+		lessonsList.id = "assignmentsMaterialList";
+		const lessonsListTitle = document.createElement("div");
+		lessonsList.appendChild(lessonsListTitle);
+		lessonsListTitle.innerHTML = `<b>${lessons && lessons["count"] ? lessons["count"] : 0}</b> Lessons available right now!`;
+		const lessonsListUl = document.createElement("ul");
+		lessonsList.appendChild(lessonsListUl);
+		lessonsListUl.classList.add("bellow-border");
+
+		if (lessons) {
+			//setup list of material for current reviews
+			if (lessons["data"]) {
+				lessons["data"]
+					.map(lesson => lesson["data"])
+					.sort((less1, less2) => new Date(less1["available_at"]).getTime() - new Date(less2["available_at"]).getTime())
+					.map(lesson => ({"srs_stage":lesson["srs_stage"], "subject_id":lesson["subject_id"], "subject_type":lesson["subject_type"]}))
+					.forEach(lesson => {
+						const lessonsListLi = document.createElement("li");
+						lessonsListUl.appendChild(lessonsListLi);
+						let characters = "";
+						switch(lesson["subject_type"]) {
+							case "kanji":
+								characters = kanjiList.filter(kanji => kanji["id"] == lesson["subject_id"])[0]["characters"];
+								lessonsListLi.classList.add("kanji_back" , "kanjiDetails", "clickable");
+								break;
+							case "vocabulary":
+								characters = vocabList.filter(vocab => vocab["id"] == lesson["subject_id"])[0]["characters"];
+								lessonsListLi.classList.add("vocab_back" , "kanjiDetails", "clickable");
+								break;
+							case "radical":
+								characters = radicalList.filter(radical => radical["id"] == lesson["subject_id"])[0]["characters"];
+								lessonsListLi.classList.add("radical_back");
+								break;
+						}
+						lessonsListLi.innerHTML = characters;
+					});
+			}
+		}
 	}
 });
 
@@ -1442,9 +1574,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 const loadItemsLists = (callback) => {
-	chrome.storage.local.get(["wkhighlight_allkanji", "wkhighlight_allvocab"], result => {
+	chrome.storage.local.get(["wkhighlight_allkanji", "wkhighlight_allvocab", "wkhighlight_allradicals"], result => {
 		const allKanji = result["wkhighlight_allkanji"];
 		const allVocab = result["wkhighlight_allvocab"];
+		const allRadicals = result["wkhighlight_allradicals"];
 		if (allKanji && kanjiList.length == 0) {
 			for (const index in allKanji) {
 				const kanji = allKanji[index];
@@ -1474,6 +1607,17 @@ const loadItemsLists = (callback) => {
 					"reading_mnemonic": vocab["reading_mnemonic"],
 					"component_subject_ids": vocab["component_subject_ids"],
 					"context_sentences" : vocab["context_sentences"]
+				});
+			}
+		}
+		if (allRadicals && radicalList.length == 0) {
+			for (const index in allRadicals) {
+				const radical = allRadicals[index];
+				radicalList.push({
+					"type" : "vocabulary",
+					"id": index,
+					"characters": radical["characters"] ? radical["characters"] : `<img height="40px" style="margin-top:-9px;margin-bottom:-4px;padding-top:8px" src="${radical["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`,
+					"level": radical["level"],
 				});
 			}
 		}
@@ -1508,4 +1652,38 @@ const loading = (wrapperClasses, iconClasses, size) => {
 	}, 4);
 
 	return [wrapper, interval];
+}
+
+const nextExactHour = (date, hours) => {
+	return new Date(new Date(new Date(new Date().setHours(date.getHours()+hours)).setMinutes(0)).setSeconds(0));
+}
+
+const changeDay = (date, days) => {
+	return new Date(new Date().setDate((date.getDate())+days));
+}
+
+const filterAssignmentsByTime = (list, capDate) => {
+	console.log("list1 ", list);
+	list = list[0]["data"] ? list.map(review => review["data"]) : list;
+	console.log("list2 ", list);
+	console.log(capDate);
+	const date = capDate ? new Date(capDate) : null;
+	const currentDate = new Date();
+	if (date) {
+		// if the given date is in the future
+		if (date.getTime() > new Date().getTime()) {
+			return list.filter(assignment =>
+					new Date(assignment["available_at"]).getTime() >= currentDate.getTime()
+					&& new Date(assignment["available_at"]).getTime() <= date.getTime());
+		}
+		// if it is in the past
+		else {
+			return list.filter(assignment =>
+				new Date(assignment["available_at"]).getTime() <= currentDate.getTime()
+				&& new Date(assignment["available_at"]).getTime() >= date.getTime());
+		}
+	}
+	// if capDate is null then return all assignments with dates greater than today
+	return list.filter(assignment =>
+			new Date(assignment["available_at"]).getTime() > currentDate.getTime());
 }

@@ -1,29 +1,31 @@
 /*
- Table Of Contents 					
- 0. VARIABLES 						
- 1. DEFAULTS 							
- 2. ARROWS 							
- 3. GENERAL							
- 4. SECUNDARY PAGES
- 5. API KEY INPUT PAGE
- 6. WHAT IS API KEY PAGE
- 7. LOGGED IN PAGE					
- 		7.1 NAVBAR						
- 		7.2 USER INFO			
- 8. BLACKLISTED SITE PAGE				
- 9. RUN OR NOT HIGHLIGHTER SITE INFO
- 10. SETTINGS 						
- 		10.1 BLACKLISTED SITES
- 		10.2 SETTINGS OPTIONS	
- 		10.3 DANGER ZONE 				
- 11. HIGHLIGHTS		 				
- 12. FOOTER 							
- 13. RATE ME MESSAGE
- 14. LOADING
- 15. UNKNOW 							
+Table Of Contents 					
+	VARIABLES 						
+	DEFAULTS 							
+ 	ARROWS 							
+ 	GENERAL							
+ 	SECUNDARY PAGES
+ 	API KEY INPUT PAGE
+ 	WHAT IS API KEY PAGE
+ 	LOGGED IN PAGE					
+		NAVBAR						
+ 		USER INFO
+ 	REVIEWS PAGE
+	LESSONS PAGE
+ 	BLACKLISTED SITE PAGE				
+ 	RUN OR NOT HIGHLIGHTER SITE INFO
+ 	SETTINGS 						
+ 		BLACKLISTED SITES
+ 		SETTINGS OPTIONS	
+ 		DANGER ZONE 				
+ 	HIGHLIGHTS		 				
+ 	FOOTER 							
+ 	RATE ME MESSAGE
+ 	LOADING
+ 	UNKNOW 							
 */
 
-/* 0. VARIABLES */
+/* VARIABLES */
 
 :root {
 	--body-base-width: 225px;
@@ -35,9 +37,10 @@
 	--notLearned-color: #a32727;
 	--wanikani: #f100a1;
 	--dark-back: #383838;
+	--reviews-color: #2c7080;
 }
 
-/* 1. DEFAULTS */
+/* DEFAULTS */
 
 body {
 	width: var(--body-base-width);
@@ -110,7 +113,7 @@ input[type="checkbox"]:checked:after {
 	display: block;
 }
 
-/* 2. ARROWS */
+/* ARROWS */
 
 i {
 	border: solid black;
@@ -139,7 +142,7 @@ transform: rotate(134deg);
 -webkit-transform: rotate(134deg);
 }
 
-/* 3. GENERAL */
+/* GENERAL */
 
 .centered {
 	display: block;
@@ -220,7 +223,17 @@ transform: rotate(134deg);
     border-radius: 0px 0px 7px 7px;
 }
 
-/* 4. Logo */
+#simple-grid ul {
+	display: block;
+}
+
+.simple-grid li {
+    padding: 0px 5px;
+    display: inline-block;
+    border: 1px solid silver;
+}
+
+/* Logo */
 #logoWrapper {
 	margin-bottom: 10px !important;
     font-size: 10px;
@@ -242,7 +255,7 @@ transform: rotate(134deg);
 	padding-left: 10px;
 }
 
-/* 4. SECUNDARY PAGES */
+/* SECUNDARY PAGES */
 
 .topNav {
 	position: fixed;
@@ -265,13 +278,13 @@ transform: rotate(134deg);
 	border-color: white;
 }
 
-/* 5. API KEY INPUT PAGE */
+/* API KEY INPUT PAGE */
 
 #whatIsAPIKey {
 	font-size: 11px;
 }
 
-/* 6. WHAT IS API KEY PAGE */
+/* WHAT IS API KEY PAGE */
 
 .apiKeyStep,
 .apiKeyStep img {
@@ -286,9 +299,9 @@ transform: rotate(134deg);
 }
 
 
-/* 7. LOGGED IN PAGE */
+/* LOGGED IN PAGE */
 
-	/* 7.1 NAVBAR */
+	/* NAVBAR */
 
 .navbar_icon {
 	margin-top: 3px;
@@ -304,7 +317,7 @@ transform: rotate(134deg);
 	display: flex;
 }
 
-	/* 7.2 USER INFO */
+	/* USER INFO */
 
 #userInfoNavbar {
 	font-size: 15px;
@@ -355,15 +368,11 @@ transform: rotate(134deg);
 }
 
 #kanjiHighlightedList ul {
-	display: block;
     padding: 0px 0px 4px 4px;
 }
 
 #kanjiHighlightedList li {
 	font-size: 25.2px;
-    padding: 0px 5px;
-    display: inline-flex;
-    border: 1px solid silver;
 }
 
 .kanjiHighlightedLearned {
@@ -378,17 +387,54 @@ transform: rotate(134deg);
 	color: white;
 }
 
-#kanjiHighlightedList::-webkit-scrollbar {
+#kanjiHighlightedList::-webkit-scrollbar, #reviewsMaterialList > ul::-webkit-scrollbar {
 	width: 15px;
 }
   
-#kanjiHighlightedList::-webkit-scrollbar-track {
+#kanjiHighlightedList::-webkit-scrollbar-track, #reviewsMaterialList > ul::-webkit-scrollbar-track {
 	background:silver;
 }
 
-#kanjiHighlightedList::-webkit-scrollbar-thumb {
+#kanjiHighlightedList::-webkit-scrollbar-thumb, #reviewsMaterialList > ul::-webkit-scrollbar-thumb {
 	background-color: var(--dark-back);        
 }
+
+/* REVIEWS PAGE */
+#reviewsPage-nmrReviews24hLabel {
+	color: #747474;
+    margin: 6px 5px 0 0;
+    text-align: right;
+}
+
+#reviewsPage-nmrReviews24hLabel > b {
+	color: var(--reviews-color);
+}
+
+#assignmentsMaterialList {
+	margin: 10px 0;
+}
+
+#assignmentsMaterialList > div {
+    color: white;
+    background-color: var(--dark-back);
+    padding: 6px;
+    font-size: 15px;
+    margin-bottom: 4px;
+}
+
+#assignmentsMaterialList > ul {
+	text-align: center;
+	font-size: 30px;
+	padding-bottom: 5px;
+    max-height: 200px;
+    overflow: auto;
+}
+
+#assignmentsMaterialList > ul > li {
+	color: black;
+}
+
+/* LESSONS PAGE */
 
 /* SUMMARY */
 .summaryTitle {

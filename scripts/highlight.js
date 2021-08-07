@@ -118,8 +118,13 @@ var injectedHighlight = true;
 			clearInterval(request.intervalFunction);
 
 		// if extension pooup is asking for number of highlighted kanji
-		if (request.nmrKanjiHighlighted === "popup") {
+		if (request.nmrKanjiHighlighted === "popup")
 			sendResponse({nmrKanjiHighlighted: totalHighlightedKanji});
+
+		// change highlight class immediately of every kanji in the page
+		if (request.newHighlightClass) {
+			Array.from(document.getElementsByClassName(highlightingClass)).forEach(elem => elem.classList.replace(highlightingClass, request.newHighlightClass));
+			highlightingClass = request.newHighlightClass;
 		}
 	});
 

@@ -14,6 +14,7 @@ Not Released Yet
   - **U:** Scroll the kanji details popup all the way to the top
   - **B:** Show information from the last kanji in the details popup
 - Added buttons to the kanji details popup, near the kanji container, to do the same thing as the sortcut keys, but manually
+- Highlighted kanji now change it's style immediately after it being changed in the extension popup settings
 
 ## Popup
 - Extension popup's first page now shows number of Lessons and Reviews available at the moment. It also shows when more reviews will be available
