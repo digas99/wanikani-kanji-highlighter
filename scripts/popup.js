@@ -140,6 +140,10 @@ window.onload = () => {
 						whatIsAPIKey.appendChild(whatIsAPIKeyLink);
 					}
 					else {
+						fetchAllPages(apiKey, "https://api.wanikani.com/v2/subjects?types=kanji")
+						.then(kanji_data => {
+							console.log(kanji_data);
+						});
 						if (kanjiList.length == 0 || vocabList.length == 0) {
 							document.body.style.cursor = "progress";
 							// only show content after loading everything
@@ -790,15 +794,12 @@ document.addEventListener("click", e => {
 			if (!settings) {
 				settings = {};
 			}
-			console.log(settings);
 			const settingsID = targetElem.id.replace("settings", "");
 			
-			console.log(settingsID);
-
 			// if user removed badges in settings
 			if (settingsID === "1") {
 				let value = "";
-				console.log(targetElem);
+
 				if (targetElem.checked) {
 					chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
 						value = (result && result["wkhighlight_nmrHighLightedKanji"] ? result["wkhighlight_nmrHighLightedKanji"] : 0).toString();
@@ -895,9 +896,7 @@ document.addEventListener("click", e => {
 			chrome.storage.local.set({"wkhighlight_blacklist": blacklisted});
 
 			site = site.replace("\\.", ".");
-			console.log(site);
 			for (let elem of document.querySelectorAll(".blacklisted_site_wrapper")) {
-				console.log(elem.childNodes[0].text);
 				if (elem.childNodes[0].text === site) {
 					elem.remove();
 					
@@ -1046,7 +1045,6 @@ document.addEventListener("click", e => {
 		targetElem.classList.add("full_opacity");
 
 		chrome.storage.local.get(["wkhighlight_settings"], result => {
-			console.log("here");
 			let settings = result["wkhighlight_settings"];
 			if (settings)
 				settings[4] = targetElem.id;
@@ -1186,13 +1184,11 @@ document.addEventListener("click", e => {
 			// setup chart for the next reviews
 			if (reviews["next_reviews"]) {
 				const today = new Date();
-				console.log(reviews["next_reviews"]);
 				const nmrReviewsForNext24h = filterAssignmentsByTime(reviews["next_reviews"], changeDay(today, 1))
 												.map(review => new Date(review["available_at"]).getHours());
 				
 				futureReviewsLabel.getElementsByTagName("B")[0].innerText = nmrReviewsForNext24h.length;
 				
-				console.log(nmrReviewsForNext24h);
 				const currentHour = today.getHours();
 				const hours = [];
 				const reviewsPerHour = [];
@@ -1663,10 +1659,7 @@ const changeDay = (date, days) => {
 }
 
 const filterAssignmentsByTime = (list, capDate) => {
-	console.log("list1 ", list);
 	list = list[0]["data"] ? list.map(review => review["data"]) : list;
-	console.log("list2 ", list);
-	console.log(capDate);
 	const date = capDate ? new Date(capDate) : null;
 	const currentDate = new Date();
 	if (date) {

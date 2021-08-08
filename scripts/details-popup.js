@@ -83,6 +83,7 @@ var injectedDetailsPopup = true;
 	
 			const p = document.createElement("p");
 			const thisData = data[id];
+			console.log(thisData);
 	
 			const a = document.createElement("a");
 			a.target = "_blank";
@@ -92,7 +93,7 @@ var injectedDetailsPopup = true;
 			if (characters) {
 				p.appendChild(document.createTextNode(characters));
 				if (characters.length > 4)
-					p.style.setProperty("font-size", (35-5*(characters.length - 5))+"px", "important");
+					p.style.setProperty("font-size",(170/characters.length)+"px", "important");
 			}
 			else {
 				const img = document.createElement("img");
@@ -105,6 +106,22 @@ var injectedDetailsPopup = true;
 			p.setAttribute('data-item-id', id);
 			li.appendChild(a);
 			a.appendChild(p);
+
+			console.log(thisData);
+
+			const meaning = document.createElement("div");
+			li.appendChild(meaning);
+			meaning.appendChild(document.createTextNode(thisData["meanings"][0]));
+
+			if (thisData["readings"]) {
+				const reading = document.createElement("div");
+				li.appendChild(reading);
+				if (thisData["subject_type"] == "kanji")
+					reading.appendChild(document.createTextNode(thisData["readings"].filter(reading => reading["primary"])[0]["reading"]));
+				else
+					reading.appendChild(document.createTextNode(thisData["readings"][0]));
+			}
+
 			const level = document.createElement("div");
 			level.classList.add("itemLevelCard");
 			li.appendChild(level);
@@ -450,7 +467,7 @@ var injectedDetailsPopup = true;
 					child.style.display = "none";
 			});
 	
-			if (target.childNodes.length == 2) {
+			if (target.childNodes.length == 4) {
 				const sideBar = document.createElement("div");
 				target.appendChild(sideBar);
 				sideBar.classList.add("wkhighlighter_detailsPopup_cardSideBar");

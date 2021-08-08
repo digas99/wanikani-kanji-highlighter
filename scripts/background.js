@@ -198,7 +198,7 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 									// only run the scripts once
 									if (!injectScripts && ((lastHost != currentHost) || (lastUrl == currentUrl))) {
 										// see if all kanji is already saved in storage
-										chrome.storage.local.get(['wkhighlight_allkanji', 'wkhighlight_allradicals'], result => {
+										chrome.storage.local.get(['wkhighlight_allkanji', 'wkhighlight_allradicals', 'wkhighlight_allvocab'], result => {
 											// do this only if all the kanji hasn't been saved yet
 											if (!result['wkhighlight_allkanji']) {
 												// fetch all kanji
@@ -225,7 +225,8 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 																	"readings" : data.readings,
 																	"visually_similar_subject_ids" : data.visually_similar_subject_ids,
 																	"slug": data.slug,
-																	"id":kanji.id
+																	"id":kanji.id,
+																	"subject_type":kanji.object
 																};
 																kanji_assoc[data.slug] = kanji.id;
 															});
@@ -255,10 +256,12 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 																	"character_images" : data.character_images,
 																	"document_url" : data.document_url,
 																	"level" : data.level,
-																	"id":radical.id
+																	"id":radical,
+																	"meanings": data.meanings.map(data => data.meaning),
+																	"subject_type":radical.object
 																};
 															});
-														
+
 														// saving all radical
 														chrome.storage.local.set({"wkhighlight_allradicals": radical_dict});
 													})
@@ -286,7 +289,8 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 																	"reading_mnemonic" : data.reading_mnemonic,
 																	"readings" : data.readings.map(data => data.reading),
 																	"pronunciation_audios" : data.pronunciation_audios,
-																	"id":vocab.id
+																	"id":vocab.id,
+																	"subject_type":vocab.object
 																};
 															});
 														chrome.storage.local.set({'wkhighlight_allvocab':vocab_dict});

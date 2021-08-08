@@ -345,13 +345,14 @@
     margin: 5px 8px !important;
     color: black;
 	border-radius: 2px;
-	display: inline-flex;
 	box-shadow: rgb(0 0 0) 0px 4px 0px 2px;
 	position: relative;
 	cursor: pointer;
 	transition: 0.2s;
 	max-width: 180px;
 	min-height: 53px;
+	display: inline-block;
+    text-align: center;
 }
 
 .wkhighlighter_detailsPopup_cardRow a {
@@ -368,8 +369,13 @@
 	background-color: var(--kanji-tag-color);
 }
 
+.wkhighlighter_detailsPopup_similarKanji_row p {
+	padding: 0 7px !important;
+}
+
 .wkhighlighter_detailsPopup_vocab_row {
 	background-color: var(--vocab-tag-color);
+	width: 100%;
 }
 
 .wkhighlighter_detailsPopup_cardRow:hover {
