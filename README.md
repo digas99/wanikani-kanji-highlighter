@@ -5,7 +5,7 @@ This is an unofficial chrome extension for Kanji Highlighting, matching the kanj
 It works with any website, and provides detailed information about any kanji that is highlighted.
 **Because it would be "cheating", the extension doesn't work on [WaniKani.com](https://www.wanikani.com/).**
 
-#### VERSION 0.4.5
+#### VERSION 0.5.0
 
 ## [Get it on Chrome Webstore](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/)
 
@@ -17,8 +17,9 @@ It works with any website, and provides detailed information about any kanji tha
      * 2.2.1 [Shortcut Keys](#shortcut-keys)
    * 2.3. [Kanji Search](#kanji-search)
    * 2.4. [Writing Kana](#writing-kana)
-   * 2.5. [Blacklisting a Site](#blacklisting-a-site)
-   * 2.6. [Settings](#settings)
+   * 2.5  [Lessons and Reviews](#lessons-and-reviews)
+   * 2.6. [Blacklisting a Site](#blacklisting-a-site)
+   * 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
 ## Changelog v0.5.0
@@ -26,7 +27,7 @@ Not Released Yet
 
 ### - Reviews and Lessons tracking! Extra Highlight!
 
-### Content
+## Content
 - Kanji you haven't learned yet are now also highlighted when they show up in the page, in a different color from the ones you learned. They work the same way as the ones you already learned, meaning they also have a details popup, etc...
 - The small details popup, that shows up in the bottom right corner of the page after hovering over a kanji, now also displays the main meaning of that kanji
 - Added shortcut keys to interact with the kanji details popup:
@@ -37,12 +38,16 @@ Not Released Yet
   - **U:** Scroll the kanji details popup all the way to the top
   - **B:** Show information from the last kanji in the details popup
 - Added buttons to the kanji details popup, near the kanji container, to do the same thing as the sortcut keys, but manually
+- Highlighted kanji now change it's style immediately after it being changed in the extension popup settings
+- Kanji cards in details popup now also show the main meaning of the material and the main reading
 
-### Popup
+## Popup
 - Extension popup's first page now shows number of Lessons and Reviews available at the moment. It also shows when more reviews will be available
+- Clicking in the number of reviews or lessons will show the kanji material that will be taught/reviewed and also a chart with the reviews for the next 24 hours
 - The list of kanji that were highlighted now have colors to distinguish the kanji you learned from the kanji you didn't
+- Settings page is now organized into sections
 
-### Bug Fix
+## Bug Fix
 - Fixed weird placements of elements inside kanji details popup (extra blank spaces, content too big for its container, etc...)
 
 #### [(All changelogs)](CHANGELOG.md)
@@ -106,6 +111,18 @@ So, if you write **kya**, you will see **きゃ**. If you instead write **KYA**,
 
 (Same goes for all it's counterparts in **Katakana**, using Upper Case)
 
+### Lessons and Reviews:
+The extension popup gives you some information about lessons and reviews in WaniKani.
+
+The main page shows the number of lessons and reviews available, and when more reviews will enter the queue. By clicking in the number os lessons or reviews, more detailed information is provided.
+
+- **Lessons:**
+  - List of materials in queue to learn
+
+- **Reviewns:**
+  - List of materials in queue to review
+  - Chart showing the future reviews in the next 24 hours
+
 ### Blacklisting a Site:
 If you feel like the extension is being problematic on a specific website, or you simply don't want it to run in it, you can blacklist it on the extension popup. There will be a red button saying **Don't Run On This Site**.
 
@@ -117,9 +134,13 @@ You can see the list of blacklisted sites in *Settings*, within the extension po
 
 ### Settings:
 On the extension popup, you will find the app settings.
-- **Kanji info popup:** show the popup with the details of a highlighted kanji, when hover over it
-- **Kanji counter on icon:** show the number of highlighted Kanji in the page, on the icon of the extension
-- **Highlight style:** choose how do you want the kanji to be highlighted
+- **Kanji Details Popup** 
+  - **Activated:** show the popup with the details of a highlighted kanji, when hover over it
+- **Extension Icon**
+  - **Kanji Counter:** show the number of highlighted Kanji in the page, on the icon of the extension
+- **Highlight Style:** choose how do you want the kanji to be highlighted
+- **Danger Section**
+  - **Clear Cache:** clear local data storage. This will not affect your WaniKani account!
 
 ## Pictures
 ![howto](images/how-to-banner.jpg)
