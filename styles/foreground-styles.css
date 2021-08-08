@@ -121,7 +121,6 @@
 /* 4. DETAILS POPUP */
 
 .wkhighlighter_detailsPopup_kanji {
-	background-color: inherit !important;
 	color: inherit !important;
 	font-size: 60px !important;
 	text-align: center;
@@ -323,9 +322,15 @@
 }
 
 .wkhighlighter_detailsPopup_cards {
-	background-color: inherit !important;
 	color: inherit !important;
 	font-size: 40px !important;
+}
+
+/* cancel de effect of kanji highlight in certain parts of details popup */
+.wkhighlighter_detailsPopup_cards, .wkhighlighter_detailsPopup_kanji, .wkhighlighter_detailsPopup_cards span {
+	background-color: inherit !important;
+	border-bottom: inherit !important;
+	font-weight: inherit !important;
 }
 
 .itemLevelCard {
@@ -361,16 +366,16 @@
     margin: auto !important;
 }
 
+.wkhighlighter_detailsPopup_carRow p {
+	padding: 0 7px !important;
+}
+
 .wkhighlighter_detailsPopup_usedRadicals_row {
 	background-color: var(--radical-tag-color);
 }
 
 .wkhighlighter_detailsPopup_similarKanji_row {
 	background-color: var(--kanji-tag-color);
-}
-
-.wkhighlighter_detailsPopup_similarKanji_row p {
-	padding: 0 7px !important;
 }
 
 .wkhighlighter_detailsPopup_vocab_row {

@@ -106,7 +106,7 @@ input[type="checkbox"]:after {
 } 
 
 input[type="checkbox"]:checked {
-	background-color: var(--highlight-default-color);
+	background-color: var(--dark-back);
 }
 
 input[type="checkbox"]:checked:after {
@@ -390,7 +390,7 @@ transform: rotate(134deg);
 #kanjiHighlightedList::-webkit-scrollbar, #reviewsMaterialList > ul::-webkit-scrollbar {
 	width: 15px;
 }
-  
+
 #kanjiHighlightedList::-webkit-scrollbar-track, #reviewsMaterialList > ul::-webkit-scrollbar-track {
 	background:silver;
 }
@@ -731,9 +731,22 @@ transform: rotate(134deg);
 }
 
 #settingsContent>div {
-	padding: 15px 0;
+	margin: 10px 0;
 }
 
+.settingsSection {
+	display: grid;
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+}
+
+.settingsSection > p {
+	text-align: center;
+    margin-bottom: 10px;
+	padding: 4px;
+    background-color: var(--dark-back);
+    color: white;
+}
 
 	/* 10.1 BLACKLISTED SITES */
 
@@ -782,9 +795,13 @@ transform: rotate(134deg);
 
 	/* 10.2 SETTINGS OPTIONS */
 
+#settingsOptionsWrapper {
+	overflow: auto;
+    max-height: 409px;
+}
+
 .checkbox_wrapper {
 	text-align: right;
-	margin-right: 15px;
 }
 
 .settings_highlight_style_option {
@@ -805,43 +822,64 @@ transform: rotate(134deg);
 }
 
 	/* 10.3 DANGER ZONE */
+.dangerItem {
+	padding: 0 10px;
+}
 
 .dangerItem>.button {
-	width: fit-content;
     padding: 5px;
 }
 
 .dangerItemDescription {
 	background-color: var(--dark-back);
-    color: white;
+    color: silver;
     padding: 7px;
-	margin-left: 4px;
-	border-radius: 0 7px 7px 7px;
-	font-size: 12px;
+    margin: 0 5px;
+    border-radius: 0px 0px 7px 7px;
+    font-size: 12px;
 }
 
 /* 11. HIGHLIGHTS */
 .wkhighlighter_highlighted,
 .wkhighlighter_highlighted_underlined,
-.wkhighlighter_highlighted_bold {
+.wkhighlighter_highlighted_bold,
+.wkhighlighter_highlightedNotLearned {
 	font-size: 100% !important;
-	display: unset !important;
 }
 
-.wkhighlighter_highlighted {
-	background: var(--highlight-default-color)!important;
+.wkhighlighter_highlighted, .wkhighlighter_highlightedNotLearned {
 	color: white !important;
 }
 
+.wkhighlighter_highlightedNotLearned {
+	background-color: var(--notLearned-color) !important;
+}
+
+.wkhighlighter_highlighted {
+	background-color: var(--highlight-default-color) !important;
+}
+
 .wkhighlighter_highlighted_underlined {
-    background: unset !important;
-    color: inherit !important;
     border-bottom: 3px solid var(--highlight-default-color) !important;
 }
 
 .wkhighlighter_highlighted_bold {	
-    background: unset !important;
     color: var(--highlight-default-color) !important;
+}
+
+.wkhighlighter_highlightedNotLearned_underlined {
+	border-bottom: 3px solid var(--notLearned-color) !important;
+}
+
+.wkhighlighter_highlightedNotLearned_bold {
+	color: var(--notLearned-color) !important;
+}
+
+.wkhighlighter_highlighted_underlined, .wkhighlighter_highlightedNotLearned_underlined {
+    color: inherit !important;
+}
+
+.wkhighlighter_highlighted_bold, .wkhighlighter_highlightedNotLearned_bold {
     font-weight: bold !important;
 }
 

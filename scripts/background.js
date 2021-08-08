@@ -5,6 +5,7 @@ let thisTabId, apiToken;
 const unwantedTags = ["html", "body", "head", "title", "style", "link", "meta", "script", "noscript", "img", "svg"];
 const functionDelay = "20";
 let highlightingClass = "";
+let notLearnedHighlightingClass = "";
 
 let lastHost = "";
 let currentHost = "";
@@ -25,11 +26,27 @@ const setSettings = () => {
 	chrome.storage.local.get(["wkhighlight_settings"], result => {
 		settings = result["wkhighlight_settings"];
 		if (!settings) {
-			settings = {};
-			[true, true, "wkhighlighter_highlighted", false, "searchResultOptionlist"].forEach((value, i) => settings[i] = value);
+			settings = {
+				"kanji_details_popup": {
+					"activated": true
+				},
+				"extension_icon": {
+					"kanji_counter": true
+				},
+				"highlight_style": {
+					"learned": "wkhighlighter_highlighted",
+					"not_learned": "wkhighlighter_highlightedNotLearned"
+				},
+				"search": {
+					"targeted_search": false,
+					"results_display": "searchResultOptionlist"
+				}
+			};
+			// [true, true, "wkhighlighter_highlighted", false, "searchResultOptionlist", "wkhighlighter_highlightedNotLearned"].forEach((value, i) => settings[i] = value);
 		}
 		// setup highlighting class value from settings
-		highlightingClass = settings[2];
+		highlightingClass = settings["highlight_style"]["learned"];
+		notLearnedHighlightingClass = settings["highlight_style"]["not_learned"];
 
 		chrome.storage.local.set({"wkhighlight_settings":settings});
 	});
@@ -83,7 +100,7 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	const scripts = kanji => {
 		tabs.insertCSS(null, {file: 'styles/foreground-styles.css'});
 
-		if (settings["0"])
+		if (settings["kanji_details_popup"]["activated"])
 			tabs.executeScript(null, {file: 'scripts/details-popup.js'}, () => {
 				chrome.runtime.lastError;
 				tabs.executeScript(null, {file: 'lib/raphael-min.js'}, () => tabs.executeScript(null, {file: 'lib/dmak.js'}, () => tabs.executeScript(null, {file: 'lib/dmakLoader.js'}, () => chrome.runtime.lastError)));
@@ -101,6 +118,7 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 						notLearnedYet: allKanji.filter(k => !kanji.includes(k)),
 						unwantedTags: unwantedTags,
 						highlightingClass: highlightingClass,
+						notLearnedHighlightingClass: notLearnedHighlightingClass
 					});
 				}
 			});
@@ -137,7 +155,7 @@ tabs.onActivated.addListener(activeInfo => {
 			tabs.get(tabId, response => {
 				if (response) {
 					if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(response["url"])) {
-						if (settings["1"] && injectedHighlighter) {
+						if (settings["extension_icon"]["kanji_counter"] && injectedHighlighter) {
 							tabs.sendMessage(tabId, {nmrKanjiHighlighted:"popup"}, response => {
 								if (!window.chrome.runtime.lastError) {
 									if (response)
@@ -191,7 +209,7 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 								if (key["wkhighlight_apiKey"]) {
 									apiToken = key["wkhighlight_apiKey"];
 				
-									if (settings["1"]) {
+									if (settings["extension_icon"]["kanji_counter"]) {
 										chrome.browserAction.setBadgeText({text: "0", tabId:thisTabId});
 										chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 									}
@@ -337,7 +355,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.popupDetails)
 		tabs.sendMessage(thisTabId, {popupDetails: request.popupDetails});
 
-	if (request.badge && settings["1"]) {
+	if (request.badge && settings["extension_icon"]["kanji_counter"]) {
 		chrome.browserAction.setBadgeText({text: request.badge.toString(), tabId:thisTabId});
 		chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 	}

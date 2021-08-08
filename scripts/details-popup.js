@@ -12,12 +12,32 @@ var injectedDetailsPopup = true;
 	let allVocab = {};
 	chrome.storage.local.get(["wkhighlight_allvocab"], data => allVocab = data["wkhighlight_allvocab"]);
 	let highlightingClass;
-	chrome.storage.local.get(["wkhighlight_settings"], result => highlightingClass = result["wkhighlight_settings"][2]);
+	let notLearnedHighlightingClass;
+	chrome.storage.local.get(["wkhighlight_settings"], result => {
+		const highlightStyleSettings = result["wkhighlight_settings"]["highlight_style"];
+		if (highlightStyleSettings) {
+			highlightingClass = highlightStyleSettings["learned"];
+			notLearnedHighlightingClass = highlightStyleSettings["not_learned"];
+		}
+	});
 
 	let extraContainersRemoverInterval;
 
 	let detailsPopupFixed = false;
 	let kanjiLocked = false;
+
+	const srsStages = {
+		0: {name:"Locked", short: "Lkd"},
+		1: {name:"Apprentice1", short: "Ap1"},
+		2: {name:"Apprentice2", short: "Ap2"},
+		3: {name:"Apprentice3", short: "Ap3"},
+		4: {name:"Apprentice4", short: "Ap4"},
+		5: {name:"Guru1", short: "Gr1"},
+		6: {name:"Guru2", short: "Gr2"},
+		7: {name:"Master", short: "Mst"},
+		8: {name:"Enlighted", short: "Enl"},
+		9: {name:"Burned", short: "Brn"}
+	}
 
 	let openedKanji = [];
 

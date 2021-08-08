@@ -731,54 +731,82 @@ document.addEventListener("click", e => {
 		});
 
 		const settingsChecks = document.createElement("div");
-		settingsChecks.style.display = "grid";
 		content.appendChild(settingsChecks);
-		let count = 0;
+		settingsChecks.id = "settingsOptionsWrapper";
 		chrome.storage.local.get(["wkhighlight_settings"], data => {
 			let settings = data["wkhighlight_settings"];
 			if (settings) {
-				["Kanji info popup", "Kanji counter on icon"].forEach(title => settingsChecks.appendChild(singleOptionCheck("settings"+count, title, settings[count++])));
+				// KANJI DETAILS POPUP SECTION
+				const detailsPopupWrapper = document.createElement("div");
+				settingsChecks.appendChild(detailsPopupWrapper);
+				detailsPopupWrapper.classList.add("settingsSection", "bellow-border");
+				const detailsPopupTitle = document.createElement("p");
+				detailsPopupWrapper.appendChild(detailsPopupTitle);
+				detailsPopupTitle.appendChild(document.createTextNode("Kanji Details Popup"));
+				detailsPopupWrapper.appendChild(singleOptionCheck("settings-kanji_details_popup-activated", "Activated", settings["kanji_details_popup"]["activated"]));
 
-				const div = document.createElement("div");
-				settingsChecks.appendChild(div);
-				div.style.display = "inline-flex";
-				div.style.padding = "3px 0";
+				// EXTENSION ICON
+				const extensionIconWrapper = document.createElement("div");
+				settingsChecks.appendChild(extensionIconWrapper);
+				extensionIconWrapper.classList.add("settingsSection", "bellow-border");
+				const extensionIconTitle = document.createElement("p");
+				extensionIconWrapper.appendChild(extensionIconTitle);
+				extensionIconTitle.appendChild(document.createTextNode("Extension Icon"));
+				extensionIconWrapper.appendChild(singleOptionCheck("settings-extension_icon-kanji_counter", "Kanji Counter", settings["extension_icon"]["kanji_counter"]));
 
-				const label = document.createElement("label");
-				div.appendChild(label);
-				label.classList.add("settingsItemLabel");
-				label.appendChild(document.createTextNode("Highlight style"));
+				// HIGHLIGHT STYLE SECTION
+				const highlightStyleWrapper = document.createElement("div");
+				settingsChecks.appendChild(highlightStyleWrapper);
+				highlightStyleWrapper.classList.add("settingsSection", "bellow-border");
+				const highlightStyleTitle = document.createElement("p");
+				highlightStyleWrapper.appendChild(highlightStyleTitle);
+				highlightStyleTitle.appendChild(document.createTextNode("Highlight Style"));
 
-				const inputDiv = document.createElement("div");
-				inputDiv.classList.add("checkbox_wrapper");
-				div.appendChild(inputDiv);
-				["wkhighlighter_highlighted", "wkhighlighter_highlighted_underlined", "wkhighlighter_highlighted_bold"].forEach(className => {
-					const span = document.createElement("span");
-					inputDiv.appendChild(span);
-					span.classList.add(className);
-					span.appendChild(document.createTextNode("A"));
-					span.classList.add("settings_highlight_style_option", "clickable");
+				["wkhighlighter_highlighted", "wkhighlighter_highlightedNotLearned"]. forEach(mainClass => {
+					const div = document.createElement("div");
+					highlightStyleWrapper.appendChild(div);
+					div.style.display = "inline-flex";
+					div.style.padding = "3px 5px";
+
+					const label = document.createElement("label");
+					div.appendChild(label);
+					label.classList.add("settingsItemLabel");
+					label.appendChild(document.createTextNode(mainClass == "wkhighlighter_highlighted" ? "Learned" : "Not Learned"));
+
+					const inputDiv = document.createElement("div");
+					inputDiv.classList.add("checkbox_wrapper");
+					div.appendChild(inputDiv);
+					[mainClass, mainClass+"_underlined", mainClass+"_bold"].forEach(className => {
+						const span = document.createElement("span");
+						inputDiv.appendChild(span);
+						span.classList.add(className);
+						span.appendChild(document.createTextNode("A"));
+						span.classList.add("settings_highlight_style_option", "clickable");
+					});
 				});
 
-				chrome.storage.local.get(["wkhighlight_settings"], result => document.querySelectorAll(`.${result["wkhighlight_settings"][2]}`)[0].classList.add("full_opacity"));
+				chrome.storage.local.get(["wkhighlight_settings"], result => ["learned", "not_learned"].forEach(settigsIndex => document.querySelectorAll(`.${result["wkhighlight_settings"]["highlight_style"][settigsIndex]}`)[0].classList.add("full_opacity")));
+
+				const dangerZone = document.createElement("div");
+				settingsChecks.appendChild(dangerZone);
+				dangerZone.classList.add("settingsSection", "bellow-border");
+				const clearCacheTitle = document.createElement("p");
+				dangerZone.appendChild(clearCacheTitle);
+				clearCacheTitle.appendChild(document.createTextNode("Danger Section"));
+				const clearCache = document.createElement("div");
+				clearCache.classList.add("dangerItem");
+				dangerZone.appendChild(clearCache);
+				const clearCacheButton = document.createElement("div");
+				clearCache.appendChild(clearCacheButton);
+				clearCacheButton.classList.add("button");
+				clearCacheButton.id = "clearCash";
+				clearCacheButton.appendChild(document.createTextNode("Clear Cache"));
+				const clearCacheDescription = document.createElement("div");
+				clearCache.appendChild(clearCacheDescription);
+				clearCacheDescription.classList.add("dangerItemDescription");
+				clearCacheDescription.appendChild(document.createTextNode("Clears local data. This won't affect your WaniKani account!"));
 			}
 		});
-
-		const dangerZone = document.createElement("div");
-		content.appendChild(dangerZone);
-
-		const clearCash = document.createElement("div");
-		dangerZone.appendChild(clearCash);
-		clearCash.classList.add("dangerItem");
-		const clearCashButton = document.createElement("div");
-		clearCash.appendChild(clearCashButton);
-		clearCashButton.classList.add("button");
-		clearCashButton.id = "clearCash";
-		clearCashButton.appendChild(document.createTextNode("Clear Cash"));
-		const clearCashDescription = document.createElement("div");
-		clearCash.appendChild(clearCashDescription);
-		clearCashDescription.classList.add("dangerItemDescription");
-		clearCashDescription.appendChild(document.createTextNode("Clears local data. This won't affect your WaniKani account!"));
 
 		if (!document.getElementById("rateMeX")) {
 			const rateApp = document.createElement("div");
@@ -791,26 +819,38 @@ document.addEventListener("click", e => {
 	if (targetElem.classList.contains("settingsItemCheckbox")) {
 		chrome.storage.local.get(["wkhighlight_settings"], data => {
 			let settings = data["wkhighlight_settings"];
-			if (!settings) {
+			if (!settings)
 				settings = {};
-			}
-			const settingsID = targetElem.id.replace("settings", "");
 			
-			// if user removed badges in settings
-			if (settingsID === "1") {
-				let value = "";
+			const settingsID = targetElem.id.replace("settings-", "").split("-");
 
-				if (targetElem.checked) {
-					chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
-						value = (result && result["wkhighlight_nmrHighLightedKanji"] ? result["wkhighlight_nmrHighLightedKanji"] : 0).toString();
-						chrome.browserAction.setBadgeText({text: value, tabId:activeTab.id});
-					});
-				}
-				else
-					chrome.browserAction.setBadgeText({text: '', tabId:activeTab.id});
+			switch(settingsID[0]) {
+			// KANJI DETAILS POPUP SECTION
+				case "kanji_details_popup":
+					if (settingsID[1] === "activated") {
+						settings["kanji_details_popup"]["activated"] = targetElem.checked;
+					}
+					break;
+
+			// EXTENSION ICON SECTION
+				case "extension_icon":
+					if (settingsID[1] === "kanji_counter") {
+						let value = "";
+
+						if (targetElem.checked) {
+							chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
+								value = (result && result["wkhighlight_nmrHighLightedKanji"] ? result["wkhighlight_nmrHighLightedKanji"] : 0).toString();
+								chrome.browserAction.setBadgeText({text: value, tabId:activeTab.id});
+							});
+						}
+						else
+							chrome.browserAction.setBadgeText({text: '', tabId:activeTab.id});
+
+						settings["extension_icon"]["kanji_counter"] = targetElem.checked;
+					}
+					break;
 			}
 			
-			settings[settingsID] = targetElem.checked;
 			chrome.storage.local.set({"wkhighlight_settings":settings});
 		});
 	}
@@ -819,7 +859,7 @@ document.addEventListener("click", e => {
 		clearCache();
 	}
 
-	if (targetElem.id === "blacklistedSitesList" || targetElem.parentElement.id === "blacklistedSitesList") {
+	if (targetElem.id === "blacklistedSitesList" || (targetElem.parent && targetElem.parentElement.id === "blacklistedSitesList")) {
 		const wrapper = document.getElementById("blacklistedSitesWrapper");
 		if (!wrapper) {
 			const parent = targetElem.parentElement;
@@ -870,19 +910,21 @@ document.addEventListener("click", e => {
 	}
 
 	if (targetElem.classList.contains("settings_highlight_style_option")) {
-		document.querySelectorAll(".full_opacity").forEach(elem => elem.classList.remove("full_opacity"));
+		targetElem.parentNode.querySelectorAll(".full_opacity").forEach(elem => elem.classList.remove("full_opacity"));
 		targetElem.classList.add("full_opacity");
+		const targetClass = targetElem.classList[0];
+		const highlightTarget = targetClass.split("_")[1] == "highlighted" ? "learned" : "not_learned";
 		chrome.storage.local.get(["wkhighlight_settings"], data => {
 			let settings = data["wkhighlight_settings"];
 			if (!settings)
 				settings = {};
 			
-			settings[2] = targetElem.classList[0];
+			settings["highlight_style"][highlightTarget] = targetClass;
 			chrome.storage.local.set({"wkhighlight_settings":settings})
 
 			// change highlight class immediately
 			chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-				chrome.tabs.sendMessage(tabs[0].id, {newHighlightClass:targetElem.classList[0]}, () => window.chrome.runtime.lastError);
+				chrome.tabs.sendMessage(tabs[0].id, {target: highlightTarget, newHighlightClass:targetElem.classList[0]}, () => window.chrome.runtime.lastError);
 			});
 		});
 	}
@@ -942,7 +984,7 @@ document.addEventListener("click", e => {
 					navbarWrapper.appendChild(navbarOptions);
 					const targetDiv = document.createElement("div");
 					navbarOptions.appendChild(targetDiv);
-					if (settings[3])
+					if (settings["search"]["targeted_search"])
 						targetDiv.classList.add("full_opacity");
 					targetDiv.classList.add("searchResultNavbarTarget", "clickable");
 					const tagretImg = document.createElement("img");
@@ -957,7 +999,7 @@ document.addEventListener("click", e => {
 						listOfOptions.appendChild(li);
 						li.classList.add("searchResultNavbarOption", "clickable");
 						li.id = "searchResultOption"+option;
-						if (settings[4] == li.id)
+						if (settings["search"]["results_display"] == li.id)
 							li.classList.add("full_opacity");
 
 						const img = document.createElement("img");
@@ -1046,8 +1088,8 @@ document.addEventListener("click", e => {
 
 		chrome.storage.local.get(["wkhighlight_settings"], result => {
 			let settings = result["wkhighlight_settings"];
-			if (settings)
-				settings[4] = targetElem.id;
+			if (settings && settings["search"])
+				settings["search"]["results_display"] = targetElem.id;
 			chrome.storage.local.set({"wkhighlight_settings":settings});
 		});
 
@@ -1091,14 +1133,14 @@ document.addEventListener("click", e => {
 	if (targetElem.classList.contains("searchResultNavbarTarget")) {
 		chrome.storage.local.get(["wkhighlight_settings"], result => {
 			const settings = result["wkhighlight_settings"];
-			if (settings) {
-				if (settings[3]) {
+			if (settings && settings["search"]) {
+				if (settings["search"]["targeted_search"]) {
 					targetElem.classList.remove("full_opacity");
-					settings[3] = false;
+					settings["search"]["targeted_search"] = false;
 				}
 				else {
 					targetElem.classList.add("full_opacity");
-					settings[3] = true;
+					settings["search"]["targeted_search"] = true;
 				}
 				chrome.storage.local.set({"wkhighlight_settings":settings});
 			}
@@ -1154,6 +1196,7 @@ document.addEventListener("click", e => {
 
 		if (reviews) {
 			//setup list of material for current reviews
+			console.log(reviews);
 			if (reviews["data"]) {
 				reviews["data"]
 					.map(review => review["data"])
@@ -1288,7 +1331,7 @@ document.addEventListener("click", e => {
 const singleOptionCheck = (id, labelTitle, checked) => {
 	const div = document.createElement("div");
 	div.style.display = "inline-flex";
-	div.style.padding = "3px 0";
+	div.style.padding = "3px 5px";
 
 	idValue = id;
 	const label = document.createElement("label");
@@ -1370,7 +1413,7 @@ const searchKanji = (event) => {
 
 	chrome.storage.local.get(["wkhighlight_settings"], result => {
 		const settings = result["wkhighlight_settings"];
-		if (settings) {
+		if (settings && settings["search"]) {
 			if (type == "A") {
 				let finalValue = "";
 				const split = separateRomaji(value);
@@ -1408,7 +1451,7 @@ const searchKanji = (event) => {
 					filteredVocab = filterByLevel(vocabList, value);
 				}
 				else {
-					const filterByMeanings = (itemList, value) => itemList.filter(item => matchesMeanings(value, item["meanings"], settings[3]));
+					const filterByMeanings = (itemList, value) => itemList.filter(item => matchesMeanings(value, item["meanings"], settings["search"]["targeted_search"]));
 					const cleanInput = input.value.toLowerCase().trim();
 					filteredKanji = filterByMeanings(kanjiList, cleanInput);
 					filteredVocab = filterByMeanings(vocabList, cleanInput);
@@ -1491,15 +1534,15 @@ const searchKanji = (event) => {
 					}
 		
 					// if it is not in list type
-					if (settings[4] != "searchResultOptionlist") {
-						if (settings[4] == "searchResultOptionmenu")
+					if (settings["search"]["results_display"] != "searchResultOptionlist") {
+						if (settings["search"]["results_display"] == "searchResultOptionmenu")
 							li.classList.add("searchResultItemSquare");
-						else if (settings[4] == "searchResultOptiongrid")
+						else if (settings["search"]["results_display"] == "searchResultOptiongrid")
 							li.classList.add("searchResultItemSquareSmall");
 						itemInfoWrapper.style.display = "none";
 					}
 				}
-				if (settings[4] != "searchResultOptionlist")
+				if (settings["search"]["results_display"] != "searchResultOptionlist")
 					document.documentElement.style.setProperty('--body-base-width', '700px');
 			}
 

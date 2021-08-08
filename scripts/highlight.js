@@ -8,6 +8,7 @@ var injectedHighlight = true;
 	let notLearnedHighlightedKanji = [];
 	let loaded = false;
 	let highlightingClass = "";
+	let notLearnedHighlightingClass = ""
 
 	chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		if (!loaded) {
@@ -18,6 +19,7 @@ var injectedHighlight = true;
 			const notLearnedYet = request.notLearnedYet;
 			const unwantedTags = request.unwantedTags;
 			highlightingClass = request.highlightingClass
+			notLearnedHighlightingClass = request.notLearnedHighlightingClass;
 
 			if (functionDelay && values && unwantedTags && highlightingClass && notLearnedYet) {	
 				const textChildNodes = obj => Array.from(obj.childNodes)
@@ -79,7 +81,7 @@ var injectedHighlight = true;
 				const highlightSetup = (tags, highlightDelay) => {
 					setTimeout(() => {
 						learnedHighlightedKanji = [... new Set(learnedHighlightedKanji.concat(highlighter(values, highlightingClass, tags)))];
-						notLearnedHighlightedKanji = [... new Set(notLearnedHighlightedKanji.concat(highlighter(notLearnedYet, "wkhighlighter_highlightedNotLearned", tags)))];
+						notLearnedHighlightedKanji = [... new Set(notLearnedHighlightedKanji.concat(highlighter(notLearnedYet, notLearnedHighlightingClass, tags)))];
 						totalHighlightedKanji = learnedHighlightedKanji.length + notLearnedHighlightedKanji.length;
 						chrome.runtime.sendMessage({badge:totalHighlightedKanji, nmrKanjiHighlighted:totalHighlightedKanji, kanjiHighlighted:{learned:learnedHighlightedKanji, notLearned:notLearnedHighlightedKanji}});
 						chrome.storage.local.get(["wkhighlight_kanjiPerSite"], result => {
@@ -123,8 +125,12 @@ var injectedHighlight = true;
 
 		// change highlight class immediately of every kanji in the page
 		if (request.newHighlightClass) {
-			Array.from(document.getElementsByClassName(highlightingClass)).forEach(elem => elem.classList.replace(highlightingClass, request.newHighlightClass));
-			highlightingClass = request.newHighlightClass;
+			const highlightClass = request.target == "learned" ? highlightingClass : notLearnedHighlightingClass;
+			Array.from(document.getElementsByClassName(highlightClass)).forEach(elem => elem.classList.replace(highlightClass, request.newHighlightClass));
+			if (request.target == "learned")
+				highlightingClass = request.newHighlightClass;
+			else
+				notLearnedHighlightingClass = request.newHighlightClass;
 		}
 	});
 

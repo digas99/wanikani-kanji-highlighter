@@ -15,10 +15,13 @@ Not Released Yet
   - **B:** Show information from the last kanji in the details popup
 - Added buttons to the kanji details popup, near the kanji container, to do the same thing as the sortcut keys, but manually
 - Highlighted kanji now change it's style immediately after it being changed in the extension popup settings
+- Kanji cards in details popup now also show the main meaning of the material and the main reading
 
 ## Popup
 - Extension popup's first page now shows number of Lessons and Reviews available at the moment. It also shows when more reviews will be available
+- Clicking in the number of reviews or lessons will show the kanji material that will be taught/reviewed and also a chart with the reviews for the next 24 hours
 - The list of kanji that were highlighted now have colors to distinguish the kanji you learned from the kanji you didn't
+- Settings page is now organized into sections
 
 ## Bug Fix
 - Fixed weird placements of elements inside kanji details popup (extra blank spaces, content too big for its container, etc...)
