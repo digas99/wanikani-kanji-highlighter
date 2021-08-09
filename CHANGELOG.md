@@ -1,5 +1,5 @@
 # Changelog v0.5.0
-Not Released Yet
+Released on 09/08/2021
 
 ### - Reviews and Lessons tracking! Extra Highlight!
 
