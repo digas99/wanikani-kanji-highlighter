@@ -5,7 +5,7 @@ Not Released Yet
 - Extension popup no longer reloads when user rejects the reset of all colors in settings
 
 # Changelog v0.5.0
-Pending Release
+Released on 09/08/2021
 
 ### - Reviews and Lessons tracking! Extra Highlight!
 
