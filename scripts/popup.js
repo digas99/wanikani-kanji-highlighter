@@ -32,8 +32,7 @@ const defaultSettings = {
 
 const footer = () => {
 	const wrapper = document.createElement("div");
-	wrapper.style.textAlign = "center";
-	wrapper.style.marginTop = "15px";
+	wrapper.id = "footer";
 
 	const warning = document.createElement("p");
 	warning.id = "footerWarning";
@@ -400,8 +399,8 @@ window.onload = () => {
 																fetchAllPages(apiKey, "https://api.wanikani.com/v2/assignments")
 																	.then(data => {
 																		const allAssignments = data.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
-																		const allFutureAssignments = filterAssignmentsByTime(allAssignments, null);
-																		const allAvailableReviews = filterAssignmentsByTime(allAssignments, changeDay(new Date(), -1000));
+																		const allFutureAssignments = filterAssignmentsByTime(allAssignments, new Date(), null);
+																		const allAvailableReviews = filterAssignmentsByTime(allAssignments, new Date(), changeDay(new Date(), -1000));
 																		chrome.storage.local.set({"wkhighlight_assignments":{
 																			"all":allAssignments,
 																			"future":allFutureAssignments,
@@ -423,7 +422,7 @@ window.onload = () => {
 														// check reviews for the next hours, for every exact hour
 														for (let i = 1; i < hoursIn14Days; i++) {
 															const thisDate = nextExactHour(new Date(), i);
-															const reviewsForNextHour = filterAssignmentsByTime(nextReviews, thisDate);
+															const reviewsForNextHour = filterAssignmentsByTime(nextReviews, new Date(), thisDate);
 															if (reviewsForNextHour.length > 0) {
 																const remainingTime = msToTime(thisDate - currentTime);
 																moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
@@ -495,7 +494,7 @@ window.onload = () => {
 																			const updateReviews = {
 																				"count":reviews["total_count"],
 																				"data":reviews["data"],
-																				"next_reviews":filterAssignmentsByTime(assignments["future"], changeDay(new Date(), 14))
+																				"next_reviews":filterAssignmentsByTime(assignments["future"], new Date(), changeDay(new Date(), 14))
 																			};
 																			const updatedLessons = {
 																				"count":lessons["total_count"],
@@ -658,7 +657,8 @@ const secundaryPage = (titleText, width) => {
 	navbar.appendChild(title);
 
 	const content = document.createElement("div");
-	content.style.paddingTop = "28px";
+	content.style.padding = "28px 0 0 0";
+	// content.style.padding = "28px 0 55px 0";
 	main.appendChild(content);
 
 	return content;
@@ -1309,9 +1309,22 @@ document.addEventListener("click", e => {
 		const futureReviewsCanvas = document.createElement("canvas");
 		futureReviewsChart.appendChild(futureReviewsCanvas);
 		const futureReviewsLabel = document.createElement("p");
-		futureReviewsChart.appendChild(futureReviewsLabel);
+		futureReviewsWrapper.appendChild(futureReviewsLabel);
 		futureReviewsLabel.id = "reviewsPage-nmrReviews24hLabel";
 		futureReviewsLabel.innerHTML = "<b>0</b> more Reviews in the next 24 hours";
+		const daySelectorWrapper = document.createElement("div");
+		futureReviewsWrapper.appendChild(daySelectorWrapper);
+		daySelectorWrapper.id = "reviewsDaySelector";
+		const daySelectorLabel = document.createElement("label");
+		daySelectorWrapper.appendChild(daySelectorLabel);
+		daySelectorLabel.appendChild(document.createTextNode("Select another day:"));
+		const daySelectorInput = document.createElement("input");
+		daySelectorWrapper.appendChild(daySelectorInput);
+		daySelectorInput.type = "date";
+		// setup values for input
+		const today = new Date();
+		daySelectorInput.value = daySelectorInput.min = simpleFormatDate(changeDay(today, 1), "ymd");
+		daySelectorInput.max = simpleFormatDate(changeDay(today, 14), "ymd");
 
 		if (reviews) {
 			//setup list of material for current reviews
@@ -1342,46 +1355,56 @@ document.addEventListener("click", e => {
 					});
 			}
 
-			// setup chart for the next reviews
-			if (reviews["next_reviews"]) {
-				const today = new Date();
-				const days = 1;
-				const nmrReviewsNext = filterAssignmentsByTime(reviews["next_reviews"], changeDay(today, days))
-												.map(review => ({hour:new Date(review["available_at"]).getHours(), day:new Date(review["available_at"]).getDate()}));
-				futureReviewsLabel.getElementsByTagName("B")[0].innerText = nmrReviewsNext.length;
-
+			const setupReviewsDataForChart = (reviews, today, days) => {
 				const currentHour = today.getHours();
 				let currentDay = today.getDate();
 				const hours = [];
 				const reviewsPerHour = [];
 
 				let hour = currentHour + 1;
-				if (hour == 24) hour = 0;
+				if (hour == 24) {
+					hour = 0;
+					currentDay++;
+				}
 
 				let counter = 0;
 				const daysToHours = days*24;
+				console.log(reviews, currentHour, currentDay);
 				// loop all the next 24 hours (i.e.: if right now the hour is 12h, loop until 12h (of the next day))
 				while (counter++ != daysToHours) {
 					hours.push((days > 1 ? currentDay+" " : "")+`${hour}h`);
-					reviewsPerHour.push(nmrReviewsNext.filter(r => r["hour"] == hour && r["day"] == currentDay).length);
-
+					reviewsPerHour.push(reviews.filter(r => r["hour"] == hour && r["day"] == currentDay).length);
+					console.log(reviewsPerHour);
 					// make sure the hour after 23h is 00h and not 24h and increase day
 					if (++hour == 24) {
 						hour = 0;
 						currentDay++; 
 					}
 				}
+				return ({hours:hours, reviewsPerHour:reviewsPerHour});
+			}
+
+			// setup chart for the next reviews
+			if (reviews["next_reviews"]) {
+				const days = 1;
+				const nmrReviewsNext = filterAssignmentsByTime(reviews["next_reviews"], today, changeDay(today, days))
+												.map(review => ({hour:new Date(review["available_at"]).getHours(), day:new Date(review["available_at"]).getDate()}));
+				console.log(nmrReviewsNext);
+				futureReviewsLabel.getElementsByTagName("B")[0].innerText = nmrReviewsNext.length;
+
+				const chartData = setupReviewsDataForChart(nmrReviewsNext, today, days);
+				console.log(chartData);
 				
 				const data = {
-					labels: hours,
+					labels: chartData["hours"],
 					datasets: [{
 						label: 'Reviews',
 						backgroundColor: 'rgb(44, 112, 128)',
 						borderColor: 'rgb(255, 255, 255)',
-						data: reviewsPerHour,
+						data: chartData["reviewsPerHour"],
 					}]
 				};
-				new Chart(futureReviewsCanvas, {
+				const reviewsChart = new Chart(futureReviewsCanvas, {
 					type: 'bar',
 					data,
 					options: {
@@ -1399,6 +1422,36 @@ document.addEventListener("click", e => {
 						}, 
 					},
 					plugins: [ChartDataLabels]
+				});
+
+				const chartAddData = (chart, labels, data) => {
+					labels.forEach(label => chart.data.labels.push(label));
+					data.forEach(value => {
+						chart.data.datasets.forEach((dataset) => {
+							dataset.data.push(value);
+						});
+					});
+					chart.update();
+				}
+				
+				const chartRemoveData = (chart, size) => {
+					while (size-- != 0) {
+						chart.data.labels.pop();
+						chart.data.datasets.forEach((dataset) => {
+							dataset.data.pop();
+						});
+					}
+					chart.update();
+				}
+
+				// changing date event listener
+				daySelectorInput.addEventListener("input", e => {
+					const newDate = new Date(e.target.value);
+					chartRemoveData(reviewsChart, reviewsChart.data.labels.length);
+					const nextReviews = filterAssignmentsByTime(reviews["next_reviews"], newDate, changeDay(newDate, 1))
+											.map(review => ({hour:new Date(review["available_at"]).getHours(), day:new Date(review["available_at"]).getDate()}));
+					const newData = setupReviewsDataForChart(nextReviews, newDate, 1);
+					chartAddData(reviewsChart, newData["hours"], newData["reviewsPerHour"]);
 				});
 			}
 		}
@@ -1837,18 +1890,9 @@ const loading = (wrapperClasses, iconClasses, size) => {
 	return [wrapper, interval];
 }
 
-const nextExactHour = (date, hours) => {
-	return new Date(new Date(new Date(new Date().setHours(date.getHours()+hours)).setMinutes(0)).setSeconds(0));
-}
-
-const changeDay = (date, days) => {
-	return new Date(new Date().setDate((date.getDate())+days));
-}
-
-const filterAssignmentsByTime = (list, capDate) => {
+const filterAssignmentsByTime = (list, currentDate, capDate) => {
 	list = list[0]["data"] ? list.map(review => review["data"]) : list;
 	const date = capDate ? new Date(capDate) : null;
-	const currentDate = new Date();
 	if (date) {
 		// if the given date is in the future
 		if (date.getTime() > new Date().getTime()) {

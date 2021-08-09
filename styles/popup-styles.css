@@ -434,6 +434,22 @@ transform: rotate(134deg);
 	color: black;
 }
 
+#reviewsDaySelector {
+	text-align: right;
+	margin: 10px 0;
+}
+
+#reviewsDaySelector > label {
+	padding-right: 10px;
+	font-size: 13px;
+	color: #747474;
+}
+
+#reviewsDaySelector > input {
+	height: 17px;
+    color: #747474;
+}
+
 /* LESSONS PAGE */
 
 /* SUMMARY */
@@ -891,6 +907,19 @@ transform: rotate(134deg);
 
 
 /* 12. FOOTER */
+
+#footer {
+	text-align: center;
+	margin-top: 18px;
+	/* position: fixed;
+    bottom: 0;
+    background-color: white;
+    width: 100%;
+    left: 0;
+    height: 50px;
+    padding-top: 10px;
+    border-top: 1px solid silver; */
+}
 
 #footerWarning {
 	font-size: 9px;

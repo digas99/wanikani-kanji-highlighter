@@ -42,9 +42,40 @@ function msToTime(ms) {
 }
 
 // format date into <day-name>, <day> <month> <year> <hour>:<minute>:<second> GMT
-const formatDate = (date, type) => {
+const formatDate = date => {
 	const split = date.toString().split(" ");
 	return `${split[0]}, ${split[2]} ${split[1]} ${split[3]} ${split[4]} GMT`;
+}
+
+const simpleFormatDate = (date, format) => {
+	// make sure it is a Date object
+	date = new Date(date);
+	let dd = date.getDate();
+	let mm = date.getMonth()+1;
+	const yyyy = date.getFullYear();
+	dd = dd < 10 ? '0'+dd : dd;
+	mm = mm < 10 ? '0'+mm : mm;
+	let value;
+	switch(format) {
+		case "mdy":
+			value = `${mm}-${dd}-${yyyy}`
+			break;
+		case "dmy":
+			value = `${dd}-${mm}-${yyyy}`
+			break;
+		case "ymd":
+			value = `${yyyy}-${mm}-${dd}`; 
+			break;
+	}
+	return value;
+}
+
+const nextExactHour = (date, hours) => {
+	return new Date(new Date(new Date(new Date().setHours(date.getHours()+hours)).setMinutes(0)).setSeconds(0));
+}
+
+const changeDay = (date, days) => {
+	return new Date(new Date().setDate((date.getDate())+days));
 }
 
 // check if the data in the endpoints has been modified since the given date
