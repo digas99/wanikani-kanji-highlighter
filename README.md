@@ -145,5 +145,5 @@ By clicking in the gear icon in the main page of the extension popup, you will f
   - **Clear Cache:** clear local data storage. This will not affect your WaniKani account!
 
 ## Pictures
-![howto](images/how-to-banner.jpg)
-![features1](images/features1.jpg)
+![howto](images/picture1.jpg)
+![features1](images/picture2.jpg)
