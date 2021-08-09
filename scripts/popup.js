@@ -894,9 +894,10 @@ document.addEventListener("click", e => {
 				appearanceReset.classList.add("button");
 				appearanceReset.appendChild(document.createTextNode("Reset"));
 				appearanceReset.addEventListener("click", e => {
-					if (window.confirm("Reset all colors?"))
+					if (window.confirm("Reset all colors?")) {
 						Object.keys(settings["appearance"]).forEach(key => settings["appearance"][key] = undefined);
 						chrome.storage.local.set({"wkhighlight_settings":settings}, () => window.location.reload());
+					}
 				});
 
 				// DANGER ZONE
@@ -1344,24 +1345,31 @@ document.addEventListener("click", e => {
 			// setup chart for the next reviews
 			if (reviews["next_reviews"]) {
 				const today = new Date();
-				const nmrReviewsForNext24h = filterAssignmentsByTime(reviews["next_reviews"], changeDay(today, 1))
-												.map(review => new Date(review["available_at"]).getHours());
-				
-				futureReviewsLabel.getElementsByTagName("B")[0].innerText = nmrReviewsForNext24h.length;
-				
+				const days = 1;
+				const nmrReviewsNext = filterAssignmentsByTime(reviews["next_reviews"], changeDay(today, days))
+												.map(review => ({hour:new Date(review["available_at"]).getHours(), day:new Date(review["available_at"]).getDate()}));
+				futureReviewsLabel.getElementsByTagName("B")[0].innerText = nmrReviewsNext.length;
+
 				const currentHour = today.getHours();
+				let currentDay = today.getDate();
 				const hours = [];
 				const reviewsPerHour = [];
+
 				let hour = currentHour + 1;
 				if (hour == 24) hour = 0;
-				// loop all the next 24 hours (i.e.: if right now the hour is 12h, loop until 12h (of the next day))
-				while (currentHour - hour != 0) {
-					hours.push(hour+"h");
-					reviewsPerHour.push(nmrReviewsForNext24h.filter(h => h == hour).length);
 
-					// make sure the hour after 23h is 00h and not 24h
-					if (++hour == 24)
-						hour = 0; 
+				let counter = 0;
+				const daysToHours = days*24;
+				// loop all the next 24 hours (i.e.: if right now the hour is 12h, loop until 12h (of the next day))
+				while (counter++ != daysToHours) {
+					hours.push((days > 1 ? currentDay+" " : "")+`${hour}h`);
+					reviewsPerHour.push(nmrReviewsNext.filter(r => r["hour"] == hour && r["day"] == currentDay).length);
+
+					// make sure the hour after 23h is 00h and not 24h and increase day
+					if (++hour == 24) {
+						hour = 0;
+						currentDay++; 
+					}
 				}
 				
 				const data = {
@@ -1388,7 +1396,7 @@ document.addEventListener("click", e => {
 								align: 'top',
 								display: ctx => ctx["dataset"]["data"][ctx["dataIndex"]] != 0
 							}
-						}
+						}, 
 					},
 					plugins: [ChartDataLabels]
 				});

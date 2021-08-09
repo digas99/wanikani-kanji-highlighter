@@ -1,5 +1,11 @@
-# Changelog v0.5.0
+# Changelog v0.5.1
 Not Released Yet
+
+## Bug Fix
+- Extension popup no longer reloads when user rejects the reset of all colors in settings
+
+# Changelog v0.5.0
+Pending Release
 
 ### - Reviews and Lessons tracking! Extra Highlight!
 
