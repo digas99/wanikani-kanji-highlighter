@@ -192,7 +192,7 @@ transform: rotate(134deg);
 #message {
 	margin-top: 5px;
     text-align: center;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: bold;
 }
 
@@ -740,6 +740,11 @@ transform: rotate(134deg);
     padding-bottom: 5px;
 }
 
+.settingsSection > div {
+    display: inline-flex;
+    padding: 3px 5px;
+}
+
 .settingsSection > p {
 	text-align: center;
     margin-bottom: 10px;
@@ -823,7 +828,8 @@ transform: rotate(134deg);
 
 	/* 10.3 DANGER ZONE */
 .dangerItem {
-	padding: 0 10px;
+	padding: 0 10px !important;
+	display: unset !important;
 }
 
 .dangerItem>.button {

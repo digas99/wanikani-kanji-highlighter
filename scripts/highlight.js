@@ -8,7 +8,7 @@ var injectedHighlight = true;
 	let notLearnedHighlightedKanji = [];
 	let loaded = false;
 	let highlightingClass = "";
-	let notLearnedHighlightingClass = ""
+	let notLearnedHighlightingClass = "";
 
 	chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		if (!loaded) {
@@ -21,7 +21,7 @@ var injectedHighlight = true;
 			highlightingClass = request.highlightingClass
 			notLearnedHighlightingClass = request.notLearnedHighlightingClass;
 
-			if (functionDelay && values && unwantedTags && highlightingClass && notLearnedYet) {	
+			if (functionDelay && values && unwantedTags && highlightingClass && notLearnedYet) {
 				const textChildNodes = obj => Array.from(obj.childNodes)
 					.filter(node => node.nodeName === "#text");
 
@@ -61,11 +61,9 @@ var injectedHighlight = true;
 
 				const highlighter = (values, className, allTags) => {
 					const kanjiRegex = new RegExp(`[${values.join('')}]`, "g");
-					//console.log(kanjiRegex);
 					// check if there is any character to be highlighted
 					const nodesToBeHighlighted = allTags.filter(tag => {
 						const test = tag.textContent.match(kanjiRegex);
-						//console.log(kanjiRegex);
 						return test !== null ? test.length > 0 : false;
 					});
 

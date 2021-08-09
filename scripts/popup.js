@@ -5,6 +5,31 @@ let activeTab;
 
 let reviews, lessons;
 
+const defaultSettings = {
+	"kanji_details_popup": {
+		activated: true
+	},
+	"extension_icon": {
+		kanji_counter: true
+	},
+	"highlight_style": {
+		learned: "wkhighlighter_highlighted",
+		not_learned: "wkhighlighter_highlightedNotLearned"
+	},
+	"search": {
+		targeted_search: false,
+		results_display: "searchResultOptionlist"
+	},
+	"appearance": {
+		highlight_learned: "#2c5091",
+		highlight_not_learned: "#a32727",
+		details_popup: "#475058",
+		radical_color: "#65b6ae",
+		kanji_color: "#e7e485",
+		vocab_color: "#fc759b"
+	}
+};
+
 const footer = () => {
 	const wrapper = document.createElement("div");
 	wrapper.style.textAlign = "center";
@@ -92,17 +117,13 @@ window.onload = () => {
 	title.textContent = "WaniKani Kanji Highlighter";
 	logoDiv.appendChild(title);
 
-	const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50);
-	const loadingElem = loadingVal[0];
-	main.appendChild(loadingElem);
-
-	chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_blacklist"], userData => {
+	chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_blacklist", "wkhighlight_settings"], result => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			activeTab = tabs[0];
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, response => {
 				const url = response ? response["windowLocation"] : "";
-				if (!userData["wkhighlight_blacklist"] || userData["wkhighlight_blacklist"].length === 0 || !blacklisted(userData["wkhighlight_blacklist"], url)) {
-					const apiKey = userData["wkhighlight_apiKey"];
+				if (!result["wkhighlight_blacklist"] || result["wkhighlight_blacklist"].length === 0 || !blacklisted(result["wkhighlight_blacklist"], url)) {
+					const apiKey = result["wkhighlight_apiKey"];
 					// if the user did not add a key yet
 					if (!apiKey) {
 						chrome.browserAction.setBadgeText({text: '', tabId:activeTab.id});
@@ -113,9 +134,8 @@ window.onload = () => {
 						main.appendChild(apiInputWrapper);
 
 						const apiLabel = document.createElement("p");
-						apiLabel.style.textAlign = "center";
 						apiLabel.style.marginBottom = "5px";
-						apiLabel.style.fontSize = "16px";
+						apiLabel.style.fontSize = "14px";
 						apiLabel.appendChild(document.createTextNode("API Key: "));
 						apiInputWrapper.appendChild(apiLabel);
 					
@@ -140,10 +160,43 @@ window.onload = () => {
 						whatIsAPIKey.appendChild(whatIsAPIKeyLink);
 					}
 					else {
-						fetchAllPages(apiKey, "https://api.wanikani.com/v2/subjects?types=kanji")
-						.then(kanji_data => {
-							console.log(kanji_data);
-						});
+						const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50);
+						const loadingElem = loadingVal[0];
+						main.appendChild(loadingElem);
+
+						let settings = result["wkhighlight_settings"];
+		
+						// set settings
+						if (!settings)
+							settings = defaultSettings;
+						else {
+							// check if all settings are stored
+							notStored = [];
+							Object.keys(defaultSettings).map(key => {
+								(Object.keys(defaultSettings[key]).map(innerKey => {
+									// if it doesn't exists in settings
+									if (typeof settings[key] === 'undefined' || typeof settings[key][innerKey] === 'undefined')
+										notStored.push([key, innerKey]);
+								}));
+							});
+				
+							// if settings["appearance"] doesn't exist, then initialize it
+							if (!Object.keys(settings).includes("appearance"))
+								settings["appearance"] = {};
+							// only store the missing values a preserve the others
+							notStored.forEach(id => settings[id[0]][id[1]] = defaultSettings[id[0]][id[1]]);
+						}
+				
+						chrome.storage.local.set({"wkhighlight_settings":settings});
+			
+						// setup css vars
+						const appearance = settings["appearance"];
+						document.documentElement.style.setProperty('--highlight-default-color', appearance["highlight_learned"]);
+						document.documentElement.style.setProperty('--notLearned-color', appearance["highlight_not_learned"]);
+						document.documentElement.style.setProperty('--radical-tag-color', appearance["radical_color"]);
+						document.documentElement.style.setProperty('--kanji-tag-color', appearance["kanji_color"]);
+						document.documentElement.style.setProperty('--vocab-tag-color', appearance["vocab_color"]);
+
 						if (kanjiList.length == 0 || vocabList.length == 0) {
 							document.body.style.cursor = "progress";
 							// only show content after loading everything
@@ -163,7 +216,7 @@ window.onload = () => {
 												});
 											}
 			
-											const userInfo = userData["wkhighlight_userInfo"]["data"];
+											const userInfo = result["wkhighlight_userInfo"]["data"];
 											if (userInfo) {
 												// remove loading animation
 												loadingElem.remove();
@@ -713,7 +766,7 @@ document.addEventListener("click", e => {
 	}
 
 	if (targetElem.id === "settings" || (targetElem.childNodes[0] && targetElem.childNodes[0].id === "settings")) {
-		const content = secundaryPage("Settings", 250);
+		const content = secundaryPage("Settings", 275);
 		content.id = "settingsContent";
 		
 		const blacklistedDiv = document.createElement("div");
@@ -765,8 +818,6 @@ document.addEventListener("click", e => {
 				["wkhighlighter_highlighted", "wkhighlighter_highlightedNotLearned"]. forEach(mainClass => {
 					const div = document.createElement("div");
 					highlightStyleWrapper.appendChild(div);
-					div.style.display = "inline-flex";
-					div.style.padding = "3px 5px";
 
 					const label = document.createElement("label");
 					div.appendChild(label);
@@ -787,6 +838,68 @@ document.addEventListener("click", e => {
 
 				chrome.storage.local.get(["wkhighlight_settings"], result => ["learned", "not_learned"].forEach(settigsIndex => document.querySelectorAll(`.${result["wkhighlight_settings"]["highlight_style"][settigsIndex]}`)[0].classList.add("full_opacity")));
 
+				// APPEARANCE
+				const appearanceWrapper = document.createElement("div");
+				settingsChecks.appendChild(appearanceWrapper);
+				appearanceWrapper.classList.add("settingsSection", "bellow-border");
+				const appearanceTitle = document.createElement("p");
+				appearanceWrapper.appendChild(appearanceTitle);
+				appearanceTitle.appendChild(document.createTextNode("Appearance"));
+				
+				[{
+					id:"settings-appearance-highlight_learned",
+					label:"Highlight Learned",
+					color:settings["appearance"]["highlight_learned"]
+				},{
+					id:"settings-appearance-highlight_not_learned",
+					label:"Highlight Not Learned",
+					color:settings["appearance"]["highlight_not_learned"]
+				},{
+					id:"settings-appearance-details_popup",
+					label:"Details Popup",
+					color:settings["appearance"]["details_popup"]
+				},{
+					id:"settings-appearance-radical_color",
+					label:"Radical",
+					color:settings["appearance"]["radical_color"]
+				},{
+					id:"settings-appearance-kanji_color",
+					label:"Kanji",
+					color:settings["appearance"]["kanji_color"]
+				},{
+					id:"settings-appearance-vocab_color",
+					label:"Vocabulary",
+					color:settings["appearance"]["vocab_color"]
+				}].forEach(option => {
+					const colorInput = colorOption(option["id"], option["label"], option["color"]);
+					appearanceWrapper.appendChild(colorInput);
+					colorInput.addEventListener("input", e => {
+						const color = e.target.value;
+						const id = option["id"].replace("settings-", "").split("-");
+						if (id[1] === "highlight_learned" || id[1] === "highlight_not_learned") {
+							const target = id[1] === "highlight_learned" ? "wkhighlighter_highlighted" : "wkhighlighter_highlightedNotLearned";
+							// change color of the three highlight styles
+							document.getElementsByClassName(target+" settings_highlight_style_option")[0].style.setProperty("background-color", color, "important");
+							document.getElementsByClassName(target+"_underlined settings_highlight_style_option")[0].style.setProperty("border-bottom", "3px solid "+color, "important");
+							document.getElementsByClassName(target+"_bold settings_highlight_style_option")[0].style.setProperty("color", color, "important");
+						}
+						settings[id[0]][id[1]] = color;
+						chrome.storage.local.set({"wkhighlight_settings":settings});
+					});
+				});
+				const appearanceResetWrapper = document.createElement("div");
+				appearanceWrapper.appendChild(appearanceResetWrapper);
+				const appearanceReset = document.createElement("div");
+				appearanceResetWrapper.appendChild(appearanceReset);
+				appearanceReset.classList.add("button");
+				appearanceReset.appendChild(document.createTextNode("Reset"));
+				appearanceReset.addEventListener("click", e => {
+					if (window.confirm("Reset all colors?"))
+						Object.keys(settings["appearance"]).forEach(key => settings["appearance"][key] = undefined);
+						chrome.storage.local.set({"wkhighlight_settings":settings}, () => window.location.reload());
+				});
+
+				// DANGER ZONE
 				const dangerZone = document.createElement("div");
 				settingsChecks.appendChild(dangerZone);
 				dangerZone.classList.add("settingsSection", "bellow-border");
@@ -816,7 +929,7 @@ document.addEventListener("click", e => {
 		}
 	}
 
-	if (targetElem.classList.contains("settingsItemCheckbox")) {
+	if (targetElem.classList.contains("settingsItemInput")) {
 		chrome.storage.local.get(["wkhighlight_settings"], data => {
 			let settings = data["wkhighlight_settings"];
 			if (!settings)
@@ -825,28 +938,33 @@ document.addEventListener("click", e => {
 			const settingsID = targetElem.id.replace("settings-", "").split("-");
 
 			switch(settingsID[0]) {
-			// KANJI DETAILS POPUP SECTION
+				// KANJI DETAILS POPUP SECTION
 				case "kanji_details_popup":
-					if (settingsID[1] === "activated") {
-						settings["kanji_details_popup"]["activated"] = targetElem.checked;
+					switch (settingsID[1]) {
+						case "activated":
+							settings[settingsID[0]][settingsID[1]] = targetElem.checked;
+							break;
 					}
+					
 					break;
 
-			// EXTENSION ICON SECTION
+				// EXTENSION ICON SECTION
 				case "extension_icon":
-					if (settingsID[1] === "kanji_counter") {
-						let value = "";
+					switch (settingsID[1]) {
+						case "kanji_counter":
+							let value = "";
 
-						if (targetElem.checked) {
-							chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
-								value = (result && result["wkhighlight_nmrHighLightedKanji"] ? result["wkhighlight_nmrHighLightedKanji"] : 0).toString();
-								chrome.browserAction.setBadgeText({text: value, tabId:activeTab.id});
-							});
-						}
-						else
-							chrome.browserAction.setBadgeText({text: '', tabId:activeTab.id});
+							if (targetElem.checked) {
+								chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
+									value = (result && result["wkhighlight_nmrHighLightedKanji"] ? result["wkhighlight_nmrHighLightedKanji"] : 0).toString();
+									chrome.browserAction.setBadgeText({text: value, tabId:activeTab.id});
+								});
+							}
+							else
+								chrome.browserAction.setBadgeText({text: '', tabId:activeTab.id});
 
-						settings["extension_icon"]["kanji_counter"] = targetElem.checked;
+							settings[settingsID[0]][settingsID[1]] = targetElem.checked;
+							break;
 					}
 					break;
 			}
@@ -1196,7 +1314,6 @@ document.addEventListener("click", e => {
 
 		if (reviews) {
 			//setup list of material for current reviews
-			console.log(reviews);
 			if (reviews["data"]) {
 				reviews["data"]
 					.map(review => review["data"])
@@ -1330,9 +1447,6 @@ document.addEventListener("click", e => {
 
 const singleOptionCheck = (id, labelTitle, checked) => {
 	const div = document.createElement("div");
-	div.style.display = "inline-flex";
-	div.style.padding = "3px 5px";
-
 	idValue = id;
 	const label = document.createElement("label");
 	div.appendChild(label);
@@ -1348,7 +1462,29 @@ const singleOptionCheck = (id, labelTitle, checked) => {
 	checkbox.checked = checked;
 	checkbox.type = "checkbox";
 	checkbox.id = idValue;
-	checkbox.classList.add("settingsItemCheckbox", "clickable");
+	checkbox.classList.add("settingsItemInput", "clickable");
+
+	return div;
+}
+
+const colorOption = (id, labelTitle, defaultColor) => {
+	const div = document.createElement("div");
+	idValue = id;
+	const label = document.createElement("label");
+	div.appendChild(label);
+	label.classList.add("settingsItemLabel");
+	label.appendChild(document.createTextNode(labelTitle));
+	label.htmlFor = idValue;
+
+	const inputDiv = document.createElement("div");
+	inputDiv.classList.add("checkbox_wrapper");
+	const checkbox = document.createElement("input");
+	div.appendChild(inputDiv);
+	inputDiv.appendChild(checkbox);
+	checkbox.value = defaultColor;
+	checkbox.type = "color";
+	checkbox.id = idValue;
+	checkbox.classList.add("settingsItemInput", "clickable");
 
 	return div;
 }

@@ -20,35 +20,62 @@ let injectedHighlighter = false;
 let isBlacklisted = false;
 let isWanikani = false;
 
+const defaultSettings = {
+	"kanji_details_popup": {
+		activated: true
+	},
+	"extension_icon": {
+		kanji_counter: true
+	},
+	"highlight_style": {
+		learned: "wkhighlighter_highlighted",
+		not_learned: "wkhighlighter_highlightedNotLearned"
+	},
+	"search": {
+		targeted_search: false,
+		results_display: "searchResultOptionlist"
+	},
+	"appearance": {
+		highlight_learned: "#2c5091",
+		highlight_not_learned: "#a32727",
+		details_popup: "#475058",
+		radical_color: "#65b6ae",
+		kanji_color: "#e7e485",
+		vocab_color: "#fc759b"
+	}
+};
+
 let settings;
 // set settings
 const setSettings = () => {
 	chrome.storage.local.get(["wkhighlight_settings"], result => {
 		settings = result["wkhighlight_settings"];
-		if (!settings) {
-			settings = {
-				"kanji_details_popup": {
-					"activated": true
-				},
-				"extension_icon": {
-					"kanji_counter": true
-				},
-				"highlight_style": {
-					"learned": "wkhighlighter_highlighted",
-					"not_learned": "wkhighlighter_highlightedNotLearned"
-				},
-				"search": {
-					"targeted_search": false,
-					"results_display": "searchResultOptionlist"
-				}
-			};
-			// [true, true, "wkhighlighter_highlighted", false, "searchResultOptionlist", "wkhighlighter_highlightedNotLearned"].forEach((value, i) => settings[i] = value);
+		
+		if (!settings)
+			settings = defaultSettings;
+		else {
+			// check if all settings are stored
+			notStored = [];
+			Object.keys(defaultSettings).map(key => {
+				(Object.keys(defaultSettings[key]).map(innerKey => {
+					// if it doesn't exists in settings
+					if (typeof settings[key][innerKey] === 'undefined')
+						notStored.push([key, innerKey]);
+				}));
+			});
+
+			// if settings["appearance"] doesn't exist, then initialize it
+			if (!Object.keys(settings).includes("appearance"))
+				settings["appearance"] = {};
+			// only store the missing values a preserve the others
+			notStored.forEach(id => settings[id[0]][id[1]] = defaultSettings[id[0]][id[1]]);
 		}
+
+		chrome.storage.local.set({"wkhighlight_settings":settings});
+
 		// setup highlighting class value from settings
 		highlightingClass = settings["highlight_style"]["learned"];
 		notLearnedHighlightingClass = settings["highlight_style"]["not_learned"];
-
-		chrome.storage.local.set({"wkhighlight_settings":settings});
 	});
 }
 setSettings();
@@ -132,7 +159,6 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 			.then(modified => {
 				// even if not modified, fetch if learnedKanji not found in storage
 				if (!response["wkhighlight_learnedKanji"] || modified) {
-					console.log("Fetching learned kanji");
 					setupLearnedKanji(apiToken, learnedKanjiSource, allkanji)
 						.then(kanji => scripts(kanji))
 						.catch(errorHandling);
@@ -192,7 +218,6 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 							currentHost = response["windowLocation"];
 							currentUrl = response["windowHref"];
 							currentPageReloaded = response["reloaded"];
-							console.log(currentUrl, " reloaded?", currentPageReloaded);
 							
 							setSettings();
 							
@@ -202,7 +227,7 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 								injectScripts = false;
 								// set a delay to prevent multiple injections
 								delayFinished = false;
-								setTimeout(() => {delayFinished = true;console.log("delayFinished: ", delayFinished);}, 2000);
+								setTimeout(() => delayFinished = true, 2000);
 							}
 
 							chrome.storage.local.get(["wkhighlight_apiKey"], key => {
@@ -385,10 +410,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.forceScriptInjection && !isBlacklisted && !isWanikani) {
 		chrome.storage.local.get(['wkhighlight_allkanji'], result => {
 			const allKanji = result["wkhighlight_allkanji"];
-			if (allKanji) {
-				console.log("forcing injection");
+			if (allKanji)
 				setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", allKanji);
-			}
 		});
 	}
 });

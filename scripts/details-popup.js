@@ -103,7 +103,6 @@ var injectedDetailsPopup = true;
 	
 			const p = document.createElement("p");
 			const thisData = data[id];
-			console.log(thisData);
 	
 			const a = document.createElement("a");
 			a.target = "_blank";
@@ -126,8 +125,6 @@ var injectedDetailsPopup = true;
 			p.setAttribute('data-item-id', id);
 			li.appendChild(a);
 			a.appendChild(p);
-
-			console.log(thisData);
 
 			const meaning = document.createElement("div");
 			li.appendChild(meaning);
@@ -457,10 +454,8 @@ var injectedDetailsPopup = true;
 					containers = document.getElementsByClassName("wkhighlighter_popupDetails_detailedInfoWrapper");
 					// i = 1 to ignore first container
 					if (containers) {
-						for (let i = 1; i < containers.length; i++) {
-							console.log("removed extra container!");
+						for (let i = 1; i < containers.length; i++)
 							containers[i].remove();
-						}
 					}
 				}, 2000);
 			});
@@ -564,7 +559,6 @@ var injectedDetailsPopup = true;
 			if (node.classList.contains("wkhighlighter_detailsPopup_cardSideBarInfo")) {
 				const target = node.parentElement.parentElement.parentElement;
 				const id = getItemIdFromSideBar(target);
-				console.log(id);
 				if (id)
 					updateInfoPopup(id, null, [highlightingClass, "wkhighlighter_highlightedNotLearned"], true, true);
 			}
@@ -723,7 +717,6 @@ var injectedDetailsPopup = true;
 	
 			chrome.storage.local.get(["wkhighlight_currentKanjiInfo", "wkhighlight_currentVocabInfo"], info => {
 				const type = itemWrapper.getElementsByClassName("wkhighlighter_detailsPopup_kanji")[0].getAttribute('data-item-type');
-				console.log(type, info);
 				detailsPopup.appendChild(type == "kanji" ? createKanjiDetailedInfo(detailsPopup, info["wkhighlight_currentKanjiInfo"]) : createVocabDetailedInfo(detailsPopup, info["wkhighlight_currentVocabInfo"]));
 			});
 
@@ -737,7 +730,6 @@ var injectedDetailsPopup = true;
 	}
 
 	const updateInfoPopup = (id, detailsPopup, highlightClasses, insideBar, save) => {
-		console.log(id);
 		if (id) {
 			const type = allKanji[id] ? "kanji" : "vocabulary";
 			const item = type == "kanji" ? allKanji[id] : allVocab[id];

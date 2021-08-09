@@ -17,7 +17,7 @@ It works with any website, and provides detailed information about any kanji tha
      * 2.2.1 [Shortcut Keys](#shortcut-keys)
    * 2.3. [Kanji Search](#kanji-search)
    * 2.4. [Writing Kana](#writing-kana)
-   * 2.5  [Lessons and Reviews](#lessons-and-reviews)
+   * 2.5. [Lessons and Reviews](#lessons-and-reviews)
    * 2.6. [Blacklisting a Site](#blacklisting-a-site)
    * 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
@@ -46,6 +46,7 @@ Not Released Yet
 - Clicking in the number of reviews or lessons will show the kanji material that will be taught/reviewed and also a chart with the reviews for the next 24 hours
 - The list of kanji that were highlighted now have colors to distinguish the kanji you learned from the kanji you didn't
 - Settings page is now organized into sections
+- Color of highlight and kanji cards can now be customized in the popup settings
 
 ## Bug Fix
 - Fixed weird placements of elements inside kanji details popup (extra blank spaces, content too big for its container, etc...)
@@ -119,7 +120,7 @@ The main page shows the number of lessons and reviews available, and when more r
 - **Lessons:**
   - List of materials in queue to learn
 
-- **Reviewns:**
+- **Reviews:**
   - List of materials in queue to review
   - Chart showing the future reviews in the next 24 hours
 
@@ -133,12 +134,13 @@ The changes will take place right after you reload the page.
 You can see the list of blacklisted sites in *Settings*, within the extension popup.
 
 ### Settings:
-On the extension popup, you will find the app settings.
+By clicking in the gear icon in the main page of the extension popup, you will find the app settings.
 - **Kanji Details Popup** 
   - **Activated:** show the popup with the details of a highlighted kanji, when hover over it
 - **Extension Icon**
   - **Kanji Counter:** show the number of highlighted Kanji in the page, on the icon of the extension
 - **Highlight Style:** choose how do you want the kanji to be highlighted
+- **Appearance:** customize the color of several features in the app (highlight, kanji cards, etc...)
 - **Danger Section**
   - **Clear Cache:** clear local data storage. This will not affect your WaniKani account!
 

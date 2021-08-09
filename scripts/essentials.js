@@ -38,3 +38,17 @@ setTimeout(() => {
 		chrome.runtime.sendMessage({forceScriptInjection:"all"});
 	} 
 }, 3000);
+
+// setup css vars
+chrome.storage.local.get("wkhighlight_settings", result => {
+	const settings = result["wkhighlight_settings"];
+	if (settings) {
+		const appearance = settings["appearance"];
+		document.documentElement.style.setProperty('--highlight-default-color', appearance["highlight_learned"]);
+		document.documentElement.style.setProperty('--notLearned-color', appearance["highlight_not_learned"]);
+		document.documentElement.style.setProperty('--default-color', appearance["details_popup"]);
+		document.documentElement.style.setProperty('--radical-tag-color', appearance["radical_color"]);
+		document.documentElement.style.setProperty('--kanji-tag-color', appearance["kanji_color"]);
+		document.documentElement.style.setProperty('--vocab-tag-color', appearance["vocab_color"]);
+	}
+});

@@ -22,6 +22,7 @@ Not Released Yet
 - Clicking in the number of reviews or lessons will show the kanji material that will be taught/reviewed and also a chart with the reviews for the next 24 hours
 - The list of kanji that were highlighted now have colors to distinguish the kanji you learned from the kanji you didn't
 - Settings page is now organized into sections
+- Color of highlight and kanji cards can now be customized in the popup settings
 
 ## Bug Fix
 - Fixed weird placements of elements inside kanji details popup (extra blank spaces, content too big for its container, etc...)
