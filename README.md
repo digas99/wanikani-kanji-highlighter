@@ -23,7 +23,7 @@ It works with any website, and provides detailed information about any kanji tha
 3. [Pictures](#pictures)
 
 # Changelog v0.5.1
-Not Released Yet
+Released on 10/08/2021
 
 ## Popup
 - The future reviews chart can now show reviews for a specific day, chosen at "Select another day"
