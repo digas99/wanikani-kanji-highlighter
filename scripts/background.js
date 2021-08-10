@@ -1,8 +1,6 @@
 const tabs = chrome.tabs;
-const urlChecker = new RegExp("^(chrome||devtools)(-[a-zA-Z0-9]+)?:\/\/");
 let thisTabId, apiToken;
 // highlighting properties
-const unwantedTags = ["html", "body", "head", "title", "style", "link", "meta", "script", "noscript", "img", "svg"];
 const functionDelay = "20";
 let highlightingClass = "";
 let notLearnedHighlightingClass = "";
@@ -19,31 +17,6 @@ let injectedHighlighter = false;
 
 let isBlacklisted = false;
 let isWanikani = false;
-
-const defaultSettings = {
-	"kanji_details_popup": {
-		activated: true
-	},
-	"extension_icon": {
-		kanji_counter: true
-	},
-	"highlight_style": {
-		learned: "wkhighlighter_highlighted",
-		not_learned: "wkhighlighter_highlightedNotLearned"
-	},
-	"search": {
-		targeted_search: false,
-		results_display: "searchResultOptionlist"
-	},
-	"appearance": {
-		highlight_learned: "#2c5091",
-		highlight_not_learned: "#a32727",
-		details_popup: "#475058",
-		radical_color: "#65b6ae",
-		kanji_color: "#e7e485",
-		vocab_color: "#fc759b"
-	}
-};
 
 let settings;
 // set settings

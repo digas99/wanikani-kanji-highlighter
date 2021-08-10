@@ -26,19 +26,6 @@ var injectedDetailsPopup = true;
 	let detailsPopupFixed = false;
 	let kanjiLocked = false;
 
-	const srsStages = {
-		0: {name:"Locked", short: "Lkd"},
-		1: {name:"Apprentice1", short: "Ap1"},
-		2: {name:"Apprentice2", short: "Ap2"},
-		3: {name:"Apprentice3", short: "Ap3"},
-		4: {name:"Apprentice4", short: "Ap4"},
-		5: {name:"Guru1", short: "Gr1"},
-		6: {name:"Guru2", short: "Gr2"},
-		7: {name:"Master", short: "Mst"},
-		8: {name:"Enlighted", short: "Enl"},
-		9: {name:"Burned", short: "Brn"}
-	}
-
 	let openedKanji = [];
 
 	const createPopup = () => {

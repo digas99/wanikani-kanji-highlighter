@@ -5,37 +5,6 @@ let activeTab;
 
 let reviews, lessons, reviewsChart;
 
-const defaultSettings = {
-	"kanji_details_popup": {
-		activated: true
-	},
-	"extension_icon": {
-		kanji_counter: true
-	},
-	"highlight_style": {
-		learned: "wkhighlighter_highlighted",
-		not_learned: "wkhighlighter_highlightedNotLearned"
-	},
-	"search": {
-		targeted_search: false,
-		results_display: "searchResultOptionlist"
-	},
-	"appearance": {
-		highlight_learned: "#2c5091",
-		highlight_not_learned: "#a32727",
-		details_popup: "#475058",
-		radical_color: "#65b6ae",
-		kanji_color: "#e7e485",
-		vocab_color: "#fc759b"
-	}
-};
-
-const wanikaniPattern = {
-	radical_color: "#00a1f1",
-	kanji_color: "#f100a1",
-	vocab_color: "#a100f1"
-};
-
 const footer = () => {
 	const wrapper = document.createElement("div");
 	wrapper.id = "footer";
@@ -178,16 +147,16 @@ window.onload = () => {
 							// check if all settings are stored
 							notStored = [];
 							Object.keys(defaultSettings).map(key => {
-								(Object.keys(defaultSettings[key]).map(innerKey => {
+								if (!Object.keys(settings).includes(key))
+									settings[key] = {};
+
+								Object.keys(defaultSettings[key]).map(innerKey => {
 									// if it doesn't exists in settings
-									if (typeof settings[key] === 'undefined' || typeof settings[key][innerKey] === 'undefined')
+									if (typeof settings[key][innerKey] === 'undefined')
 										notStored.push([key, innerKey]);
-								}));
+								});
 							});
 				
-							// if settings["appearance"] doesn't exist, then initialize it
-							if (!Object.keys(settings).includes("appearance"))
-								settings["appearance"] = {};
 							// only store the missing values a preserve the others
 							notStored.forEach(id => settings[id[0]][id[1]] = defaultSettings[id[0]][id[1]]);
 						}
@@ -1335,27 +1304,74 @@ document.addEventListener("click", e => {
 	const displayAssignmentMaterials = (data, container) => {
 		data.map(assignment => assignment["data"])
 			.sort((as1, as2) => new Date(as1["available_at"]).getTime() - new Date(as2["available_at"]).getTime())
-			.map(assignment => ({"srs_stage":assignment["srs_stage"], "subject_id":assignment["subject_id"], "subject_type":assignment["subject_type"]}))
-			.forEach(assignment => {
-				const li = document.createElement("li");
-				container.appendChild(li);
-				let characters = "";
-				switch(assignment["subject_type"]) {
-					case "kanji":
-						characters = kanjiList.filter(kanji => kanji["id"] == assignment["subject_id"])[0]["characters"];
-						li.classList.add("kanji_back" , "kanjiDetails", "clickable");
-						break;
-					case "vocabulary":
-						characters = vocabList.filter(vocab => vocab["id"] == assignment["subject_id"])[0]["characters"];
-						li.classList.add("vocab_back" , "kanjiDetails", "clickable");
-						break;
-					case "radical":
-						characters = radicalList.filter(radical => radical["id"] == assignment["subject_id"])[0]["characters"];
-						li.classList.add("radical_back");
-						break;
-				}
-				li.innerHTML = characters;
-			});
+			.map(assignment => ({"srs_stage":assignment["srs_stage"], "subject_id":assignment["subject_id"], "subject_type":assignment["subject_type"]}));
+		
+		chrome.storage.local.get(["wkhighlight_settings"], result => {
+			console.log(result);
+			const settings = result["wkhighlight_settings"];
+			if (settings) {
+				const displaySettings = settings["assignments"]["srsMaterialsDisplay"];
+				// filter by srs stages
+				Object.keys(srsStages).forEach(srsId => {
+					const assignments = data.filter(assignment => assignment["data"]["srs_stage"] == srsId);
+					if (assignments.length > 0) {
+						const srsWrapper = document.createElement("li");
+						container.appendChild(srsWrapper);
+						const srsTitle = document.createElement("p");
+						srsWrapper.appendChild(srsTitle);
+						srsTitle.classList.add("clickable");
+						srsTitle.appendChild(document.createTextNode(srsStages[srsId]["name"]+` (${assignments.length})`));
+						srsTitle.addEventListener("click", e => {
+							const materialsForThisSrs = e.target.parentElement.children[1];
+							if (materialsForThisSrs.classList.contains("hidden")) {
+								materialsForThisSrs.classList.remove("hidden");
+								settings["assignments"]["srsMaterialsDisplay"][srsId] = true;
+							}
+							else {
+								materialsForThisSrs.classList.add("hidden");
+								settings["assignments"]["srsMaterialsDisplay"][srsId] = false;
+							}
+							chrome.storage.local.set({"wkhighlight_settings":settings});
+						});
+						const srsTitleArrowRight = document.createElement("i");
+						srsTitle.appendChild(srsTitleArrowRight);
+						srsTitleArrowRight.classList.add("right");
+						srsTitleArrowRight.style.borderColor = "#8b8b8b";
+						srsTitleArrowRight.style.padding = "5px";
+						srsTitleArrowRight.style.pointerEvents = "none";
+						const itemsListWrapper = document.createElement("div");
+						srsWrapper.appendChild(itemsListWrapper);
+						itemsListWrapper.classList.add("simple-grid");
+						if (!displaySettings[srsId])
+							itemsListWrapper.classList.add("hidden");
+						const itemsList = document.createElement("ul");
+						itemsListWrapper.appendChild(itemsList);
+						assignments.map(assignment => assignment["data"])
+									.forEach(assignment => {
+									const li = document.createElement("li");
+									li.style.color = "black";
+									itemsList.appendChild(li);
+									let characters = "";
+									switch(assignment["subject_type"]) {
+										case "kanji":
+											characters = kanjiList.filter(kanji => kanji["id"] == assignment["subject_id"])[0]["characters"];
+											li.classList.add("kanji_back" , "kanjiDetails", "clickable");
+											break;
+										case "vocabulary":
+											characters = vocabList.filter(vocab => vocab["id"] == assignment["subject_id"])[0]["characters"];
+											li.classList.add("vocab_back" , "kanjiDetails", "clickable");
+											break;
+										case "radical":
+											characters = radicalList.filter(radical => radical["id"] == assignment["subject_id"])[0]["characters"];
+											li.classList.add("radical_back");
+											break;
+									}
+									li.innerHTML = characters;
+						});
+					}
+				});	
+			}
+		});
 	}
 
 	// clicked in the number of reviews
@@ -1367,7 +1383,6 @@ document.addEventListener("click", e => {
 		content.appendChild(futureReviewsWrapper);
 		const reviewsList = document.createElement("div");
 		futureReviewsWrapper.appendChild(reviewsList);
-		reviewsList.classList.add("simple-grid");
 		reviewsList.id = "assignmentsMaterialList";
 		const reviewsListTitle = document.createElement("div");
 		reviewsList.appendChild(reviewsListTitle);
@@ -1880,7 +1895,7 @@ const loadItemsLists = (callback) => {
 				radicalList.push({
 					"type" : "vocabulary",
 					"id": index,
-					"characters": radical["characters"] ? radical["characters"] : `<img height="40px" style="margin-top:-9px;margin-bottom:-4px;padding-top:8px" src="${radical["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`,
+					"characters": radical["characters"] ? radical["characters"] : `<img height="28px" style="margin-top:-9px;margin-bottom:-4px;padding-top:8px" src="${radical["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`,
 					"level": radical["level"],
 				});
 			}
