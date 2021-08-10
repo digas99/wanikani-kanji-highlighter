@@ -155,7 +155,7 @@ const chartRemoveData = (chart, size) => {
 	chart.update();
 }
 
-const updateChartReviewsOfDay = (reviews, chart, date) => {
+const updateChartReviewsOfDay = (reviews, chart, date, numberReviewsElement) => {
 	const newDate = setExactHour(new Date(date), 0);
 	chartRemoveData(chart, chart.data.labels.length);
 	const nextReviews = filterAssignmentsByTime(reviews, newDate, changeDay(newDate, 1))
@@ -163,7 +163,10 @@ const updateChartReviewsOfDay = (reviews, chart, date) => {
 	const newData = setupReviewsDataForChart(nextReviews, newDate, 1, 0);
 	chartAddData(chart, newData["hours"], newData["reviewsPerHour"]);
 	const newDateDay = newDate.getDate();
-	chart.options.plugins.title.text = `Reviews for ${newDate.getWeekDay()}, ${newDate.getMonthName()} ${newDateDay+ordinalSuffix(newDateDay)}`;
+	const dateIdentifier = `${newDate.getWeekDay()}, ${newDate.getMonthName()} ${newDateDay+ordinalSuffix(newDateDay)}`;
+	chart.options.plugins.title.text = `Reviews on ${dateIdentifier}`;
+	if (numberReviewsElement)
+		numberReviewsElement.innerHTML = `<b>${nextReviews.length}</b> Reviews on ${dateIdentifier}`;
 	chart.update();
 }
 

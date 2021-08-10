@@ -1,6 +1,11 @@
 # Changelog v0.5.1
 Not Released Yet
 
+## Popup
+- The future reviews chart can now show reviews for a specific day, chosen at "Select another day"
+- The same chart also has arrows to navigate through the days more easily. The left and right arrows of the keyboard can be used for the same effect
+- Reduced the time of the initial loading to almost none. The loading is now done only when needed, in certain key parts.
+
 ## Bug Fix
 - Extension popup no longer reloads when user rejects the reset of all colors in settings
 
