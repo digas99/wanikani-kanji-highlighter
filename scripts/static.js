@@ -7,7 +7,7 @@ const srsStages = {
 	5: {name:"Guru1", short: "Gr1"},
 	6: {name:"Guru2", short: "Gr2"},
 	7: {name:"Master", short: "Mst"},
-	8: {name:"Enlighted", short: "Enl"},
+	8: {name:"Enlightened", short: "Enl"},
 	9: {name:"Burned", short: "Brn"}
 };
 

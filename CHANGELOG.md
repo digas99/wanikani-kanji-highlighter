@@ -1,3 +1,9 @@
+# Changelog v0.5.2
+Not Released Yet
+
+## Popup
+- The display of reviews or lessons material is now divided by SRS Stages
+
 # [Changelog v0.5.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.1)
 Released on 10/08/2021
 

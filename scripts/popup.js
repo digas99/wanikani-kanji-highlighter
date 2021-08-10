@@ -1307,7 +1307,6 @@ document.addEventListener("click", e => {
 			.map(assignment => ({"srs_stage":assignment["srs_stage"], "subject_id":assignment["subject_id"], "subject_type":assignment["subject_type"]}));
 		
 		chrome.storage.local.get(["wkhighlight_settings"], result => {
-			console.log(result);
 			const settings = result["wkhighlight_settings"];
 			if (settings) {
 				const displaySettings = settings["assignments"]["srsMaterialsDisplay"];
@@ -1443,19 +1442,47 @@ document.addEventListener("click", e => {
 			// setup chart for the next reviews
 			if (reviews["next_reviews"]) {
 				const days = 1;
+
+				console.log(reviews["next_reviews"]);
 				const nmrReviewsNext = filterAssignmentsByTime(reviews["next_reviews"], today, changeDay(today, days))
-												.map(review => ({hour:new Date(review["available_at"]).getHours(), day:new Date(review["available_at"]).getDate()}));
+												.map(review => ({hour:new Date(review["available_at"]).getHours(), day:new Date(review["available_at"]).getDate(), srs:review["srs_stage"]}));
 				futureReviewsLabel.getElementsByTagName("B")[0].innerText = nmrReviewsNext.length;
+				console.log(nmrReviewsNext);
 
 				const chartData = setupReviewsDataForChart(nmrReviewsNext, today, days, 1);
-				
+
+				const apprData = setupReviewsDataForChart(nmrReviewsNext.filter(review => review["srs"] > 0 && review["srs"] <= 4), today, days, 1);
+				const guruData = setupReviewsDataForChart(nmrReviewsNext.filter(review => review["srs"] == 5 || review["srs"] == 6), today, days, 1);
+				const masterData = setupReviewsDataForChart(nmrReviewsNext.filter(review => review["srs"] == 7), today, days, 1);
+				const enliData = setupReviewsDataForChart(nmrReviewsNext.filter(review => review["srs"] == 8), today, days, 1);
+
+				const style = getComputedStyle(document.body);
 				const data = {
 					labels: chartData["hours"],
 					datasets: [{
-						label: 'Reviews',
-						backgroundColor: 'rgb(44, 112, 128)',
+						label: 'Apprentice',
+						backgroundColor: style.getPropertyValue('--ap4-color'),
 						borderColor: 'rgb(255, 255, 255)',
-						data: chartData["reviewsPerHour"],
+						data: apprData["reviewsPerHour"],
+						order: 1
+					},{
+						label: 'Guru',
+						backgroundColor: style.getPropertyValue('--gr2-color'),
+						borderColor: 'rgb(255, 255, 255)',
+						data: guruData["reviewsPerHour"],
+						order: 2
+					},{
+						label: 'Master',
+						backgroundColor: style.getPropertyValue('--mst-color'),
+						borderColor: 'rgb(255, 255, 255)',
+						data: masterData["reviewsPerHour"],
+						order: 3
+					},{
+						label: 'Enlightened',
+						backgroundColor: style.getPropertyValue('--enli-color'),
+						borderColor: 'rgb(255, 255, 255)',
+						data: enliData["reviewsPerHour"],
+						order: 4
 					}]
 				};
 				reviewsChart = new Chart(futureReviewsCanvas, {
@@ -1471,11 +1498,39 @@ document.addEventListener("click", e => {
 								color: '#2c7080',
 								anchor: 'end',
 								align: 'top',
-								display: ctx => ctx["dataset"]["data"][ctx["dataIndex"]] != 0
+								display: ctx => ctx["dataset"]["data"][ctx["dataIndex"]] != 0,
+								formatter: (value, ctx) => {
+									const type = ctx.dataset.order; // 1-4
+									const values = [];
+									values[type] = value;
+									for (let t = 1; t <= ctx.chart._metasets.length; t++) {
+										if (t != type)
+											values[t] = ctx.chart._metasets[t-1]._dataset.data[ctx.dataIndex];
+									}
+									const finalValues = [];
+									Object.keys(values).forEach(key => {
+										if (values[key] != 0)
+											finalValues[key] = values[key];
+									});
+									// check if current type is the type at the top of the bar
+									if (Math.max.apply(Math, Object.keys(finalValues)) == type)
+										return values.reduce((a,b) => a+b);
+									else
+										return "";
+
+								}
 							}
 						},
 						animation: {
 							duration: 0
+						},
+						scales: {
+							x: {
+							  stacked: true
+							},
+							y: {
+							  stacked: true
+							}
 						}
 					},
 					plugins: [ChartDataLabels]
