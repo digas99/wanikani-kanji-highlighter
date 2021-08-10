@@ -1376,23 +1376,28 @@ document.addEventListener("click", e => {
 						assignments.map(assignment => assignment["data"])
 									.forEach(assignment => {
 									const li = document.createElement("li");
-									li.style.color = "black";
 									itemsList.appendChild(li);
 									let characters = "";
+									let cssVar;
 									switch(assignment["subject_type"]) {
 										case "kanji":
 											characters = kanjiList.filter(kanji => kanji["id"] == assignment["subject_id"])[0]["characters"];
 											li.classList.add("kanji_back" , "kanjiDetails", "clickable");
+											cssVar = "--kanji-tag-color";
 											break;
 										case "vocabulary":
 											characters = vocabList.filter(vocab => vocab["id"] == assignment["subject_id"])[0]["characters"];
 											li.classList.add("vocab_back" , "kanjiDetails", "clickable");
+											cssVar = "--vocab-tag-color";
 											break;
 										case "radical":
 											characters = radicalList.filter(radical => radical["id"] == assignment["subject_id"])[0]["characters"];
 											li.classList.add("radical_back");
+											cssVar = "--radical-tag-color";
 											break;
 									}
+									let backColor = hexToRGB(getComputedStyle(document.body).getPropertyValue(cssVar));
+									li.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
 									li.innerHTML = characters;
 						});
 					}

@@ -28,6 +28,16 @@ const fetchAllPages = async (apiToken, page) => {
 	return [result].concat(await fetchAllPages(apiToken, result.pages.next_url));
 }
 
+const hexToRGB = hex => {
+	hex = hex[0] == "#" ? hex.substring(1) : hex;
+	return ({r:parseInt(hex[0]+hex[1], 16), g:parseInt(hex[2]+hex[3], 16), b:parseInt(hex[4]+hex[5], 16)});
+}
+
+// from: https://stackoverflow.com/a/3943023/11488921
+const fontColorFromBackground = (r, g, b) => {
+	return (r*0.299 + g*0.587 + b*0.114) > 186 ? "#000000" : "#ffffff";
+}
+
 const ordinalSuffix = number => {
 	switch(number) {
 		case 1:
