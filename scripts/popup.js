@@ -165,11 +165,22 @@ window.onload = () => {
 			
 						// setup css vars
 						const appearance = settings["appearance"];
-						document.documentElement.style.setProperty('--highlight-default-color', appearance["highlight_learned"]);
-						document.documentElement.style.setProperty('--notLearned-color', appearance["highlight_not_learned"]);
-						document.documentElement.style.setProperty('--radical-tag-color', appearance["radical_color"]);
-						document.documentElement.style.setProperty('--kanji-tag-color', appearance["kanji_color"]);
-						document.documentElement.style.setProperty('--vocab-tag-color', appearance["vocab_color"]);
+						const documentStyle = document.documentElement.style;
+						documentStyle.setProperty('--highlight-default-color', appearance["highlight_learned"]);
+						documentStyle.setProperty('--notLearned-color', appearance["highlight_not_learned"]);
+						documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
+						documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
+						documentStyle.setProperty('--vocab-tag-color', appearance["vocab_color"]);
+						documentStyle.setProperty('--lkd-color', appearance["lkd_color"]);
+						documentStyle.setProperty('--ap1-color', appearance["ap1_color"]);
+						documentStyle.setProperty('--ap2-color', appearance["ap2_color"]);
+						documentStyle.setProperty('--ap3-color', appearance["ap3_color"]);
+						documentStyle.setProperty('--ap4-color', appearance["ap4_color"]);
+						documentStyle.setProperty('--gr1-color', appearance["gr1_color"]);
+						documentStyle.setProperty('--gr2-color', appearance["gr2_color"]);
+						documentStyle.setProperty('--mst-color', appearance["mst_color"]);
+						documentStyle.setProperty('--enl-color', appearance["enl_color"]);
+						documentStyle.setProperty('--brn-color', appearance["brn_color"]);
 
 						if (kanjiList.length == 0 || vocabList.length == 0) {
 							document.body.style.cursor = "progress";
@@ -758,7 +769,7 @@ document.addEventListener("click", e => {
 	}
 
 	if (targetElem.id === "settings" || (targetElem.childNodes[0] && targetElem.childNodes[0].id === "settings")) {
-		const content = secundaryPage("Settings", 275);
+		const content = secundaryPage("Settings", 300);
 		content.id = "settingsContent";
 		
 		const blacklistedDiv = document.createElement("div");
@@ -839,54 +850,55 @@ document.addEventListener("click", e => {
 				appearanceTitle.appendChild(document.createTextNode("Appearance"));
 				
 				[{
-					id:["settings-appearance-highlight_learned", "settings-appearance-highlight_learned-font"],
-					label:"Highlight Learned",
-					// color:[settings["appearance"]["highlight_learned"], "#ffffff"]
-					color:[settings["appearance"]["highlight_learned"]]
-				},{
-					id:["settings-appearance-highlight_not_learned", "settings-appearance-highlight_not_learned-font"],
-					label:"Highlight Not Learned",
-					// color:[settings["appearance"]["highlight_not_learned"], "#ffffff"]
-					color:[settings["appearance"]["highlight_not_learned"]]
+					id:["settings-appearance-highlight_learned", "settings-appearance-highlight_not_learned"],
+					label:"Highlight",
+					color:[settings["appearance"]["highlight_learned"], settings["appearance"]["highlight_not_learned"]]
 				},{
 					id:["settings-appearance-details_popup", "settings-appearance-details_popup-font"],
 					label:"Details Popup",
-					// color:[settings["appearance"]["details_popup"], "#ffffff"]
 					color:[settings["appearance"]["details_popup"]]
 				},{
-					id:["settings-appearance-radical_color", "settings-appearance-radical_color-font"],
-					label:"Radical",
-					// color:[settings["appearance"]["radical_color"], "#ffffff"]
-					color:[settings["appearance"]["radical_color"]]
+					id:["settings-appearance-radical_color", "settings-appearance-kanji_color", "settings-appearance-vocab_color"],
+					label:"Subjects (R/K/V)",
+					color:[settings["appearance"]["radical_color"], settings["appearance"]["kanji_color"], settings["appearance"]["vocab_color"]]
 				},{
-					id:["settings-appearance-kanji_color", "settings-appearance-kanji_color-font"],
-					label:"Kanji",
-					// color:[settings["appearance"]["kanji_color"], "#ffffff"]
-					color:[settings["appearance"]["kanji_color"]]
+					id:["settings-appearance-ap1_color", "settings-appearance-ap2_color", "settings-appearance-ap3_color", "settings-appearance-ap4_color"],
+					label:"Apprentice (1/2/3/4)",
+					color:[settings["appearance"]["ap1_color"], settings["appearance"]["ap2_color"], settings["appearance"]["ap3_color"], settings["appearance"]["ap4_color"]]
 				},{
-					id:["settings-appearance-vocab_color", "settings-appearance-vocab_color-font"],
-					label:"Vocabulary",
-					// color:[settings["appearance"]["vocab_color"], "#ffffff"]
-					color:[settings["appearance"]["vocab_color"]]
+					id:["settings-appearance-gr1_color", "settings-appearance-gr2_color"],
+					label:"Guru (1/2)",
+					color:[settings["appearance"]["gr1_color"], settings["appearance"]["gr2_color"]]
+				},{
+					id:["settings-appearance-mst_color", "settings-appearance-enl_color"],
+					label:"Master/Enlightened",
+					color:[settings["appearance"]["mst_color"], settings["appearance"]["enl_color"]]
+				},{
+					id:["settings-appearance-brn_color", "settings-appearance-lkd_color"],
+					label:"Burned/Locked",
+					color:[settings["appearance"]["brn_color"], settings["appearance"]["lkd_color"]]
 				}].forEach(option => {
-					const colorInput = colorOption(option["id"], option["label"], option["color"]);
-					appearanceWrapper.appendChild(colorInput);
-					colorInput.addEventListener("input", e => {
-						const color = e.target.value;
-						const id = option["id"].replace("settings-", "").split("-");
-						if (id[1] === "highlight_learned" || id[1] === "highlight_not_learned") {
-							const target = id[1] === "highlight_learned" ? "wkhighlighter_highlighted" : "wkhighlighter_highlightedNotLearned";
-							// change color of the three highlight styles
-							document.getElementsByClassName(target+" settings_highlight_style_option")[0].style.setProperty("background-color", color, "important");
-							document.getElementsByClassName(target+"_underlined settings_highlight_style_option")[0].style.setProperty("border-bottom", "3px solid "+color, "important");
-							document.getElementsByClassName(target+"_bold settings_highlight_style_option")[0].style.setProperty("color", color, "important");
-						}
-						settings[id[0]][id[1]] = color;
-						chrome.storage.local.set({"wkhighlight_settings":settings});
-					});
+					const colorInputWrapper = colorOption(option["id"], option["label"], option["color"]);
+					appearanceWrapper.appendChild(colorInputWrapper);
+					Array.from(colorInputWrapper.getElementsByTagName("INPUT")).forEach(colorInput => {
+						colorInput.addEventListener("input", e => {
+							const color = e.target.value;
+							const id = colorInput.id.replace("settings-", "").split("-");
+							if (id[1] === "highlight_learned" || id[1] === "highlight_not_learned") {
+								const target = id[1] === "highlight_learned" ? "wkhighlighter_highlighted" : "wkhighlighter_highlightedNotLearned";
+								// change color of the three highlight styles
+								document.getElementsByClassName(target+" settings_highlight_style_option")[0].style.setProperty("background-color", color, "important");
+								document.getElementsByClassName(target+"_underlined settings_highlight_style_option")[0].style.setProperty("border-bottom", "3px solid "+color, "important");
+								document.getElementsByClassName(target+"_bold settings_highlight_style_option")[0].style.setProperty("color", color, "important");
+							}
+							settings[id[0]][id[1]] = color;
+							chrome.storage.local.set({"wkhighlight_settings":settings});
+						});
+					})
 				});
 				const appearancePresetWrapper = document.createElement("div");
 				appearanceWrapper.appendChild(appearancePresetWrapper);
+				appearancePresetWrapper.style.margin = "10px auto 0px auto";
 				const appearanceReset = document.createElement("div");
 				appearancePresetWrapper.appendChild(appearanceReset);
 				appearanceReset.classList.add("button");
@@ -901,11 +913,26 @@ document.addEventListener("click", e => {
 				const appearanceWaniKani = document.createElement("div");
 				appearancePresetWrapper.appendChild(appearanceWaniKani);
 				appearanceWaniKani.classList.add("button");
+				appearanceWaniKani.style.marginRight = "5px";
 				appearanceWaniKani.style.backgroundColor = "var(--wanikani)";
 				appearanceWaniKani.appendChild(document.createTextNode("WaniKani"));
 				appearanceWaniKani.addEventListener("click", () => {
 					if (window.confirm("Change colors to WaniKani pattern?")) {
 						Object.keys(wanikaniPattern).forEach(key => settings["appearance"][key] = wanikaniPattern[key]);
+						chrome.storage.local.set({"wkhighlight_settings":settings}, () => window.location.reload());
+					}
+				});
+				const appearanceFlamingDurtles = document.createElement("div");
+				appearancePresetWrapper.appendChild(appearanceFlamingDurtles);
+				appearanceFlamingDurtles.classList.add("button");
+				appearanceFlamingDurtles.style.backgroundColor = "#ffffff";
+				appearanceFlamingDurtles.style.color = "red";
+				appearanceFlamingDurtles.style.border = "1px solid black";
+				appearanceFlamingDurtles.style.fontWeight = "bold";
+				appearanceFlamingDurtles.appendChild(document.createTextNode("Flaming Durtles"));
+				appearanceFlamingDurtles.addEventListener("click", () => {
+					if (window.confirm("Change colors to Flaming Durtles pattern?")) {
+						Object.keys(flamingDurtlesPattern).forEach(key => settings["appearance"][key] = flamingDurtlesPattern[key]);
 						chrome.storage.local.set({"wkhighlight_settings":settings}, () => window.location.reload());
 					}
 				});
@@ -1301,12 +1328,13 @@ document.addEventListener("click", e => {
 		window.location.reload();
 	}
 
-	const displayAssignmentMaterials = (data, container) => {
+	const displayAssignmentMaterials = (data, container, loading) => {
 		data.map(assignment => assignment["data"])
 			.sort((as1, as2) => new Date(as1["available_at"]).getTime() - new Date(as2["available_at"]).getTime())
 			.map(assignment => ({"srs_stage":assignment["srs_stage"], "subject_id":assignment["subject_id"], "subject_type":assignment["subject_type"]}));
 		
 		chrome.storage.local.get(["wkhighlight_settings"], result => {
+			if (loading) loading.remove();
 			const settings = result["wkhighlight_settings"];
 			if (settings) {
 				const displaySettings = settings["assignments"]["srsMaterialsDisplay"];
@@ -1389,6 +1417,7 @@ document.addEventListener("click", e => {
 		const reviewsListUl = document.createElement("ul");
 		reviewsList.appendChild(reviewsListUl);
 		reviewsListUl.classList.add("bellow-border");
+		
 		const futureReviewsChart = document.createElement("div");
 		futureReviewsWrapper.appendChild(futureReviewsChart);
 		futureReviewsChart.id = "futureReviewsWrapper";
@@ -1429,10 +1458,9 @@ document.addEventListener("click", e => {
 					const loadingElem = loadingVal[0];
 					reviewsListUl.appendChild(loadingElem);
 
-					loadItemsLists(() => {
-						loadingElem.remove();
-						clearInterval(loadingVal[1]);
-						displayAssignmentMaterials(reviews["data"], reviewsListUl);
+					loadItemsLists(() => {;
+						displayAssignmentMaterials(reviews["data"], reviewsListUl, loadingElem);
+						clearInterval(loadingVal[1])
 					});
 				}
 				else
@@ -1457,6 +1485,7 @@ document.addEventListener("click", e => {
 				const enliData = setupReviewsDataForChart(nmrReviewsNext.filter(review => review["srs"] == 8), today, days, 1);
 
 				const style = getComputedStyle(document.body);
+				console.log(style);
 				const data = {
 					labels: chartData["hours"],
 					datasets: [{
@@ -1479,7 +1508,7 @@ document.addEventListener("click", e => {
 						order: 3
 					},{
 						label: 'Enlightened',
-						backgroundColor: style.getPropertyValue('--enli-color'),
+						backgroundColor: style.getPropertyValue('--enl-color'),
 						borderColor: 'rgb(255, 255, 255)',
 						data: enliData["reviewsPerHour"],
 						order: 4
@@ -1495,18 +1524,17 @@ document.addEventListener("click", e => {
 								text: 'Reviews in the next 24 hours'
 							},
 							datalabels: {
-								color: '#2c7080',
+								color: '#000000',
 								anchor: 'end',
 								align: 'top',
 								display: ctx => ctx["dataset"]["data"][ctx["dataIndex"]] != 0,
 								formatter: (value, ctx) => {
-									const type = ctx.dataset.order; // 1-4
+									const type = ctx.dataset.order;
 									const values = [];
-									values[type] = value;
 									for (let t = 1; t <= ctx.chart._metasets.length; t++) {
-										if (t != type)
-											values[t] = ctx.chart._metasets[t-1]._dataset.data[ctx.dataIndex];
+										values[t] = t != type ? ctx.chart._metasets[t-1]._dataset.data[ctx.dataIndex] : value;
 									}
+									// create an array with only values != 0
 									const finalValues = [];
 									Object.keys(values).forEach(key => {
 										if (values[key] != 0)
@@ -1587,9 +1615,8 @@ document.addEventListener("click", e => {
 					lessonsListUl.appendChild(loadingElem);
 
 					loadItemsLists(() => {
-						loadingElem.remove();
+						displayAssignmentMaterials(lessons["data"], lessonsListUl, loadingElem);
 						clearInterval(loadingVal[1]);
-						displayAssignmentMaterials(lessons["data"], lessonsListUl);
 					});
 				}
 				else
@@ -1640,7 +1667,7 @@ const colorOption = (ids, labelTitle, defaultColors) => {
 		checkbox.value = color;
 		checkbox.type = "color";
 		checkbox.id = ids[index];
-		checkbox.style.width = (42/(defaultColors.length))+"px";
+		checkbox.style.width = (80/(defaultColors.length)-2)+"px";
 		checkbox.classList.add("settingsItemInput", "clickable");
 		index++;
 	});

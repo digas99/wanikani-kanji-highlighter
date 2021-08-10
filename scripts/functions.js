@@ -137,10 +137,9 @@ const setupReviewsDataForChart = (reviews, today, days, hoursAhead) => {
 
 const chartAddData = (chart, labels, data) => {
 	labels.forEach(label => chart.data.labels.push(label));
-	data.forEach(value => {
-		chart.data.datasets.forEach((dataset) => {
-			dataset.data.push(value);
-		});
+	let counter = 0;
+	chart.data.datasets.forEach((dataset) => {
+		data[counter++].forEach(value => dataset.data.push(value));
 	});
 	chart.update();
 }
@@ -159,14 +158,20 @@ const updateChartReviewsOfDay = (reviews, chart, date, numberReviewsElement) => 
 	const newDate = setExactHour(new Date(date), 0);
 	chartRemoveData(chart, chart.data.labels.length);
 	const nextReviews = filterAssignmentsByTime(reviews, newDate, changeDay(newDate, 1))
-							.map(review => ({hour:new Date(review["available_at"]).getHours(), day:new Date(review["available_at"]).getDate()}));
-	const newData = setupReviewsDataForChart(nextReviews, newDate, 1, 0);
-	chartAddData(chart, newData["hours"], newData["reviewsPerHour"]);
+							.map(review => ({hour:new Date(review["available_at"]).getHours(), day:new Date(review["available_at"]).getDate(), srs:review["srs_stage"]}));
+	console.log(nextReviews);
+	const apprData = setupReviewsDataForChart(nextReviews.filter(review => review["srs"] > 0 && review["srs"] <= 4), newDate, 1, 0);
+	const guruData = setupReviewsDataForChart(nextReviews.filter(review => review["srs"] == 5 || review["srs"] == 6), newDate, 1, 0);
+	const masterData = setupReviewsDataForChart(nextReviews.filter(review => review["srs"] == 7), newDate, 1, 0);
+	const enliData = setupReviewsDataForChart(nextReviews.filter(review => review["srs"] == 8), newDate, 1, 0);
+	//const newData = setupReviewsDataForChart(nextReviews, newDate, 1, 0);
+	chartAddData(chart, apprData["hours"], [apprData["reviewsPerHour"], guruData["reviewsPerHour"], masterData["reviewsPerHour"], enliData["reviewsPerHour"]]);
 	const newDateDay = newDate.getDate();
 	const dateIdentifier = `${newDate.getWeekDay()}, ${newDate.getMonthName()} ${newDateDay+ordinalSuffix(newDateDay)}`;
 	chart.options.plugins.title.text = `Reviews on ${dateIdentifier}`;
+	console.log(setupReviewsDataForChart(nextReviews, newDate, 1, 0));
 	if (numberReviewsElement)
-		numberReviewsElement.innerHTML = `<b>${nextReviews.length}</b> Reviews on ${dateIdentifier}`;
+		numberReviewsElement.innerHTML = `<b>${setupReviewsDataForChart(nextReviews, newDate, 1, 0)["reviewsPerHour"].reduce((a,b) => a+b)}</b> Reviews on ${dateIdentifier}`;
 	chart.update();
 }
 
