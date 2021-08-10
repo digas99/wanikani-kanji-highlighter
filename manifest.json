@@ -10,12 +10,12 @@
         "128": "logo/logo_bb.png"
     },
     "background": {
-        "scripts": ["scripts/background.js", "scripts/functions.js"]
+        "scripts": ["scripts/background.js", "scripts/functions.js", "scripts/static.js"]
     },
     "content_scripts": [
         {
             "matches": ["*://*/*"],
-            "js": ["scripts/essentials.js", "scripts/functions.js"]
+            "js": ["scripts/essentials.js", "scripts/functions.js", "scripts/static.js"]
         }
     ],
     "browser_action": {
