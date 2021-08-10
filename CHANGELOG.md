@@ -1,5 +1,5 @@
-# Changelog v0.5.1
-Not Released Yet
+# [Changelog v0.5.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.1)
+Released on 10/08/2021
 
 ## Popup
 - The future reviews chart can now show reviews for a specific day, chosen at "Select another day"
