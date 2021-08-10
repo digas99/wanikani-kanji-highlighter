@@ -5,12 +5,12 @@ This is an unofficial chrome extension for Kanji Highlighting, matching the kanj
 It works with any website, and provides detailed information about any kanji that is highlighted.
 **Because it would be "cheating", the extension doesn't work on [WaniKani.com](https://www.wanikani.com/).**
 
-#### VERSION 0.5.0
+#### VERSION 0.5.1
 
 ## [Get it on Chrome Webstore](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/)
 
 ## Table of contents:
-1. [Latest Features](#changelog-v050)
+1. [Latest Features](#changelog-v051)
 2. [Usage Guide](#usage-guide)
    * 2.1. [WaniKani API Token](#wanikani-api-token)
    * 2.2. [Kanji Details](#kanji-details)
@@ -21,6 +21,17 @@ It works with any website, and provides detailed information about any kanji tha
    * 2.6. [Blacklisting a Site](#blacklisting-a-site)
    * 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
+
+# Changelog v0.5.1
+Not Released Yet
+
+## Popup
+- The future reviews chart can now show reviews for a specific day, chosen at "Select another day"
+- The same chart also has arrows to navigate through the days more easily. The left and right arrows of the keyboard can be used for the same effect
+- Reduced the time of the initial loading to almost none. The loading is now done only when needed, in certain key parts.
+
+## Bug Fix
+- Extension popup no longer reloads when user rejects the reset of all colors in settings
 
 ## Changelog v0.5.0
 Released on 09/08/2021

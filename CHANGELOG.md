@@ -9,7 +9,7 @@ Not Released Yet
 ## Bug Fix
 - Extension popup no longer reloads when user rejects the reset of all colors in settings
 
-# Changelog v0.5.0
+# [Changelog v0.5.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.0)
 Released on 09/08/2021
 
 ### - Reviews and Lessons tracking! Extra Highlight!
