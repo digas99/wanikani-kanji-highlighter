@@ -709,7 +709,7 @@ document.addEventListener("click", e => {
 		}
 	}
 
-	if (targetElem.id === "goBack" || targetElem.localName === "i") {
+	if (targetElem.id === "goBack") {
 		document.getElementById("secPageMain").remove();
 		document.getElementById("main").style.display = "inherit";
 		document.documentElement.style.setProperty('--body-base-width', '225px');
@@ -1306,8 +1306,17 @@ document.addEventListener("click", e => {
 		reviewsListUl.classList.add("bellow-border");
 		const futureReviewsChart = document.createElement("div");
 		futureReviewsWrapper.appendChild(futureReviewsChart);
+		futureReviewsChart.id = "futureReviewsWrapper";
+		const leftArrow = document.createElement("i");
+		futureReviewsChart.appendChild(leftArrow);
+		leftArrow.classList.add("left", "clickable", "hidden");
+		leftArrow.style.left = "7px";
 		const futureReviewsCanvas = document.createElement("canvas");
 		futureReviewsChart.appendChild(futureReviewsCanvas);
+		const rightArrow = document.createElement("i");
+		futureReviewsChart.appendChild(rightArrow);
+		rightArrow.style.right = "7px";
+		rightArrow.classList.add("right", "clickable");
 		const futureReviewsLabel = document.createElement("p");
 		futureReviewsWrapper.appendChild(futureReviewsLabel);
 		futureReviewsLabel.id = "reviewsPage-nmrReviews24hLabel";
@@ -1323,8 +1332,9 @@ document.addEventListener("click", e => {
 		daySelectorInput.type = "date";
 		// setup values for input
 		const today = new Date();
-		daySelectorInput.value = daySelectorInput.min = simpleFormatDate(changeDay(today, 1), "ymd");
-		daySelectorInput.max = simpleFormatDate(changeDay(today, 14), "ymd");
+		daySelectorInput.value = simpleFormatDate(today, "ymd"); 
+		daySelectorInput.min = simpleFormatDate(changeDay(today, 1), "ymd");
+		daySelectorInput.max = simpleFormatDate(changeDay(today, 13), "ymd");
 
 		if (reviews) {
 			//setup list of material for current reviews
@@ -1355,45 +1365,14 @@ document.addEventListener("click", e => {
 					});
 			}
 
-			const setupReviewsDataForChart = (reviews, today, days) => {
-				const currentHour = today.getHours();
-				let currentDay = today.getDate();
-				const hours = [];
-				const reviewsPerHour = [];
-
-				let hour = currentHour + 1;
-				if (hour == 24) {
-					hour = 0;
-					currentDay++;
-				}
-
-				let counter = 0;
-				const daysToHours = days*24;
-				console.log(reviews, currentHour, currentDay);
-				// loop all the next 24 hours (i.e.: if right now the hour is 12h, loop until 12h (of the next day))
-				while (counter++ != daysToHours) {
-					hours.push((days > 1 ? currentDay+" " : "")+`${hour}h`);
-					reviewsPerHour.push(reviews.filter(r => r["hour"] == hour && r["day"] == currentDay).length);
-					console.log(reviewsPerHour);
-					// make sure the hour after 23h is 00h and not 24h and increase day
-					if (++hour == 24) {
-						hour = 0;
-						currentDay++; 
-					}
-				}
-				return ({hours:hours, reviewsPerHour:reviewsPerHour});
-			}
-
 			// setup chart for the next reviews
 			if (reviews["next_reviews"]) {
 				const days = 1;
 				const nmrReviewsNext = filterAssignmentsByTime(reviews["next_reviews"], today, changeDay(today, days))
 												.map(review => ({hour:new Date(review["available_at"]).getHours(), day:new Date(review["available_at"]).getDate()}));
-				console.log(nmrReviewsNext);
 				futureReviewsLabel.getElementsByTagName("B")[0].innerText = nmrReviewsNext.length;
 
-				const chartData = setupReviewsDataForChart(nmrReviewsNext, today, days);
-				console.log(chartData);
+				const chartData = setupReviewsDataForChart(nmrReviewsNext, today, days, 1);
 				
 				const data = {
 					labels: chartData["hours"],
@@ -1424,34 +1403,45 @@ document.addEventListener("click", e => {
 					plugins: [ChartDataLabels]
 				});
 
-				const chartAddData = (chart, labels, data) => {
-					labels.forEach(label => chart.data.labels.push(label));
-					data.forEach(value => {
-						chart.data.datasets.forEach((dataset) => {
-							dataset.data.push(value);
-						});
-					});
-					chart.update();
-				}
+				const nextReviewsData = reviews["next_reviews"];
+				// changing date event listener
 				
-				const chartRemoveData = (chart, size) => {
-					while (size-- != 0) {
-						chart.data.labels.pop();
-						chart.data.datasets.forEach((dataset) => {
-							dataset.data.pop();
-						});
+				const arrowsDisplay = (value, min, max) => {
+					if (value === min) {
+						leftArrow.classList.add("hidden");
+						if (rightArrow.classList.contains("hidden"))
+							rightArrow.classList.remove("hidden");
 					}
-					chart.update();
+					if (value === max) {
+						rightArrow.classList.add("hidden");
+						if (leftArrow.classList.contains("hidden"))
+							leftArrow.classList.remove("hidden");
+					}
+					if (value !== min && value !== max) {
+						if (rightArrow.classList.contains("hidden"))
+							rightArrow.classList.remove("hidden");
+						if (leftArrow.classList.contains("hidden"))
+							leftArrow.classList.remove("hidden");
+					}
 				}
 
-				// changing date event listener
 				daySelectorInput.addEventListener("input", e => {
-					const newDate = new Date(e.target.value);
-					chartRemoveData(reviewsChart, reviewsChart.data.labels.length);
-					const nextReviews = filterAssignmentsByTime(reviews["next_reviews"], newDate, changeDay(newDate, 1))
-											.map(review => ({hour:new Date(review["available_at"]).getHours(), day:new Date(review["available_at"]).getDate()}));
-					const newData = setupReviewsDataForChart(nextReviews, newDate, 1);
-					chartAddData(reviewsChart, newData["hours"], newData["reviewsPerHour"]);
+					const newDate = e.target.value;
+					updateChartReviewsOfDay(nextReviewsData, reviewsChart, newDate);
+					arrowsDisplay(daySelectorInput.value, daySelectorInput.min, daySelectorInput.max);
+				});
+				// arrows event listener
+				leftArrow.addEventListener("click", () => {
+					const newDate = changeDay(daySelectorInput.value, -1);
+					updateChartReviewsOfDay(nextReviewsData, reviewsChart, newDate);
+					daySelectorInput.value = simpleFormatDate(newDate, "ymd");
+					arrowsDisplay(daySelectorInput.value, daySelectorInput.min, daySelectorInput.max);
+				});
+				rightArrow.addEventListener("click", () => {
+					const newDate = changeDay(daySelectorInput.value, 1);
+					updateChartReviewsOfDay(nextReviewsData, reviewsChart, newDate);
+					daySelectorInput.value = simpleFormatDate(newDate, "ymd");
+					arrowsDisplay(daySelectorInput.value, daySelectorInput.min, daySelectorInput.max);
 				});
 			}
 		}

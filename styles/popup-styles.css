@@ -233,6 +233,10 @@ transform: rotate(134deg);
     border: 1px solid silver;
 }
 
+.hidden {
+	display: none;
+}
+
 /* Logo */
 #logoWrapper {
 	margin-bottom: 10px !important;
@@ -432,6 +436,18 @@ transform: rotate(134deg);
 
 #assignmentsMaterialList > ul > li {
 	color: black;
+}
+
+#futureReviewsWrapper {
+	display: flex;
+    position: relative;
+}
+
+#futureReviewsWrapper > i {
+	border-color: #aaaaaa;
+    padding: 6px;
+	position: absolute;
+	top: 13px;
 }
 
 #reviewsDaySelector {

@@ -28,6 +28,19 @@ const fetchAllPages = async (apiToken, page) => {
 	return [result].concat(await fetchAllPages(apiToken, result.pages.next_url));
 }
 
+const ordinalSuffix = number => {
+	switch(number) {
+		case 1:
+			return "st";
+		case 2:
+			return "nd";
+		case 3:
+			return "rd";
+		default:
+			return "th";
+	}
+}
+
 // millisecond to readable format
 // stole from: https://stackoverflow.com/questions/19700283/how-to-convert-time-in-milliseconds-to-hours-min-sec-format-in-javascript/32180863#32180863
 function msToTime(ms) {
@@ -46,6 +59,19 @@ const formatDate = date => {
 	const split = date.toString().split(" ");
 	return `${split[0]}, ${split[2]} ${split[1]} ${split[3]} ${split[4]} GMT`;
 }
+
+// setup two new functions to Date
+var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+Date.prototype.getMonthName = function() {
+	return months[ this.getMonth() ];
+};
+
+Date.prototype.getWeekDay = function() {
+	return days[ this.getDay() ];
+};
 
 const simpleFormatDate = (date, format) => {
 	// make sure it is a Date object
@@ -70,12 +96,75 @@ const simpleFormatDate = (date, format) => {
 	return value;
 }
 
+const setExactHour = (date, hour) => {
+	return new Date(new Date(new Date(new Date(date).setHours(hour)).setMinutes(0)).setSeconds(0));
+}
+
 const nextExactHour = (date, hours) => {
-	return new Date(new Date(new Date(new Date().setHours(date.getHours()+hours)).setMinutes(0)).setSeconds(0));
+	return new Date(new Date(new Date(new Date(date).setHours(new Date(date).getHours()+hours)).setMinutes(0)).setSeconds(0));
 }
 
 const changeDay = (date, days) => {
-	return new Date(new Date().setDate((date.getDate())+days));
+	return new Date(new Date().setDate((new Date(date).getDate())+days));
+}
+
+const setupReviewsDataForChart = (reviews, today, days, hoursAhead) => {
+	const currentHour = today.getHours();
+	let currentDay = today.getDate();
+	const hours = [];
+	const reviewsPerHour = [];
+
+	let hour = currentHour + hoursAhead;
+	if (hour == 24) {
+		hour = 0;
+		currentDay++;
+	}
+
+	let counter = 0;
+	const daysToHours = days*24;
+	// loop all the next 24 hours (i.e.: if right now the hour is 12h, loop until 12h (of the next day))
+	while (counter++ != daysToHours) {
+		hours.push((days > 1 ? currentDay+" " : "")+`${hour}h`);
+		reviewsPerHour.push(reviews.filter(r => r["hour"] == hour && r["day"] == currentDay).length);
+		// make sure the hour after 23h is 00h and not 24h and increase day
+		if (++hour == 24) {
+			hour = 0;
+			currentDay++; 
+		}
+	}
+	return ({hours:hours, reviewsPerHour:reviewsPerHour});
+}
+
+const chartAddData = (chart, labels, data) => {
+	labels.forEach(label => chart.data.labels.push(label));
+	data.forEach(value => {
+		chart.data.datasets.forEach((dataset) => {
+			dataset.data.push(value);
+		});
+	});
+	chart.update();
+}
+
+const chartRemoveData = (chart, size) => {
+	while (size-- != 0) {
+		chart.data.labels.pop();
+		chart.data.datasets.forEach((dataset) => {
+			dataset.data.pop();
+		});
+	}
+	chart.update();
+}
+
+const updateChartReviewsOfDay = (reviews, chart, date) => {
+	const newDate = setExactHour(new Date(date), 0);
+	chartRemoveData(chart, chart.data.labels.length);
+	const nextReviews = filterAssignmentsByTime(reviews, newDate, changeDay(newDate, 1))
+							.map(review => ({hour:new Date(review["available_at"]).getHours(), day:new Date(review["available_at"]).getDate()}));
+	const newData = setupReviewsDataForChart(nextReviews, newDate, 1, 0);
+	chartAddData(chart, newData["hours"], newData["reviewsPerHour"]);
+	const newDateDay = newDate.getDate();
+	chart.options.plugins.title.text = `Reviews for ${newDate.getWeekDay()}, ${newDate.getMonthName()} ${newDateDay+ordinalSuffix(newDateDay)}`;
+	chart.update();
 }
 
 // check if the data in the endpoints has been modified since the given date
