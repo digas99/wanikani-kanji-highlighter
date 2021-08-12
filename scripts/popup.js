@@ -264,6 +264,7 @@ window.onload = () => {
 										const summaryWrapper = document.createElement("li");
 										userElementsList.appendChild(summaryWrapper);
 										summaryWrapper.style.textAlign = "center";
+										userElementsList.classList.add("bellow-border");
 										const summaryUl = document.createElement("ul");
 										summaryWrapper.appendChild(summaryUl);
 										summaryUl.style.display = "inline-flex";
@@ -294,8 +295,11 @@ window.onload = () => {
 										const moreReviews = document.createElement("p");
 										summaryWrapper.appendChild(moreReviews);
 										moreReviews.style.padding = "3px 0";
-										moreReviews.classList.add("bellow-border");
 										moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
+										const moreReviewsDate  = document.createElement("p");
+										summaryWrapper.appendChild(moreReviewsDate);
+										moreReviewsDate.style.fontWeight = "bold";
+										moreReviewsDate.style.padding = "3px 0";
 										
 										if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {					
 											const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchKanji);
@@ -412,7 +416,7 @@ window.onload = () => {
 													if (reviewsForNextHour.length > 0) {
 														const remainingTime = msToTime(thisDate - currentTime);
 														moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
-														
+														moreReviewsDate.innerText = `${thisDate.getMonthName().slice(0, 3)} ${thisDate.getDate() < 10 ? "0"+thisDate.getDate() : thisDate.getDate()}, ${thisDate.getHours() < 10 ? "0"+thisDate.getHours() : thisDate.getHours()}:${thisDate.getMinutes() < 10 ? "0"+thisDate.getMinutes() : thisDate.getMinutes()}`;
 														// create interval delay
 														// 10% of a day are 8640000 milliseconds
 														// 10% of an hour are 360000 milliseconds
@@ -717,7 +721,7 @@ document.addEventListener("click", e => {
 		document.getElementById("secPageMain").remove();
 		document.getElementById("main").style.display = "inherit";
 		document.getElementById("footer").style.display = "inherit";
-		document.documentElement.style.setProperty('--body-base-width', '225px');
+		document.documentElement.style.setProperty('--body-base-width', '250px');
 	}
 
 	if (targetElem.id === "exit" || (targetElem.childNodes[0] && targetElem.childNodes[0].id === "exit")) {
@@ -1179,7 +1183,7 @@ document.addEventListener("click", e => {
 		if (wrapper)
 			wrapper.remove();
 		
-		document.documentElement.style.setProperty('--body-base-width', '225px');
+		document.documentElement.style.setProperty('--body-base-width', '250px');
 
 		document.getElementById("kanjiSearchInput").value = "";
 
@@ -1376,7 +1380,7 @@ document.addEventListener("click", e => {
 						const srsTitleArrowRight = document.createElement("i");
 						srsTitle.appendChild(srsTitleArrowRight);
 						srsTitleArrowRight.classList.add("right");
-						srsTitleArrowRight.style.borderColor = "#8b8b8b";
+						srsTitleArrowRight.style.borderColor = settings["appearance"][srsStages[srsId]["short"][0].toLowerCase()+srsStages[srsId]["short"].slice(1)+"_color"];
 						srsTitleArrowRight.style.padding = "5px";
 						srsTitleArrowRight.style.pointerEvents = "none";
 						const itemsListWrapper = document.createElement("div");
@@ -1462,7 +1466,7 @@ document.addEventListener("click", e => {
 
 	// clicked in the number of reviews
 	if (targetElem.id == "summaryReviews") {
-		const content = secundaryPage("Reviews", 400);
+		const content = secundaryPage("Reviews", 470);
 
 		chrome.storage.local.get(["wkhighlight_reviews"], result => {
 			reviews = result["wkhighlight_reviews"] ? result["wkhighlight_reviews"] : reviews;
@@ -1479,7 +1483,6 @@ document.addEventListener("click", e => {
 			const reviewsListUl = document.createElement("ul");
 			reviewsList.appendChild(reviewsListUl);
 			reviewsListUl.classList.add("bellow-border");
-			reviewsListUl.style.scrollBehavior = "smooth";		
 			const futureReviewsChart = document.createElement("div");
 			futureReviewsWrapper.appendChild(futureReviewsChart);
 			futureReviewsChart.id = "futureReviewsWrapper";
@@ -1576,6 +1579,7 @@ document.addEventListener("click", e => {
 							order: 4
 						}]
 					};
+
 					reviewsChart = new Chart(futureReviewsCanvas, {
 						type: 'bar',
 						data,
@@ -1608,6 +1612,12 @@ document.addEventListener("click", e => {
 										else
 											return "";
 
+									}
+								},
+								legend: {
+									position: 'bottom',
+									labels: {
+										padding: 7
 									}
 								}
 							},
@@ -1654,7 +1664,7 @@ document.addEventListener("click", e => {
 
 	// clicked in the number of lessons
 	if (targetElem.id == "summaryLessons") {
-		const content = secundaryPage("Lessons", 400);
+		const content = secundaryPage("Lessons", 470);
 
 		chrome.storage.local.get(["wkhighlight_lessons"], result => {
 			lessons = result["wkhighlight_lessons"] ? result["wkhighlight_lessons"] : lessons;
@@ -1671,7 +1681,7 @@ document.addEventListener("click", e => {
 			const lessonsListUl = document.createElement("ul");
 			lessonsList.appendChild(lessonsListUl);
 			lessonsListUl.classList.add("bellow-border");
-	
+
 			if (lessons) {
 				//setup list of material for current reviews
 				if (lessons["data"]) {

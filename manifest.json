@@ -4,9 +4,9 @@
     "version": "0.5.2",
     "manifest_version": 2,
     "icons": {
-        "16":  "logo/logo_bb.png",
-        "32":  "logo/logo_bb.png",
-        "48":  "logo/logo_bb.png",
+        "16":  "logo/logo_bb_16x16.png",
+        "32":  "logo/logo_bb_32x32.png",
+        "48":  "logo/logo_bb_48x48.png",
         "128": "logo/logo_bb.png"
     },
     "background": {

@@ -339,6 +339,7 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 let highlightUpdateFunction;
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	console.log(sender);
 	// sends to the content script information about key pressing and the reference to the highlight update function
 	if (request.key)
 		tabs.sendMessage(thisTabId, {key: request.key, intervalFunction: highlightUpdateFunction});

@@ -28,7 +28,7 @@ Table Of Contents
 /* VARIABLES */
 
 :root {
-	--body-base-width: 225px;
+	--body-base-width: 250px;
 	--default-color: #dc6560;
 	--radical-tag-color: #65b6ae;
 	--radical-tag-color-font: #000000;
@@ -481,6 +481,8 @@ transform: rotate(134deg);
 	padding-bottom: 5px;
     max-height: 228px;
     overflow: auto;
+	scroll-behavior: smooth;
+	padding: 5px;
 }
 
 #assignmentsMaterialList > ul > li {
@@ -496,7 +498,7 @@ transform: rotate(134deg);
 	border-color: #aaaaaa;
     padding: 6px;
 	position: absolute;
-	top: 13px;
+	top: 3px;
 }
 
 #reviewsDaySelector {
