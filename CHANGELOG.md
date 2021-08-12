@@ -3,6 +3,7 @@ Not Released Yet
 
 ## Popup
 - The display of reviews or lessons material is now divided by SRS Stages
+- Added an interactive bar with number of assignments for each SRS Stage to the top of the reviews or lessons material list
 - The future reviews chart shows number of reviews divided by SRS Stage (Stacked bars)
 - More options to color customization in settings
 

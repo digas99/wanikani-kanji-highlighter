@@ -222,8 +222,7 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 													.then(kanji_data => {
 														const kanji_dict = {};
 														const kanji_assoc = {};
-														kanji_data
-															.map(content => content.data)
+														kanji_data.map(content => content.data)
 															.flat(1)
 															.forEach(kanji => {
 																const data = kanji.data;
@@ -262,8 +261,7 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 												fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=radical")
 													.then(radical_data => {
 														const radical_dict = {};
-														radical_data
-															.map(content => content.data)
+														radical_data.map(content => content.data)
 															.flat(1)
 															.forEach(radical => {
 																const data = radical.data;
@@ -288,8 +286,7 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 												fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=vocabulary")
 													.then(vocab => {
 														const vocab_dict = {};
-														vocab
-															.map(content => content.data)
+														vocab.map(content => content.data)
 															.flat(1)
 															.forEach(vocab => {
 																const data = vocab.data;

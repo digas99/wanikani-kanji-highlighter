@@ -248,11 +248,8 @@ transform: rotate(134deg);
     border-radius: 0px 0px 7px 7px;
 }
 
-#simple-grid ul {
-	display: block;
-}
 
-.simple-grid li {
+.simple-grid > ul > li {
     padding: 0px 5px;
     display: inline-block;
     border: 1px solid silver;
@@ -439,22 +436,50 @@ transform: rotate(134deg);
 	color: var(--reviews-color);
 }
 
+#srsStagesBar {
+	height: 20px;
+}
+
+#srsStagesBar > ul {
+    height: 100%;
+    display: flex;
+}
+
+#srsStagesBar > ul > li {
+	position: relative;
+}
+
+.srsStageBarInfoPopup {
+	position: absolute;
+    width: 60px;
+    height: 24px;
+    border-radius: 3px;
+    background-color: var(--dark-back);
+    top: 25px;
+    color: white;
+	left: 0;
+	right: 0;
+	margin: auto;
+	font-size: 20px;
+	text-align: center;
+	z-index: 1;
+}
+
 #assignmentsMaterialList {
 	margin: 10px 0;
 }
 
-#assignmentsMaterialList > div {
+#assignmentsMaterialList > p {
     color: white;
     background-color: var(--dark-back);
     padding: 6px;
     font-size: 15px;
-    margin-bottom: 4px;
 }
 
 #assignmentsMaterialList > ul {
 	font-size: 20px;
 	padding-bottom: 5px;
-    max-height: 235px;
+    max-height: 228px;
     overflow: auto;
 }
 
@@ -779,10 +804,11 @@ transform: rotate(134deg);
 /* 10. SETTINGS */
 
 #settingsContent {
-	padding-top: 20px;
     font-size: 16px;
     display: grid;
-    margin: 10px 0;
+	overflow: auto;
+    max-height: 516px;
+	margin-bottom: 13px;
 }
 
 #settingsContent>div {
@@ -854,11 +880,6 @@ transform: rotate(134deg);
 
 
 	/* 10.2 SETTINGS OPTIONS */
-
-#settingsOptionsWrapper {
-	overflow: auto;
-    max-height: 409px;
-}
 
 .checkbox_wrapper {
 	text-align: right;
@@ -949,7 +970,7 @@ transform: rotate(134deg);
 
 #footer {
 	text-align: center;
-	margin-top: 18px;
+	margin-top: 10px;
 	/* position: fixed;
     bottom: 0;
     background-color: white;

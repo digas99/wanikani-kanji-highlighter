@@ -215,7 +215,7 @@ const clearCache = () => {
 			}
 		});
 		window.location.reload();
-		chrome.storage.local.remove(keysToRemove, () => alert("Local data cleared! This didn't affect your WaniKani account!"));
+		chrome.storage.local.remove(keysToRemove);
 	});
 }
 

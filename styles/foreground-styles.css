@@ -144,6 +144,10 @@
 	scroll-behavior: smooth;
 }
 
+.wkhighlighter_detailsPopup .wkhighlighter_highlighted_bold, .wkhighlighter_detailsPopup .wkhighlighter_highlightedNotLearned_bold {
+	color: inherit !important;
+}
+
 .wkhighlighter_detailsPopup > div {
 	text-align: center;
     /* margin-top: 10px; */
