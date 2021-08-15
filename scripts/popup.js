@@ -264,7 +264,7 @@ window.onload = () => {
 										const summaryWrapper = document.createElement("li");
 										userElementsList.appendChild(summaryWrapper);
 										summaryWrapper.style.textAlign = "center";
-										userElementsList.classList.add("bellow-border");
+										summaryWrapper.classList.add("bellow-border");
 										const summaryUl = document.createElement("ul");
 										summaryWrapper.appendChild(summaryUl);
 										summaryUl.style.display = "inline-flex";
@@ -1680,6 +1680,7 @@ document.addEventListener("click", e => {
 			lessonsList.appendChild(srsStagesBar());
 			const lessonsListUl = document.createElement("ul");
 			lessonsList.appendChild(lessonsListUl);
+			lessonsListUl.style.maxHeight = "485px";
 			lessonsListUl.classList.add("bellow-border");
 
 			if (lessons) {
