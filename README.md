@@ -5,13 +5,13 @@ This is an unofficial extension for the browser for Kanji Highlighting, matching
 It works with any website, and provides detailed information about any kanji that is highlighted.
 **Because it would be "cheating", the extension doesn't work on [WaniKani.com](https://www.wanikani.com/).**
 
-#### VERSION 0.5.1
+#### VERSION 0.5.2
 
 ## [Get it on Chrome Webstore](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/)
 ## [Get it on Mozilla Add-ons](https://addons.mozilla.org/pt-PT/firefox/addon/wanikani-kanji-highlighter/)
 
 ## Table of contents:
-1. [Latest Features](#changelog-v051)
+1. [Latest Features](#changelog-v052)
 2. [Usage Guide](#usage-guide)
    * 2.1. [WaniKani API Token](#wanikani-api-token)
    * 2.2. [Kanji Details](#kanji-details)
@@ -22,6 +22,14 @@ It works with any website, and provides detailed information about any kanji tha
    * 2.6. [Blacklisting a Site](#blacklisting-a-site)
    * 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
+
+# Changelog v0.5.2
+Released on 15/08/2021
+
+## Popup
+- The display of reviews or lessons material is now divided by SRS Stages
+- The future reviews chart shows number of reviews divided by SRS Stage (Stacked bars)
+- More options to color customization in settings
 
 # Changelog v0.5.1
 Released on 10/08/2021
