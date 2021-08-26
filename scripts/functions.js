@@ -115,7 +115,7 @@ const nextExactHour = (date, hours) => {
 }
 
 const changeDay = (date, days) => {
-	return new Date(new Date().setDate((new Date(date).getDate())+days));
+	return new Date(new Date(date).setDate((new Date(date).getDate())+days));
 }
 
 const setupReviewsDataForChart = (reviews, today, days, hoursAhead) => {

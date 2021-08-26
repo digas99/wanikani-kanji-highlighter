@@ -1390,7 +1390,6 @@ document.addEventListener("click", e => {
 							itemsListWrapper.classList.add("hidden");
 						const itemsList = document.createElement("ul");
 						itemsListWrapper.appendChild(itemsList);
-						console.log("vocab: "+vocabList);
 						assignments.map(assignment => assignment["data"])
 									.forEach(assignment => {
 									const li = document.createElement("li");
