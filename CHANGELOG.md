@@ -1,3 +1,9 @@
+# Changelog v0.5.3
+Not Released Yet
+
+## Bug Fix
+- Fixed issue where the app wouldn't fetch new subjects added/altered in WaniKani (Content Updates)
+
 # [Changelog v0.5.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.2)
 Released on 15/08/2021
 
@@ -99,7 +105,7 @@ Released on 01/06/2021
 # [Changelog v0.4.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.1)
 Released on 30/05/2021
 
-## Bug Fixed
+## Bug Fix
 - Fixed bug where name of kanji wouldn't show up properly in the Kanji Info Popup
 
 # [Changelog v0.4.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.0)
@@ -137,19 +143,19 @@ Released on 22/05/2021
     - When something matches, it shows the character, the names and the readings for the kanji
     - Any kanji will show up, even the ones you haven't learned yet
 
-## Bug Fixes
+## Bug Fix
 - Clicking outside the settings and exit buttons, in the popup extension, no longer triggers them by mistake
 
 ---
 
 # [Changelog v0.2.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.2.2)
 Released on 13/05/2021
-## Bug Fixes
+## Bug Fix
 - Fixed extension popup not fully loading on certain websites
 
 # [Changelog v0.2.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.2.1)
 Released on 12/05/2021
-## Bug Fixes
+## Bug Fix
 - Fixed wrong version number displaying on the extension popup
 
 # [Changelog v0.2.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.2.0)
@@ -161,14 +167,14 @@ Released on 11/05/2021
 ## Content
 - Put an indicator when a kanji reading is hidden because of overflow on small Popup of Kanji Info
 
-## Bug Fixes
+## Bug Fix
 - Fixed some styling formatting issues with the highlighting of the kanji in some websites
 
 ---
 
 # [Changelog v0.1.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.1.1)
 Released on 07/05/2021
-## Bug Fixes
+## Bug Fix
 - Fixed page loading issues when navigating through pages of a same website
 - The extension now works on subdomains of Wanikani
 
