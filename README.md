@@ -31,7 +31,7 @@ Released on 15/08/2021
 - The future reviews chart shows number of reviews divided by SRS Stage (Stacked bars)
 - More options to color customization in settings
 
-# Changelog v0.5.1
+## Changelog v0.5.1
 Released on 10/08/2021
 
 ## Popup
