@@ -1,9 +1,9 @@
-# Changelog v0.5.3
-Not Released Yet
+# [Changelog v0.5.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.3)
+Released on 30/08/2021
 
 ## Bug Fix
 - Fixed issue where the app wouldn't fetch new subjects added/altered in WaniKani (Content Updates)
-- Going forwards or backwards in the future reviews chart now works properly when entering a new month
+- Going forwards or backwards in the future reviews chart now shows the correct day when entering a new month
 
 # [Changelog v0.5.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.2)
 Released on 15/08/2021
