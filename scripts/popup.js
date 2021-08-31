@@ -230,10 +230,25 @@ window.onload = () => {
 										userElementsList.id = "userInfoNavbar";
 										userInfoWrapper.appendChild(userElementsList);
 			
+										const accInfoWrapper = document.createElement("li");
+										userElementsList.appendChild(accInfoWrapper);
+										accInfoWrapper.style.display = "flex";
+
+										const avatarWrapper = document.createElement("div");
+										accInfoWrapper.appendChild(avatarWrapper);
+										avatarWrapper.style.marginRight = "5px";
+										const avatar = document.createElement("img");
+										avatarWrapper.appendChild(avatar);
+										avatar.src = "/images/wanikani-default.png";
+										avatar.style.width = "30px";
+										avatar.style.borderRadius = "15px";
+
+										const accInfo = document.createElement("ul");
+										accInfoWrapper.appendChild(accInfo);
+										accInfo.style.width = "100%";
 										const greetings = document.createElement("li");
 										greetings.innerHTML = `Hello, <a href="${userInfo["profile_url"]}" target="_blank">${userInfo["username"]}</a>!`;
-										userElementsList.appendChild(greetings);
-			
+										accInfo.appendChild(greetings);												
 										const level = document.createElement("li");
 										level.style.display = "flex";
 										const div1 = document.createElement("div");
@@ -247,8 +262,19 @@ window.onload = () => {
 										div2.appendChild(levelBar);
 										setTimeout(() => levelBar.style.width = (userInfo["level"]/userInfo["subscription"]["max_level_granted"])*100+"%", 100);
 										levelBar.id = "levelBar";
-										userElementsList.appendChild(level);
+										accInfo.appendChild(level);
 										
+										// get user avatar
+										fetch("https://www.wanikani.com/users/"+userInfo["username"])
+											.then(result => result.text())
+											.then(content => {
+												let parser = new DOMParser();
+												let doc = parser.parseFromString(content, 'text/html');
+												let avatarElem = doc.getElementsByClassName("avatar user-avatar-default")[0];
+												if (avatarElem)
+													avatar.src = "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0];
+											});
+
 										const kanjiFound = document.createElement("li");
 										kanjiFound.id = "nmrKanjiHighlighted";
 										kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: (in the page)`;
