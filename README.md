@@ -30,7 +30,7 @@ Released on 03/09/2021
 - Made all features of the extension available for any type of account (free, paid, etc)
 - Added user Avatar
 
-# Changelog v0.5.3
+## Changelog v0.5.3
 Released on 30/08/2021
 
 ## Bug Fix
