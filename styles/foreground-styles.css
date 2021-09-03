@@ -347,6 +347,7 @@
     font-weight: bold;
     box-shadow: 0px 3px 0px 0px black;
     border-radius: 4px;
+	pointer-events: none;
 }
 
 .wkhighlighter_detailsPopup_cardRow {

@@ -1,5 +1,5 @@
-# Changelog v0.5.4
-Not Released Yet
+# [Changelog v0.5.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.4)
+Released on 03/09/2021
 
 ## Popup
 - Made all features of the extension available for any type of account (free, paid, etc)

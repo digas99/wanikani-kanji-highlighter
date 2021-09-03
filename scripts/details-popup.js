@@ -138,7 +138,7 @@ var injectedDetailsPopup = true;
 	const itemCardsSection = (kanjiInfo, idsTag, title, itemCardsclass, list) => {
 		const ids = kanjiInfo[idsTag];
 		const nmrItems = ids.length;
-		const table = infoTable(`${title} (${nmrItems}):`, []);
+		const table = infoTable(`${title} (${nmrItems})`, []);
 		table.classList.add("wkhighlighter_detailsPopup_sectionContainer");
 		if (nmrItems > 0)
 			table.appendChild(itemCards(ids, list, itemCardsclass));
@@ -295,10 +295,10 @@ var injectedDetailsPopup = true;
 		details.appendChild(meaning);
 	
 		// meaning mnemonic container
-		details.appendChild(infoTable("Meaning Mnemonic:", [parseTags(kanjiInfo["meaning_mnemonic"]), parseTags(kanjiInfo["meaning_hint"])]));
+		details.appendChild(infoTable("Meaning Mnemonic", [parseTags(kanjiInfo["meaning_mnemonic"]), parseTags(kanjiInfo["meaning_hint"])]));
 	
 		// reading mnemonic container
-		details.appendChild(infoTable("Reading Mnemonic:", [parseTags(kanjiInfo["reading_mnemonic"]), parseTags(kanjiInfo["reading_hint"])]));
+		details.appendChild(infoTable("Reading Mnemonic", [parseTags(kanjiInfo["reading_mnemonic"]), parseTags(kanjiInfo["reading_hint"])]));
 		
 		// used radicals cards
 		details.appendChild(itemCardsSection(kanjiInfo, "component_subject_ids", "Used Radicals", "wkhighlighter_detailsPopup_usedRadicals_row", allRadicals));
