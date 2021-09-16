@@ -299,10 +299,15 @@ window.onload = () => {
 													summaryLi.style.width = "100%";
 													summaryLi.style.color = "white";
 
-													const title = document.createElement("div");
-													summaryLi.appendChild(title);
+													const titleWrapper = document.createElement("div");
+													summaryLi.appendChild(titleWrapper);
+													titleWrapper.classList.add("summaryTitle");
+													const title = document.createElement("a");
+													titleWrapper.appendChild(title);
 													title.appendChild(document.createTextNode(topic));
-													title.classList.add("summaryTitle");
+													title.href = "https://www.wanikani.com/"+topic[0].toLowerCase()+topic.slice(1, -1);
+													title.target = "_blank";
+													title.style.color = "white";
 
 													const value = document.createElement("div");
 													summaryLi.appendChild(value);
@@ -617,9 +622,9 @@ const submitAction = () => {
 				msg = "The API key was accepted!";
 				color = "green";
 
-				const APIInputWrapper = document.getElementsByClassName("apiKey_wrapper")[0];
-				if (APIInputWrapper)
-					APIInputWrapper.remove();
+				const apiInputWrapper = document.getElementsByClassName("apiKey_wrapper")[0];
+				if (apiInputWrapper)
+					apiInputWrapper.remove();
 
 				main.appendChild(reloadPage(msg, color));
 			}
@@ -1832,19 +1837,13 @@ const searchKanji = (event) => {
 		const settings = result["wkhighlight_settings"];
 		if (settings && settings["search"]) {
 			if (type == "A") {
-				let finalValue = "";
-				const split = separateRomaji(value);
-				for (const word of split) {
-					const kanaValue = kana[word];
-					finalValue += kanaValue ? kanaValue : word;
-				}
-				input.value = finalValue;
+				input.value = convertToKana(input.value);
 			
 				// if it is hiragana
-				if (finalValue.match(/[\u3040-\u309f]/)) {
+				if (input.value.match(/[\u3040-\u309f]/)) {
 					const filterByReadings = (itemList, value) => itemList.filter(item => matchesReadings(value, item["readings"]));
-					filteredKanji = filterByReadings(kanjiList, finalValue);
-					filteredVocab = filterByReadings(vocabList, finalValue);
+					filteredKanji = filterByReadings(kanjiList, input.value);
+					filteredVocab = filterByReadings(vocabList, input.value);
 				}
 			}
 			else {
