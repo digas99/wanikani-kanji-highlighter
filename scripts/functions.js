@@ -5,29 +5,6 @@
 // GENERAL
 const errorHandling = error => console.log(error);
 
-// fetch a single page from the WaniKani API
-const fetchPage = async (apiToken, page) => {				
-	const requestHeaders = new Headers({Authorization: `Bearer ${apiToken}`});
-	let apiEndpoint = new Request(page, {
-		method: 'GET',
-		headers: requestHeaders
-	});
-
-	return await fetch(apiEndpoint)
-		.then(response => response.json())
-		.then(responseBody => responseBody)
-		.catch(errorHandling);
-}
-
-// recursive function to fetch all pages that come after a given page (given page included)
-const fetchAllPages = async (apiToken, page) => {
-	if (!page)
-		return [];
-
-	const result = await fetchPage(apiToken, page);
-	return [result].concat(await fetchAllPages(apiToken, result.pages.next_url));
-}
-
 const hexToRGB = hex => {
 	hex = hex[0] == "#" ? hex.substring(1) : hex;
 	return ({r:parseInt(hex[0]+hex[1], 16), g:parseInt(hex[2]+hex[3], 16), b:parseInt(hex[4]+hex[5], 16)});
@@ -207,26 +184,6 @@ const filterAssignmentsByTime = (list, currentDate, capDate) => {
 			new Date(assignment["available_at"]).getTime() > currentDate.getTime());
 }
 
-// check if the data in the endpoints has been modified since the given date
-const modifiedSince = async (apiKey, date, url) => {
-	var requestHeaders = new Headers();
-	requestHeaders.append('Authorization', `Bearer ${apiKey}`);
-	requestHeaders.append('Wanikani-Revision', '20170710');
-	requestHeaders.append('If-Modified-Since', date);
-	var requestInit = { method: 'GET', headers: requestHeaders };
-	var endpoint = new Request(url, requestInit);
-
-	return await fetch(endpoint)
-		.then(response => {
-			const result = response.status !== 304;
-			console.log(response);
-			console.log("MODIFIED: "+result);
-			return result;
-		
-		})
-		.catch(errorHandling);
-}
-
 // clears cache of this extension from chrome storage
 const clearCache = () => {
 	chrome.storage.local.get(null, data => {
@@ -239,18 +196,6 @@ const clearCache = () => {
 		window.location.reload();
 		chrome.storage.local.remove(keysToRemove);
 	});
-}
-
-const reposVersions = async (user, repos) => {
-	return await fetch(`https://api.github.com/repos/${user}/${repos}/tags`).then(response => response.json()).then(body => body);
-}
-
-const reposFirstVersion = async (user, repos) => {
-	return await reposVersions(user, repos).then(result => result[0].name);
-}
-
-const reposLastVersion = async (user, repos) => {
-	return await reposVersions(user, repos).then(result => result[result.length-1].name);
 }
 
 const rand = (min, max) => {

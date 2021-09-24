@@ -390,30 +390,8 @@
 	chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		// create kanji details popup coming from search
 		const infoPopupFromSearch = request["infoPopupFromSearch"];
-		if (infoPopupFromSearch) {
-			console.log(infoPopupFromSearch);
-			console.log(document.getElementsByClassName("wkhighlighter_detailsPopup")[0]);
-			updateInfoPopup(infoPopupFromSearch, null, [highlightingClass, "wkhighlighter_highlightedNotLearned"], document.getElementsByClassName("wkhighlighter_detailsPopup")[0], true);
-			// const characters = infoPopupFromSearch["characters"];
-			// const type = infoPopupFromSearch["type"];
-			// let detailsPopup = document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
-			// if (detailsPopup)
-			// 	detailsPopup.remove();
-			// detailsPopup = createPopup();
-			// infoInPopup = false;
-		
-			// if (type == "kanji") {
-			// 	chrome.storage.local.get(["wkhighlight_kanji_assoc"], data => {
-			// 		const assocList = data["wkhighlight_kanji_assoc"];
-			// 		if (assocList) 
-			// 			detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, characters, [highlightingClass, "wkhighlighter_highlightedNotLearned"], assocList[characters], false, true));
-			// 	});
-			// }
-			// else {
-			// 	const id = Object.entries(allVocab).filter(([key, val]) => val["characters"] == characters)[0][0];
-			// 	detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, characters, [highlightingClass, "wkhighlighter_highlightedNotLearned"], id, false, true));
-			// }
-		}
+		if (infoPopupFromSearch) 
+			updateInfoPopup(infoPopupFromSearch, null, [highlightingClass, "wkhighlighter_highlightedNotLearned"], infoInPopup, true);
 	});
 
 	document.addEventListener("mouseover", e => {
@@ -717,12 +695,8 @@
 				popup.appendChild(createItemCharContainer(popup.offsetWidth, item["characters"], highlightClasses, id, insideBar, save));
 
 				const detailedInfoWrapper = popup.getElementsByClassName("wkhighlighter_popupDetails_detailedInfoWrapper");
-				if (detailedInfoWrapper) {
-					Array.from(detailedInfoWrapper).forEach(wrapper => {
-						console.log(wrapper);
-						wrapper.remove()
-					});
-				}
+				if (detailedInfoWrapper)
+					Array.from(detailedInfoWrapper).forEach(wrapper => wrapper.remove());
 
 				if (insideBar) {
 					console.log("insideBar");

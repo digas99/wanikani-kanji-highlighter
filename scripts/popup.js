@@ -364,23 +364,27 @@ window.onload = () => {
 
 														const kanjiPerSite = result["wkhighlight_kanjiPerSite"];
 														if (kanjiPerSite) {
-															chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-																const currentTabUrl = tabs[0]["url"];
-																if (kanjiPerSite[currentTabUrl]) {
-																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${kanjiPerSite[currentTabUrl]["number"]}</strong> (in the page)`;
-																	if (kanjiPerSite[currentTabUrl]["number"] <= 10)
-																		kanjiFoundUl.style.textAlign = "center";
-																	const learned = kanjiPerSite[currentTabUrl]["kanji"]["learned"];
-																	const notLearned = kanjiPerSite[currentTabUrl]["kanji"]["notLearned"];
-																	[learned, notLearned].forEach(type => {
-																		type.forEach(kanji => {
-																			const kanjiFoundLi = document.createElement("li");
-																			kanjiFoundUl.appendChild(kanjiFoundLi);
-																			kanjiFoundLi.classList.add("clickable", "kanjiDetails", type === learned ? "kanjiHighlightedLearned" : "kanjiHighlightedNotLearned");
-																			kanjiFoundLi.appendChild(document.createTextNode(kanji));
+															chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
+																const kanjiAssoc = result["wkhighlight_kanji_assoc"];
+																chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+																	const currentTabUrl = tabs[0]["url"];
+																	if (kanjiPerSite[currentTabUrl]) {
+																		kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${kanjiPerSite[currentTabUrl]["number"]}</strong> (in the page)`;
+																		if (kanjiPerSite[currentTabUrl]["number"] <= 10)
+																			kanjiFoundUl.style.textAlign = "center";
+																		const learned = kanjiPerSite[currentTabUrl]["kanji"]["learned"];
+																		const notLearned = kanjiPerSite[currentTabUrl]["kanji"]["notLearned"];
+																		[learned, notLearned].forEach(type => {
+																			type.forEach(kanji => {
+																				const kanjiFoundLi = document.createElement("li");
+																				kanjiFoundUl.appendChild(kanjiFoundLi);
+																				kanjiFoundLi.classList.add("clickable", "kanjiDetails", type === learned ? "kanjiHighlightedLearned" : "kanjiHighlightedNotLearned");
+																				kanjiFoundLi.appendChild(document.createTextNode(kanji));
+																				if (kanjiAssoc) kanjiFoundLi.setAttribute("data-item-id", kanjiAssoc[kanji]);
+																			});
 																		});
-																	});
-																}
+																	}
+																});
 															});
 														}
 													});
@@ -1304,10 +1308,7 @@ document.addEventListener("click", e => {
 	// clicked in a search result line, but not the character itself
 	if (targetElem.classList.contains("searchResultItemLine")) {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-			const type = targetElem.classList.contains("kanji_back") ? "kanji" : "vocabulary";
-			if (type == "vocabulary")
-				chrome.storage.local.set({wkhighlight_currentVocabInfo: vocabList.filter(vocab => vocab.id == targetElem.getAttribute('data-item-id'))[0]});
-			chrome.tabs.sendMessage(tabs[0].id, {infoPopupFromSearch: {characters: targetElem.firstChild.textContent, type: type}}, () => window.chrome.runtime.lastError);
+			chrome.tabs.sendMessage(tabs[0].id, {infoPopupFromSearch:targetElem.getAttribute("data-item-id")}, () => window.chrome.runtime.lastError);
 		});
 	}
 
@@ -1389,11 +1390,6 @@ document.addEventListener("click", e => {
 	// if clicked on a kanji that can generate detail info popup
 	if (targetElem.classList.contains("kanjiDetails")) {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-			// chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
-			// 	const kanjiAssoc = result["wkhighlight_kanji_assoc"];
-			// 	if (kanjiAssoc)
-			// 		chrome.tabs.sendMessage(tabs[0].id, {infoPopupFromSearch: {characters: targetElem.innerText, type: kanjiAssoc[targetElem.innerText] ? "kanji" : "vocabulary"}}, () => window.chrome.runtime.lastError);
-			// });
 			chrome.tabs.sendMessage(tabs[0].id, {infoPopupFromSearch:targetElem.getAttribute("data-item-id")}, () => window.chrome.runtime.lastError);
 		});
 	}
@@ -2134,7 +2130,6 @@ const loadItemsLists = (callback) => {
 			if (allRadicals && radicalList.length == 0) {
 				for (const index in allRadicals) {
 					const radical = allRadicals[index];
-					console.log(radical);
 					radicalList.push({
 						"type" : "vocabulary",
 						"id": index,
