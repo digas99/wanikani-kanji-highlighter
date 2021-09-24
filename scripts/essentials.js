@@ -27,18 +27,6 @@ window.onbeforeunload = () => {
 	chrome.runtime.sendMessage({leavingSite:window.location.href});
 }
 
-// check if highlight.js and details-popup.js are not injected
-setTimeout(() => {
-	try {
-		// check for the scripts global flags
-		injectedHighlight;
-		injectedDetailsPopup;
-	} catch(e) {
-		// if not injected, then force injection
-		chrome.runtime.sendMessage({forceScriptInjection:"all"});
-	} 
-}, 3000);
-
 // setup css vars
 chrome.storage.local.get("wkhighlight_settings", result => {
 	const settings = result["wkhighlight_settings"];

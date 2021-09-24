@@ -1,7 +1,5 @@
 'use strict';
 
-var injectedDetailsPopup = true;
-
 (() => {
 
 	let infoInPopup = false;
@@ -20,8 +18,6 @@ var injectedDetailsPopup = true;
 			notLearnedHighlightingClass = highlightStyleSettings["not_learned"];
 		}
 	});
-
-	let extraContainersRemoverInterval;
 
 	let detailsPopupFixed = false;
 	let kanjiLocked = false;
@@ -434,21 +430,6 @@ var injectedDetailsPopup = true;
 				const info = data["wkhighlight_kanji_assoc"];
 				if (info)
 					updateInfoPopup(info[node.textContent], detailsPopup, [highlightingClass, "wkhighlighter_highlightedNotLearned"], infoInPopup, true);
-
-				// make sure only one interval is running
-				if (extraContainersRemoverInterval)
-					clearInterval(extraContainersRemoverInterval);
-
-				let containers;
-				// make sure there is only one info container
-				extraContainersRemoverInterval = setInterval(() => {
-					containers = document.getElementsByClassName("wkhighlighter_popupDetails_detailedInfoWrapper");
-					// i = 1 to ignore first container
-					if (containers) {
-						for (let i = 1; i < containers.length; i++)
-							containers[i].remove();
-					}
-				}, 2000);
 			});
 		}
 	

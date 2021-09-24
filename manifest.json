@@ -29,6 +29,7 @@
         "unlimitedStorage",
         "contextMenus",
         "notifications",
-        "alarms"
+        "alarms",
+        "webNavigation"
     ]
 }

@@ -437,7 +437,7 @@ window.onload = () => {
 												const setupSummary = (reviews, lessons) => {
 													if (reviews) {
 														const currentTime = new Date().getTime();			
-														document.getElementById("summaryReviews").innerText = reviews["count"];
+														document.getElementById("summaryReviews").innerText = reviews["count"] ? reviews["count"] : "...";
 
 														// get all the reviews for the next 14 days
 														const nextReviews = reviews["next_reviews"];
@@ -498,7 +498,7 @@ window.onload = () => {
 														}
 													}
 													if (lessons)
-														document.getElementById("summaryLessons").innerText = lessons["count"];
+														document.getElementById("summaryLessons").innerText = lessons["count"] ? lessons["count"] : "...";
 													
 													reviewsLoadingElem.remove();
 													clearInterval(reviewsLoadingVal[1]);

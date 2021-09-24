@@ -1,7 +1,5 @@
 'use strict';
 
-var injectedHighlight = true;
-
 (() => {
 	let totalHighlightedKanji = 0;
 	let learnedHighlightedKanji = [];

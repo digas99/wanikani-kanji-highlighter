@@ -10,6 +10,7 @@ Not Released Yet
 ## Bug Fix
 - Fixed Kanji Search Settings Navbar taking time to show up, or not loading at all
 - Details Popup no longer closes for no reason when clicking to see the details popup of a subject from within that details popup
+- Details Popup no longer shows duplicate information on a subject
 
 # [Changelog v0.5.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.4)
 Released on 03/09/2021
