@@ -88,10 +88,7 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 		tabs.insertCSS(null, {file: 'styles/foreground-styles.css'});
 		console.log("scripts");
 		if (settings["kanji_details_popup"]["activated"])
-			tabs.executeScript(null, {file: 'scripts/details-popup.js'}, () => {
-				chrome.runtime.lastError;
-				tabs.executeScript(null, {file: 'lib/raphael-min.js'}, () => tabs.executeScript(null, {file: 'lib/dmak.js'}, () => tabs.executeScript(null, {file: 'lib/dmakLoader.js'}, () => chrome.runtime.lastError)));
-			});
+			tabs.executeScript(null, {file: 'scripts/details-popup.js'});
 
 		tabs.executeScript(null, {file: 'scripts/highlight.js'}, () => {
 			injectedHighlighter = true;
@@ -253,7 +250,7 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 																		"character_images" : data.character_images,
 																		"document_url" : data.document_url,
 																		"level" : data.level,
-																		"id":radical,
+																		"id":radical.id,
 																		"meanings": data.meanings.map(data => data.meaning),
 																		"subject_type":radical.object
 																	};
@@ -395,27 +392,26 @@ const setNextReviewsBundle = next_reviews => {
 	}
 }
 
-const setupReviewsAlarm = () => {
-	// get date of next reviews and number of next reviews
-	chrome.storage.local.get("wkhighlight_reviews", result => {
-		let revs = result["wkhighlight_reviews"];
-		if (revs && revs["next_reviews"]) {
-			const next_date = setNextReviewsBundle(revs["next_reviews"])["date"];
-
-			if (next_date) {
-				// create alarm for the time of the next reviews
-				chrome.alarms.create("next-reviews", {
-					when: next_date.getTime()
-				});
-			}
+const setupReviewsAlarm = reviews => {
+	if (reviews && reviews["next_reviews"]) {
+		const next_date = setNextReviewsBundle(reviews["next_reviews"])["date"];
+		if (next_date) {
+			// create alarm for the time of the next reviews
+			chrome.alarms.create("next-reviews", {
+				when: next_date.getTime()
+			});
 		}
-	});
+	}
 }
 
 chrome.alarms.getAll(alarms => {
 	// if there isn't an alarm for next reviews active
-	if (alarms.length == 0)
-		setupReviewsAlarm();
+	if (alarms.length == 0) {
+		chrome.storage.local.get("wkhighlight_reviews", result => {
+			const reviews = result["wkhighlight_reviews"];
+			if (reviews) setupReviewsAlarm(reviews);
+		});
+	}
 });
 
 chrome.alarms.onAlarm.addListener(alarm => {
@@ -434,6 +430,6 @@ chrome.alarms.onAlarm.addListener(alarm => {
 		}
 
 		// setup new alarm
-		//setupReviewsAlarm();
+		updateAvailableAssignments(setupReviewsAlarm);
 	});
 });

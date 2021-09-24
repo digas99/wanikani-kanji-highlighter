@@ -1,20 +1,33 @@
 // WANIKANI
 
-const canCallApi = (nmrFetches, firstFetch) => {
-	if (nmrFetches < 60) {
-		chrome.storage.local.set({"wkhighlight_apiFetches":++nmrFetches});
-		return true;
-	}
+// const canCallApi = async () => {
+// 	return new Promise((resolve, reject) => {
+// 		chrome.storage.local.get(["wkhighlight_apiFetches", "wkhighlight_apiFetches_time"], result => {
+// 			let nmrFetches = result["wkhighlight_apiFetches"] ? result["wkhighlight_apiFetches"] : 0;
+// 			let firstFetch = result["wkhighlight_apiFetches_time"];
+// 			if (!firstFetch) {
+// 				firstFetch = new Date();
+// 				chrome.storage.local.set({"wkhighlight_apiFetches_time":formatDate(firstFetch)});
+// 			}
+// 			else
+// 				firstFetch = new Date(firstFetch);
 
-	// check if a minute has passed
-	const now = new Date();
-	if ((now - firstFetch)/(1000*60)%60 > 1) {
-		chrome.storage.local.set({"wkhighlight_apiFetches":0, "wkhighlight_apiFetches_time":formatDate(now)});
-		return true;
-	}
-	
-	return false;
-}
+// 			if (nmrFetches < 60) {
+// 				chrome.storage.local.set({"wkhighlight_apiFetches":++nmrFetches});
+// 				resolve(true);
+// 			}
+// 			else {
+// 				// check if a minute has passed
+// 				const now = new Date();
+// 				if ((now - firstFetch)/(1000*60)%60 > 1) {
+// 					chrome.storage.local.set({"wkhighlight_apiFetches":0, "wkhighlight_apiFetches_time":formatDate(now)});
+// 					resolve(true);
+// 				}
+// 				else resolve(false);
+// 			}
+// 		});
+// 	});
+// }
 
 // fetch a single page from the WaniKani API
 const fetchPage = async (apiToken, page) => {				
@@ -24,23 +37,19 @@ const fetchPage = async (apiToken, page) => {
 		headers: requestHeaders
 	});
 
-	// chrome.storage.local.get(["wkhighlight_apiFetches", "wkhighlight_apiFetches_time"], result => {
-	// 	const nmrFetches = result["wkhighlight_apiFetches"] ? result["wkhighlight_apiFetches"] : 0;
-	// 	const firstFetch = result["wkhighlight_apiFetches_time"] ? new Date(result["wkhighlight_apiFetches_time"]) : new Date();
-
-	// 	if (canCallApi(nmrFetches, firstFetch)) {
-			return await fetch(apiEndpoint)
-				.then(response => response.json())
-				.then(responseBody => responseBody)
-				.catch(errorHandling);
-		// }
-	// });
+	return await fetch(apiEndpoint)
+		.then(response => response.json())
+		.then(responseBody => {
+			const result = responseBody;
+			console.log(result);
+			return result;
+		})
+		.catch(errorHandling);
 }
 
 // recursive function to fetch all pages that come after a given page (given page included)
 const fetchAllPages = async (apiToken, page) => {
-	if (!page)
-		return [];
+	if (!page) return [];
 
 	const result = await fetchPage(apiToken, page);
 	return [result].concat(await fetchAllPages(apiToken, result.pages.next_url));
@@ -48,22 +57,33 @@ const fetchAllPages = async (apiToken, page) => {
 
 // check if the data in the endpoints has been modified since the given date
 const modifiedSince = async (apiKey, date, url) => {
-	var requestHeaders = new Headers();
-	requestHeaders.append('Authorization', `Bearer ${apiKey}`);
-	requestHeaders.append('Wanikani-Revision', '20170710');
-	requestHeaders.append('If-Modified-Since', date);
-	var requestInit = { method: 'GET', headers: requestHeaders };
-	var endpoint = new Request(url, requestInit);
+	chrome.storage.local.get(["wkhighlight_apiCallsLimitExceeded"], result => {
+		const limitExceeded = result["wkhighlight_apiCallsLimitExceeded"] ? new Date(result["wkhighlight_apiCallsLimitExceeded"]) : null;
+		// check if a minute has not passed since last limit exceeded
+		if (limitExceeded && ((new Date() - limitExceeded)/(1000*60)%60 <= 1)) {
+			return false;
+		}
 
-	return await fetch(endpoint)
-		.then(response => {
-			const result = response.status !== 304;
-			console.log(response);
-			console.log("MODIFIED: "+result);
-			return result;
+		var requestHeaders = new Headers();
+		requestHeaders.append('Authorization', `Bearer ${apiKey}`);
+		requestHeaders.append('Wanikani-Revision', '20170710');
+		requestHeaders.append('If-Modified-Since', date);
+		var requestInit = { method: 'GET', headers: requestHeaders };
+		var endpoint = new Request(url, requestInit);
+	
+		return fetch(endpoint)
+			.then(response => {
+				// if exceded limit
+				if (response.status === 429) chrome.storage.local.set({"wkhighlight_apiCallsLimitExceeded":formatDate(new Date())});
+	
+				const result = response.status !== 304;
+				console.log(response);
+				console.log("MODIFIED: "+result);
+				return result;
 		
 		})
 		.catch(errorHandling);
+	});
 }
 
 

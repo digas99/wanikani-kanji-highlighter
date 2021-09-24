@@ -304,6 +304,7 @@ window.onload = () => {
 													const titleWrapper = document.createElement("div");
 													summaryLi.appendChild(titleWrapper);
 													titleWrapper.classList.add("summaryTitle");
+													titleWrapper.title = topic+" in WaniKani";
 													const title = document.createElement("a");
 													titleWrapper.appendChild(title);
 													title.appendChild(document.createTextNode(topic));
@@ -511,28 +512,7 @@ window.onload = () => {
 												reviews = response["wkhighlight_reviews"];
 												lessons = response["wkhighlight_lessons"];
 												
-												fetchPage(apiKey, "https://api.wanikani.com/v2/assignments?immediately_available_for_lessons")
-													.then(lessons => {
-														fetchPage(apiKey, "https://api.wanikani.com/v2/assignments?immediately_available_for_review")
-															.then(reviews => {
-																chrome.storage.local.get(["wkhighlight_assignments"], result => {
-																		const assignments = result["wkhighlight_assignments"];
-																		if (lessons && reviews && assignments) {
-																			const updateReviews = {
-																				"count":reviews["total_count"],
-																				"data":reviews["data"],
-																				"next_reviews":filterAssignmentsByTime(assignments["future"], new Date(), changeDay(new Date(), 14))
-																			};
-																			const updatedLessons = {
-																				"count":lessons["total_count"],
-																				"data":lessons["data"]
-																			};
-																			setupSummary(updateReviews, updatedLessons);
-																			chrome.storage.local.set({"wkhighlight_reviews": updateReviews, "wkhighlight_lessons": updatedLessons});
-																		}
-																	});
-															});
-													});
+												updateAvailableAssignments(setupSummary);
 
 												setupSummary(reviews, lessons);
 												

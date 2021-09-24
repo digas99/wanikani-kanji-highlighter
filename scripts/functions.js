@@ -201,3 +201,29 @@ const clearCache = () => {
 const rand = (min, max) => {
 	return Math.floor(Math.random() * (max - min) ) + min;
 }
+
+// fetch and update available lessons and reviews
+const updateAvailableAssignments = callback => {
+	fetchPage(apiKey, "https://api.wanikani.com/v2/assignments?immediately_available_for_lessons")
+		.then(lessons => {
+			fetchPage(apiKey, "https://api.wanikani.com/v2/assignments?immediately_available_for_review")
+				.then(reviews => {
+					chrome.storage.local.get(["wkhighlight_assignments"], result => {
+							const assignments = result["wkhighlight_assignments"];
+							if (lessons && reviews && assignments) {
+								const updatedReviews = {
+									"count":reviews["total_count"],
+									"data":reviews["data"],
+									"next_reviews":filterAssignmentsByTime(assignments["future"], new Date(), changeDay(new Date(), 14))
+								};
+								const updatedLessons = {
+									"count":lessons["total_count"],
+									"data":lessons["data"]
+								};
+								chrome.storage.local.set({"wkhighlight_reviews": updatedReviews, "wkhighlight_lessons": updatedLessons});
+								callback(updatedReviews, updatedLessons);
+							}
+						});
+				});
+		});
+}

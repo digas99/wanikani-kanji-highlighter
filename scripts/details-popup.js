@@ -78,55 +78,58 @@
 	const itemCards = (ids, data, className) => {
 		const wrapper = document.createElement("ul");
 		wrapper.style.padding = "0";
+		if (ids && data) {
+			ids.map(id => data[id])
+			.sort((a,b) => a.level - b.level)
+			.forEach(thisData => {
+				const li = document.createElement("li");
+				li.classList.add("wkhighlighter_detailsPopup_cardRow", className);
+				const characters = thisData.characters;
+				li.title = characters+" in WaniKani";
+				wrapper.appendChild(li);
 		
-		ids.forEach(id => {
-			const li = document.createElement("li");
-			li.classList.add("wkhighlighter_detailsPopup_cardRow", className);
-			wrapper.appendChild(li);
+				const p = document.createElement("p");
+		
+				const a = document.createElement("a");
+				a.target = "_blank";
+				a.href = thisData["document_url"];
+		
+				if (characters) {
+					p.appendChild(document.createTextNode(characters));
+					if (characters.length > 4)
+						p.style.setProperty("font-size",(170/characters.length)+"px", "important");
+				}
+				else {
+					const img = document.createElement("img");
+					const svgs = thisData.character_images.filter(img => img["content_type"] === "image/png" && img["metadata"]["dimensions"] === "64x64");
+					img.src = svgs[0].url;
+					img.style.width = "40px";
+					p.appendChild(img);
+				}
+				p.classList.add("wkhighlighter_detailsPopup_cards", highlightingClass, "wkhighlighter_highlightedNotLearned");
+				p.setAttribute('data-item-id', thisData.id);
+				li.appendChild(a);
+				a.appendChild(p);
 	
-			const p = document.createElement("p");
-			const thisData = data[id];
+				const meaning = document.createElement("div");
+				li.appendChild(meaning);
+				meaning.appendChild(document.createTextNode(thisData["meanings"][0]));
 	
-			const a = document.createElement("a");
-			a.target = "_blank";
-			a.href = thisData["document_url"];
+				if (thisData["readings"]) {
+					const reading = document.createElement("div");
+					li.appendChild(reading);
+					if (thisData["subject_type"] == "kanji")
+						reading.appendChild(document.createTextNode(thisData["readings"].filter(reading => reading["primary"])[0]["reading"]));
+					else
+						reading.appendChild(document.createTextNode(thisData["readings"][0]));
+				}
 	
-			const characters = thisData.characters;
-			if (characters) {
-				p.appendChild(document.createTextNode(characters));
-				if (characters.length > 4)
-					p.style.setProperty("font-size",(170/characters.length)+"px", "important");
-			}
-			else {
-				const img = document.createElement("img");
-				const svgs = thisData.character_images.filter(img => img["content_type"] === "image/png" && img["metadata"]["dimensions"] === "64x64");
-				img.src = svgs[0].url;
-				img.style.width = "40px";
-				p.appendChild(img);
-			}
-			p.classList.add("wkhighlighter_detailsPopup_cards", highlightingClass, "wkhighlighter_highlightedNotLearned");
-			p.setAttribute('data-item-id', id);
-			li.appendChild(a);
-			a.appendChild(p);
-
-			const meaning = document.createElement("div");
-			li.appendChild(meaning);
-			meaning.appendChild(document.createTextNode(thisData["meanings"][0]));
-
-			if (thisData["readings"]) {
-				const reading = document.createElement("div");
-				li.appendChild(reading);
-				if (thisData["subject_type"] == "kanji")
-					reading.appendChild(document.createTextNode(thisData["readings"].filter(reading => reading["primary"])[0]["reading"]));
-				else
-					reading.appendChild(document.createTextNode(thisData["readings"][0]));
-			}
-
-			const level = document.createElement("div");
-			level.classList.add("itemLevelCard");
-			li.appendChild(level);
-			level.appendChild(document.createTextNode(thisData.level));
-		});
+				const level = document.createElement("div");
+				level.classList.add("itemLevelCard");
+				li.appendChild(level);
+				level.appendChild(document.createTextNode(thisData.level));
+			});
+		}
 	
 		return ids.length > 0 ? wrapper : document.createDocumentFragment();
 	}
@@ -220,6 +223,8 @@
 		link.appendChild(charsWrapper);
 		charsWrapper.appendChild(document.createTextNode(characters));
 		charsWrapper.setAttribute('data-item-type', type);
+		charsWrapper.setAttribute('data-item-id', itemId);
+		charsWrapper.title = characters+" in WaniKani";
 		if (characters.length > 4) 
 			charsWrapper.style.setProperty("font-size", (48-6*(characters.length - 5))+"px", "important");
 	
@@ -234,7 +239,6 @@
 				
 		const readings = itemInfo["readings"];
 		if (type == "kanji") {
-			chrome.storage.local.set({"wkhighlight_currentKanjiInfo": itemInfo});
 			([["ON", "onyomi"], ["KUN", "kunyomi"]]).forEach(type => {
 				const li = document.createElement("li");
 				li.innerHTML = `<strong>${type[0]}: </strong>`;
@@ -311,6 +315,7 @@
 	}
 	
 	const createVocabDetailedInfo = (detailsPopup, vocabInfo) => {
+		console.log(vocabInfo);
 		// detailed info section
 		const detailedInfoWrapper = document.createElement("div");
 		detailedInfoWrapper.classList.add("wkhighlighter_popupDetails_detailedInfoWrapper");
@@ -667,10 +672,9 @@
 				detailsPopup.style.maxHeight = window.innerHeight+"px";
 			}, 200);
 	
-			chrome.storage.local.get(["wkhighlight_currentKanjiInfo", "wkhighlight_currentVocabInfo"], info => {
-				const type = itemWrapper.getElementsByClassName("wkhighlighter_detailsPopup_kanji")[0].getAttribute('data-item-type');
-				detailsPopup.appendChild(type == "kanji" ? createKanjiDetailedInfo(detailsPopup, info["wkhighlight_currentKanjiInfo"]) : createVocabDetailedInfo(detailsPopup, info["wkhighlight_currentVocabInfo"]));
-			});
+			const type = itemWrapper.getElementsByClassName("wkhighlighter_detailsPopup_kanji")[0].getAttribute('data-item-type');
+			const id = itemWrapper.getElementsByClassName("wkhighlighter_detailsPopup_kanji")[0].getAttribute('data-item-id');
+			detailsPopup.appendChild(type == "kanji" ? createKanjiDetailedInfo(detailsPopup, allKanji[id]) : createVocabDetailedInfo(detailsPopup, allVocab[id]));
 
 			// show kanji container buttons
 			const buttons = Array.from(document.getElementsByClassName("wkhighlighter_detailsPopupButton"));
