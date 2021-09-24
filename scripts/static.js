@@ -18,6 +18,10 @@ const defaultSettings = {
 	"extension_icon": {
 		kanji_counter: true
 	},
+	"notifications": {
+		new_reviews: false,
+		practice_reminder: false
+	},
 	"highlight_style": {
 		learned: "wkhighlighter_highlighted",
 		not_learned: "wkhighlighter_highlightedNotLearned"
@@ -59,6 +63,97 @@ const defaultSettings = {
 		}
 	}
 };
+
+const settingsInterface = [
+	{
+		title:"Kanji Details Popup",
+		options: [
+			{
+				title:"Activated",
+				type: "checkbox",
+				id:"settings-kanji_details_popup-activated"
+			}
+		]
+	},
+	{
+		title:"Extension Icon",
+		options: [
+			{
+				title:"Kanji Counter",
+				type: "checkbox",
+				id:"settings-extension_icon-kanji_counter"
+			}
+		]
+	},
+	{
+		title:"Notifications",
+		options: [
+			{
+				title:"New Reviews",
+				type: "checkbox",
+				id:"settings-notifications-new_reviews"
+			},
+			{
+				title:"Practice Reminder",
+				type: "checkbox",
+				id:"settings-notifications-practice_reminder"
+			}
+		]
+	},
+	// {
+	// 	title:"Highlight Style",
+	// 	options: [
+	// 		{
+	// 			title:"Learned",
+	// 			type: "chooser",
+	// 			options: [
+	// 				{
+	// 					text:"A",
+	// 					classes: ["wkhighlighter_highlighted", "settings_highlight_style_option" ,"clickable"]
+	// 				},
+	// 				{
+	// 					text:"A",
+	// 					classes: ["wkhighlighter_highlighted_underlined", "settings_highlight_style_option" ,"clickable"]
+	// 				},
+	// 				{
+	// 					text:"A",
+	// 					classes: ["wkhighlighter_highlighted_bold", "settings_highlight_style_option" ,"clickable"]
+	// 				}
+	// 			]
+	// 		},
+	// 		{
+	// 			title:"Not Learned",
+	// 			type: "chooser",
+	// 			options: [
+	// 				{
+	// 					text:"A",
+	// 					classes: ["wkhighlighter_highlightedNotLearned", "settings_highlight_style_option" ,"clickable"]
+	// 				},
+	// 				{
+	// 					text:"A",
+	// 					classes: ["wkhighlighter_highlightedNotLearned_underlined", "settings_highlight_style_option" ,"clickable"]
+	// 				},
+	// 				{
+	// 					text:"A",
+	// 					classes: ["wkhighlighter_highlightedNotLearned_bold", "settings_highlight_style_option" ,"clickable"]
+	// 				}
+	// 			]
+	// 		}
+	// 	]
+	// },
+	// {
+	// 	title:"Danger Sections",
+	// 	type: "button-description",
+	// 	options: [
+	// 		{
+	// 			title:"Clear Cache",
+	// 			id:"clearCash",
+	// 			classes: [],
+	// 			description:"Clears local data. This won't affect your WaniKani account!"
+	// 		}
+	// 	]
+	// }
+];
 
 const wanikaniPattern = {
 	radical_color: "#00a1f1",

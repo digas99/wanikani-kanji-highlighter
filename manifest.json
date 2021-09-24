@@ -10,7 +10,7 @@
         "128": "logo/logo_bb.png"
     },
     "background": {
-        "scripts": ["scripts/background.js", "scripts/functions.js", "scripts/static.js"]
+        "scripts": ["scripts/functions.js", "scripts/static.js", "scripts/background.js"]
     },
     "content_scripts": [
         {
@@ -28,6 +28,7 @@
         "storage",
         "unlimitedStorage",
         "contextMenus",
-        "notifications"
+        "notifications",
+        "alarms"
     ]
 }

@@ -99,7 +99,7 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 
 	const scripts = kanji => {
 		tabs.insertCSS(null, {file: 'styles/foreground-styles.css'});
-
+		console.log("scripts");
 		if (settings["kanji_details_popup"]["activated"])
 			tabs.executeScript(null, {file: 'scripts/details-popup.js'}, () => {
 				chrome.runtime.lastError;
@@ -348,7 +348,6 @@ tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
 let highlightUpdateFunction;
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	console.log(sender);
 	// sends to the content script information about key pressing and the reference to the highlight update function
 	if (request.key)
 		tabs.sendMessage(thisTabId, {key: request.key, intervalFunction: highlightUpdateFunction});
@@ -388,6 +387,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 	// inject scripts again
 	if (request.forceScriptInjection && !isBlacklisted && !isWanikani) {
+		console.log("again");
 		chrome.storage.local.get(['wkhighlight_allkanji'], result => {
 			const allKanji = result["wkhighlight_allkanji"];
 			if (allKanji)
@@ -418,4 +418,60 @@ chrome.contextMenus.onClicked.addListener(data => {
 			iconUrl: "../logo/logo.png"
 		});
 	}
+});
+
+const setNextReviewsBundle = next_reviews => {
+	const next_revs_dates = next_reviews.map(review => new Date(review["available_at"]));
+	const next_date = new Date(Math.min.apply(null, next_revs_dates));
+	const next_revs = filterAssignmentsByTime(next_reviews, new Date(), next_date);
+
+	chrome.storage.local.set({"wkhighlight_next-reviews-bundle":next_revs});
+
+	return {
+		date: next_date,
+		reviews: next_revs
+	}
+}
+
+const setupReviewsAlarm = () => {
+	// get date of next reviews and number of next reviews
+	chrome.storage.local.get("wkhighlight_reviews", result => {
+		let revs = result["wkhighlight_reviews"];
+		if (revs && revs["next_reviews"]) {
+			const next_date = setNextReviewsBundle(revs["next_reviews"])["date"];
+
+			if (next_date) {
+				// create alarm for the time of the next reviews
+				chrome.alarms.create("next-reviews", {
+					when: next_date.getTime()
+				});
+			}
+		}
+	});
+}
+
+chrome.alarms.getAll(alarms => {
+	// if there isn't an alarm for next reviews active
+	if (alarms.length == 0)
+		setupReviewsAlarm();
+});
+
+chrome.alarms.onAlarm.addListener(alarm => {
+	console.log(alarm);
+	chrome.storage.local.get(["wkhighlight_reviews", "wkhighlight_next-reviews-bundle"], result => {
+		const reviews = result["wkhighlight_reviews"];
+		const reviews_bundle = result["wkhighlight_next-reviews-bundle"];
+		if (reviews_bundle && reviews && reviews["count"]) {
+			// notify user
+			chrome.notifications.create({
+				type: "basic",
+				title: `WaniKani: ${reviews_bundle.length} new Reviews`,
+				message: `You have now ${reviews_bundle.length} more Reviews, a total of ${reviews["count"]+reviews_bundle.length} Reviews.`,
+				iconUrl: "../logo/logo.png"
+			});
+		}
+
+		// setup new alarm
+		//setupReviewsAlarm();
+	});
 });

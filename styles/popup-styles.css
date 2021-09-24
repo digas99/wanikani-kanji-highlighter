@@ -575,15 +575,16 @@ transform: rotate(134deg);
     cursor: pointer;	
 	width: 26px;
 	text-align: center;
+	height: 100%;
 }
 
 #kanjiSearchTypeRomaji {
-	font-size: 19px;
+	font-size: 20px;
 	background-color: #dc60cd;
 }
 
 #kanjiSearchTypeKana {
-	font-size: 16px;
+	font-size: 15px;
 	background-color: #60aedc;
 }
 

@@ -185,6 +185,28 @@ const updateChartReviewsOfDay = (reviews, chart, date, numberReviewsElement) => 
 	chart.update();
 }
 
+const filterAssignmentsByTime = (list, currentDate, capDate) => {
+	list = list[0] && list[0]["data"] ? list.map(review => review["data"]) : list;
+	const date = capDate ? new Date(capDate) : null;
+	if (date) {
+		// if the given date is in the future
+		if (date.getTime() > new Date().getTime()) {
+			return list.filter(assignment =>
+					new Date(assignment["available_at"]).getTime() >= currentDate.getTime()
+					&& new Date(assignment["available_at"]).getTime() <= date.getTime());
+		}
+		// if it is in the past
+		else {
+			return list.filter(assignment =>
+				new Date(assignment["available_at"]).getTime() <= currentDate.getTime()
+				&& new Date(assignment["available_at"]).getTime() >= date.getTime());
+		}
+	}
+	// if capDate is null then return all assignments with dates greater than today
+	return list.filter(assignment =>
+			new Date(assignment["available_at"]).getTime() > currentDate.getTime());
+}
+
 // check if the data in the endpoints has been modified since the given date
 const modifiedSince = async (apiKey, date, url) => {
 	var requestHeaders = new Headers();

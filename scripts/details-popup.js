@@ -179,11 +179,11 @@ var injectedDetailsPopup = true;
 
 		// kanji container buttons
 		const buttons = [
-			{id:"wkhighlighter_detailsPopupCloseX", alt: "close", active:true, src:"https://i.imgur.com/KUjkFI9.png"},
-			{id:"wkhighlighter_detailsPopupGoBack", alt: "go back", active:true, src:"https://i.imgur.com/e6j4jSV.png"},
-			{id:"wkhighlighter_detailsPopupGoUp", alt: "go up", active:true, src:"https://i.imgur.com/fszQn7s.png"},
-			{id:"wkhighlighter_detailsPopupKanjiLock", alt: "kanji lock", active:kanjiLocked, src:"https://i.imgur.com/gaKRPen.png"},
-			{id:"wkhighlighter_detailsPopupFix", alt: "fix", active:detailsPopupFixed, src:"https://i.imgur.com/vZqwGZr.png"}
+			{id:"wkhighlighter_detailsPopupCloseX", alt: "Close", active:true, src:"https://i.imgur.com/KUjkFI9.png"},
+			{id:"wkhighlighter_detailsPopupGoBack", alt: "Go back", active:true, src:"https://i.imgur.com/e6j4jSV.png"},
+			{id:"wkhighlighter_detailsPopupGoUp", alt: "Go up", active:true, src:"https://i.imgur.com/fszQn7s.png"},
+			{id:"wkhighlighter_detailsPopupKanjiLock", alt: "Kanji lock", active:kanjiLocked, src:"https://i.imgur.com/gaKRPen.png"},
+			{id:"wkhighlighter_detailsPopupFix", alt: "Kanji fix", active:detailsPopupFixed, src:"https://i.imgur.com/vZqwGZr.png"}
 		];
 		for (let i in buttons) {
 			const button = buttons[i];
@@ -202,6 +202,7 @@ var injectedDetailsPopup = true;
 			const img = document.createElement("img");
 			img.src = button["src"];
 			img.alt = button["alt"];
+			wrapper.title = img.alt;
 			wrapper.appendChild(img);
 		}
 
@@ -394,25 +395,28 @@ var injectedDetailsPopup = true;
 		// create kanji details popup coming from search
 		const infoPopupFromSearch = request["infoPopupFromSearch"];
 		if (infoPopupFromSearch) {
-			const characters = infoPopupFromSearch["characters"];
-			const type = infoPopupFromSearch["type"];
-			let detailsPopup = document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
-			if (detailsPopup)
-				detailsPopup.remove();
-			detailsPopup = createPopup();
-			infoInPopup = false;
+			console.log(infoPopupFromSearch);
+			console.log(document.getElementsByClassName("wkhighlighter_detailsPopup")[0]);
+			updateInfoPopup(infoPopupFromSearch, null, [highlightingClass, "wkhighlighter_highlightedNotLearned"], document.getElementsByClassName("wkhighlighter_detailsPopup")[0], true);
+			// const characters = infoPopupFromSearch["characters"];
+			// const type = infoPopupFromSearch["type"];
+			// let detailsPopup = document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
+			// if (detailsPopup)
+			// 	detailsPopup.remove();
+			// detailsPopup = createPopup();
+			// infoInPopup = false;
 		
-			if (type == "kanji") {
-				chrome.storage.local.get(["wkhighlight_kanji_assoc"], data => {
-					const assocList = data["wkhighlight_kanji_assoc"];
-					if (assocList) 
-						detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, characters, [highlightingClass, "wkhighlighter_highlightedNotLearned"], assocList[characters], false, true));
-				});
-			}
-			else {
-				const id = Object.entries(allVocab).filter(([key, val]) => val["characters"] == characters)[0][0];
-				detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, characters, [highlightingClass, "wkhighlighter_highlightedNotLearned"], id, false, true));
-			}
+			// if (type == "kanji") {
+			// 	chrome.storage.local.get(["wkhighlight_kanji_assoc"], data => {
+			// 		const assocList = data["wkhighlight_kanji_assoc"];
+			// 		if (assocList) 
+			// 			detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, characters, [highlightingClass, "wkhighlighter_highlightedNotLearned"], assocList[characters], false, true));
+			// 	});
+			// }
+			// else {
+			// 	const id = Object.entries(allVocab).filter(([key, val]) => val["characters"] == characters)[0][0];
+			// 	detailsPopup.appendChild(createItemCharContainer(detailsPopup.offsetWidth, characters, [highlightingClass, "wkhighlighter_highlightedNotLearned"], id, false, true));
+			// }
 		}
 	});
 
@@ -487,12 +491,14 @@ var injectedDetailsPopup = true;
 					li.classList.add("clickable" ,classes[i]);
 					const img = document.createElement("img");
 					li.appendChild(img);
+					li.title = "Subject "+classes[i].split("wkhighlighter_detailsPopup_cardSideBar")[1];
 					img.classList.add("wkhighlighter_detailsPopup_cardSideBar_icon");
 					img.src = src;
 				}
 				const li = document.createElement("li");
 				ul.appendChild(li);
 				li.style.fontWeight = "900";
+				li.title = "Subject Level";
 				const list = type == "kanji" ? allKanji[id] : allVocab[id];
 				if (list)
 					li.appendChild(document.createTextNode(list["level"]));
@@ -515,7 +521,7 @@ var injectedDetailsPopup = true;
 		
 		if (detailsPopup) {
 			// clicked outside details popup or clicked in close X
-			if ((node !== detailsPopup && !detailsPopup.contains(node) && getComputedStyle(node).cursor !== "pointer") || node.id == "wkhighlighter_detailsPopupCloseX")
+			if ((node !== detailsPopup && !detailsPopup.contains(node) && !node.classList.contains("wkhighlighter_detailsPopup_cardSideBarInfo") && node.id !== "wkhighlighter_detailsPopupGoBack" && getComputedStyle(node).cursor !== "pointer") || node.id == "wkhighlighter_detailsPopupCloseX")
 				closeInfoPopup(detailsPopup, 200);
 	
 			const getItemIdFromSideBar = (node) => {
@@ -721,7 +727,7 @@ var injectedDetailsPopup = true;
 			const type = allKanji[id] ? "kanji" : "vocabulary";
 			const item = type == "kanji" ? allKanji[id] : allVocab[id];
 			
-			const popup = detailsPopup ? detailsPopup : document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
+			const popup = detailsPopup ? detailsPopup : document.getElementsByClassName("wkhighlighter_detailsPopup")[0] ? document.getElementsByClassName("wkhighlighter_detailsPopup")[0] : createPopup();
 
 			if (popup) {
 				// replace item from top
@@ -729,11 +735,16 @@ var injectedDetailsPopup = true;
 					popup.firstChild.remove();
 				popup.appendChild(createItemCharContainer(popup.offsetWidth, item["characters"], highlightClasses, id, insideBar, save));
 
-				const detailedInfoWrapper = popup.querySelectorAll(".wkhighlighter_popupDetails_detailedInfoWrapper");
-				if (detailedInfoWrapper)
-					detailedInfoWrapper.forEach(wrapper => wrapper.remove());
+				const detailedInfoWrapper = popup.getElementsByClassName("wkhighlighter_popupDetails_detailedInfoWrapper");
+				if (detailedInfoWrapper) {
+					Array.from(detailedInfoWrapper).forEach(wrapper => {
+						console.log(wrapper);
+						wrapper.remove()
+					});
+				}
 
 				if (insideBar) {
+					console.log("insideBar");
 					popup.appendChild(type == "kanji" ? createKanjiDetailedInfo(popup, item) : createVocabDetailedInfo(popup, item));
 
 					// show kanji container buttons
