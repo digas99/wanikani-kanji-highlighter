@@ -259,6 +259,11 @@ transform: rotate(134deg);
 	display: none;
 }
 
+.disabled {
+	pointer-events: none;
+	opacity: 0.4;
+}
+
 /* Logo */
 #logoWrapper {
 	margin-bottom: 10px !important;
@@ -360,6 +365,7 @@ transform: rotate(134deg);
 	margin: 0px 7px;
 	border-top: 1px solid silver;
 	padding-top: 13px;
+	position: relative;
 
 }
 
@@ -886,6 +892,37 @@ transform: rotate(134deg);
 
 .checkbox_wrapper {
 	text-align: right;
+	position: relative;
+}
+
+.checkbox_wrapper > div {
+	pointer-events: none;
+}
+
+.custom-checkbox-back {
+	width: 35px;
+    height: 16px;
+    border-radius: 10px;
+    background-color: #cbc9c9;
+}
+
+.custom-checkbox-ball {
+	width: 20px;
+    height: 20px;
+    background-color: gray;
+    border-radius: 10px;
+    position: absolute;
+    top: -2px;
+	transition: 0.4s;
+}
+
+.checkbox-enabled > .custom-checkbox-back {
+	background-color: #cfa3a2;
+}
+
+.checkbox-enabled > .custom-checkbox-ball {
+    margin-left: 16px;
+    background-color: #dc6560;
 }
 
 .settings_highlight_style_option {
@@ -903,6 +940,13 @@ transform: rotate(134deg);
 .settingsItemLabel {
 	width: 100%;
 	font-weight: bold;
+}
+
+#practice-reminder-time {
+	margin-top: 4px;
+    border: 0;
+    border-bottom: 1px solid black;
+    font-size: 16px;
 }
 
 	/* 10.3 DANGER ZONE */

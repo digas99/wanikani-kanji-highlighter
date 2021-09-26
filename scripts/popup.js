@@ -97,6 +97,7 @@ window.onload = () => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			activeTab = tabs[0];
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, response => {
+				console.log(response);
 				const url = response ? response["windowLocation"] : "";
 				if (!result["wkhighlight_blacklist"] || result["wkhighlight_blacklist"].length === 0 || !blacklisted(result["wkhighlight_blacklist"], url)) {
 					apiKey = result["wkhighlight_apiKey"];
@@ -276,16 +277,10 @@ window.onload = () => {
 												accInfo.appendChild(level);
 												
 												const kanjiFound = document.createElement("li");
-												kanjiFound.id = "nmrKanjiHighlighted";
-												kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: (in the page)`;
 												userElementsList.appendChild(kanjiFound);
 
 												const kanjiFoundList = document.createElement("li");
 												userElementsList.appendChild(kanjiFoundList);
-												kanjiFoundList.id = "kanjiHighlightedList";
-												kanjiFoundList.classList.add("simple-grid", "bellow-border");
-												const kanjiFoundUl = document.createElement("ul");
-												kanjiFoundList.appendChild(kanjiFoundUl);
 
 												const summaryWrapper = document.createElement("li");
 												userElementsList.appendChild(summaryWrapper);
@@ -336,7 +331,7 @@ window.onload = () => {
 												if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {					
 													const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchKanji);
 													searchArea.title = "Search subjects";
-													chrome.storage.local.get(["wkhighlight_contextMenuSelectedText", "wkhighlight_kanjiPerSite"], result => {
+													chrome.storage.local.get(["wkhighlight_contextMenuSelectedText"], result => {
 														const selectedText = result["wkhighlight_contextMenuSelectedText"];
 														if (selectedText) {
 															const input = [...searchArea.firstChild.childNodes].filter(child => child.tagName == "INPUT")[0];
@@ -362,33 +357,41 @@ window.onload = () => {
 																chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:activeTab.id});
 															});
 														}
-
-														const kanjiPerSite = result["wkhighlight_kanjiPerSite"];
-														if (kanjiPerSite) {
-															chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
-																const kanjiAssoc = result["wkhighlight_kanji_assoc"];
-																chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-																	const currentTabUrl = tabs[0]["url"];
-																	if (kanjiPerSite[currentTabUrl]) {
-																		kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${kanjiPerSite[currentTabUrl]["number"]}</strong> (in the page)`;
-																		if (kanjiPerSite[currentTabUrl]["number"] <= 10)
-																			kanjiFoundUl.style.textAlign = "center";
-																		const learned = kanjiPerSite[currentTabUrl]["kanji"]["learned"];
-																		const notLearned = kanjiPerSite[currentTabUrl]["kanji"]["notLearned"];
-																		[learned, notLearned].forEach(type => {
-																			type.forEach(kanji => {
-																				const kanjiFoundLi = document.createElement("li");
-																				kanjiFoundUl.appendChild(kanjiFoundLi);
-																				kanjiFoundLi.classList.add("clickable", "kanjiDetails", type === learned ? "kanjiHighlightedLearned" : "kanjiHighlightedNotLearned");
-																				kanjiFoundLi.appendChild(document.createTextNode(kanji));
-																				if (kanjiAssoc) kanjiFoundLi.setAttribute("data-item-id", kanjiAssoc[kanji]);
-																			});
-																		});
-																	}
-																});
-															});
-														}
 													});
+
+													chrome.tabs.query({currentWindow: true, active: true}, tabs => {
+														chrome.tabs.sendMessage(tabs[0].id, {nmrKanjiHighlighted:"popup"}, response => {
+															console.log("nmr kanji: ",response);
+															if (response) {
+																chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
+																	kanjiFound.id = "nmrKanjiHighlighted";
+																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: (in the page)`;
+
+																	kanjiFoundList.id = "kanjiHighlightedList";
+																	kanjiFoundList.classList.add("simple-grid", "bellow-border");
+																	const kanjiFoundUl = document.createElement("ul");
+																	kanjiFoundList.appendChild(kanjiFoundUl);
+
+																	const kanjiAssoc = result["wkhighlight_kanji_assoc"];
+																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${response["nmrKanjiHighlighted"]}</strong> (in the page)`;
+																	if (response["nmrKanjiHighlighted"] <= 10)
+																		kanjiFoundUl.style.textAlign = "center";
+																	const learned = response["learned"];
+																	const notLearned = response["notLearned"];
+																	[learned, notLearned].forEach(type => {
+																		type.forEach(kanji => {
+																			const kanjiFoundLi = document.createElement("li");
+																			kanjiFoundUl.appendChild(kanjiFoundLi);
+																			kanjiFoundLi.classList.add("clickable", "kanjiDetails", type === learned ? "kanjiHighlightedLearned" : "kanjiHighlightedNotLearned");
+																			kanjiFoundLi.appendChild(document.createTextNode(kanji));
+																			if (kanjiAssoc) kanjiFoundLi.setAttribute("data-item-id", kanjiAssoc[kanji]);
+																		});
+																	});
+																});
+															}
+														});
+													});
+
 													topRightNavbar.insertBefore(searchArea, topRightNavbar.firstChild);
 													const searchWrapper = searchArea.firstChild;
 													const searchTypeWrapper = document.createElement("div");
@@ -402,6 +405,10 @@ window.onload = () => {
 													searchType.appendChild(document.createTextNode("あ"));
 												}
 												else {
+													topRightNavbar.style.position = "absolute";
+													topRightNavbar.style.right = "0";
+													topRightNavbar.style.top = "7px";
+
 													const notRunAtWK = document.createElement("li");
 													notRunAtWK.appendChild(document.createTextNode("Limited features while @wanikani, sorry!"));
 													notRunAtWK.id = "notRunAtWK";
@@ -454,7 +461,13 @@ window.onload = () => {
 															if (reviewsForNextHour.length > 0) {
 																const remainingTime = msToTime(thisDate - currentTime);
 																moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
-																moreReviewsDate.innerText = `${thisDate.getMonthName().slice(0, 3)} ${thisDate.getDate() < 10 ? "0"+thisDate.getDate() : thisDate.getDate()}, ${thisDate.getHours() < 10 ? "0"+thisDate.getHours() : thisDate.getHours()}:${thisDate.getMinutes() < 10 ? "0"+thisDate.getMinutes() : thisDate.getMinutes()}`;
+																chrome.storage.local.get(["wkhighlight_settings"], result => {
+																	const settings = result["wkhighlight_settings"];
+																	let time = `${thisDate.getHours() < 10 ? "0"+thisDate.getHours() : thisDate.getHours()}:${thisDate.getMinutes() < 10 ? "0"+thisDate.getMinutes() : thisDate.getMinutes()}`;
+																	if (settings && settings["miscellaneous"]["time_in_12h_format"])
+																		time = time12h(time);
+																	moreReviewsDate.innerText = `${thisDate.getMonthName().slice(0, 3)} ${thisDate.getDate() < 10 ? "0"+thisDate.getDate() : thisDate.getDate()}, ${time}`;
+																});
 																// create interval delay
 																// 10% of a day are 8640000 milliseconds
 																// 10% of an hour are 360000 milliseconds
@@ -512,7 +525,7 @@ window.onload = () => {
 												reviews = response["wkhighlight_reviews"];
 												lessons = response["wkhighlight_lessons"];
 												
-												updateAvailableAssignments(setupSummary);
+												updateAvailableAssignments(apiKey, setupSummary);
 
 												setupSummary(reviews, lessons);
 												
@@ -738,7 +751,7 @@ document.addEventListener("click", e => {
 		document.getElementById("secPageMain").remove();
 		document.getElementById("main").style.display = "inherit";
 		document.getElementById("footer").style.display = "inherit";
-		document.documentElement.style.setProperty('--body-base-width', '250px');
+		document.documentElement.style.setProperty('--body-base-width', defaultWindowSize);
 	}
 
 	if (targetElem.id === "exit" || (targetElem.childNodes[0] && targetElem.childNodes[0].id === "exit")) {
@@ -838,6 +851,24 @@ document.addEventListener("click", e => {
 					});
 				});
 						
+				// add time to reminder
+				const settingsLabels = document.getElementsByClassName("settingsItemLabel");
+				if (settingsLabels) {
+					const practiceReminderLabel = Array.from(settingsLabels).filter(label => label.getAttribute("for") === "settings-notifications-practice_reminder")[0];
+					console.log(practiceReminderLabel);
+					if (practiceReminderLabel) {
+						const input = document.createElement("input");
+						input.id = "practice-reminder-time";
+						input.type = "time";
+						input.value = "21:30";
+						practiceReminderLabel.appendChild(input);
+
+						const checkbox = practiceReminderLabel.parentElement?.getElementsByClassName("settingsItemInput")[0];
+						if (!checkbox?.checked)
+							input.classList.add("disabled");
+					}
+				}
+
 				// // KANJI DETAILS POPUP SECTION
 				// const detailsPopupWrapper = document.createElement("div");
 				// settingsChecks.appendChild(detailsPopupWrapper);
@@ -1023,28 +1054,32 @@ document.addEventListener("click", e => {
 		}
 	}
 
-	if (targetElem.classList.contains("settingsItemInput")) {
+	// settings checkboxes
+	if (targetElem.classList.contains("settingsItemInput") && targetElem.type === "checkbox") {
 		chrome.storage.local.get(["wkhighlight_settings"], data => {
 			let settings = data["wkhighlight_settings"];
 			if (!settings)
 				settings = {};
 			
 			const settingsID = targetElem.id.replace("settings-", "").split("-");
+			const group = settingsID[0];
+			const setting = settingsID[1];
 
-			switch(settingsID[0]) {
-				// KANJI DETAILS POPUP SECTION
-				case "kanji_details_popup":
-					switch (settingsID[1]) {
-						case "activated":
-							settings[settingsID[0]][settingsID[1]] = targetElem.checked;
-							break;
-					}
-					
-					break;
+			settings[group][setting] = targetElem.checked;
 
-				// EXTENSION ICON SECTION
+			const checkbox_wrapper = targetElem.parentElement;
+			if (targetElem.checked) {
+				if (!checkbox_wrapper.classList.contains("checkbox-enabled"))
+					checkbox_wrapper.classList.add("checkbox-enabled");
+			}
+			else {
+				if (checkbox_wrapper.classList.contains("checkbox-enabled"))
+					checkbox_wrapper.classList.remove("checkbox-enabled");
+			}
+
+			switch(group) {
 				case "extension_icon":
-					switch (settingsID[1]) {
+					switch (setting) {
 						case "kanji_counter":
 							let value = "";
 
@@ -1057,7 +1092,29 @@ document.addEventListener("click", e => {
 							else
 								chrome.browserAction.setBadgeText({text: '', tabId:activeTab.id});
 
-							settings[settingsID[0]][settingsID[1]] = targetElem.checked;
+							break;
+					}
+					break;
+				case "notifications":
+					switch(setting) {
+						case "new_reviews":
+							if (!targetElem.checked)
+								chrome.alarms.clear("next-reviews");
+							else {
+								chrome.runtime.connect();
+								chrome.runtime.sendMessage({notifications:"new-reviews"}, () => window.chrome.runtime.lastError);
+							}
+							break
+						case "practice_reminder":
+							const timeInput = document.getElementById("practice-reminder-time");
+							if (targetElem.checked) {
+								if (timeInput.classList.contains("disabled"))
+									timeInput.classList.remove("disabled");
+							}
+							else {
+								if (!timeInput.classList.contains("disabled"))
+									timeInput.classList.add("disabled");
+							}
 							break;
 					}
 					break;
@@ -1065,6 +1122,14 @@ document.addEventListener("click", e => {
 			
 			chrome.storage.local.set({"wkhighlight_settings":settings});
 		});
+	}
+
+	if (targetElem.classList.contains("checkbox_wrapper")) {
+		targetElem.getElementsByClassName("settingsItemInput")[0].dispatchEvent(new MouseEvent("click", {
+			"view": window,
+			"bubbles": true,
+			"cancelable": false
+		}));
 	}
 
 	if (targetElem.id === "clearCash") {
@@ -1166,7 +1231,7 @@ document.addEventListener("click", e => {
 	}
 
 	if (targetElem.id == "kanjiSearchInput") {
-		document.documentElement.style.setProperty('--body-base-width', '250px');
+		document.documentElement.style.setProperty('--body-base-width', defaultWindowSize);
 
 		document.getElementById("userInfoNavbar").style.display = "none";
 
@@ -1233,7 +1298,7 @@ document.addEventListener("click", e => {
 		if (wrapper)
 			wrapper.remove();
 		
-		document.documentElement.style.setProperty('--body-base-width', '250px');
+		document.documentElement.style.setProperty('--body-base-width', defaultWindowSize);
 
 		document.getElementById("kanjiSearchInput").value = "";
 
@@ -1340,7 +1405,7 @@ document.addEventListener("click", e => {
 			if (classes.contains("searchResultItemSquare")) classes.remove("searchResultItemSquare");
 			if (classes.contains("searchResultItemSquareSmall")) classes.remove("searchResultItemSquareSmall");
 		});
-		document.documentElement.style.setProperty('--body-base-width', '250px');
+		document.documentElement.style.setProperty('--body-base-width', defaultWindowSize);
 	}
 
 	// clicked in target icon
@@ -1540,37 +1605,9 @@ document.addEventListener("click", e => {
 			reviewsListUl.classList.add("bellow-border");
 			const futureReviewsChart = document.createElement("div");
 			futureReviewsWrapper.appendChild(futureReviewsChart);
-			futureReviewsChart.id = "futureReviewsWrapper";
-			const leftArrow = document.createElement("i");
-			futureReviewsChart.appendChild(leftArrow);
-			leftArrow.classList.add("left", "clickable", "hidden");
-			leftArrow.style.left = "7px";
-			const futureReviewsCanvas = document.createElement("canvas");
-			futureReviewsChart.appendChild(futureReviewsCanvas);
-			const rightArrow = document.createElement("i");
-			futureReviewsChart.appendChild(rightArrow);
-			rightArrow.style.right = "7px";
-			rightArrow.classList.add("right", "clickable");
-			const today = new Date();
-			const nextDay = changeDay(today, 1);
-			rightArrow.title = `${nextDay.getWeekDay()}, ${nextDay.getMonthName()} ${nextDay.getDate()+ordinalSuffix(nextDay.getDate())}`;
-			const daySelectorWrapper = document.createElement("div");
-			futureReviewsWrapper.appendChild(daySelectorWrapper);
-			daySelectorWrapper.id = "reviewsDaySelector";
-			const daySelectorLabel = document.createElement("label");
-			daySelectorWrapper.appendChild(daySelectorLabel);
-			daySelectorLabel.appendChild(document.createTextNode("Select another day:"));
-			const daySelectorInput = document.createElement("input");
-			daySelectorWrapper.appendChild(daySelectorInput);
-			daySelectorInput.type = "date";
-			// setup values for input
-			daySelectorInput.value = simpleFormatDate(today, "ymd"); 
-			daySelectorInput.min = simpleFormatDate(changeDay(today, 1), "ymd");
-			daySelectorInput.max = simpleFormatDate(changeDay(today, 13), "ymd");
-			const futureReviewsLabel = document.createElement("p");
-			futureReviewsWrapper.appendChild(futureReviewsLabel);
-			futureReviewsLabel.id = "reviewsPage-nmrReviews24hLabel";
-			futureReviewsLabel.innerHTML = "<b>0</b> more Reviews in the next 24 hours";
+			const loadingChart = loading(["main-loading"], ["kanjiHighlightedLearned"], 50);
+			const loadingChartElem = loadingChart[0];
+			futureReviewsChart.appendChild(loadingChartElem);
 
 			if (reviews) {
 				//setup list of material for current reviews
@@ -1591,129 +1628,172 @@ document.addEventListener("click", e => {
 
 				// setup chart for the next reviews
 				if (reviews["next_reviews"]) {
-					const days = 1;
+					chrome.storage.local.get(["wkhighlight_settings"], result => {
+						const futureReviewsCanvas = document.createElement("canvas");
+						futureReviewsChart.appendChild(futureReviewsCanvas);
+						futureReviewsCanvas.style.display = "none";
+						const leftArrow = document.createElement("i");
+						futureReviewsChart.appendChild(leftArrow);
+						leftArrow.classList.add("left", "clickable", "hidden");
+						leftArrow.style.left = "7px";
+						const rightArrow = document.createElement("i");
+						futureReviewsChart.appendChild(rightArrow);
+						rightArrow.style.right = "7px";
+						rightArrow.classList.add("right", "clickable");
+						const today = new Date();
+						const nextDay = changeDay(today, 1);
+						rightArrow.title = `${nextDay.getWeekDay()}, ${nextDay.getMonthName()} ${nextDay.getDate()+ordinalSuffix(nextDay.getDate())}`;
+						const daySelectorWrapper = document.createElement("div");
+						futureReviewsWrapper.appendChild(daySelectorWrapper);
+						daySelectorWrapper.id = "reviewsDaySelector";
+						const daySelectorLabel = document.createElement("label");
+						daySelectorWrapper.appendChild(daySelectorLabel);
+						daySelectorLabel.appendChild(document.createTextNode("Select another day:"));
+						const daySelectorInput = document.createElement("input");
+						daySelectorWrapper.appendChild(daySelectorInput);
+						daySelectorInput.type = "date";
+						// setup values for input
+						daySelectorInput.value = simpleFormatDate(today, "ymd"); 
+						daySelectorInput.min = simpleFormatDate(changeDay(today, 1), "ymd");
+						daySelectorInput.max = simpleFormatDate(changeDay(today, 13), "ymd");
+						const futureReviewsLabel = document.createElement("p");
+						futureReviewsWrapper.appendChild(futureReviewsLabel);
+						futureReviewsLabel.id = "reviewsPage-nmrReviews24hLabel";
+						futureReviewsLabel.innerHTML = "<b>0</b> more Reviews in the next 24 hours";
 
-					console.log(reviews["next_reviews"]);
-					const nmrReviewsNext = filterAssignmentsByTime(reviews["next_reviews"], today, changeDay(today, days))
-													.map(review => ({hour:new Date(review["available_at"]).getHours(), day:new Date(review["available_at"]).getDate(), srs:review["srs_stage"]}));
-					futureReviewsLabel.getElementsByTagName("B")[0].innerText = nmrReviewsNext.length;
-					console.log(nmrReviewsNext);
+						const settings = result["wkhighlight_settings"];
+						if (settings) {
+							const time12h_format = settings["miscellaneous"]["time_in_12h_format"];
+							const days = 1;
 
-					const chartData = setupReviewsDataForChart(nmrReviewsNext, today, days, 1);
-
-					const apprData = setupReviewsDataForChart(nmrReviewsNext.filter(review => review["srs"] > 0 && review["srs"] <= 4), today, days, 1);
-					const guruData = setupReviewsDataForChart(nmrReviewsNext.filter(review => review["srs"] == 5 || review["srs"] == 6), today, days, 1);
-					const masterData = setupReviewsDataForChart(nmrReviewsNext.filter(review => review["srs"] == 7), today, days, 1);
-					const enliData = setupReviewsDataForChart(nmrReviewsNext.filter(review => review["srs"] == 8), today, days, 1);
-
-					const style = getComputedStyle(document.body);
-					console.log(style);
-					const data = {
-						labels: chartData["hours"],
-						datasets: [{
-							label: 'Apprentice',
-							backgroundColor: style.getPropertyValue('--ap4-color'),
-							borderColor: 'rgb(255, 255, 255)',
-							data: apprData["reviewsPerHour"],
-							order: 1
-						},{
-							label: 'Guru',
-							backgroundColor: style.getPropertyValue('--gr2-color'),
-							borderColor: 'rgb(255, 255, 255)',
-							data: guruData["reviewsPerHour"],
-							order: 2
-						},{
-							label: 'Master',
-							backgroundColor: style.getPropertyValue('--mst-color'),
-							borderColor: 'rgb(255, 255, 255)',
-							data: masterData["reviewsPerHour"],
-							order: 3
-						},{
-							label: 'Enlightened',
-							backgroundColor: style.getPropertyValue('--enl-color'),
-							borderColor: 'rgb(255, 255, 255)',
-							data: enliData["reviewsPerHour"],
-							order: 4
-						}]
-					};
-
-					reviewsChart = new Chart(futureReviewsCanvas, {
-						type: 'bar',
-						data,
-						options: {
-							plugins: {
-								title: {
-									display: true,
-									text: 'Reviews in the next 24 hours'
-								},
-								datalabels: {
-									color: '#000000',
-									anchor: 'end',
-									align: 'top',
-									display: ctx => ctx["dataset"]["data"][ctx["dataIndex"]] != 0,
-									formatter: (value, ctx) => {
-										const type = ctx.dataset.order;
-										const values = [];
-										for (let t = 1; t <= ctx.chart._metasets.length; t++) {
-											values[t] = t != type ? ctx.chart._metasets[t-1]._dataset.data[ctx.dataIndex] : value;
+							console.log(reviews["next_reviews"]);
+							const nmrReviewsNext = filterAssignmentsByTime(reviews["next_reviews"], today, changeDay(today, days))
+															.map(review => ({hour:new Date(review["available_at"]).getHours(), day:new Date(review["available_at"]).getDate(), srs:review["srs_stage"]}));
+							futureReviewsLabel.getElementsByTagName("B")[0].innerText = nmrReviewsNext.length;
+							console.log(nmrReviewsNext);
+		
+							const chartData = setupReviewsDataForChart(nmrReviewsNext, today, days, 1, time12h_format);
+		
+							const apprData = setupReviewsDataForChart(nmrReviewsNext.filter(review => review["srs"] > 0 && review["srs"] <= 4), today, days, 1, time12h_format);
+							const guruData = setupReviewsDataForChart(nmrReviewsNext.filter(review => review["srs"] == 5 || review["srs"] == 6), today, days, 1, time12h_format);
+							const masterData = setupReviewsDataForChart(nmrReviewsNext.filter(review => review["srs"] == 7), today, days, 1, time12h_format);
+							const enliData = setupReviewsDataForChart(nmrReviewsNext.filter(review => review["srs"] == 8), today, days, 1, time12h_format);
+		
+							const style = getComputedStyle(document.body);
+							console.log(style);
+							const data = {
+								labels: chartData["hours"],
+								datasets: [{
+									label: 'Apprentice',
+									backgroundColor: style.getPropertyValue('--ap4-color'),
+									borderColor: 'rgb(255, 255, 255)',
+									data: apprData["reviewsPerHour"],
+									order: 1
+								},{
+									label: 'Guru',
+									backgroundColor: style.getPropertyValue('--gr2-color'),
+									borderColor: 'rgb(255, 255, 255)',
+									data: guruData["reviewsPerHour"],
+									order: 2
+								},{
+									label: 'Master',
+									backgroundColor: style.getPropertyValue('--mst-color'),
+									borderColor: 'rgb(255, 255, 255)',
+									data: masterData["reviewsPerHour"],
+									order: 3
+								},{
+									label: 'Enlightened',
+									backgroundColor: style.getPropertyValue('--enl-color'),
+									borderColor: 'rgb(255, 255, 255)',
+									data: enliData["reviewsPerHour"],
+									order: 4
+								}]
+							};
+		
+							reviewsChart = new Chart(futureReviewsCanvas, {
+								type: 'bar',
+								data,
+								options: {
+									plugins: {
+										title: {
+											display: true,
+											text: 'Reviews in the next 24 hours'
+										},
+										datalabels: {
+											color: '#000000',
+											anchor: 'end',
+											align: 'top',
+											display: ctx => ctx["dataset"]["data"][ctx["dataIndex"]] != 0,
+											formatter: (value, ctx) => {
+												const type = ctx.dataset.order;
+												const values = [];
+												for (let t = 1; t <= ctx.chart._metasets.length; t++) {
+													values[t] = t != type ? ctx.chart._metasets[t-1]._dataset.data[ctx.dataIndex] : value;
+												}
+												// create an array with only values != 0
+												const finalValues = [];
+												Object.keys(values).forEach(key => {
+													if (values[key] != 0)
+														finalValues[key] = values[key];
+												});
+												// check if current type is the type at the top of the bar
+												if (Math.max.apply(Math, Object.keys(finalValues)) == type)
+													return values.reduce((a,b) => a+b);
+												else
+													return "";
+		
+											}
+										},
+										legend: {
+											position: 'bottom',
+											labels: {
+												padding: 7
+											}
 										}
-										// create an array with only values != 0
-										const finalValues = [];
-										Object.keys(values).forEach(key => {
-											if (values[key] != 0)
-												finalValues[key] = values[key];
-										});
-										// check if current type is the type at the top of the bar
-										if (Math.max.apply(Math, Object.keys(finalValues)) == type)
-											return values.reduce((a,b) => a+b);
-										else
-											return "";
-
+									},
+									animation: {
+										duration: 0
+									},
+									scales: {
+										x: {
+										stacked: true
+										},
+										y: {
+										stacked: true
+										}
 									}
 								},
-								legend: {
-									position: 'bottom',
-									labels: {
-										padding: 7
-									}
-								}
-							},
-							animation: {
-								duration: 0
-							},
-							scales: {
-								x: {
-								stacked: true
-								},
-								y: {
-								stacked: true
-								}
-							}
-						},
-						plugins: [ChartDataLabels]
-					});
+								plugins: [ChartDataLabels]
+							});
 
-					const nextReviewsData = reviews["next_reviews"];
-					// changing date event listener
+							clearInterval(loadingChart[1]);
+							loadingChartElem.remove();
+							futureReviewsChart.id = "futureReviewsWrapper";
+							futureReviewsCanvas.style.removeProperty("display");
 
-					daySelectorInput.addEventListener("input", e => {
-						const newDate = e.target.value;
-						updateChartReviewsOfDay(nextReviewsData, reviewsChart, newDate, futureReviewsLabel);
-						arrowsDisplay(leftArrow, rightArrow, daySelectorInput.value, daySelectorInput.min, daySelectorInput.max);
-					});
-					// arrows event listener
-					leftArrow.addEventListener("click", () => {
-						const newDate = changeDay(daySelectorInput.value, -1);
-						updateChartReviewsOfDay(nextReviewsData, reviewsChart, newDate, futureReviewsLabel);
-						daySelectorInput.value = simpleFormatDate(newDate, "ymd");
-						arrowsDisplay(leftArrow, rightArrow, daySelectorInput.value, daySelectorInput.min, daySelectorInput.max);
-					});
-					rightArrow.addEventListener("click", () => {
-						const newDate = changeDay(daySelectorInput.value, 1);
-						rightArrow.title = `${newDate.getWeekDay()}, ${newDate.getMonthName()} ${newDate.getDate()+ordinalSuffix(newDate.getDate())}`;
-						updateChartReviewsOfDay(nextReviewsData, reviewsChart, newDate, futureReviewsLabel);
-						daySelectorInput.value = simpleFormatDate(newDate, "ymd");
-						arrowsDisplay(leftArrow, rightArrow, daySelectorInput.value, daySelectorInput.min, daySelectorInput.max);
+							const nextReviewsData = reviews["next_reviews"];
+							// changing date event listener
+		
+							daySelectorInput.addEventListener("input", e => {
+								const newDate = e.target.value;
+								updateChartReviewsOfDay(nextReviewsData, reviewsChart, newDate, futureReviewsLabel, time12h_format);
+								arrowsDisplay(leftArrow, rightArrow, daySelectorInput.value, daySelectorInput.min, daySelectorInput.max);
+							});
+							// arrows event listener
+							leftArrow.addEventListener("click", () => {
+								const newDate = changeDay(daySelectorInput.value, -1);
+								updateChartReviewsOfDay(nextReviewsData, reviewsChart, newDate, futureReviewsLabel, time12h_format);
+								daySelectorInput.value = simpleFormatDate(newDate, "ymd");
+								arrowsDisplay(leftArrow, rightArrow, daySelectorInput.value, daySelectorInput.min, daySelectorInput.max);
+							});
+							rightArrow.addEventListener("click", () => {
+								const newDate = changeDay(daySelectorInput.value, 1);
+								rightArrow.title = `${newDate.getWeekDay()}, ${newDate.getMonthName()} ${newDate.getDate()+ordinalSuffix(newDate.getDate())}`;
+								updateChartReviewsOfDay(nextReviewsData, reviewsChart, newDate, futureReviewsLabel, time12h_format);
+								daySelectorInput.value = simpleFormatDate(newDate, "ymd");
+								arrowsDisplay(leftArrow, rightArrow, daySelectorInput.value, daySelectorInput.min, daySelectorInput.max);
+							});
+						}
 					});
 				}
 			}
@@ -1772,14 +1852,22 @@ const singleOptionCheck = (id, labelTitle, checked) => {
 	label.htmlFor = idValue;
 
 	const inputDiv = document.createElement("div");
-	inputDiv.classList.add("checkbox_wrapper");
-	const checkbox = document.createElement("input");
+	inputDiv.classList.add("checkbox_wrapper", "clickable");
+	if (checked) inputDiv.classList.add("checkbox-enabled");
 	div.appendChild(inputDiv);
+	const checkbox = document.createElement("input");
 	inputDiv.appendChild(checkbox);
 	checkbox.checked = checked;
 	checkbox.type = "checkbox";
 	checkbox.id = idValue;
-	checkbox.classList.add("settingsItemInput", "clickable");
+	checkbox.style.display = "none";
+	checkbox.classList.add("settingsItemInput");
+	const customCheckboxBall = document.createElement("div");
+	inputDiv.appendChild(customCheckboxBall);
+	customCheckboxBall.classList.add("custom-checkbox-ball");
+	const customCheckboxBack = document.createElement("div");
+	inputDiv.appendChild(customCheckboxBack);
+	customCheckboxBack.classList.add("custom-checkbox-back");
 
 	return div;
 }
@@ -2251,53 +2339,22 @@ document.addEventListener("keydown", e => {
 	// shortcut keys for REVIEWS PAGE
 	const futureReviewsWrapper = document.getElementById("futureReviewsWrapper");
 	if (futureReviewsWrapper) {
-		const daySelectorInput = document.getElementById("reviewsDaySelector").getElementsByTagName("INPUT")[0];
-		const futureReviewsLabel = document.getElementById("reviewsPage-nmrReviews24hLabel");
-		const nextReviewsData = reviews["next_reviews"];
 		const leftArrow = futureReviewsWrapper.getElementsByTagName("I")[0];
 		const rightArrow = futureReviewsWrapper.getElementsByTagName("I")[1];
 		if (key === 'ArrowLeft' && !leftArrow.classList.contains("hidden")) {
-			const newDate = changeDay(daySelectorInput.value, -1);
-			updateChartReviewsOfDay(nextReviewsData, reviewsChart, newDate, futureReviewsLabel);
-			daySelectorInput.value = simpleFormatDate(newDate, "ymd");
-			arrowsDisplay(leftArrow, rightArrow, daySelectorInput.value, daySelectorInput.min, daySelectorInput.max);
+			leftArrow.dispatchEvent(new MouseEvent("click", {
+				"view": window,
+				"bubbles": true,
+				"cancelable": false
+			}));
 		}
 
 		if (key === 'ArrowRight' && !rightArrow.classList.contains("hidden")) {
-			const newDate = changeDay(daySelectorInput.value, 1);
-			updateChartReviewsOfDay(nextReviewsData, reviewsChart, newDate, futureReviewsLabel);
-			daySelectorInput.value = simpleFormatDate(newDate, "ymd");
-			arrowsDisplay(leftArrow, rightArrow, daySelectorInput.value, daySelectorInput.min, daySelectorInput.max);
+			rightArrow.dispatchEvent(new MouseEvent("click", {
+				"view": window,
+				"bubbles": true,
+				"cancelable": false
+			}));
 		}
 	}
 });
-
-// chrome.alarms.getAll(alarms => {
-// 	if (alarms.length == 0) {
-// 		chrome.alarms.create("alarm1", {
-// 			when: (Date.now() + 6000)
-// 		});
-// 		chrome.alarms.getAll(alarms => {
-// 			console.log("existing alarm:");
-// 			console.log(alarms[0]);
-// 		});
-// 	}
-// });
-
-// chrome.alarms.onAlarm.addListener(alarm => {
-// 	console.log("created alarm: ");
-// 	console.log(alarm);
-
-// 	chrome.alarms.getAll(alarms => {
-// 		console.log("existing alarm:");
-// 		console.log(alarms[0]);
-// 	});
-	
-// 	// notify user
-// 	chrome.notifications.create({
-// 		type: "basic",
-// 		title: "You have new Reviews to do!",
-// 		message: "You have now 10 more Reviews, a total of 423 Reviews.",
-// 		iconUrl: "../logo/logo.png"
-// 	});
-// });

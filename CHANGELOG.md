@@ -2,10 +2,11 @@
 Not Released Yet
 
 ## Content
-- New notifications system to alert when there are new Reviews in queue (can be disabled)
+- New notifications system to alert when there are new Reviews in queue
 
 ## Popup
 - Improved "romaji to kana" system. Now, writing, for example, "kko" becomes "っこ", as it should
+- Possibility to change time format within extension popup between 12h and 24h
 
 ## Bug Fix
 - Fixed Kanji Search Settings Navbar taking time to show up, or not loading at all

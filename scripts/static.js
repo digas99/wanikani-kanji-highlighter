@@ -20,7 +20,8 @@ const defaultSettings = {
 	},
 	"notifications": {
 		new_reviews: false,
-		practice_reminder: false
+		practice_reminder: false,
+		searching_a_webpage_word: true
 	},
 	"highlight_style": {
 		learned: "wkhighlighter_highlighted",
@@ -61,6 +62,9 @@ const defaultSettings = {
 			8: true,
 			9: true,
 		}
+	},
+	"miscellaneous": {
+		time_in_12h_format: true
 	}
 };
 
@@ -97,9 +101,24 @@ const settingsInterface = [
 				title:"Practice Reminder",
 				type: "checkbox",
 				id:"settings-notifications-practice_reminder"
+			},
+			{
+				title:"Searching a Webpage Word",
+				type: "checkbox",
+				id:"settings-notifications-searching_a_webpage_word"
 			}
 		]
 	},
+	{
+		title: "Miscellaneous",
+		options: [
+			{
+				title: "Time in 12h Format",
+				type: "checkbox",
+				id: "settings-miscellaneous-time_in_12h_format"
+			}
+		]
+	}
 	// {
 	// 	title:"Highlight Style",
 	// 	options: [
@@ -187,3 +206,5 @@ const flamingDurtlesPattern = {
 const unwantedTags = ["html", "body", "head", "title", "style", "link", "meta", "script", "noscript", "img", "svg"];
 
 const urlChecker = new RegExp("^(chrome||devtools)(-[a-zA-Z0-9]+)?:\/\/");
+
+const defaultWindowSize = "260px";

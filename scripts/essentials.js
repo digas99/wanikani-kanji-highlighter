@@ -1,26 +1,25 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	let response = {};
 
 	if (request.reloadPage)
 		window.location.reload();
 
 	if (request.windowHref === "href")
-		response["windowHref"] = window.location.href;
+		sendResponse({windowHref:window.location.href});
 
 	if (request.windowLocation === "host")
-		response["windowLocation"] = window.location.host;
+		sendResponse({windowLocation:window.location.host});
 
 	if (request.windowLocation === "origin")
-		response["windowLocation"] = window.location.origin;
+		sendResponse({windowLocation:window.location.origin});
 
 	// check if page was reloaded
 	if (request.reloaded) {
-		response["reloaded"] = sessionStorage.getItem("is_reloaded") ? true : false;
+		sendResponse({reloaded:sessionStorage.getItem("is_reloaded") ? true : false});
 		// store flag to indicate the page was reloaded
 		sessionStorage.setItem("is_reloaded", true);
 	}
 
-	sendResponse(response);
+	// sendResponse(response);
 });
 
 window.onbeforeunload = () => {

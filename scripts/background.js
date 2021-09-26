@@ -6,6 +6,11 @@ let highlightingClass = "";
 let notLearnedHighlightingClass = "";
 
 let injectedHighlighter = false;
+let externalPort;
+
+let thisUrl;
+
+chrome.runtime.onConnect.addListener(port => externalPort = port);
 
 let settings;
 // set settings
@@ -72,6 +77,7 @@ const setupLearnedKanji = async (apiToken, page, kanji) => {
 
 const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	// setup all learnable kanji if not yet
+	console.log("setupContentScripts");
 	chrome.storage.local.get(["wkhighlight_allLearnableKanji"], result => {
 		let allLearnableKanji = result["wkhighlight_allLearnableKanji"];
 		const kanjiList = [];
@@ -96,6 +102,7 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 			chrome.storage.local.get(["wkhighlight_allLearnableKanji"], result => {
 				const allKanji = result["wkhighlight_allLearnableKanji"];
 				if (allKanji) {
+					console.log("classes: ", highlightingClass, notLearnedHighlightingClass);
 					tabs.sendMessage(thisTabId, {
 						functionDelay: functionDelay, 
 						values: kanji,
@@ -128,46 +135,47 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	});
 }
 
-// reset kanji per site list
-chrome.storage.local.set({"wkhighlight_kanjiPerSite":{}});
-
 tabs.onActivated.addListener(activeInfo => {
-	const tabId = activeInfo["tabId"];
-	setTimeout(() => {
-		if (!window.chrome.runtime.lastError) {
-			tabs.get(tabId, response => {
-				if (response) {
-					if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(response["url"])) {
-						if (settings["extension_icon"]["kanji_counter"] && injectedHighlighter) {
-							tabs.sendMessage(tabId, {nmrKanjiHighlighted:"popup"}, response => {
-								if (!window.chrome.runtime.lastError) {
-									if (response)
-										chrome.browserAction.setBadgeText({text:response["nmrKanjiHighlighted"]?.toString(), tabId:thisTabId});
-								}
-								else
-									chrome.browserAction.setBadgeText({text: "0", tabId:thisTabId});
-					
-								chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
-							});
+	thisTabId = activeInfo["tabId"];
+	tabs.get(thisTabId, result => {
+		console.log(thisTabId);
+		if (result) {
+			if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(result["url"])) {
+				if (settings["extension_icon"]["kanji_counter"] && injectedHighlighter) {
+					tabs.sendMessage(thisTabId, {nmrKanjiHighlighted:"popup"}, response => {
+						console.log(chrome.runtime.lastError);
+						if (!chrome.runtime.lastError) {
+							console.log(response, response["nmrKanjiHighlighted"]);
+							if (response && response["nmrKanjiHighlighted"]) {
+								chrome.browserAction.setBadgeText({text:response["nmrKanjiHighlighted"].toString(), tabId:thisTabId});
+							}
+							else {
+								chrome.browserAction.setBadgeText({text: "0", tabId:thisTabId});
+							}
+				
+							chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 						}
-					}
-					else {
-						chrome.browserAction.setBadgeText({text: "W", tabId:thisTabId});
-						chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1", tabId:thisTabId});
-					}
+						
+					});
 				}
-			});
+			}
+			else {
+				console.log("in wanikani");
+				chrome.browserAction.setBadgeText({text: "W", tabId:thisTabId});
+				chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1", tabId:thisTabId});
+			}
 		}
-	}, 200);
+	});
 });
 
 chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 	thisTabId = details.tabId;
 	const url = details.url;
-
+	console.log(thisTabId, url);
 	if (thisTabId && url) {
 		chrome.tabs.get(thisTabId, tab => {
-			const thisUrl = tab.url;
+			thisUrl = tab.url;
+			console.log(thisUrl, url);
 			if (url === thisUrl && !urlChecker.test(url)) {
 				if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {
 					chrome.storage.local.get(["wkhighlight_blacklist"], blacklist => {
@@ -328,7 +336,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.popupDetails)
 		tabs.sendMessage(thisTabId, {popupDetails: request.popupDetails});
 
-	if (request.badge && settings["extension_icon"]["kanji_counter"]) {
+	if (request.badge && settings["extension_icon"]["kanji_counter"] && sender.url === thisUrl) {
+		console.log(thisUrl, sender.url);
 		chrome.browserAction.setBadgeText({text: request.badge.toString(), tabId:thisTabId});
 		chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 	}
@@ -338,20 +347,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 	if (request.selectedText)
 		chrome.contextMenus.update("wkhighlighterSearchKanji", {title: `Search WaniKani for "${request.selectedText}"`});
-	
-	if (request.leavingSite) {
-		// if leaving website, remove its entry with kanji in storage
-		chrome.storage.local.get(["wkhighlight_kanjiPerSite"], result => {
-			const kanjiPerSite = result["wkhighlight_kanjiPerSite"];
-			if (kanjiPerSite) {
-				let aux = {};
-				for (let url in kanjiPerSite) {
-					if (url != request.leavingSite)
-						aux[url] = kanjiPerSite[url];
-				}
-				chrome.storage.local.set({"wkhighlight_kanjiPerSite":aux});
-			}
-		});
+
+	if (request.notifications === "new-reviews") {
+		console.log("new reviews");
+		console.log(externalPort);
+		if (externalPort)
+			externalPort.onDisconnect.addListener(() => chrome.runtime.reload());
+
 	}
 });
 
@@ -370,11 +372,16 @@ chrome.contextMenus.onClicked.addListener(data => {
 		chrome.storage.local.set({wkhighlight_contextMenuSelectedText:selectedText});
 		chrome.browserAction.setBadgeText({text: '\u2B06', tabId:thisTabId});
 		chrome.browserAction.setBadgeBackgroundColor({color: "green", tabId:thisTabId});
-		chrome.notifications.create({
-			type: "basic",
-			title: "Searching with WaniKani Kanji Highlighter",
-			message: `Open the extension to search for "${selectedText}"`,
-			iconUrl: "../logo/logo.png"
+		chrome.storage.local.get(["wkhighlight_settings"], result => {
+			const settings = result["wkhighlight_settings"];
+			if (settings && settings["notifications"]["searching_a_webpage_word"]) {
+				chrome.notifications.create({
+					type: "basic",
+					title: "Searching with WaniKani Kanji Highlighter",
+					message: `Open the extension to search for "${selectedText}"`,
+					iconUrl: "../logo/logo.png"
+				});
+			}
 		});
 	}
 });
@@ -404,32 +411,46 @@ const setupReviewsAlarm = reviews => {
 	}
 }
 
-chrome.alarms.getAll(alarms => {
-	// if there isn't an alarm for next reviews active
-	if (alarms.length == 0) {
-		chrome.storage.local.get("wkhighlight_reviews", result => {
-			const reviews = result["wkhighlight_reviews"];
-			if (reviews) setupReviewsAlarm(reviews);
-		});
+chrome.storage.local.get(["wkhighlight_settings"], result => {
+	console.log("here");
+	const settings = result["wkhighlight_settings"];
+	if (settings) {
+		console.log("here0");
+		// new reviews notifications
+		if (settings["notifications"]["new_reviews"]) {
+			console.log("here1");
+			chrome.alarms.getAll(alarms => {
+				// if there isn't an alarm for next reviews active
+				if (alarms.length == 0) {
+					chrome.storage.local.get("wkhighlight_reviews", result => {
+						const reviews = result["wkhighlight_reviews"];
+						console.log("here2 ", reviews);
+						if (reviews) setupReviewsAlarm(reviews);
+					});
+				}
+			});
+		}
 	}
 });
 
 chrome.alarms.onAlarm.addListener(alarm => {
-	console.log(alarm);
-	chrome.storage.local.get(["wkhighlight_reviews", "wkhighlight_next-reviews-bundle"], result => {
-		const reviews = result["wkhighlight_reviews"];
-		const reviews_bundle = result["wkhighlight_next-reviews-bundle"];
-		if (reviews_bundle && reviews && reviews["count"]) {
-			// notify user
-			chrome.notifications.create({
-				type: "basic",
-				title: `WaniKani: ${reviews_bundle.length} new Reviews`,
-				message: `You have now ${reviews_bundle.length} more Reviews, a total of ${reviews["count"]+reviews_bundle.length} Reviews.`,
-				iconUrl: "../logo/logo.png"
-			});
-		}
-
-		// setup new alarm
-		updateAvailableAssignments(setupReviewsAlarm);
-	});
+	if (alarm.name === "next-reviews") {
+		chrome.storage.local.get(["wkhighlight_reviews", "wkhighlight_next-reviews-bundle", "wkhighlight_apiKey"], result => {
+			const reviews = result["wkhighlight_reviews"];
+			const reviews_bundle = result["wkhighlight_next-reviews-bundle"];
+			if (reviews_bundle && reviews && reviews["count"]) {
+				// notify user
+				chrome.notifications.create({
+					type: "basic",
+					title: `WaniKani: ${reviews_bundle.length} new Reviews`,
+					message: `You have now ${reviews_bundle.length} more Reviews, a total of ${reviews["count"]+reviews_bundle.length} Reviews.`,
+					iconUrl: "../logo/logo.png"
+				});
+			}
+	
+			const apiKey = result["wkhighlight_apiKey"];
+			// setup new alarm
+			updateAvailableAssignments(apiKey, setupReviewsAlarm);
+		});	
+	}
 });

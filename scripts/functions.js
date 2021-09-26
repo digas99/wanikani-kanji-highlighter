@@ -83,6 +83,8 @@ const simpleFormatDate = (date, format) => {
 	return value;
 }
 
+const time12h = hours => new Date('1970-01-01T'+hours+'Z').toLocaleTimeString({}, {timeZone:'UTC', hour12:true, hour:'numeric', minute:'numeric'});
+
 const setExactHour = (date, hour) => {
 	return new Date(new Date(new Date(new Date(date).setHours(hour)).setMinutes(0)).setSeconds(0));
 }
@@ -95,10 +97,10 @@ const changeDay = (date, days) => {
 	return new Date(new Date(date).setDate((new Date(date).getDate())+days));
 }
 
-const setupReviewsDataForChart = (reviews, today, days, hoursAhead) => {
+const setupReviewsDataForChart = (reviews, today, days, hoursAhead, time12h_format) => {
 	const currentHour = today.getHours();
 	let currentDay = today.getDate();
-	const hours = [];
+	let hours = [];
 	const reviewsPerHour = [];
 
 	let hour = currentHour + hoursAhead;
@@ -119,6 +121,16 @@ const setupReviewsDataForChart = (reviews, today, days, hoursAhead) => {
 			currentDay++; 
 		}
 	}
+
+	if (time12h_format) {
+		hours = hours.map(hour => {
+			hour = hour.slice(0, hour.length-1);
+			if (hour < 10) hour = "0"+hour;
+			hour+=":00";
+			return time12h(hour).split(":00").join("");
+		});
+	}
+
 	return ({hours:hours, reviewsPerHour:reviewsPerHour});
 }
 
@@ -141,24 +153,23 @@ const chartRemoveData = (chart, size) => {
 	chart.update();
 }
 
-const updateChartReviewsOfDay = (reviews, chart, date, numberReviewsElement) => {
+const updateChartReviewsOfDay = (reviews, chart, date, numberReviewsElement, time12h_format) => {
 	const newDate = setExactHour(new Date(date), 0);
 	chartRemoveData(chart, chart.data.labels.length);
 	const nextReviews = filterAssignmentsByTime(reviews, newDate, changeDay(newDate, 1))
 							.map(review => ({hour:new Date(review["available_at"]).getHours(), day:new Date(review["available_at"]).getDate(), srs:review["srs_stage"]}));
 	console.log(nextReviews);
-	const apprData = setupReviewsDataForChart(nextReviews.filter(review => review["srs"] > 0 && review["srs"] <= 4), newDate, 1, 0);
-	const guruData = setupReviewsDataForChart(nextReviews.filter(review => review["srs"] == 5 || review["srs"] == 6), newDate, 1, 0);
-	const masterData = setupReviewsDataForChart(nextReviews.filter(review => review["srs"] == 7), newDate, 1, 0);
-	const enliData = setupReviewsDataForChart(nextReviews.filter(review => review["srs"] == 8), newDate, 1, 0);
+	const apprData = setupReviewsDataForChart(nextReviews.filter(review => review["srs"] > 0 && review["srs"] <= 4), newDate, 1, 0, time12h_format);
+	const guruData = setupReviewsDataForChart(nextReviews.filter(review => review["srs"] == 5 || review["srs"] == 6), newDate, 1, 0, time12h_format);
+	const masterData = setupReviewsDataForChart(nextReviews.filter(review => review["srs"] == 7), newDate, 1, 0, time12h_format);
+	const enliData = setupReviewsDataForChart(nextReviews.filter(review => review["srs"] == 8), newDate, 1, 0, time12h_format);
 	//const newData = setupReviewsDataForChart(nextReviews, newDate, 1, 0);
 	chartAddData(chart, apprData["hours"], [apprData["reviewsPerHour"], guruData["reviewsPerHour"], masterData["reviewsPerHour"], enliData["reviewsPerHour"]]);
 	const newDateDay = newDate.getDate();
 	const dateIdentifier = `${newDate.getWeekDay()}, ${newDate.getMonthName()} ${newDateDay+ordinalSuffix(newDateDay)}`;
 	chart.options.plugins.title.text = `Reviews on ${dateIdentifier}`;
-	console.log(setupReviewsDataForChart(nextReviews, newDate, 1, 0));
 	if (numberReviewsElement)
-		numberReviewsElement.innerHTML = `<b>${setupReviewsDataForChart(nextReviews, newDate, 1, 0)["reviewsPerHour"].reduce((a,b) => a+b)}</b> Reviews on ${dateIdentifier}`;
+		numberReviewsElement.innerHTML = `<b>${setupReviewsDataForChart(nextReviews, newDate, 1, 0, time12h_format)["reviewsPerHour"].reduce((a,b) => a+b)}</b> Reviews on ${dateIdentifier}`;
 	chart.update();
 }
 
@@ -203,7 +214,7 @@ const rand = (min, max) => {
 }
 
 // fetch and update available lessons and reviews
-const updateAvailableAssignments = callback => {
+const updateAvailableAssignments = (apiKey, callback) => {
 	fetchPage(apiKey, "https://api.wanikani.com/v2/assignments?immediately_available_for_lessons")
 		.then(lessons => {
 			fetchPage(apiKey, "https://api.wanikani.com/v2/assignments?immediately_available_for_review")

@@ -246,6 +246,7 @@
 				const span = document.createElement("span");
 				const readingsString = readings.filter(reading => reading.type===type[1]).map(reading => reading.reading).join(", ");
 				span.appendChild(document.createTextNode(readingsString));
+				if (readingsString === '') li.classList.add("faded");
 				li.appendChild(span);
 				if (readingsString.length > 8) {
 					const overflowSpan = document.createElement("span");

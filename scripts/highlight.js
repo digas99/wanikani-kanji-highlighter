@@ -4,9 +4,10 @@
 	let totalHighlightedKanji = 0;
 	let learnedHighlightedKanji = [];
 	let notLearnedHighlightedKanji = [];
-	let loaded = false;
 	let highlightingClass = "";
 	let notLearnedHighlightingClass = "";
+
+	let loaded = false;
 
 	chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		if (!loaded) {
@@ -18,11 +19,14 @@
 			const unwantedTags = request.unwantedTags;
 			highlightingClass = request.highlightingClass
 			notLearnedHighlightingClass = request.notLearnedHighlightingClass;
-
+	
+			console.log("CLASSES: ");
+			console.log(highlightingClass, notLearnedHighlightingClass);
+	
 			if (functionDelay && values && unwantedTags && highlightingClass && notLearnedYet) {
 				const textChildNodes = obj => Array.from(obj.childNodes)
 					.filter(node => node.nodeName === "#text");
-
+	
 				// replace a matching regex in a text node with a document element, preserving everything else, even other 
 				// none text node siblings from that text node (the parent node must have atleast one text node as a childNode)
 				const replaceMatchesWithElem = (parentNode, regex, elem) => {
@@ -46,7 +50,7 @@
 					}
 					return allMatches;
 				}
-
+	
 				const hasDirectChildHighlighted = (node, className) => {
 					for (const child of node.childNodes) {
 						if (child.classList && Array.from(child.classList).includes(className))
@@ -54,9 +58,9 @@
 					}
 					return false;
 				}
-
+	
 				const tagFilteringConditions = (tag, highlightClass) => !unwantedTags.includes(tag.localName) && textChildNodes(tag).length > 0 && !(hasDirectChildHighlighted(tag, highlightClass) || tag.classList.contains(highlightClass));
-
+	
 				const highlighter = (values, className, allTags) => {
 					const kanjiRegex = new RegExp(`[${values.join('')}]`, "g");
 					// check if there is any character to be highlighted
@@ -64,7 +68,7 @@
 						const test = tag.textContent.match(kanjiRegex);
 						return test !== null ? test.length > 0 : false;
 					});
-
+	
 					let highlightedKanji = [];
 					if (nodesToBeHighlighted.length > 0) {
 						const span = document.createElement("span");
@@ -80,20 +84,12 @@
 						notLearnedHighlightedKanji = [... new Set(notLearnedHighlightedKanji.concat(highlighter(notLearnedYet, notLearnedHighlightingClass, tags)))];
 						totalHighlightedKanji = learnedHighlightedKanji.length + notLearnedHighlightedKanji.length;
 						chrome.runtime.sendMessage({badge:totalHighlightedKanji, nmrKanjiHighlighted:totalHighlightedKanji, kanjiHighlighted:{learned:learnedHighlightedKanji, notLearned:notLearnedHighlightedKanji}});
-						chrome.storage.local.get(["wkhighlight_kanjiPerSite"], result => {
-							const kanjiPerSite = result["wkhighlight_kanjiPerSite"] ? result["wkhighlight_kanjiPerSite"] : {};
-							const site = window.location.href;
-							if (kanjiPerSite) {
-								kanjiPerSite[site] = {"number":totalHighlightedKanji,"kanji":{learned:learnedHighlightedKanji, notLearned:notLearnedHighlightedKanji}};
-							}
-							chrome.storage.local.set({"wkhighlight_kanjiPerSite":kanjiPerSite});
-						});
 						chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlightedKanji, "wkhighlight_allHighLightedKanji":{learned:learnedHighlightedKanji, notLearned:notLearnedHighlightedKanji}});
 					}, highlightDelay);
 				}
-
+	
 				highlightSetup(Array.from(document.getElementsByTagName("*")), functionDelay);
-
+	
 				let lastNmrElements = 0;
 				let nmrElements;
 				// continuously check for the number of elements in the page
@@ -106,18 +102,19 @@
 						highlightSetup(allTags, 20);
 					}
 				}, 2000);
-
+	
 				chrome.runtime.sendMessage({intervalFunction: highlightUpdate});
 			}
+	
 		}
-
+	
 		// if a key was pressed, then stop the highlight update
 		if (request.key === "down")
 			clearInterval(request.intervalFunction);
 
 		// if extension pooup is asking for number of highlighted kanji
 		if (request.nmrKanjiHighlighted === "popup")
-			sendResponse({nmrKanjiHighlighted: totalHighlightedKanji});
+			sendResponse({nmrKanjiHighlighted: totalHighlightedKanji, learned:learnedHighlightedKanji, notLearned:notLearnedHighlightedKanji});
 
 		// change highlight class immediately of every kanji in the page
 		if (request.newHighlightClass) {
@@ -128,17 +125,16 @@
 			else
 				notLearnedHighlightingClass = request.newHighlightClass;
 		}
+
+		// // message to the background saying a key was pressed
+		// document.addEventListener("keydown", e => {
+		// 	// if the key is not a modifier
+		// 	if (!e.getModifierState(e.key))
+		// 		chrome.runtime.sendMessage({key: "down"});
+		// });
+
+		document.addEventListener("click", e => {
+			chrome.runtime.sendMessage({selectedText: window.getSelection().toString().trim()});
+		});
 	});
-
-	// // message to the background saying a key was pressed
-	// document.addEventListener("keydown", e => {
-	// 	// if the key is not a modifier
-	// 	if (!e.getModifierState(e.key))
-	// 		chrome.runtime.sendMessage({key: "down"});
-	// });
-
-	document.addEventListener("click", e => {
-		chrome.runtime.sendMessage({selectedText: window.getSelection().toString().trim()});
-	});
-
 })();
