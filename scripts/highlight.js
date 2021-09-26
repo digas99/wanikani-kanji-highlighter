@@ -105,7 +105,6 @@
 	
 				chrome.runtime.sendMessage({intervalFunction: highlightUpdate});
 			}
-	
 		}
 	
 		// if a key was pressed, then stop the highlight update

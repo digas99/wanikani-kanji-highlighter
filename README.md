@@ -5,13 +5,13 @@ This is an unofficial extension for the browser for Kanji Highlighting, matching
 It works with any website, and provides detailed information about any kanji that is highlighted.
 **Because it would be "cheating", the extension doesn't work on [WaniKani.com](https://www.wanikani.com/).**
 
-#### VERSION 0.5.4
+#### VERSION 0.5.5
 
 ## [Get it on Chrome Webstore](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/)
 ## [Get it on Mozilla Add-ons](https://addons.mozilla.org/pt-PT/firefox/addon/wanikani-kanji-highlighter/)
 
 ## Table of contents:
-1. [Latest Features](#changelog-v054)
+1. [Latest Features](#changelog-v055)
 2. [Usage Guide](#usage-guide)
    * 2.1. [WaniKani API Token](#wanikani-api-token)
    * 2.2. [Kanji Details](#kanji-details)
@@ -23,7 +23,25 @@ It works with any website, and provides detailed information about any kanji tha
    * 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
-# Changelog v0.5.4
+# Changelog v0.5.5
+Not Released Yet
+
+## Content
+- New notifications system to alert when there are new Reviews in queue
+
+## Popup
+- Improved "romaji to kana" system. Now, writing, for example, "kko" becomes "っこ", as it should
+- Possibility to change time format within extension popup between 12h and 24h
+
+## Bug Fix
+- Fixed Kanji Search Settings Navbar taking time to show up, or not loading at all
+- Details Popup no longer closes for no reason when clicking to see the details popup of a subject from within that details popup
+- Details Popup no longer shows duplicate information on a subject
+- Clicking in several subjects within the extension popup now displays the correct kanji information in the details popup created
+- Highlighted kanji in the page shown in the extension popup is way more stable now
+- Subject cards in the details popup are now correctly sorted by level, as they should
+
+## Changelog v0.5.4
 Released on 03/09/2021
 
 ## Popup

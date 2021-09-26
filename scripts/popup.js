@@ -7,6 +7,8 @@ let reviews, lessons, reviewsChart;
 
 let apiKey;
 
+let atWanikani = false;
+
 const footer = () => {
 	const wrapper = document.createElement("div");
 	wrapper.id = "footer";
@@ -99,6 +101,9 @@ window.onload = () => {
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, response => {
 				console.log(response);
 				const url = response ? response["windowLocation"] : "";
+
+				atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url);
+
 				if (!result["wkhighlight_blacklist"] || result["wkhighlight_blacklist"].length === 0 || !blacklisted(result["wkhighlight_blacklist"], url)) {
 					apiKey = result["wkhighlight_apiKey"];
 					// if the user did not add a key yet
@@ -328,7 +333,8 @@ window.onload = () => {
 												moreReviewsDate.style.fontWeight = "bold";
 												moreReviewsDate.style.padding = "3px 0";
 												
-												if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {					
+												if (!atWanikani) {	
+													atWanikani = false;				
 													const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchKanji);
 													searchArea.title = "Search subjects";
 													chrome.storage.local.get(["wkhighlight_contextMenuSelectedText"], result => {
@@ -405,6 +411,8 @@ window.onload = () => {
 													searchType.appendChild(document.createTextNode("あ"));
 												}
 												else {
+													atWanikani = true;
+
 													topRightNavbar.style.position = "absolute";
 													topRightNavbar.style.right = "0";
 													topRightNavbar.style.top = "7px";
@@ -1526,12 +1534,14 @@ document.addEventListener("click", e => {
 							const subject = filtered[0];
 							if (subject) {
 								characters = subject["characters"];
-								if (subject["meanings"]) li.title = subject["meanings"][0];
-								if (subject["readings"]) {
-									if (subject["readings"][0]["reading"])
-										li.title += " | "+subject["readings"].filter(reading => reading["primary"])[0]["reading"];
-									else
-										li.title += " | "+subject["readings"][0];
+								if (!atWanikani) {					
+									if (subject["meanings"]) li.title = subject["meanings"][0];
+									if (subject["readings"]) {
+										if (subject["readings"][0]["reading"])
+											li.title += " | "+subject["readings"].filter(reading => reading["primary"])[0]["reading"];
+										else
+											li.title += " | "+subject["readings"][0];
+									}
 								}
 							}
 							let backColor = hexToRGB(getComputedStyle(document.body).getPropertyValue(cssVar));

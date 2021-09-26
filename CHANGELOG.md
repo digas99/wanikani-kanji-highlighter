@@ -13,7 +13,7 @@ Not Released Yet
 - Details Popup no longer closes for no reason when clicking to see the details popup of a subject from within that details popup
 - Details Popup no longer shows duplicate information on a subject
 - Clicking in several subjects within the extension popup now displays the correct kanji information in the details popup created
-- Kanji in the page shown in the extension popup is way more stable now
+- Highlighted kanji in the page shown in the extension popup is way more stable now
 - Subject cards in the details popup are now correctly sorted by level, as they should
 
 # [Changelog v0.5.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.4)
