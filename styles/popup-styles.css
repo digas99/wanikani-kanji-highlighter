@@ -400,7 +400,7 @@ transform: rotate(134deg);
 	right: 0;
 	top: 0;
 	background-color: #3e3e4d;
-	border-top: 5px solid var(--default-color);
+	border-top: 5px solid var(--wanikani);
 	text-align: center;
 	z-index: 1;
 	transition: 0.5s;
@@ -454,7 +454,7 @@ transform: rotate(134deg);
 
 .side-panel-focus > ul > li > a > p {
 	color: black;
-    padding-left: 5px;
+    padding-left: 7px;
 }
 
 .side-panel-focus > div > a > img {
@@ -885,9 +885,8 @@ transform: rotate(134deg);
 /* 8. BLACKLISTED SITE PAGE */
 
 #blacklistButtonWrapper {
-	margin-top: 13px;
     border-top: 1px solid silver;
-    padding-top: 13px;
+    padding: 13px 0;
 }
 
 #blacklistButton {
@@ -899,7 +898,6 @@ transform: rotate(134deg);
 #warningWrapper {
 	text-align: center;
     background-color: var(--dark-back);
-    border-radius: 5px;
     color: white;
     padding: 8px;
 }

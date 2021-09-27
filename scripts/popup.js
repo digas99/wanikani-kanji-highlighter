@@ -7,6 +7,8 @@ let reviews, lessons, reviewsChart;
 
 let apiKey;
 
+let sidePanelOn = false;
+
 let atWanikani = false;
 
 const footer = () => {
@@ -293,9 +295,12 @@ window.onload = () => {
 												burgerWrapper.addEventListener("click", () => {
 													if (!burgerWrapper.classList.contains("burger-menu-clicked")) {
 														burgerWrapper.classList.add("burger-menu-clicked");
+														sidePanelOn = true;
 
 														chrome.storage.local.set({"wkhighlight_burger_menu":true});
-																											
+
+														document.body.style.minHeight = "340px";
+
 														// hide navbar icons and logo wrapper
 														Array.from(document.getElementsByClassName("navbar_icon"))
 															.forEach(icon => icon.style.display = "none");
@@ -327,7 +332,7 @@ window.onload = () => {
 
 														const ul = document.createElement("ul");
 														container.appendChild(ul);
-														["../images/settings.png", "../images/search.png", "../images/about.png", "../images/help.png", "../images/exit.png"].forEach(img => {
+														["../images/settings.png", "../images/search.png", "../images/blacklist.png", "../images/about.png", "../images/exit.png"].forEach(img => {
 															const li = document.createElement("li");
 															ul.appendChild(li);
 															const link = document.createElement("a");
@@ -335,6 +340,16 @@ window.onload = () => {
 															link.style.padding = "0 5px";
 															link.href = "#";
 															link.classList.add("navbar_icon");
+															link.addEventListener("click", () => {
+																const sidePanelLogo = document.getElementById("side-panel-logo");
+																if (sidePanelLogo && container.classList.contains("side-panel-focus")) {
+																	sidePanelLogo.dispatchEvent(new MouseEvent("click", {
+																		"view": window,
+																		"bubbles": true,
+																		"cancelable": false
+																	}));
+																}
+															});
 															const icon_img = document.createElement("img");
 															icon_img.id = img.split("/")[2].split(".")[0];
 															icon_img.src = img;
@@ -370,6 +385,7 @@ window.onload = () => {
 																	.forEach(icon => {
 																		const label = document.createElement("p");
 																		icon.appendChild(label);
+																		label.style.pointerEvents = "none";
 																		label.appendChild(document.createTextNode(icon.getElementsByTagName("img")[0].title));
 																	});
 															}
@@ -389,11 +405,16 @@ window.onload = () => {
 
 														burgerWrapper.title = "Close Menu";
 														accInfoWrapper.style.display = "none";
+
+														document.getElementById("footer").style.display = "none";
 													}
 													else {
 														burgerWrapper.classList.remove("burger-menu-clicked");
+														sidePanelOn = false;
 
 														chrome.storage.local.set({"wkhighlight_burger_menu":false});
+
+														document.body.style.removeProperty("min-height");
 
 														document.body.style.removeProperty("padding-right");
 														document.getElementsByClassName("side-panel")[0]?.remove();
@@ -414,6 +435,8 @@ window.onload = () => {
 
 														burgerWrapper.title = "Menu";
 														accInfoWrapper.style.display = "flex";
+
+														document.getElementById("footer").style.removeProperty("display");
 													}
 												});
 
@@ -572,7 +595,7 @@ window.onload = () => {
 												}
 
 												const blacklistButtonWrapper = document.createElement("div");
-												main.appendChild(blacklistButtonWrapper);
+												document.getElementById("footer").insertBefore(blacklistButtonWrapper, document.getElementById("footer").children[0]);
 												blacklistButtonWrapper.id = "blacklistButtonWrapper";
 												const blacklistButton = document.createElement("div");
 												blacklistButton.id = "blacklistButton";
@@ -800,6 +823,10 @@ const submitAction = () => {
 const secundaryPage = (titleText, width) => {
 	document.documentElement.style.setProperty('--body-base-width', width+"px");
 
+	// remove any active secundary page
+	if (document.getElementById("secPageMain"))
+		document.getElementById("secPageMain").remove();
+
 	document.getElementById("main").style.display = "none";
 	document.getElementById("footer").style.display = "none";
 
@@ -861,6 +888,8 @@ const arrowsDisplay = (leftArrow, rightArrow, value, min, max) => {
 document.addEventListener("click", e => {
 	const targetElem = e.target;
 
+	console.log(targetElem);
+
 	if (targetElem.id === "submit")
 		submitAction();
 
@@ -905,8 +934,9 @@ document.addEventListener("click", e => {
 
 	if (targetElem.id === "goBack") {
 		document.getElementById("secPageMain").remove();
-		document.getElementById("main").style.display = "inherit";
-		document.getElementById("footer").style.display = "inherit";
+		document.getElementById("main").style.removeProperty("display");
+		if (!sidePanelOn)
+			document.getElementById("footer").style.removeProperty("display");
 		document.documentElement.style.setProperty('--body-base-width', defaultWindowSize);
 		
 		Array.from(document.getElementsByClassName("navbar_icon"))
@@ -962,7 +992,10 @@ document.addEventListener("click", e => {
 		});
 	}
 
-	if (targetElem.id === "settings" || (targetElem.childNodes[0] && targetElem.childNodes[0].id === "settings") || (targetElem.parentElement?.childNodes[0] && targetElem.parentElement.childNodes[0].id === "settings")) {
+	if (sidePanelIconTargeted(targetElem, "settings")) {
+		Array.from(document.getElementsByClassName("navbar_icon"))
+			.forEach(icon => icon.classList.remove("disabled"));
+
 		const targetIcon = Array.from(document.getElementsByClassName("navbar_icon"))
 			.filter(icon => icon.getElementsByTagName("IMG")[0].title === "Settings" && icon.closest(".side-panel"))[0];
 		targetIcon?.classList.add("disabled");
@@ -1200,6 +1233,58 @@ document.addEventListener("click", e => {
 		}
 	}
 
+	// clicked button search in lateral panel
+	if (sidePanelIconTargeted(targetElem, "search")) {
+		const input = document.getElementById("kanjiSearchInput");
+		if (input) {
+			if (document.getElementById("goBack"))
+				document.getElementById("goBack").dispatchEvent(new MouseEvent("click", {
+					"view": window,
+					"bubbles": true,
+					"cancelable": false
+				}));
+
+			const userInfoNav = document.getElementById("userInfoNavbar");
+			console.log(userInfoNav);
+			if (userInfoNav)
+				userInfoNav.classList.add("hidden");
+
+			input.focus();
+			input.click();
+			if (kanjiList.length == 0 || vocabList.length == 0) {
+				document.body.style.setProperty("cursor", "progress", "important");
+				loadItemsLists(() => {
+					document.body.style.cursor = "inherit";
+					searchKanji(input)
+				});
+			}
+			else
+				searchKanji(input);
+		}
+	}
+
+	if (sidePanelIconTargeted(targetElem, "blacklist")) {
+		if (document.getElementById("blacklistButton")) {
+			document.getElementById("blacklistButton").dispatchEvent(new MouseEvent("click", {
+				"view": window,
+				"bubbles": true,
+				"cancelable": false
+			}));
+		}
+	}
+
+	if (sidePanelIconTargeted(targetElem, "about")) {
+		Array.from(document.getElementsByClassName("navbar_icon"))
+			.forEach(icon => icon.classList.remove("disabled"));
+
+		const targetIcon = Array.from(document.getElementsByClassName("navbar_icon"))
+			.filter(icon => icon.getElementsByTagName("IMG")[0].title === "About" && icon.closest(".side-panel"))[0];
+		targetIcon?.classList.add("disabled");
+
+		const content = secundaryPage("About", 260);
+
+	}
+
 	// settings checkboxes
 	if (targetElem.classList.contains("settingsItemInput") && targetElem.type === "checkbox") {
 		chrome.storage.local.get(["wkhighlight_settings"], data => {
@@ -1381,17 +1466,23 @@ document.addEventListener("click", e => {
 	}
 
 	if (targetElem.id == "kanjiSearchInput") {
+		const targetIcon = Array.from(document.getElementsByClassName("navbar_icon"))
+			.filter(icon => icon.getElementsByTagName("IMG")[0].title === "Search" && icon.closest(".side-panel"))[0];
+		targetIcon?.classList.add("disabled");
+
 		document.documentElement.style.setProperty('--body-base-width', defaultWindowSize);
 
 		document.getElementById("userInfoNavbar").style.display = "none";
-
-		if (!document.getElementById("searchResultWrapper")) {
-			const searchResultWrapper = document.createElement("div");
+		
+		let searchResultWrapper = document.getElementById("searchResultWrapper");
+		if (!searchResultWrapper) {
+			searchResultWrapper = document.createElement("div");
 			searchResultWrapper.id = "searchResultWrapper";
 			document.getElementById("userInfoWrapper").appendChild(searchResultWrapper);
 		}
 
 		if (!document.getElementById("searchResultNavbar")) {
+			console.log("here");
 			const navbarWrapper = document.createElement("div");
 			navbarWrapper.id = "searchResultNavbar";
 			searchResultWrapper.appendChild(navbarWrapper);
@@ -1442,17 +1533,25 @@ document.addEventListener("click", e => {
 	}
 
 	// clicked outside search area and searching related
-	const resultWrapper = document.getElementById("searchResultWrapper");
-	if (!document.getElementById("notRunAtWK") && (!document.getElementsByClassName("searchArea")[0].contains(targetElem) && resultWrapper && !resultWrapper.contains(targetElem)) && !targetElem.classList.contains("burger-menu")) {
+	if (!document.getElementById("notRunAtWK") && !targetElem.closest("#userInfoWrapper") && targetElem.id !== "search" && !targetElem.closest(".side-panel")) {
+		console.log("del");
+
+		Array.from(document.getElementsByClassName("navbar_icon"))
+			.forEach(icon => icon.classList.remove("disabled"));
+
 		const wrapper = document.getElementById("searchResultItemWrapper");
 		if (wrapper)
 			wrapper.remove();
 		
 		document.documentElement.style.setProperty('--body-base-width', defaultWindowSize);
 
-		document.getElementById("kanjiSearchInput").value = "";
+		if (document.getElementById("kanjiSearchInput"))
+			document.getElementById("kanjiSearchInput").value = "";
 
-		document.getElementById("userInfoNavbar").style.removeProperty("display");
+		if (document.getElementById("userInfoNavbar")) {
+			document.getElementById("userInfoNavbar").style.removeProperty("display");
+			document.getElementById("userInfoNavbar").classList.remove("hidden");	
+		}
 
 		const searchResultNavbar = document.getElementById("searchResultNavbar");
 		if (searchResultNavbar) {
@@ -1995,7 +2094,7 @@ document.addEventListener("click", e => {
 
 	// clicked outside side panel
 	const sidePanel = document.getElementsByClassName("side-panel")[0];
-	if (sidePanel && sidePanel.classList.contains("side-panel-focus") && (targetElem.closest("#main") || targetElem.closest("#footer") || targetElem.closest("#secPageMain"))) {
+	if (sidePanel && sidePanel.classList.contains("side-panel-focus") && (targetElem.closest("#main") || targetElem.closest("#footer") || targetElem.closest("#secPageMain") || (targetElem.closest("body") && !targetElem.closest(".side-panel")))) {
 		const sidePanelLogo = document.getElementById("side-panel-logo");
 		if (sidePanelLogo) {
 			sidePanelLogo.dispatchEvent(new MouseEvent("click", {
@@ -2006,6 +2105,8 @@ document.addEventListener("click", e => {
 		}
 	}
 });
+
+const sidePanelIconTargeted = (target, id) => target.id === id || (target.parentElement?.childNodes[0] && target.parentElement.childNodes[0].id === id) || target.childNodes[0]?.id === id;
 
 const singleOptionCheck = (id, labelTitle, checked) => {
 	const div = document.createElement("div");
