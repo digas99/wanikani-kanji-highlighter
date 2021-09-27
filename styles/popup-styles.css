@@ -29,7 +29,7 @@ Table Of Contents
 
 :root {
 	--body-base-width: 260px;
-	--default-color: #dc6560;
+	--default-color: #3e3e4d;
 	--radical-tag-color: #65b6ae;
 	--radical-tag-color-font: #000000;
 	--kanji-tag-color: #e7e485;
@@ -74,7 +74,7 @@ body {
 
 a {
 	text-decoration: none;
-	color: var(--default-color);
+	color: #001681;;
 	transition: 0.3s;
 }
 
@@ -191,7 +191,6 @@ transform: rotate(134deg);
 
 .button {
     background-color: var(--default-color);
-    border-radius: 5px;
     color: white;
     padding: 4px;
 	cursor: pointer;
@@ -245,7 +244,6 @@ transform: rotate(134deg);
 	border-bottom: 1px solid silver;
     border-left: 1px solid silver;
     border-right: 1px solid silver;
-    border-radius: 0px 0px 7px 7px;
 }
 
 
@@ -266,11 +264,14 @@ transform: rotate(134deg);
 
 /* Logo */
 #logoWrapper {
-	margin-bottom: 10px !important;
+	padding-bottom: 10px;
     font-size: 10px;
     margin: auto;
 	display: flex;
 	margin-left: 7px;
+	border-bottom: 1px solid silver;
+	margin-bottom: 7px;
+	margin-right: 5px;
 }
 
 #logoWrapper > img {
@@ -387,8 +388,9 @@ transform: rotate(134deg);
 
 .burger-menu-clicked > div{
 	position: absolute;
-	top: 10px;
+	top: 11px;
     right: 0px;
+	height: 3px;
 }
 
 .side-panel {
@@ -401,6 +403,7 @@ transform: rotate(134deg);
 	border-top: 5px solid var(--default-color);
 	text-align: center;
 	z-index: 1;
+	transition: 0.5s;
 }
 
 .side-panel > ul {
@@ -409,6 +412,54 @@ transform: rotate(134deg);
 
 .side-panel > ul > li {
 	margin-top: 15px;
+}
+
+.side-panel > div > a  {
+	display: inline-block;
+}
+
+.side-panel > div > a > img {
+    width: 26px;
+    border-radius: 15px;
+    pointer-events: none;
+    border: 2px solid white;
+	transition: 0.5s;
+}
+
+#side-panel-logo {
+	bottom: 10px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
+#side-panel-logo > img {
+	width: 34px;
+}
+
+.side-panel-focus {
+	width: 90px;
+	box-shadow: 0px 0px 4px 0px black;
+}
+
+.side-panel-focus > ul {
+	text-align: left;
+	padding-left: 5px;
+}
+
+.side-panel-focus > ul > li > a {
+	display: inline-flex;
+}
+
+.side-panel-focus > ul > li > a > p {
+	color: black;
+    padding-left: 5px;
+}
+
+.side-panel-focus > div > a > img {
+	width: 45px;
+	border-radius: 30px;
 }
 
 	/* USER INFO */
@@ -426,8 +477,7 @@ transform: rotate(134deg);
 
 #userInfoWrapper {
 	margin: 0px 7px;
-	border-top: 1px solid silver;
-	padding-top: 13px;
+	padding-top: 5px;
 	position: relative;
 
 }
@@ -448,7 +498,7 @@ transform: rotate(134deg);
 #nmrKanjiHighlighted {
 	text-align: center;
     margin-top: 8px;
-    background-color: var(--dark-back);
+    background-color: var(--default-color);
     color: white;
     padding: 4px;
 }
@@ -491,7 +541,7 @@ transform: rotate(134deg);
 }
 
 #kanjiHighlightedList::-webkit-scrollbar-thumb, #reviewsMaterialList > ul::-webkit-scrollbar-thumb {
-	background-color: var(--dark-back);        
+	background-color: var(--default-color);        
 }
 
 /* REVIEWS PAGE */
@@ -523,7 +573,7 @@ transform: rotate(134deg);
     width: 60px;
     height: 24px;
     border-radius: 3px;
-    background-color: var(--dark-back);
+    background-color: var(--default-color);
     top: 25px;
     color: white;
 	left: 0;
@@ -540,7 +590,7 @@ transform: rotate(134deg);
 
 #assignmentsMaterialList > p {
     color: white;
-    background-color: var(--dark-back);
+    background-color: var(--default-color);
     padding: 6px;
     font-size: 15px;
 }
@@ -590,7 +640,7 @@ transform: rotate(134deg);
 
 /* SUMMARY */
 .summaryTitle {
-	background-color: var(--dark-back);
+	background-color: var(--default-color);
     padding: 1px;
 }
 
@@ -677,7 +727,7 @@ transform: rotate(134deg);
 }
 
 #searchResultItemWrapper::-webkit-scrollbar-thumb {
-	background-color: var(--dark-back);    
+	background-color: var(--default-color);    
 	border-radius: 20px;        
 }
 
@@ -827,6 +877,9 @@ transform: rotate(134deg);
     font-size: 14px;
     margin-top: 15px;
 	text-align: center;
+	border-bottom: 4px solid;
+    background-color: var(--default-color);
+    padding: 7px;
 }
 
 /* 8. BLACKLISTED SITE PAGE */
@@ -980,12 +1033,12 @@ transform: rotate(134deg);
 }
 
 .checkbox-enabled > .custom-checkbox-back {
-	background-color: #cfa3a2;
+	background-color: #636375;
 }
 
 .checkbox-enabled > .custom-checkbox-ball {
     margin-left: 16px;
-    background-color: #dc6560;
+    background-color: var(--default-color);
 }
 
 .settings_highlight_style_option {
@@ -1080,15 +1133,7 @@ transform: rotate(134deg);
 
 #footer {
 	text-align: center;
-	margin-top: 10px;
-	/* position: fixed;
-    bottom: 0;
-    background-color: white;
-    width: 100%;
-    left: 0;
-    height: 50px;
-    padding-top: 10px;
-    border-top: 1px solid silver; */
+	padding-top: 10px;
 }
 
 #footerWarning {

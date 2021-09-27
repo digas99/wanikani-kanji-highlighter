@@ -241,74 +241,6 @@ window.onload = () => {
 													topRightNavbar.appendChild(link);
 												});
 
-												// burger menu
-												const burgerWrapper = document.createElement("div");
-												topRightNavbar.appendChild(burgerWrapper);
-												burgerWrapper.classList.add("clickable", "burger-menu");
-												for (let i = 0; i < 3; i++) {
-													burgerWrapper.appendChild(document.createElement("div"));
-												}
-												
-												burgerWrapper.addEventListener("click", () => {
-													if (!burgerWrapper.classList.contains("burger-menu-clicked")) {
-														burgerWrapper.classList.add("burger-menu-clicked");
-
-														chrome.storage.local.set({"wkhighlight_burger_menu":true});
-																											
-														// hide navbar icons
-														Array.from(document.getElementsByClassName("navbar_icon"))
-															.forEach(icon => icon.style.display = "none");
-
-														// side panel
-														const container = document.createElement("div");
-														document.body.appendChild(container);
-														document.body.style.paddingRight = "40px";
-														container.classList.add("side-panel");
-														const ul = document.createElement("ul");
-														container.appendChild(ul);
-														["../images/settings.png", "../images/about.png", "../images/help.png", "../images/exit.png"].forEach(img => {
-															const li = document.createElement("li");
-															ul.appendChild(li);
-															const link = document.createElement("a");
-															li.appendChild(link); 
-															link.style.padding = "0 5px";
-															link.href = "#";
-															link.classList.add("navbar_icon");
-															const icon_img = document.createElement("img");
-															icon_img.id = img.split("/")[2].split(".")[0];
-															icon_img.src = img;
-															icon_img.title = icon_img.id[0].toUpperCase()+icon_img.id.slice(1);
-															icon_img.style.width = "20px";
-															link.appendChild(icon_img);
-														});
-
-														const exitIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Exit")[0];
-														if (exitIcon) exitIcon.style.paddingLeft = "3px";
-													}
-													else {
-														burgerWrapper.classList.remove("burger-menu-clicked");
-
-														chrome.storage.local.set({"wkhighlight_burger_menu":false});
-
-														document.body.style.removeProperty("padding-right");
-														document.getElementsByClassName("side-panel")[0]?.remove();
-
-														// show navbar icons
-														Array.from(document.getElementsByClassName("navbar_icon"))
-															.forEach(icon => icon.style.removeProperty("display"));
-													}
-												});
-
-												chrome.storage.local.get(["wkhighlight_burger_menu"], result => {
-													if (result["wkhighlight_burger_menu"]) {
-														burgerWrapper.dispatchEvent(new MouseEvent("click", {
-															"view": window,
-															"bubbles": true,
-															"cancelable": false
-														}));
-													}
-												});
-
 												const userElementsList = document.createElement("ul");
 												userElementsList.id = "userInfoNavbar";
 												userInfoWrapper.appendChild(userElementsList);
@@ -348,6 +280,154 @@ window.onload = () => {
 												setTimeout(() => levelBar.style.width = (userInfo["level"]/userInfo["subscription"]["max_level_granted"])*100+"%", 100);
 												levelBar.id = "levelBar";
 												accInfo.appendChild(level);
+
+												// burger menu
+												const burgerWrapper = document.createElement("div");
+												topRightNavbar.appendChild(burgerWrapper);
+												burgerWrapper.title = "Menu";
+												burgerWrapper.classList.add("clickable", "burger-menu");
+												for (let i = 0; i < 3; i++) {
+													burgerWrapper.appendChild(document.createElement("div"));
+												}
+												
+												burgerWrapper.addEventListener("click", () => {
+													if (!burgerWrapper.classList.contains("burger-menu-clicked")) {
+														burgerWrapper.classList.add("burger-menu-clicked");
+
+														chrome.storage.local.set({"wkhighlight_burger_menu":true});
+																											
+														// hide navbar icons and logo wrapper
+														Array.from(document.getElementsByClassName("navbar_icon"))
+															.forEach(icon => icon.style.display = "none");
+														const logoWrapper = document.getElementById("logoWrapper");
+														if (logoWrapper) logoWrapper.style.display = "none";
+
+														// side panel
+														const container = document.createElement("div");
+														document.body.appendChild(container);
+														document.body.style.paddingRight = "40px";
+														container.classList.add("side-panel");
+														const avatarWrapper = document.createElement("div");
+														container.appendChild(avatarWrapper);
+														avatarWrapper.style.marginTop = "10px";
+														const avatarLink = document.createElement("a");
+														avatarWrapper.appendChild(avatarLink);
+														avatarLink.href = userInfo["profile_url"];
+														avatarLink.title = userInfo["username"];
+														avatarLink.target = "_blank";
+														const avatar = document.createElement("img");
+														avatarLink.appendChild(avatar);
+														avatar.src = avatarElem ? "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0] : "/images/wanikani-default.png";
+														const level = document.createElement("p");
+														container.appendChild(level);
+														level.style.fontWeight = "bold";
+														level.style.color = "#ccc";
+														level.title = "Level";
+														level.appendChild(document.createTextNode(userInfo["level"]));
+
+														const ul = document.createElement("ul");
+														container.appendChild(ul);
+														["../images/settings.png", "../images/search.png", "../images/about.png", "../images/help.png", "../images/exit.png"].forEach(img => {
+															const li = document.createElement("li");
+															ul.appendChild(li);
+															const link = document.createElement("a");
+															li.appendChild(link); 
+															link.style.padding = "0 5px";
+															link.href = "#";
+															link.classList.add("navbar_icon");
+															const icon_img = document.createElement("img");
+															icon_img.id = img.split("/")[2].split(".")[0];
+															icon_img.src = img;
+															icon_img.title = icon_img.id[0].toUpperCase()+icon_img.id.slice(1);
+															icon_img.style.width = "20px";
+															link.appendChild(icon_img);
+														});
+
+														if (atWanikani) {
+															const searchIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Search")[0];
+															if (searchIcon) searchIcon.remove();
+
+															if (notRunAtWK) {
+																notRunAtWK.style.textAlign = "right";
+																notRunAtWK.style.borderBottom = "0px";
+																notRunAtWK.style.borderLeft = "10px solid";
+															}
+														}
+
+														const exitIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Exit")[0];
+														if (exitIcon) exitIcon.style.paddingLeft = "3px";
+
+														const logoDiv = document.createElement("div");
+														container.appendChild(logoDiv);
+														logoDiv.id = "side-panel-logo";
+														logoDiv.classList.add("clickable");
+														logoDiv.addEventListener("click", () => {
+															if (!container.classList.contains("side-panel-focus")) {
+																container.classList.add("side-panel-focus");
+																
+																Array.from(document.getElementsByClassName("navbar_icon"))
+																	.filter(icon => icon.style.display !== "none")
+																	.forEach(icon => {
+																		const label = document.createElement("p");
+																		icon.appendChild(label);
+																		label.appendChild(document.createTextNode(icon.getElementsByTagName("img")[0].title));
+																	});
+															}
+															else {
+																container.classList.remove("side-panel-focus");
+																Array.from(document.getElementsByClassName("navbar_icon"))
+																	.filter(icon => icon.style.display !== "none")
+																	.forEach(icon => {
+																		icon.getElementsByTagName("p")[0].remove();
+																	});
+															}
+														});
+														const logo = document.createElement("img");
+														logo.src="logo/logo.png";
+														logo.style.pointerEvents = "none";
+														logoDiv.appendChild(logo);
+
+														burgerWrapper.title = "Close Menu";
+														accInfoWrapper.style.display = "none";
+													}
+													else {
+														burgerWrapper.classList.remove("burger-menu-clicked");
+
+														chrome.storage.local.set({"wkhighlight_burger_menu":false});
+
+														document.body.style.removeProperty("padding-right");
+														document.getElementsByClassName("side-panel")[0]?.remove();
+
+														// show navbar icons and logo wrapper
+														Array.from(document.getElementsByClassName("navbar_icon"))
+															.forEach(icon => icon.style.removeProperty("display"));
+														const logoWrapper = document.getElementById("logoWrapper");
+														if (logoWrapper) logoWrapper.style.removeProperty("display");
+
+														if (atWanikani) {
+															if (notRunAtWK) {
+																notRunAtWK.style.removeProperty("text-align");
+																notRunAtWK.style.removeProperty("border-bottom");
+																notRunAtWK.style.removeProperty("border-left");
+															}
+														}
+
+														burgerWrapper.title = "Menu";
+														accInfoWrapper.style.display = "flex";
+													}
+												});
+
+												chrome.storage.local.get(["wkhighlight_burger_menu"], result => {
+													if (result["wkhighlight_burger_menu"]) {
+														burgerWrapper.dispatchEvent(new MouseEvent("click", {
+															"view": window,
+															"bubbles": true,
+															"cancelable": false
+														}));
+														accInfoWrapper.style.display = "none";
+													}
+												});
+
 												
 												const kanjiFound = document.createElement("li");
 												userElementsList.appendChild(kanjiFound);
@@ -486,13 +566,13 @@ window.onload = () => {
 													topRightNavbar.style.top = "7px";
 
 													const notRunAtWK = document.createElement("li");
-													notRunAtWK.appendChild(document.createTextNode("Limited features while @wanikani, sorry!"));
+													notRunAtWK.appendChild(document.createTextNode("Limited features @wanikani, sorry!"));
 													notRunAtWK.id = "notRunAtWK";
 													userElementsList.appendChild(notRunAtWK);
 												}
 
 												const blacklistButtonWrapper = document.createElement("div");
-												userInfoWrapper.appendChild(blacklistButtonWrapper);
+												main.appendChild(blacklistButtonWrapper);
 												blacklistButtonWrapper.id = "blacklistButtonWrapper";
 												const blacklistButton = document.createElement("div");
 												blacklistButton.id = "blacklistButton";
@@ -828,6 +908,9 @@ document.addEventListener("click", e => {
 		document.getElementById("main").style.display = "inherit";
 		document.getElementById("footer").style.display = "inherit";
 		document.documentElement.style.setProperty('--body-base-width', defaultWindowSize);
+		
+		Array.from(document.getElementsByClassName("navbar_icon"))
+			.forEach(icon => icon.classList.remove("disabled"));
 	}
 
 	if (targetElem.id === "exit" || (targetElem.childNodes[0] && targetElem.childNodes[0].id === "exit")) {
@@ -879,7 +962,11 @@ document.addEventListener("click", e => {
 		});
 	}
 
-	if (targetElem.id === "settings" || (targetElem.childNodes[0] && targetElem.childNodes[0].id === "settings")) {
+	if (targetElem.id === "settings" || (targetElem.childNodes[0] && targetElem.childNodes[0].id === "settings") || (targetElem.parentElement?.childNodes[0] && targetElem.parentElement.childNodes[0].id === "settings")) {
+		const targetIcon = Array.from(document.getElementsByClassName("navbar_icon"))
+			.filter(icon => icon.getElementsByTagName("IMG")[0].title === "Settings" && icon.closest(".side-panel"))[0];
+		targetIcon?.classList.add("disabled");
+
 		const content = secundaryPage("Settings", 300);
 		content.id = "settingsContent";
 		
@@ -1269,7 +1356,7 @@ document.addEventListener("click", e => {
 		});
 	}
 
-	if (targetElem.classList.contains("bin_wrapper") || targetElem.parentElement.classList.contains("bin_wrapper")) {
+	if (targetElem.classList.contains("bin_wrapper") || (targetElem.parentElement?.classList.contains("bin_wrapper"))) {
 		let site = (targetElem.id ? targetElem.id : targetElem.parentElement.id).replace("_", "\\.");
 		chrome.storage.local.get(["wkhighlight_blacklist"], data => {
 			let blacklisted = data["wkhighlight_blacklist"];
@@ -1301,7 +1388,7 @@ document.addEventListener("click", e => {
 		if (!document.getElementById("searchResultWrapper")) {
 			const searchResultWrapper = document.createElement("div");
 			searchResultWrapper.id = "searchResultWrapper";
-			document.getElementById("userInfoWrapper").insertBefore(searchResultWrapper, document.getElementById("blacklistButton").parentElement);
+			document.getElementById("userInfoWrapper").appendChild(searchResultWrapper);
 		}
 
 		if (!document.getElementById("searchResultNavbar")) {
@@ -1356,7 +1443,7 @@ document.addEventListener("click", e => {
 
 	// clicked outside search area and searching related
 	const resultWrapper = document.getElementById("searchResultWrapper");
-	if (!document.getElementById("notRunAtWK") && (!document.getElementsByClassName("searchArea")[0].contains(targetElem) && resultWrapper && !resultWrapper.contains(targetElem))) {
+	if (!document.getElementById("notRunAtWK") && (!document.getElementsByClassName("searchArea")[0].contains(targetElem) && resultWrapper && !resultWrapper.contains(targetElem)) && !targetElem.classList.contains("burger-menu")) {
 		const wrapper = document.getElementById("searchResultItemWrapper");
 		if (wrapper)
 			wrapper.remove();
@@ -1365,7 +1452,7 @@ document.addEventListener("click", e => {
 
 		document.getElementById("kanjiSearchInput").value = "";
 
-		document.getElementById("userInfoNavbar").style.display = "inline-block";
+		document.getElementById("userInfoNavbar").style.removeProperty("display");
 
 		const searchResultNavbar = document.getElementById("searchResultNavbar");
 		if (searchResultNavbar) {
@@ -1451,7 +1538,7 @@ document.addEventListener("click", e => {
 			// if there are results in the search
 			const resultsWrapper = document.getElementById("searchResultItemWrapper");
 			if (resultsWrapper && resultsWrapper.childNodes.length > 0)
-				document.documentElement.style.setProperty('--body-base-width', '700px');
+				document.documentElement.style.setProperty('--body-base-width', '630px');
 		}
 		else {
 			Array.from(document.getElementsByClassName("searchResultItemLine")).forEach(elem => {
@@ -1905,6 +1992,19 @@ document.addEventListener("click", e => {
 			}
 		});
 	}
+
+	// clicked outside side panel
+	const sidePanel = document.getElementsByClassName("side-panel")[0];
+	if (sidePanel && sidePanel.classList.contains("side-panel-focus") && (targetElem.closest("#main") || targetElem.closest("#footer") || targetElem.closest("#secPageMain"))) {
+		const sidePanelLogo = document.getElementById("side-panel-logo");
+		if (sidePanelLogo) {
+			sidePanelLogo.dispatchEvent(new MouseEvent("click", {
+				"view": window,
+				"bubbles": true,
+				"cancelable": false
+			}));
+		}
+	}
 });
 
 const singleOptionCheck = (id, labelTitle, checked) => {
@@ -2010,7 +2110,7 @@ const searchKanji = (event) => {
 	if (!document.getElementById("searchResultWrapper")) {
 		const searchResultWrapper = document.createElement("div");
 		searchResultWrapper.id = "searchResultWrapper";
-		document.getElementById("userInfoWrapper").insertBefore(searchResultWrapper, document.getElementById("blacklistButton").parentElement);
+		document.getElementById("userInfoWrapper").appendChild(searchResultWrapper);
 	}
 	document.getElementById("searchResultWrapper").appendChild(searchResultUL);
 
@@ -2148,7 +2248,7 @@ const searchKanji = (event) => {
 					}
 				}
 				if (settings["search"]["results_display"] != "searchResultOptionlist")
-					document.documentElement.style.setProperty('--body-base-width', '700px');
+					document.documentElement.style.setProperty('--body-base-width', '630px');
 			}
 
 		}
