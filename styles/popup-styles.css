@@ -348,6 +348,69 @@ transform: rotate(134deg);
 	display: flex;
 }
 
+.burger-menu {
+	width: 25px;
+    padding: 4px;
+}
+
+.burger-menu > div:not(:last-child) {
+	margin-bottom: 2px;
+}
+
+.burger-menu > div {
+	pointer-events: none;
+	width: 100%;
+    height: 4px;
+    background-color: black;
+    border-radius: 5px;
+}
+
+.burger-menu-clicked {
+	width: 18px;
+	height: 18px;
+	position: relative;
+	transition: 0.2s;
+	right: -3px;
+}
+
+.burger-menu-clicked > div:nth-child(1) {
+	transform: rotate(45deg);
+}
+
+.burger-menu-clicked > div:nth-child(2) {
+	display: none;
+}
+
+.burger-menu-clicked > div:nth-child(3) {
+	transform: rotate(-45deg);
+}
+
+.burger-menu-clicked > div{
+	position: absolute;
+	top: 10px;
+    right: 0px;
+}
+
+.side-panel {
+	height: 100%;
+	width: 40px;
+	position: absolute;
+	right: 0;
+	top: 0;
+	background-color: #3e3e4d;
+	border-top: 5px solid var(--default-color);
+	text-align: center;
+	z-index: 1;
+}
+
+.side-panel > ul {
+	filter: invert(1);
+}
+
+.side-panel > ul > li {
+	margin-top: 15px;
+}
+
 	/* USER INFO */
 
 #userInfoNavbar {

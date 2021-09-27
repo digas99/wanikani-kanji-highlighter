@@ -228,7 +228,7 @@ window.onload = () => {
 												const topRightNavbar = document.createElement("div");
 												userInfoWrapper.appendChild(topRightNavbar);
 												topRightNavbar.id = "topRightNavbar";
-												["../images/settings.png", "../images/exit.png"].forEach(img => {
+												["../images/settings.png"].forEach(img => {
 													const link = document.createElement("a");
 													link.style.padding = "0 5px";
 													link.href = "#";
@@ -239,6 +239,74 @@ window.onload = () => {
 													icon_img.title = icon_img.id[0].toUpperCase()+icon_img.id.slice(1);
 													link.appendChild(icon_img);
 													topRightNavbar.appendChild(link);
+												});
+
+												// burger menu
+												const burgerWrapper = document.createElement("div");
+												topRightNavbar.appendChild(burgerWrapper);
+												burgerWrapper.classList.add("clickable", "burger-menu");
+												for (let i = 0; i < 3; i++) {
+													burgerWrapper.appendChild(document.createElement("div"));
+												}
+												
+												burgerWrapper.addEventListener("click", () => {
+													if (!burgerWrapper.classList.contains("burger-menu-clicked")) {
+														burgerWrapper.classList.add("burger-menu-clicked");
+
+														chrome.storage.local.set({"wkhighlight_burger_menu":true});
+																											
+														// hide navbar icons
+														Array.from(document.getElementsByClassName("navbar_icon"))
+															.forEach(icon => icon.style.display = "none");
+
+														// side panel
+														const container = document.createElement("div");
+														document.body.appendChild(container);
+														document.body.style.paddingRight = "40px";
+														container.classList.add("side-panel");
+														const ul = document.createElement("ul");
+														container.appendChild(ul);
+														["../images/settings.png", "../images/about.png", "../images/help.png", "../images/exit.png"].forEach(img => {
+															const li = document.createElement("li");
+															ul.appendChild(li);
+															const link = document.createElement("a");
+															li.appendChild(link); 
+															link.style.padding = "0 5px";
+															link.href = "#";
+															link.classList.add("navbar_icon");
+															const icon_img = document.createElement("img");
+															icon_img.id = img.split("/")[2].split(".")[0];
+															icon_img.src = img;
+															icon_img.title = icon_img.id[0].toUpperCase()+icon_img.id.slice(1);
+															icon_img.style.width = "20px";
+															link.appendChild(icon_img);
+														});
+
+														const exitIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Exit")[0];
+														if (exitIcon) exitIcon.style.paddingLeft = "3px";
+													}
+													else {
+														burgerWrapper.classList.remove("burger-menu-clicked");
+
+														chrome.storage.local.set({"wkhighlight_burger_menu":false});
+
+														document.body.style.removeProperty("padding-right");
+														document.getElementsByClassName("side-panel")[0]?.remove();
+
+														// show navbar icons
+														Array.from(document.getElementsByClassName("navbar_icon"))
+															.forEach(icon => icon.style.removeProperty("display"));
+													}
+												});
+
+												chrome.storage.local.get(["wkhighlight_burger_menu"], result => {
+													if (result["wkhighlight_burger_menu"]) {
+														burgerWrapper.dispatchEvent(new MouseEvent("click", {
+															"view": window,
+															"bubbles": true,
+															"cancelable": false
+														}));
+													}
 												});
 
 												const userElementsList = document.createElement("ul");
