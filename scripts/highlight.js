@@ -20,9 +20,6 @@
 			highlightingClass = request.highlightingClass
 			notLearnedHighlightingClass = request.notLearnedHighlightingClass;
 	
-			console.log("CLASSES: ");
-			console.log(highlightingClass, notLearnedHighlightingClass);
-	
 			if (functionDelay && values && unwantedTags && highlightingClass && notLearnedYet) {
 				const textChildNodes = obj => Array.from(obj.childNodes)
 					.filter(node => node.nodeName === "#text");

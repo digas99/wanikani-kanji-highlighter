@@ -191,6 +191,12 @@ By clicking in the gear icon in the main page of the extension popup, you will f
   - **Activated:** show the popup with the details of a highlighted kanji, when hover over it
 - **Extension Icon**
   - **Kanji Counter:** show the number of highlighted Kanji in the page, on the icon of the extension
+- **Notifications**
+  - **New Reviews** notification triggered whenever there are new Reviews in the queue
+  - **Practice Reminder** notification reminding the ammount of assignments that are available at a specific time of the day chosen by the user
+  - **Searching a Webpage Word** notification triggered whenever searching a word from within any webpage
+- **Miscellaneous**
+  - **Time in 12h Format** timestamps within the chrome extension are in the 12h format (24h format if disabled)
 - **Highlight Style:** choose how do you want the kanji to be highlighted
 - **Appearance:** customize the color of several features in the app (highlight, kanji cards, etc...)
 - **Danger Section**

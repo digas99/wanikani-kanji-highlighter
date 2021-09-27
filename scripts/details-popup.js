@@ -316,7 +316,6 @@
 	}
 	
 	const createVocabDetailedInfo = (detailsPopup, vocabInfo) => {
-		console.log(vocabInfo);
 		// detailed info section
 		const detailedInfoWrapper = document.createElement("div");
 		detailedInfoWrapper.classList.add("wkhighlighter_popupDetails_detailedInfoWrapper");
@@ -704,7 +703,6 @@
 					Array.from(detailedInfoWrapper).forEach(wrapper => wrapper.remove());
 
 				if (insideBar) {
-					console.log("insideBar");
 					popup.appendChild(type == "kanji" ? createKanjiDetailedInfo(popup, item) : createVocabDetailedInfo(popup, item));
 
 					// show kanji container buttons

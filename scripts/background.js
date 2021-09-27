@@ -348,9 +348,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.selectedText)
 		chrome.contextMenus.update("wkhighlighterSearchKanji", {title: `Search WaniKani for "${request.selectedText}"`});
 
-	if (request.notifications === "new-reviews") {
-		console.log("new reviews");
-		console.log(externalPort);
+	if (request.onDisconnect === "reload") {
 		if (externalPort)
 			externalPort.onDisconnect.addListener(() => chrome.runtime.reload());
 
@@ -411,25 +409,31 @@ const setupReviewsAlarm = reviews => {
 	}
 }
 
-chrome.storage.local.get(["wkhighlight_settings"], result => {
-	console.log("here");
-	const settings = result["wkhighlight_settings"];
-	if (settings) {
-		console.log("here0");
-		// new reviews notifications
-		if (settings["notifications"]["new_reviews"]) {
-			console.log("here1");
-			chrome.alarms.getAll(alarms => {
-				// if there isn't an alarm for next reviews active
-				if (alarms.length == 0) {
-					chrome.storage.local.get("wkhighlight_reviews", result => {
-						const reviews = result["wkhighlight_reviews"];
-						console.log("here2 ", reviews);
-						if (reviews) setupReviewsAlarm(reviews);
-					});
-				}
+const setupPracticeAlarm = time => {
+	time = time?.split(":");
+	if (time?.length === 2) {
+		let date = new Date(setExactHour(new Date(), time[0]).getTime() + time[1]*60000);
+		if (date?.getTime() <= new Date().getTime()) date = changeDay(date, 1);
+		if (date) {
+			chrome.alarms.create("practice", {
+				when: date.getTime()
 			});
 		}
+	}
+}
+
+chrome.storage.local.get(["wkhighlight_settings"], result => {
+	const settings = result["wkhighlight_settings"];
+	if (settings) {
+		// new reviews notifications
+		chrome.alarms.getAll(alarms => {
+			// if there isn't an alarm for next reviews
+			if (alarms.filter(alarm => alarm.name === 'next-reviews').length == 0 && settings["notifications"]["new_reviews"])
+				chrome.storage.local.get(["wkhighlight_reviews"], result => setupReviewsAlarm(result["wkhighlight_reviews"]));
+
+			if (alarms.filter(alarm => alarm.name === 'practice').length == 0 && settings["notifications"]["practice_reminder"])
+				chrome.storage.local.get(["wkhighlight_practice_timestamp"], result => setupPracticeAlarm(result["wkhighlight_practice_timestamp"]));
+		});
 	}
 });
 
@@ -447,10 +451,27 @@ chrome.alarms.onAlarm.addListener(alarm => {
 					iconUrl: "../logo/logo.png"
 				});
 			}
-	
-			const apiKey = result["wkhighlight_apiKey"];
+
 			// setup new alarm
-			updateAvailableAssignments(apiKey, setupReviewsAlarm);
+			updateAvailableAssignments(result["wkhighlight_apiKey"], setupReviewsAlarm);
 		});	
+	}
+
+	if (alarm.name === "practice") {
+		chrome.storage.local.get(["wkhighlight_lessons", "wkhighlight_reviews", "wkhighlight_practice_timestamp"], result => {
+			const lessons = result["wkhighlight_lessons"]?.count;
+			const reviews = result["wkhighlight_reviews"]?.count;
+			if (lessons!==undefined && reviews!==undefined) {
+				chrome.notifications.create({
+					type: "basic",
+					title: "Time to practice your Japanese!",
+					message: `Lessons: ${lessons}  /  Reviews: ${reviews}`,
+					iconUrl: "../logo/logo.png"
+				});
+			}
+
+			// setup new alarm
+			setupPracticeAlarm(result["wkhighlight_practice_timestamp"]);
+		});
 	}
 });

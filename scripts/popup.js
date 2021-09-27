@@ -863,47 +863,30 @@ document.addEventListener("click", e => {
 				const settingsLabels = document.getElementsByClassName("settingsItemLabel");
 				if (settingsLabels) {
 					const practiceReminderLabel = Array.from(settingsLabels).filter(label => label.getAttribute("for") === "settings-notifications-practice_reminder")[0];
-					console.log(practiceReminderLabel);
 					if (practiceReminderLabel) {
-						const input = document.createElement("input");
-						input.id = "practice-reminder-time";
-						input.type = "time";
-						input.value = "21:30";
-						practiceReminderLabel.appendChild(input);
+						chrome.storage.local.get(["wkhighlight_practice_timestamp"], result => {
+							const input = document.createElement("input");
+							input.id = "practice-reminder-time";
+							input.type = "time";
+							input.value = result["wkhighlight_practice_timestamp"];
+							if (!result["wkhighlight_practice_timestamp"]) {
+								input.value = defaultSettings["notifications"]["practice_reminder_timestamp"];
+								chrome.storage.local.set({"wkhighlight_practice_timestamp":input.value});
+							}
+							practiceReminderLabel.appendChild(input);
+							input.addEventListener("input", e => {
+								chrome.storage.local.set({"wkhighlight_practice_timestamp":e.target.value});
+								chrome.alarms.clear("practice");
+								chrome.runtime.connect();
+								chrome.runtime.sendMessage({onDisconnect:"reload"}, () => window.chrome.runtime.lastError);
+							});
+						});
 
 						const checkbox = practiceReminderLabel.parentElement?.getElementsByClassName("settingsItemInput")[0];
 						if (!checkbox?.checked)
 							input.classList.add("disabled");
 					}
 				}
-
-				// // KANJI DETAILS POPUP SECTION
-				// const detailsPopupWrapper = document.createElement("div");
-				// settingsChecks.appendChild(detailsPopupWrapper);
-				// detailsPopupWrapper.classList.add("settingsSection", "bellow-border");
-				// const detailsPopupTitle = document.createElement("p");
-				// detailsPopupWrapper.appendChild(detailsPopupTitle);
-				// detailsPopupTitle.appendChild(document.createTextNode("Kanji Details Popup"));
-				// detailsPopupWrapper.appendChild(singleOptionCheck("settings-kanji_details_popup-activated", "Activated", settings["kanji_details_popup"]["activated"]));
-
-				// // EXTENSION ICON
-				// const extensionIconWrapper = document.createElement("div");
-				// settingsChecks.appendChild(extensionIconWrapper);
-				// extensionIconWrapper.classList.add("settingsSection", "bellow-border");
-				// const extensionIconTitle = document.createElement("p");
-				// extensionIconWrapper.appendChild(extensionIconTitle);
-				// extensionIconTitle.appendChild(document.createTextNode("Extension Icon"));
-				// extensionIconWrapper.appendChild(singleOptionCheck("settings-extension_icon-kanji_counter", "Kanji Counter", settings["extension_icon"]["kanji_counter"]));
-
-				// // NOTIFICATIONS
-				// const notifIconWrapper = document.createElement("div");
-				// settingsChecks.appendChild(notifIconWrapper);
-				// notifIconWrapper.classList.add("settingsSection", "bellow-border");
-				// const notifIconTitle = document.createElement("p");
-				// notifIconWrapper.appendChild(notifIconTitle);
-				// notifIconTitle.appendChild(document.createTextNode("Nofitications"));
-				// notifIconWrapper.appendChild(singleOptionCheck("settings-extension_icon-kanji_counter", "New Reviews", settings["extension_icon"]["kanji_counter"]));
-				// notifIconWrapper.appendChild(singleOptionCheck("settings-extension_icon-kanji_counter", "Practice Reminder", settings["extension_icon"]["kanji_counter"]));
 
 				// HIGHLIGHT STYLE SECTION
 				const highlightStyleWrapper = document.createElement("div");
@@ -1110,7 +1093,7 @@ document.addEventListener("click", e => {
 								chrome.alarms.clear("next-reviews");
 							else {
 								chrome.runtime.connect();
-								chrome.runtime.sendMessage({notifications:"new-reviews"}, () => window.chrome.runtime.lastError);
+								chrome.runtime.sendMessage({onDisconnect:"reload"}, () => window.chrome.runtime.lastError);
 							}
 							break
 						case "practice_reminder":
@@ -1118,10 +1101,14 @@ document.addEventListener("click", e => {
 							if (targetElem.checked) {
 								if (timeInput.classList.contains("disabled"))
 									timeInput.classList.remove("disabled");
+								chrome.alarms.clear("practice");
+								chrome.runtime.connect();
+								chrome.runtime.sendMessage({onDisconnect:"reload"}, () => window.chrome.runtime.lastError);
 							}
 							else {
 								if (!timeInput.classList.contains("disabled"))
 									timeInput.classList.add("disabled");
+								chrome.alarms.clear("practice");
 							}
 							break;
 					}

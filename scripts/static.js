@@ -21,6 +21,7 @@ const defaultSettings = {
 	"notifications": {
 		new_reviews: false,
 		practice_reminder: false,
+		practice_reminder_timestamp: "21:30",
 		searching_a_webpage_word: true
 	},
 	"highlight_style": {
