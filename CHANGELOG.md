@@ -1,3 +1,13 @@
+# Changelog v0.6.0
+Not Released Yet
+
+## Content
+- Notifications to remind you to practice daily
+
+## Popup
+- New side panel that is more interactive and gives a refreshed look to the app (can be activated by clicking the hamburger menu, or switched back to the old interface)
+- New About page with information regarding the App, and more
+
 # Changelog v0.5.5
 Not Released Yet
 

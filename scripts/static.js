@@ -16,7 +16,8 @@ const defaultSettings = {
 		activated: true
 	},
 	"extension_icon": {
-		kanji_counter: true
+		kanji_counter: true,
+		time_until_next_reviews: false
 	},
 	"notifications": {
 		new_reviews: false,
@@ -87,6 +88,11 @@ const settingsInterface = [
 				title:"Kanji Counter",
 				type: "checkbox",
 				id:"settings-extension_icon-kanji_counter"
+			},
+			{
+				title:"Time Until Next Reviews",
+				type: "checkbox",
+				id:"settings-extension_icon-time_until_next_reviews"
 			}
 		]
 	},

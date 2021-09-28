@@ -144,7 +144,7 @@ window.onload = () => {
 						whatIsAPIKey.appendChild(whatIsAPIKeyLink);
 					}
 					else {
-						const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50);
+						const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading account info...");
 						const loadingElem = loadingVal[0];
 						main.appendChild(loadingElem);
 
@@ -371,6 +371,9 @@ window.onload = () => {
 
 														const exitIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Exit")[0];
 														if (exitIcon) exitIcon.style.paddingLeft = "3px";
+
+														const blacklistIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Blacklist")[0];
+														if (blacklistIcon) blacklistIcon.style.paddingRight = "3px";
 
 														const logoDiv = document.createElement("div");
 														container.appendChild(logoDiv);
@@ -1527,15 +1530,21 @@ document.addEventListener("click", e => {
 				}
 			});
 	
-			if (kanjiList.length == 0 || vocabList.length == 0)
-				loadItemsLists();
+			if (kanjiList.length == 0 || vocabList.length == 0) {
+				const loadingSubjects = loading(["main-loading", "search-loading"], ["kanjiHighlightedLearned"], 50, "Loading Subjects...");
+				const loadingSubjectsElem = loadingSubjects[0];
+				document.getElementById("userInfoWrapper").appendChild(loadingSubjectsElem);
+				console.log(loadingSubjectsElem);
+				loadItemsLists(() => {
+					loadingSubjectsElem.remove();
+					clearInterval(loadingSubjects[1]);
+				});
+			}
 		}
 	}
 
 	// clicked outside search area and searching related
-	if (!document.getElementById("notRunAtWK") && !targetElem.closest("#userInfoWrapper") && targetElem.id !== "search" && !targetElem.closest(".side-panel")) {
-		console.log("del");
-
+	if (document.getElementById("searchResultNavbar") && !document.getElementById("notRunAtWK") && !targetElem.closest("#userInfoWrapper") && targetElem.id !== "search" && !targetElem.closest(".side-panel")) {
 		Array.from(document.getElementsByClassName("navbar_icon"))
 			.forEach(icon => icon.classList.remove("disabled"));
 
@@ -1856,7 +1865,7 @@ document.addEventListener("click", e => {
 			reviewsListUl.classList.add("bellow-border");
 			const futureReviewsChart = document.createElement("div");
 			futureReviewsWrapper.appendChild(futureReviewsChart);
-			const loadingChart = loading(["main-loading"], ["kanjiHighlightedLearned"], 50);
+			const loadingChart = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading Reviews Chart...");
 			const loadingChartElem = loadingChart[0];
 			futureReviewsChart.appendChild(loadingChartElem);
 
@@ -1864,7 +1873,7 @@ document.addEventListener("click", e => {
 				//setup list of material for current reviews
 				if (reviews["data"]) {
 					if (radicalList.length === 0 || kanjiList.length === 0 || vocabList.length === 0) {
-						const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50);
+						const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading Subjects...");
 						const loadingElem = loadingVal[0];
 						reviewsListUl.appendChild(loadingElem);
 
@@ -2076,7 +2085,7 @@ document.addEventListener("click", e => {
 				//setup list of material for current reviews
 				if (lessons["data"]) {
 					if (radicalList.length === 0 || kanjiList.length === 0 || vocabList.length === 0) {
-						const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50);
+						const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading Subjects...");
 						const loadingElem = loadingVal[0];
 						lessonsListUl.appendChild(loadingElem);
 	
@@ -2572,7 +2581,7 @@ const loadItemsLists = (callback) => {
 	});
 }
 
-const loading = (wrapperClasses, iconClasses, size) => {
+const loading = (wrapperClasses, iconClasses, size, message) => {
 	const wrapper = document.createElement("div");
 	wrapper.style.textAlign = "center";
 	if (wrapperClasses)
@@ -2595,6 +2604,16 @@ const loading = (wrapperClasses, iconClasses, size) => {
 		
 		img.style.filter="hue-rotate("+(counter++)+"deg)";
 	}, 4);
+
+	if (message) {
+		const messageWrapper = document.createElement("p");
+		wrapper.appendChild(messageWrapper);
+		messageWrapper.style.textAlign = "center";
+		messageWrapper.style.marginTop = "20px";
+		messageWrapper.style.fontWeight = "bold";
+		messageWrapper.style.fontSize = "13px";
+		messageWrapper.appendChild(document.createTextNode(message));
+	}
 
 	return [wrapper, interval];
 }
