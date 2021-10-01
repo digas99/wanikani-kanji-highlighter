@@ -414,6 +414,11 @@
 	border-bottom: 1px solid rgb(172, 172, 172);
 }
 
+
+.wkhighlighter_detailsPopup_cardSideBar > ul li {
+	text-align: center;
+}
+
 .wkhighlighter_detailsPopup_cardSideBar_icon {
 	pointer-events: none;
 	width: 16px;

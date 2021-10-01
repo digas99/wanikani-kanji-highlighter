@@ -93,6 +93,16 @@ const settingsInterface = [
 				title:"Time Until Next Reviews",
 				type: "checkbox",
 				id:"settings-extension_icon-time_until_next_reviews"
+			},
+			{
+				title:"Number of Reviews",
+				type: "checkbox",
+				id:"settings-extension_icon-number_of_reviews"
+			},
+			{
+				title:"Number of Lessons",
+				type: "checkbox",
+				id:"settings-extension_icon-number_of_lessons"
 			}
 		]
 	},

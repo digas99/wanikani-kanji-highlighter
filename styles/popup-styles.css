@@ -29,7 +29,7 @@ Table Of Contents
 
 :root {
 	--body-base-width: 260px;
-	--default-color: #3e3e4d;
+	--default-color: #2a2d48;
 	--radical-tag-color: #65b6ae;
 	--radical-tag-color-font: #000000;
 	--kanji-tag-color: #e7e485;
@@ -248,10 +248,12 @@ transform: rotate(134deg);
 
 
 .simple-grid > ul > li {
-    padding: 0px 5px;
+	margin: 1px;
+    padding: 0px 3px;
     display: inline-block;
-    border: 1px solid silver;
+    border: 1px solid white;
 }
+
 
 .hidden {
 	display: none;
@@ -396,10 +398,10 @@ transform: rotate(134deg);
 .side-panel {
 	height: 100%;
 	width: 40px;
-	position: absolute;
+	position: fixed;
 	right: 0;
 	top: 0;
-	background-color: #3e3e4d;
+	background-color: var(--default-color);
 	border-top: 5px solid var(--wanikani);
 	text-align: center;
 	z-index: 1;
@@ -532,7 +534,7 @@ transform: rotate(134deg);
 	color: white;
 }
 
-#kanjiHighlightedList::-webkit-scrollbar, #reviewsMaterialList > ul::-webkit-scrollbar {
+/* #kanjiHighlightedList::-webkit-scrollbar, #reviewsMaterialList > ul::-webkit-scrollbar {
 	width: 15px;
 }
 
@@ -541,6 +543,18 @@ transform: rotate(134deg);
 }
 
 #kanjiHighlightedList::-webkit-scrollbar-thumb, #reviewsMaterialList > ul::-webkit-scrollbar-thumb {
+	background-color: var(--default-color);        
+} */
+
+::-webkit-scrollbar, #reviewsMaterialList > ul::-webkit-scrollbar {
+	width: 15px;
+}
+
+::-webkit-scrollbar-track, #reviewsMaterialList > ul::-webkit-scrollbar-track {
+	background:silver;
+}
+
+::-webkit-scrollbar-thumb, #reviewsMaterialList > ul::-webkit-scrollbar-thumb {
 	background-color: var(--default-color);        
 }
 
@@ -934,7 +948,6 @@ transform: rotate(134deg);
 #settingsContent {
     font-size: 16px;
     display: grid;
-	overflow: auto;
     max-height: 516px;
 	margin-bottom: 13px;
 }

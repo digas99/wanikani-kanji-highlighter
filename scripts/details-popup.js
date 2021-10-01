@@ -96,6 +96,7 @@
 				const rowDiv = document.createElement("div");
 				li.appendChild(rowDiv);
 				rowDiv.appendChild(document.createTextNode(row));
+				rowDiv.style.textAlign = "center";
 			}
 		});
 
@@ -177,6 +178,7 @@
 			kanjiTitle.style.fontSize = "19px";
 			kanjiTitle.style.backgroundColor = "white";
 			kanjiTitle.style.marginBottom = "8px";
+			kanjiTitle.style.textAlign = "center";
 			kanjiTitle.appendChild(document.createTextNode(itemInfo["meanings"][0]));
 			kanjiTitle.id = "wkhighlighter_smallDetailsPopupKanjiTitle";
 
@@ -223,6 +225,7 @@
 		const kanjiContainerWrapper = document.createElement("div");
 		itemWrapper.appendChild(kanjiContainerWrapper);
 		kanjiContainerWrapper.style.margin = `${characters.length >= 4 ? 30 : 0}px 0`;
+		kanjiContainerWrapper.style.textAlign = "center";
 
 		const link = document.createElement("a");
 		link.target = "_blank";

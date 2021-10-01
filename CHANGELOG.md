@@ -8,6 +8,12 @@ Not Released Yet
 - New side panel that is more interactive and gives a refreshed look to the app (can be activated by clicking the hamburger menu, or switched back to the old interface)
 - New About page with information regarding the App, and more
 
+# Changelog v0.5.6
+Not Released Yet
+
+## Bug Fix
+- Fixed issue where future reviews were not being fetched and displayed in the future reviews chart
+
 # [Changelog v0.5.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.5)
 Released on 28/09/2021
 

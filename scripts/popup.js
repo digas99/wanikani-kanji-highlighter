@@ -749,29 +749,6 @@ window.onload = () => {
 		});
 		
 		document.body.appendChild(footer());
-
-		// rate message
-		chrome.storage.local.get(["wkhighlight_rateme"], result => {
-			if (!result["wkhighlight_rateme"] || !result["wkhighlight_rateme"]["closed"]) {
-				const rateMeWrapper = document.createElement("div");
-				document.body.appendChild(rateMeWrapper);
-				rateMeWrapper.classList.add("rateMeWrapper");
-
-				rateMeWrapper.appendChild(document.createTextNode("Enjoying the app? "));
-				const rateMeLink = document.createElement("a");
-				rateMeWrapper.appendChild(rateMeLink);
-				rateMeLink.href = "https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/reviews#:~:text=Rate%20this%20extension";
-				rateMeLink.appendChild(document.createTextNode("Give me a Rate!"));
-				rateMeLink.target = "_blank";
-				rateMeWrapper.appendChild(document.createTextNode(" :)"));
-				const rateMeX = document.createElement("div");
-				rateMeWrapper.appendChild(rateMeX);
-				rateMeX.id = "rateMeX";
-				rateMeX.classList.add("clickable");
-				rateMeX.appendChild(document.createTextNode("X"));
-				chrome.storage.local.set({"wkhighlight_rateme":{closed:false}});
-			}
-		});
 	});
 
 }
@@ -1229,13 +1206,6 @@ document.addEventListener("click", e => {
 				clearCacheDescription.appendChild(document.createTextNode("Clears local data. This won't affect your WaniKani account!"));
 			}
 		});
-
-		if (!document.getElementById("rateMeX")) {
-			const rateApp = document.createElement("div");
-			content.parentNode.appendChild(rateApp);
-			rateApp.style.fontSize = "16px";
-			rateApp.innerHTML = "Enjoying the app? <a target='_blank' href='https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/reviews#:~:text=Rate%20this%20extension'>Rate me!</a>";
-		}
 	}
 
 	// clicked button search in lateral panel
@@ -1687,12 +1657,6 @@ document.addEventListener("click", e => {
 		});
 	}
 
-	// if clicked on rateMeX
-	if (targetElem.id == "rateMeX") {
-		document.getElementsByClassName("rateMeWrapper")[0].remove();
-		chrome.storage.local.set({"wkhighlight_rateme":{closed:true}});
-	}
-
 	// if clicked on a kanji that can generate detail info popup
 	if (targetElem.classList.contains("kanjiDetails")) {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
@@ -1717,7 +1681,6 @@ document.addEventListener("click", e => {
 				const displaySettings = settings["assignments"]["srsMaterialsDisplay"];
 				// filter by srs stages
 				let counter = 0;
-				console.log(data);
 				let srsStagesBar = document.getElementById("srsStagesBar");
 				if (srsStagesBar)
 					srsStagesBar = srsStagesBar.getElementsByTagName("li");
@@ -1731,11 +1694,15 @@ document.addEventListener("click", e => {
 					if (assignments.length > 0) {
 						const srsWrapper = document.createElement("li");
 						container.appendChild(srsWrapper);
+						srsWrapper.style.marginBottom = "5px";
 						const srsTitle = document.createElement("p");
 						srsWrapper.appendChild(srsTitle);
 						srsTitle.classList.add("clickable");
 						srsTitle.appendChild(document.createTextNode(srsStages[srsId]["name"]+` (${assignments.length})`));
 						srsTitle.id = "reviews"+srsStages[srsId]["short"];
+						srsTitle.style.color = "white";
+						srsTitle.style.padding = "5px";
+						srsTitle.style.backgroundColor= "var(--default-color)";
 						srsTitle.addEventListener("click", e => {
 							const materialsForThisSrs = e.target.parentElement.children[1];
 							if (materialsForThisSrs.classList.contains("hidden")) {
@@ -1757,6 +1724,8 @@ document.addEventListener("click", e => {
 						const itemsListWrapper = document.createElement("div");
 						srsWrapper.appendChild(itemsListWrapper);
 						itemsListWrapper.classList.add("simple-grid");
+						itemsListWrapper.style.backgroundColor = "#838383";
+						itemsListWrapper.style.padding = "5px";
 						if (!displaySettings[srsId])
 							itemsListWrapper.classList.add("hidden");
 						const itemsList = document.createElement("ul");
@@ -2169,7 +2138,7 @@ const colorOption = (ids, labelTitle, defaultColors) => {
 		checkbox.value = color;
 		checkbox.type = "color";
 		checkbox.id = ids[index];
-		checkbox.style.width = (80/(defaultColors.length)-2)+"px";
+		checkbox.style.width = (80/(defaultColors.length))+"px";
 		checkbox.classList.add("settingsItemInput", "clickable");
 		index++;
 	});
