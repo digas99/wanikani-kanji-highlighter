@@ -437,3 +437,64 @@
 .wkhighlighter_detailsPopup_sentencesWrapper .wkhighlighter_highlighted, .wkhighlighter_highlightedNotLearned {
 	cursor: pointer !important;
 }
+
+/* 0. SUBJECT CREATION */
+
+.wkhighlighter_detailsPopup input {
+	border: none;
+	outline: none;
+	background-color: unset;
+	border-bottom: 2px solid white;
+	color: white;
+}
+
+.wkhighlighter_detailsPopup input::placeholder {
+	color: rgb(196, 196, 196);
+}
+
+.wkhighlighter_detailsPopup select {
+	background-color: unset;
+	color: white;
+	border: 2px solid white;
+}
+
+.wkhighlighter_detailsPopup option {
+	color: black;
+}
+
+.wkhighlighter_detailsPopup textarea {
+	border: none;
+	outline: none;
+	background-color: unset;
+	color: white;
+	border-bottom: 2px solid white;
+}
+
+.wkhighlighter_detailsPopup textarea::placeholder {
+	color: rgb(196, 196, 196);
+}
+
+.wkhighlighter_detailsPopup .action-buttons {
+	position: fixed;
+	bottom: 0;
+	width: 271px;
+	background-color: white;
+	height: 30px;
+	z-index: 1;
+	border: 2px solid white;
+}
+
+.wkhighlighter_detailsPopup .action-buttons > ul {
+	display: inline-flex;
+	height: 100%;
+	width: 100%;
+	background-color: #383838;
+}
+
+.wkhighlighter_detailsPopup .action-buttons > ul > li {
+	width: 100%;
+	border-left: 1px solid white;
+	border-right: 1px solid white;
+	padding-top: 5px;
+	color: white;
+}

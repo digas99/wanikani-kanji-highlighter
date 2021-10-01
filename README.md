@@ -24,7 +24,7 @@ It works with any website, and provides detailed information about any kanji tha
 3. [Pictures](#pictures)
 
 # Changelog v0.5.5
-Not Released Yet
+Released on 28/09/2021
 
 ## Content
 - New notifications system to alert when there are new Reviews in queue

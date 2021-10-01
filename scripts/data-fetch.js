@@ -57,12 +57,12 @@ const fetchAllPages = async (apiToken, page) => {
 
 // check if the data in the endpoints has been modified since the given date
 const modifiedSince = async (apiKey, date, url) => {
-	chrome.storage.local.get(["wkhighlight_apiCallsLimitExceeded"], result => {
-		const limitExceeded = result["wkhighlight_apiCallsLimitExceeded"] ? new Date(result["wkhighlight_apiCallsLimitExceeded"]) : null;
-		// check if a minute has not passed since last limit exceeded
-		if (limitExceeded && ((new Date() - limitExceeded)/(1000*60)%60 <= 1)) {
-			return false;
-		}
+	// chrome.storage.local.get(["wkhighlight_apiCallsLimitExceeded"], result => {
+	// 	const limitExceeded = result["wkhighlight_apiCallsLimitExceeded"] ? new Date(result["wkhighlight_apiCallsLimitExceeded"]) : null;
+	// 	// check if a minute has not passed since last limit exceeded
+	// 	if (limitExceeded && ((new Date() - limitExceeded)/(1000*60)%60 <= 1)) {
+	// 		return false;
+	// 	}
 
 		var requestHeaders = new Headers();
 		requestHeaders.append('Authorization', `Bearer ${apiKey}`);
@@ -74,7 +74,7 @@ const modifiedSince = async (apiKey, date, url) => {
 		return fetch(endpoint)
 			.then(response => {
 				// if exceded limit
-				if (response.status === 429) chrome.storage.local.set({"wkhighlight_apiCallsLimitExceeded":formatDate(new Date())});
+				// if (response.status === 429) chrome.storage.local.set({"wkhighlight_apiCallsLimitExceeded":formatDate(new Date())});
 	
 				const result = response.status !== 304;
 				console.log(response);
@@ -83,7 +83,7 @@ const modifiedSince = async (apiKey, date, url) => {
 		
 		})
 		.catch(errorHandling);
-	});
+// 	});
 }
 
 

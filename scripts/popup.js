@@ -610,8 +610,10 @@ window.onload = () => {
 												// get all assignments if there are none in storage or if they were modified
 												chrome.storage.local.get(["wkhighlight_assignments", "wkhighlight_assignments_updated"], result => {
 													const assignments = result["wkhighlight_assignments"];
+													console.log("here");
 													modifiedSince(apiKey, result["wkhighlight_assignments_updated"], "https://api.wanikani.com/v2/assignments")
 														.then(modified => {
+															console.log(modified);
 															if (!assignments || modified) {
 																fetchAllPages(apiKey, "https://api.wanikani.com/v2/assignments")
 																	.then(data => {
@@ -1400,6 +1402,7 @@ document.addEventListener("click", e => {
 
 						const binWrapper = document.createElement("div");
 						binWrapper.classList.add("bin_container");
+						binWrapper.title = "Remove "+site;
 						div.appendChild(binWrapper);
 						const span = document.createElement("span");
 						span.id = site.replace(".", "_");
