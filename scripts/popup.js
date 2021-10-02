@@ -464,7 +464,6 @@ window.onload = () => {
 												const summaryWrapper = document.createElement("li");
 												userElementsList.appendChild(summaryWrapper);
 												summaryWrapper.style.textAlign = "center";
-												summaryWrapper.classList.add("bellow-border");
 												const summaryUl = document.createElement("ul");
 												summaryWrapper.appendChild(summaryUl);
 												summaryUl.style.display = "inline-flex";
@@ -501,11 +500,12 @@ window.onload = () => {
 												const moreReviews = document.createElement("p");
 												summaryWrapper.appendChild(moreReviews);
 												moreReviews.style.padding = "3px 0";
+												moreReviews.style.textAlign = "right";
 												moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
 												const moreReviewsDate  = document.createElement("p");
 												summaryWrapper.appendChild(moreReviewsDate);
-												moreReviewsDate.style.fontWeight = "bold";
 												moreReviewsDate.style.padding = "3px 0";
+												moreReviewsDate.style.textAlign = "right";
 												
 												if (!atWanikani) {	
 													atWanikani = false;				
@@ -548,7 +548,7 @@ window.onload = () => {
 																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: (in the page)`;
 
 																	kanjiFoundList.id = "kanjiHighlightedList";
-																	kanjiFoundList.classList.add("simple-grid", "bellow-border");
+																	kanjiFoundList.classList.add("simple-grid");
 																	const kanjiFoundUl = document.createElement("ul");
 																	kanjiFoundList.appendChild(kanjiFoundUl);
 
@@ -1285,6 +1285,18 @@ document.addEventListener("click", e => {
 
 			switch(group) {
 				case "extension_icon":
+					// const settingsSection = targetElem.closest(".settingsSection");
+					// if (settingsSection) {
+					// 	const enabledInput = settingsSection.getElementsByClassName("checkbox-enabled")[0]
+					// 	if (enabledInput) {
+					// 		enabledInput.dispatchEvent(new MouseEvent("click", {
+					// 			"view": window,
+					// 			"bubbles": true,
+					// 			"cancelable": false
+					// 		}));
+					// 	}
+					// }
+					
 					switch (setting) {
 						case "kanji_counter":
 							let value = "";
@@ -1695,14 +1707,29 @@ document.addEventListener("click", e => {
 						const srsWrapper = document.createElement("li");
 						container.appendChild(srsWrapper);
 						srsWrapper.style.marginBottom = "5px";
-						const srsTitle = document.createElement("p");
+						const srsTitle = document.createElement("div");
 						srsWrapper.appendChild(srsTitle);
 						srsTitle.classList.add("clickable");
+						srsId = parseInt(srsId);
+						if (srsId !== 0) {
+							console.log("here");
+							const srsTitleEgg = document.createElement("div");
+							srsTitle.appendChild(srsTitleEgg);
+							srsTitleEgg.classList.add("srsTitleEgg");
+							if (srsId > 4 && srsId < 7)
+								srsTitleEgg.style.backgroundPositionX = "-22px";
+							if (srsId == 7)
+								srsTitleEgg.style.backgroundPositionX = "-45px";
+							if (srsId == 8)
+								srsTitleEgg.style.backgroundPositionX = "-67px";
+
+						}
 						srsTitle.appendChild(document.createTextNode(srsStages[srsId]["name"]+` (${assignments.length})`));
 						srsTitle.id = "reviews"+srsStages[srsId]["short"];
 						srsTitle.style.color = "white";
 						srsTitle.style.padding = "5px";
 						srsTitle.style.backgroundColor= "var(--default-color)";
+						srsTitle.style.display = "-webkit-box";
 						srsTitle.addEventListener("click", e => {
 							const materialsForThisSrs = e.target.parentElement.children[1];
 							if (materialsForThisSrs.classList.contains("hidden")) {
@@ -1721,10 +1748,10 @@ document.addEventListener("click", e => {
 						srsTitleArrowRight.style.borderColor = settings["appearance"][srsStages[srsId]["short"][0].toLowerCase()+srsStages[srsId]["short"].slice(1)+"_color"];
 						srsTitleArrowRight.style.padding = "5px";
 						srsTitleArrowRight.style.pointerEvents = "none";
+						srsTitleArrowRight.style.marginLeft = "5px";
 						const itemsListWrapper = document.createElement("div");
 						srsWrapper.appendChild(itemsListWrapper);
 						itemsListWrapper.classList.add("simple-grid");
-						itemsListWrapper.style.backgroundColor = "#838383";
 						itemsListWrapper.style.padding = "5px";
 						if (!displaySettings[srsId])
 							itemsListWrapper.classList.add("hidden");
@@ -1750,6 +1777,7 @@ document.addEventListener("click", e => {
 								case "radical":
 									filtered = radicalList.filter(radical => radical["id"] == assignment["subject_id"]);
 									li.classList.add("radical_back");
+									li.style.height = "30px";
 									cssVar = "--radical-tag-color";
 									break;
 							}
@@ -1768,9 +1796,16 @@ document.addEventListener("click", e => {
 							}
 							let backColor = hexToRGB(getComputedStyle(document.body).getPropertyValue(cssVar));
 							li.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
-							li.innerHTML = characters;
+							if (characters !== "L")
+								li.innerHTML = characters;
+							else {
+								const wrapperForL = document.createElement("div");
+								li.appendChild(wrapperForL);
+								wrapperForL.style.marginTop = "5px";
+								wrapperForL.appendChild(document.createTextNode(characters));
+							}
 							li.setAttribute('data-item-id', assignment["subject_id"]);
-							if (li.children.length > 0 && li.style.color == "rgb(255, 255, 255)") li.children[0].style.filter = "invert(1)";
+							if (characters !== "L" && li.children.length > 0 && li.style.color == "rgb(255, 255, 255)") li.children[0].style.filter = "invert(1)";
 						});
 					}
 				});	
@@ -2449,7 +2484,7 @@ const loadItemsLists = (callback) => {
 						"type" : "vocabulary",
 						"id": index,
 						"meanings": radical["meanings"],
-						"characters": radical["characters"] ? radical["characters"] : `<img height="28px" style="margin-top:-9px;margin-bottom:-4px;padding-top:8px" src="${radical["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`,
+						"characters": radical["characters"] ? radical["characters"] : `<img height="22px" style="margin-top:-3px;margin-bottom:-4px;padding-top:8px" src="${radical["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`,
 						"level": radical["level"],
 					});
 				}

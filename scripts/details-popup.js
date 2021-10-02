@@ -110,13 +110,14 @@
 		return li;
 	}
 	
-	const itemCards = (ids, data, className, level) => {
+	const itemCards = (ids, data, className, sorted) => {
 		const wrapper = document.createElement("ul");
 		wrapper.style.padding = "0";
 		if (ids && data) {
-			ids.map(id => data[id])
-			.sort((a,b) => a.level - b.level)
-			.forEach(thisData => {
+			let info = ids.map(id => data[id]);
+			if (sorted && info)
+				info = info.sort((a,b) => a.level - b.level)
+			info.forEach(thisData => {
 				const rows = [];
 				if (thisData["meanings"]) rows.push(thisData["meanings"][0]);
 				if (thisData["readings"]) rows.push(thisData["subject_type"] == "kanji" ? thisData["readings"].filter(reading => reading["primary"])[0]["reading"] : thisData["readings"][0]);
@@ -150,7 +151,7 @@
 		const table = infoTable(`${title} (${nmrItems})`, []);
 		table.classList.add("wkhighlighter_detailsPopup_sectionContainer");
 		if (nmrItems > 0)
-			table.appendChild(itemCards(ids, list, itemCardsclass));
+			table.appendChild(itemCards(ids, list, itemCardsclass, title !== "Used Kanji"));
 		else {
 			const nonefound = document.createElement("p");
 			table.appendChild(nonefound);
@@ -485,6 +486,7 @@
 
 	document.addEventListener("mouseover", e => {
 		const node = e.target;
+
 		let detailsPopup = document.getElementsByClassName("wkhighlighter_detailsPopup")[0];
 	
 		// If hovering over a kanji

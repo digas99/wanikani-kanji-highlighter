@@ -3,10 +3,14 @@ Not Released Yet
 
 ## Content
 - Notifications to remind you to practice daily
+- Used Kanji in Details Popup is no longer sorted by level, but by its position in the vocabulary subject (as it was before)
 
 ## Popup
 - New side panel that is more interactive and gives a refreshed look to the app (can be activated by clicking the hamburger menu, or switched back to the old interface)
 - New About page with information regarding the App, and more
+
+## Bug Fix
+- Fixed issue where, on Youtube, highlighted content wouldn't update when clicking on a new video
 
 # Changelog v0.5.6
 Not Released Yet

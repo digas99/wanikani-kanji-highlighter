@@ -12,6 +12,14 @@
 	chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		if (!loaded) {
 			loaded = true;
+			
+			// youtube temporary fix
+			window.addEventListener('yt-page-data-updated', () => {
+				if (totalHighlightedKanji > 0) {
+					console.log("reload");
+					window.location.reload();
+				}
+			});
 
 			const functionDelay = request.functionDelay;
 			const values = request.values;
@@ -74,6 +82,19 @@
 					}
 					return highlightedKanji;
 				}
+
+				const addStylesToIFrame = iframe => {
+					if (iframe.contentDocument.styleSheets[0]) {
+						const learnedColor = getComputedStyle(document.documentElement).getPropertyValue('--highlight-default-color');
+						const notLearnedColor = getComputedStyle(document.documentElement).getPropertyValue('--notLearned-color');
+						iframe.contentDocument.styleSheets[0].insertRule(`.wkhighlighter_highlighted {background-color: ${learnedColor} !important;}`, iframe.contentDocument.styleSheets[0].cssRules.length);
+						iframe.contentDocument.styleSheets[0].insertRule(`.wkhighlighter_highlightedNotLearned {background-color: ${notLearnedColor} !important;}`, iframe.contentDocument.styleSheets[0].cssRules.length);
+						iframe.contentDocument.styleSheets[0].insertRule(`.wkhighlighter_highlighted_underlined {border-bottom: 3px solid ${learnedColor} !important;}`, iframe.contentDocument.styleSheets[0].cssRules.length);
+						iframe.contentDocument.styleSheets[0].insertRule(`.wkhighlighter_highlighted_bold {color: ${learnedColor} !important;}`, iframe.contentDocument.styleSheets[0].cssRules.length);
+						iframe.contentDocument.styleSheets[0].insertRule(`.wkhighlighter_highlightedNotLearned_underlined {{border-bottom: 3px solid ${notLearnedColor} !important;}`, iframe.contentDocument.styleSheets[0].cssRules.length);
+						iframe.contentDocument.styleSheets[0].insertRule(`.wkhighlighter_highlightedNotLearned_bold {color: ${notLearnedColor} !important;}`, iframe.contentDocument.styleSheets[0].cssRules.length);
+					}
+				}
 				
 				const highlightSetup = (tags, highlightDelay) => {
 					setTimeout(() => {
@@ -85,14 +106,35 @@
 					}, highlightDelay);
 				}
 	
-				highlightSetup(Array.from(document.getElementsByTagName("*")), functionDelay);
+				let allTags = Array.from(document.getElementsByTagName("*"));
+				// include iframes in the highlight
+				const iframes = document.getElementsByTagName("IFRAME");
+				if (iframes) {
+					Array.from(iframes).forEach(iframe => {
+						// only add css rules if they aren't there yet
+						if (!Array.from(iframe.contentDocument.styleSheets[0].rules).map(rule => rule.selectorText).includes(".wkhighlighter_highlighted"))
+							addStylesToIFrame(iframe);
+						allTags = allTags.concat(Array.from(iframe.contentWindow.document.getElementsByTagName("*")));
+					});
+				}
+				highlightSetup(allTags, functionDelay);
 	
 				let lastNmrElements = 0;
 				let nmrElements;
 				// continuously check for the number of elements in the page
 				// if that number updates, then run highlighter again
 				const highlightUpdate = setInterval(() => {
-					const allTags = Array.from(document.getElementsByTagName("*"));
+					let allTags = Array.from(document.getElementsByTagName("*"));
+					const iframes = document.getElementsByTagName("IFRAME");
+					// include iframes in the highlight
+					if (iframes) {
+						Array.from(iframes).forEach(iframe => {
+							// only add css rules if they aren't there yet
+							if (!Array.from(iframe.contentDocument.styleSheets[0].rules).map(rule => rule.selectorText).includes(".wkhighlighter_highlighted"))
+								addStylesToIFrame(iframe);
+							allTags = allTags.concat(Array.from(iframe.contentWindow.document.getElementsByTagName("*")))
+						});
+					}
 					nmrElements = allTags.length;
 					if (nmrElements !== lastNmrElements) {
 						lastNmrElements = nmrElements;
