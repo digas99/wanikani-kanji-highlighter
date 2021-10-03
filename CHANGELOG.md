@@ -4,6 +4,7 @@ Not Released Yet
 ## Content
 - Notifications to remind you to practice daily
 - Used Kanji in Details Popup is no longer sorted by level, but by its position in the vocabulary subject (as it was before)
+- Added highlighting to elements from within an iframe (only to those iframes that allow it)
 
 ## Popup
 - New side panel that is more interactive and gives a refreshed look to the app (can be activated by clicking the hamburger menu, or switched back to the old interface)

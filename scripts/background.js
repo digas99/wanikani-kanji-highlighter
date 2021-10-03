@@ -75,6 +75,8 @@ const setupLearnedKanji = async (apiToken, page, kanji) => {
 	return learnedKanji;
 }
 
+const executeScripts = scripts => scripts.forEach(script => tabs.executeScript(null, {file: script}));
+
 const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	// setup all learnable kanji if not yet
 	console.log("setupContentScripts");
@@ -94,7 +96,7 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 		tabs.insertCSS(null, {file: 'styles/foreground-styles.css'});
 		console.log("scripts");
 		if (settings["kanji_details_popup"]["activated"])
-			tabs.executeScript(null, {file: 'scripts/details-popup.js'});
+			executeScripts(['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-creation.js', 'scripts/details-popup/subject-display.js']);
 
 		tabs.executeScript(null, {file: 'scripts/highlight.js'}, () => {
 			injectedHighlighter = true;

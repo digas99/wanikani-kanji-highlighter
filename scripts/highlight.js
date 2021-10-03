@@ -64,7 +64,7 @@
 					return false;
 				}
 	
-				const tagFilteringConditions = (tag, highlightClass) => !unwantedTags.includes(tag.localName) && textChildNodes(tag).length > 0 && !(hasDirectChildHighlighted(tag, highlightClass) || tag.classList.contains(highlightClass));
+				const tagFilteringConditions = (tag, highlightClass) => !unwantedTags.includes(tag.localName) && textChildNodes(tag).length > 0 && !(hasDirectChildHighlighted(tag, highlightClass) || tag.classList.contains(highlightClass)) && !(tag.closest(".wkhighlighter_detailsPopup") && !tag.closest(".wkhighlighter_detailsPopup_sentencesWrapper"));
 	
 				const highlighter = (values, className, allTags) => {
 					const kanjiRegex = new RegExp(`[${values.join('')}]`, "g");
@@ -111,12 +111,17 @@
 				const iframes = document.getElementsByTagName("IFRAME");
 				if (iframes) {
 					Array.from(iframes).forEach(iframe => {
-						// only add css rules if they aren't there yet
-						if (!Array.from(iframe.contentDocument.styleSheets[0].rules).map(rule => rule.selectorText).includes(".wkhighlighter_highlighted"))
-							addStylesToIFrame(iframe);
-						allTags = allTags.concat(Array.from(iframe.contentWindow.document.getElementsByTagName("*")));
+						try {
+							// only add css rules if they aren't there yet
+							if (iframe.contentDocument && !Array.from(iframe.contentDocument?.styleSheets[0].rules).map(rule => rule.selectorText).includes(".wkhighlighter_highlighted"))
+								addStylesToIFrame(iframe);
+							allTags = allTags.concat(Array.from(iframe.contentWindow.document.getElementsByTagName("*")));
+						}
+						catch (e) {
+						}
 					});
 				}
+
 				highlightSetup(allTags, functionDelay);
 	
 				let lastNmrElements = 0;
@@ -125,14 +130,18 @@
 				// if that number updates, then run highlighter again
 				const highlightUpdate = setInterval(() => {
 					let allTags = Array.from(document.getElementsByTagName("*"));
-					const iframes = document.getElementsByTagName("IFRAME");
 					// include iframes in the highlight
+					const iframes = document.getElementsByTagName("IFRAME");
 					if (iframes) {
 						Array.from(iframes).forEach(iframe => {
-							// only add css rules if they aren't there yet
-							if (!Array.from(iframe.contentDocument.styleSheets[0].rules).map(rule => rule.selectorText).includes(".wkhighlighter_highlighted"))
-								addStylesToIFrame(iframe);
-							allTags = allTags.concat(Array.from(iframe.contentWindow.document.getElementsByTagName("*")))
+							try {
+								// only add css rules if they aren't there yet
+								if (iframe.contentDocument && !Array.from(iframe.contentDocument?.styleSheets[0].rules).map(rule => rule.selectorText).includes(".wkhighlighter_highlighted"))
+									addStylesToIFrame(iframe);
+								allTags = allTags.concat(Array.from(iframe.contentWindow.document.getElementsByTagName("*")));
+							}
+							catch (e) {
+							}
 						});
 					}
 					nmrElements = allTags.length;
