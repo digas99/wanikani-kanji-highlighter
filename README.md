@@ -24,12 +24,12 @@ It works with any website, and provides detailed information about any kanji tha
 3. [Pictures](#pictures)
 
 # Changelog v0.5.6
-Not Released Yet
+Released on 03/10/2021
 
 ## Bug Fix
 - Fixed issue where future reviews were not being fetched and displayed in the future reviews chart
 
-# Changelog v0.5.5
+## Changelog v0.5.5
 Released on 28/09/2021
 
 ## Content

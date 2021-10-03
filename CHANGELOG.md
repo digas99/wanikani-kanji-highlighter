@@ -1,5 +1,5 @@
-# Changelog v0.5.6
-Not Released Yet
+# [Changelog v0.5.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.6)
+Released on 03/10/2021
 
 ## Bug Fix
 - Fixed issue where future reviews were not being fetched and displayed in the future reviews chart
