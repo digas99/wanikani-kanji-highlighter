@@ -215,9 +215,9 @@ window.onload = () => {
 										fetch("https://www.wanikani.com/users/"+userInfo["username"])
 											.then(result => result.text())
 											.then(content => {
-												let parser = new DOMParser();
-												let doc = parser.parseFromString(content, 'text/html');
-												let avatarElem = doc.getElementsByClassName("avatar user-avatar-default")[0];
+												const parser = new DOMParser();
+												const doc = parser.parseFromString(content, 'text/html');
+												const avatarElem = doc.getElementsByClassName("avatar user-avatar-default")[0];
 												
 												// remove loading animation
 												loadingElem.remove();
@@ -227,6 +227,27 @@ window.onload = () => {
 												userInfoWrapper.id = "userInfoWrapper";
 												main.appendChild(userInfoWrapper);
 					
+												// scripts uptime
+												const scriptsUptimeWrapper = document.createElement("div");
+												userInfoWrapper.appendChild(scriptsUptimeWrapper);
+												scriptsUptimeWrapper.title = "Scripts Uptime Status";
+												scriptsUptimeWrapper.id = "scriptsUptime";
+												const scriptsUptimeUl = document.createElement("ul");
+												scriptsUptimeWrapper.appendChild(scriptsUptimeUl);
+												chrome.tabs.query({currentWindow: true, active: true}, tabs => {
+													["Highlighter", "Details Popup"].forEach(script => {
+														const scriptsUptimeLi = document.createElement("li");
+														scriptsUptimeUl.appendChild(scriptsUptimeLi);
+														scriptsUptimeLi.appendChild(document.createTextNode(script));
+														const scriptsUptimeSignal = document.createElement("div");
+														scriptsUptimeLi.appendChild(scriptsUptimeSignal);
+
+														chrome.tabs.sendMessage(tabs[0].id, {uptime: script}, response => {
+															if (response) scriptsUptimeSignal.style.backgroundColor = "#80fd80";
+														});
+													});
+												});
+
 												const topRightNavbar = document.createElement("div");
 												userInfoWrapper.appendChild(topRightNavbar);
 												topRightNavbar.id = "topRightNavbar";
@@ -500,16 +521,14 @@ window.onload = () => {
 												const moreReviews = document.createElement("p");
 												summaryWrapper.appendChild(moreReviews);
 												moreReviews.style.padding = "3px 0";
-												moreReviews.style.textAlign = "right";
 												moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
 												const moreReviewsDate  = document.createElement("p");
 												summaryWrapper.appendChild(moreReviewsDate);
 												moreReviewsDate.style.padding = "3px 0";
-												moreReviewsDate.style.textAlign = "right";
-												
+
 												if (!atWanikani) {	
 													atWanikani = false;				
-													const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchKanji);
+													const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchSubject);
 													searchArea.title = "Search subjects";
 													chrome.storage.local.get(["wkhighlight_contextMenuSelectedText"], result => {
 														const selectedText = result["wkhighlight_contextMenuSelectedText"];
@@ -525,11 +544,11 @@ window.onload = () => {
 																document.body.style.setProperty("cursor", "progress", "important");
 																loadItemsLists(() => {
 																	document.body.style.cursor = "inherit";
-																	searchKanji(input)
+																	searchSubject(input)
 																});
 															}
 															else
-																searchKanji(input);
+																searchSubject(input);
 																
 															chrome.storage.local.remove(["wkhighlight_contextMenuSelectedText"]);
 															chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
@@ -927,7 +946,7 @@ document.addEventListener("click", e => {
 
 	if (targetElem.id === "exit" || (targetElem.childNodes[0] && targetElem.childNodes[0].id === "exit")) {
 		const main = document.getElementById("main");
-		chrome.storage.local.remove("wkhighlight_apiKey");
+		chrome.storage.local.clear();
 		if (main) {
 			main.replaceChild(reloadPage("Logout successfully", "green"), main.childNodes[1]);
 		}
@@ -1053,8 +1072,8 @@ document.addEventListener("click", e => {
 						});
 
 						const checkbox = practiceReminderLabel.parentElement?.getElementsByClassName("settingsItemInput")[0];
-						if (!checkbox?.checked)
-							input.classList.add("disabled");
+						if (!checkbox?.checked && document.getElementById("practice-reminder-time"))
+							document.getElementById("practice-reminder-time").classList.add("disabled");
 					}
 				}
 
@@ -1192,18 +1211,21 @@ document.addEventListener("click", e => {
 				const clearCacheTitle = document.createElement("p");
 				dangerZone.appendChild(clearCacheTitle);
 				clearCacheTitle.appendChild(document.createTextNode("Danger Section"));
-				const clearCache = document.createElement("div");
-				clearCache.classList.add("dangerItem");
-				dangerZone.appendChild(clearCache);
-				const clearCacheButton = document.createElement("div");
-				clearCache.appendChild(clearCacheButton);
-				clearCacheButton.classList.add("button");
-				clearCacheButton.id = "clearCash";
-				clearCacheButton.appendChild(document.createTextNode("Clear Cache"));
-				const clearCacheDescription = document.createElement("div");
-				clearCache.appendChild(clearCacheDescription);
-				clearCacheDescription.classList.add("dangerItemDescription");
-				clearCacheDescription.appendChild(document.createTextNode("Clears local data. This won't affect your WaniKani account!"));
+				[{name: "Clear Subjects Data", description: "Clears only the data related to subjects from WaniKani. This won't affect your WaniKani account!"},
+				{name:"Clear All", description: "Clears ALL local changes. This won't affect your WaniKani account!"}].forEach(button => {
+					const clearCache = document.createElement("div");
+					clearCache.classList.add("dangerItem");
+					dangerZone.appendChild(clearCache);
+					const clearCacheButton = document.createElement("div");
+					clearCache.appendChild(clearCacheButton);
+					clearCacheButton.classList.add("button");
+					clearCacheButton.id = button["name"].charAt(0).toLowerCase()+button["name"].split(" ").join("").slice(1);
+					clearCacheButton.appendChild(document.createTextNode(button["name"]));
+					const clearCacheDescription = document.createElement("div");
+					clearCache.appendChild(clearCacheDescription);
+					clearCacheDescription.classList.add("dangerItemDescription");
+					clearCacheDescription.appendChild(document.createTextNode(button["description"]));
+				});
 			}
 		});
 	}
@@ -1230,11 +1252,11 @@ document.addEventListener("click", e => {
 				document.body.style.setProperty("cursor", "progress", "important");
 				loadItemsLists(() => {
 					document.body.style.cursor = "inherit";
-					searchKanji(input)
+					searchSubject(input)
 				});
 			}
 			else
-				searchKanji(input);
+				searchSubject(input);
 		}
 	}
 
@@ -1354,9 +1376,8 @@ document.addEventListener("click", e => {
 		}));
 	}
 
-	if (targetElem.id === "clearCash") {
+	if (targetElem.id === "clearAll")
 		clearCache();
-	}
 
 	if (targetElem.id === "blacklistedSitesList" || (targetElem.parent && targetElem.parentElement.id === "blacklistedSitesList")) {
 		const wrapper = document.getElementById("blacklistedSitesWrapper");
@@ -1493,6 +1514,7 @@ document.addEventListener("click", e => {
 					if (settings["search"]["targeted_search"])
 						targetDiv.classList.add("full_opacity");
 					targetDiv.classList.add("searchResultNavbarTarget", "clickable");
+					targetDiv.title = "Precise Search";
 					const tagretImg = document.createElement("img");
 					targetDiv.appendChild(tagretImg);
 					tagretImg.src = "../images/target.png";
@@ -1500,10 +1522,12 @@ document.addEventListener("click", e => {
 					const listOfOptions = document.createElement("ul");
 					navbarOptions.appendChild(listOfOptions);
 					listOfOptions.style.display = "flex";
-					["list", "menu", "grid"].forEach(option => {
+					const titles = ["List", "Big Grid", "Small Grid"];
+					["list", "menu", "grid"].forEach((option, i) => {
 						const li = document.createElement("li");
 						listOfOptions.appendChild(li);
 						li.classList.add("searchResultNavbarOption", "clickable");
+						li.title = titles[i];
 						li.id = "searchResultOption"+option;
 						if (settings["search"]["results_display"] == li.id)
 							li.classList.add("full_opacity");
@@ -1586,11 +1610,11 @@ document.addEventListener("click", e => {
 			document.body.style.cursor = "progress";
 			loadItemsLists(() => {
 				document.body.style.cursor = "inherit";
-				searchKanji(input)
+				searchSubject(input)
 			});
 		}
 		else
-			searchKanji(input);
+			searchSubject(input);
 	}
 
 	// clicked in a search result line, but not the character itself
@@ -1665,6 +1689,8 @@ document.addEventListener("click", e => {
 					settings["search"]["targeted_search"] = true;
 				}
 				chrome.storage.local.set({"wkhighlight_settings":settings});
+
+				searchSubject(document.getElementById("kanjiSearchInput"));
 			}
 		});
 	}
@@ -2216,7 +2242,7 @@ document.addEventListener("keydown", e => {
 
 });
 
-const searchKanji = (event) => {
+const searchSubject = (event) => {
 	let wrapper = document.getElementById("searchResultItemWrapper");
 	if (wrapper)
 		wrapper.remove();

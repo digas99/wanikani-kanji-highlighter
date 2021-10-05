@@ -66,7 +66,8 @@ const defaultSettings = {
 		}
 	},
 	"miscellaneous": {
-		time_in_12h_format: true
+		time_in_12h_format: true,
+		show_scripts_status: true
 	}
 };
 
@@ -133,6 +134,11 @@ const settingsInterface = [
 				title: "Time in 12h Format",
 				type: "checkbox",
 				id: "settings-miscellaneous-time_in_12h_format"
+			},
+			{
+				title: "Show Scripts Status",
+				type: "checkbox",
+				id: "show_scripts_status"
 			}
 		]
 	}

@@ -64,7 +64,7 @@
 					return false;
 				}
 	
-				const tagFilteringConditions = (tag, highlightClass) => !unwantedTags.includes(tag.localName) && textChildNodes(tag).length > 0 && !(hasDirectChildHighlighted(tag, highlightClass) || tag.classList.contains(highlightClass)) && !(tag.closest(".wkhighlighter_detailsPopup") && !tag.closest(".wkhighlighter_detailsPopup_sentencesWrapper"));
+				const tagFilteringConditions = (tag, highlightClass) => !unwantedTags.includes(tag.localName) && textChildNodes(tag).length > 0 && !(hasDirectChildHighlighted(tag, highlightClass) || tag.classList.contains(highlightClass)) && !(tag.closest(".sd-detailsPopup") && !tag.closest(".sd-detailsPopup_sentencesWrapper") && !tag.closest(".sd-popupDetails_p"));
 	
 				const highlighter = (values, className, allTags) => {
 					const kanjiRegex = new RegExp(`[${values.join('')}]`, "g");
@@ -172,6 +172,9 @@
 			else
 				notLearnedHighlightingClass = request.newHighlightClass;
 		}
+
+		if (request.uptime === "Highlighter")
+			sendResponse({uptime:true});
 
 		// // message to the background saying a key was pressed
 		// document.addEventListener("keydown", e => {

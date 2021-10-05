@@ -484,6 +484,32 @@ transform: rotate(134deg);
 
 }
 
+#scriptsUptime {
+	margin-bottom: 15px;
+    background-color: #2a2d48;
+    color: white;
+    padding: 6px;
+    border-radius: 4px;
+}
+
+#scriptsUptime > ul {
+	display: flex;
+}
+
+#scriptsUptime > ul > li {
+	display: flex;
+	margin: auto;
+}
+
+#scriptsUptime > ul > li > div {
+	display: flex;
+    width: 13px;
+    height: 13px;
+	background-color: #ff6d6d;
+    border-radius: 15px;
+    margin-left: 10px;
+}
+
 #levelBarWrapper {
 	width: 100%;
     border: 1px solid silver;
@@ -1104,7 +1130,6 @@ transform: rotate(134deg);
 	background-color: var(--dark-back);
     color: silver;
     padding: 7px;
-    margin: 0 5px;
     border-radius: 0px 0px 7px 7px;
     font-size: 12px;
 }

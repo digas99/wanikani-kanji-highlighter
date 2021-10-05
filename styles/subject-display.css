@@ -1,0 +1,418 @@
+/* SUBJECT DISPLAY STYLES */
+
+:root {
+	--radical-tag-color: #65b6ae;
+	--kanji-tag-color: #e7e485;
+	--vocab-tag-color: #fc759b;
+	--reading-tag-bkcolor: #2e2e2e;
+	--popup-details-title-color: white;
+	--popup-details-title-bkcolor: #666464;
+	--detailsPopup-opacity: 0.8;
+}
+
+	/* 0. DEFAULTS */
+
+.sd-detailsPopup a {
+	text-decoration: none !important;
+}
+
+.sd-detailsPopup * {
+	padding: 0px;
+	margin: 0px;
+}
+
+.sd-detailsPopup li {
+	list-style-type: none !important;
+}
+
+.sd-detailsPopup div {
+	display: block;
+}
+
+.sd-detailsPopup strong {
+	font-weight: 600;
+}
+
+.sd-detailsPopup_kanji {
+	color: inherit !important;
+	font-size: 60px !important;
+	text-align: center;
+	color: white !important;
+}
+
+.sd-detailsPopup {
+	background-color: var(--default-color);
+    position: fixed;
+    z-index: 10000;
+	right: 0;
+	bottom: 0;
+    opacity: var(--detailsPopup-opacity);
+    width: 150px;
+	height: 170px;
+	transition: 0.3s;
+	overflow: hidden;
+	box-shadow: 0px 0px 5px 1px black;
+	font-family: Arial, Helvetica, sans-serif !important;
+	line-height: 1.34;
+	scroll-behavior: smooth;
+}
+
+.sd-detailsPopup .sd-highlighted_bold, .sd-detailsPopup .sd-highlightedNotLearned_bold {
+	color: inherit !important;
+}
+
+.sd-detailsPopup > div {
+	text-align: center;
+    /* margin-top: 10px; */
+	pointer-events: none;
+}
+
+.sd-focusPopup {
+    width: 275px;
+	opacity: 1;
+	overflow: hidden;
+	transition: 0.3s;
+}
+
+.sd-focusPopup > div {
+    margin-top: unset;
+	pointer-events: all;
+}
+
+.sd-focusPopup > .sd-popupDetails_detailedInfoWrapper {
+	text-align: left;
+}
+
+	/* 1 SCROLLBAR */
+
+.sd-detailsPopup::-webkit-scrollbar {
+	width: 10px;
+}
+  
+.sd-detailsPopup::-webkit-scrollbar-track {
+	background: var(--default-color);
+}
+
+.sd-detailsPopup::-webkit-scrollbar-thumb {
+	background-color: white;    
+	border-radius: 20px;        
+}
+
+
+	/* 2 POPUP UPPER DIV */
+
+.sd-focusPopup_kanji {
+	margin-top: 0 !important;
+	padding: 10px 0 !important;
+    position: fixed;
+    background-color: var(--default-color);
+	border-bottom: 3px solid white;
+	transition: 0.5s;
+	text-align: center !important;
+	z-index: 1;
+}
+
+#sd-detailsPopupKanjiLock {
+    bottom: 14px;
+    left: 9px;
+}
+
+#sd-detailsPopupFix {
+    bottom: 40px;
+    left: 9px;
+}
+
+#sd-detailsPopupGoUp {
+    bottom: 14px;
+    right: 9px;
+}
+
+#sd-detailsPopupGoBack {
+    top: 8px;
+    left: 9px;
+	transform: rotate(-90deg);
+}
+
+#sd-detailsPopupCloseX {
+    top: 8px;
+    right: 9px;
+}
+
+.sd-detailsPopupButton {
+	position: absolute;
+	z-index: 1;
+}
+
+.sd-detailsPopupButton>img {
+	width: 18px;
+    filter: invert(1);
+	pointer-events: none;
+}
+
+.sd-auto_height {
+	height: auto !important;
+}
+
+.sd-rightOverFlowPopup {
+	right: -150px !important;
+}
+
+.sd-popupDetails_readings {
+	display: flex;
+    flex-direction: column;
+	color: white;
+	font-size: 15px;
+}
+
+.sd-popupDetails_readings_row {
+	overflow: hidden;
+    height: 20px;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+	display: inline-flex;
+	margin: auto;
+}
+
+
+	/* 3 POPUP INFO DIV */
+
+.sd-popupDetails_detailedInfoWrapper {
+    color: white;
+	font-size: 15px;
+	margin-top: 140px !important;
+	transition: 0.3s;
+	text-align: left;
+}
+
+.sd-popupDetails_separator {
+	height: 20px;
+    border-bottom: 2px solid white;
+}
+
+.sd-popupDetails_p {
+	margin: 5px 0 !important;
+}
+
+.sd-popupDetails_kanjiTitle {
+	font-size: 25px;
+	margin-bottom: 15px !important;
+}
+
+		/* 3.1 SECTIONS */
+
+.sd-detailsPopup_sectionContainer { 
+	margin: 15px 0 !important;
+}
+
+.sd-detailsPopup_sectionContainer p:not(span) {
+    color: white;
+}
+
+.sd-popupDetails_title {
+	color: var(--popup-details-title-color);
+    background-color: var(--popup-details-title-bkcolor);
+    padding: 2px 2px 2px 5px !important;
+	border-left: 3px solid white;
+}
+
+.sd-radicalTag {
+    color: var(--radical-tag-color);
+}
+
+.sd-kanjiTag {
+    color: var(--kanji-tag-color);
+}
+
+.sd-vocabularyTag {
+    color: var(--vocab-tag-color);
+}
+
+.sd-readingTag {
+	background-color: var(--reading-tag-bkcolor);
+}
+
+.sd-jaTag,
+.sd-radicalTag,
+.sd-kanjiTag,
+.sd-vocabularyTag {
+    font-weight: bolder;
+}
+
+.sd-detailsPopup_cards {
+	color: inherit !important;
+	font-size: 40px !important;
+}
+
+/* cancel de effect of kanji highlight in certain parts of details popup */
+.sd-detailsPopup_cards, .sd-detailsPopup_kanji, .sd-detailsPopup_cards span {
+	background-color: inherit !important;
+	border-bottom: inherit !important;
+	font-weight: inherit !important;
+}
+
+.sd-itemLevelCard {
+	position: absolute;
+    right: -13px;
+    bottom: -5px;
+    background: white;
+    border: 2px solid black;
+    padding: 3px !important;
+    font-weight: bold;
+    box-shadow: 0px 3px 0px 0px black;
+    border-radius: 4px;
+	pointer-events: none;
+}
+
+.sd-detailsPopup_cardRow {
+    padding: 5px !important;
+    margin: 5px 8px !important;
+    color: black;
+	border-radius: 2px;
+	box-shadow: rgb(0 0 0) 0px 4px 0px 2px;
+	position: relative;
+	cursor: pointer;
+	transition: 0.2s;
+	max-width: 180px;
+	min-height: 53px;
+	display: inline-block;
+    text-align: center;
+}
+
+.sd-detailsPopup_cardRow a {
+	color: black !important;
+    text-decoration: none !important;
+    margin: auto !important;
+}
+
+.sd-detailsPopup_carRow p {
+	padding: 0 7px !important;
+}
+
+.sd-detailsPopup_usedRadicals_row {
+	background-color: var(--radical-tag-color);
+}
+
+.sd-detailsPopup_similarKanji_row {
+	background-color: var(--kanji-tag-color);
+}
+
+.sd-detailsPopup_vocab_row {
+	background-color: var(--vocab-tag-color);
+	width: 100%;
+}
+
+.sd-detailsPopup_cardRow:hover {
+	transform: scale(1.15);
+	z-index: 1;
+}
+
+.sd-detailsPopup_vocab_row:hover,
+.sd-detailsPopup_similarKanji_row:hover {
+	border-radius: 2px 0px 0px 2px;
+}
+
+.sd-detailsPopup_cardSideBar {
+	width: 30px;
+    background-color: white;
+    position: absolute;
+    height: 100%;
+    right: -30px;
+    top: 0;
+	text-align: center;
+    box-shadow: rgb(0 0 0) 2px 4px 0px 2px;
+    border-radius: 0px 2px 2px 0px;
+}
+
+.sd-detailsPopup_cardSideBar > ul li:not(:last-child) {
+	border-bottom: 1px solid rgb(172, 172, 172);
+}
+
+
+.sd-detailsPopup_cardSideBar > ul li {
+	text-align: center;
+}
+
+.sd-detailsPopup_cardSideBar_icon {
+	pointer-events: none;
+	width: 16px;
+	height: 16px;
+	vertical-align: text-bottom;
+	margin: auto !important;
+}
+
+.sd-detailsPopup_sentencesWrapper {
+	border-left: 3px solid white;
+    margin: 8px 0px !important;
+    background-color: rgb(32, 32, 32);
+    border-bottom-right-radius: 8px;
+	transition: 0.3s;
+}
+
+.sd-detailsPopup_sentencesWrapper:hover {
+	transform: scale(1.1);
+}
+
+.sd-detailsPopup_sentencesWrapper .sd-highlighted, .sd-highlightedNotLearned {
+	cursor: pointer !important;
+}
+
+	/* 4. SUBJECT CREATION */
+
+.sd-detailsPopup input {
+	border: none;
+	outline: none;
+	background-color: unset;
+	border-bottom: 2px solid white;
+	color: white;
+}
+
+.sd-detailsPopup input::placeholder {
+	color: rgb(196, 196, 196);
+}
+
+.sd-detailsPopup select {
+	background-color: unset;
+	color: white;
+	border: 2px solid white;
+}
+
+.sd-detailsPopup option {
+	color: black;
+}
+
+.sd-detailsPopup textarea {
+	border: none;
+	outline: none;
+	background-color: unset;
+	color: white;
+	border-bottom: 2px solid white;
+}
+
+.sd-detailsPopup textarea::placeholder {
+	color: rgb(196, 196, 196);
+}
+
+.sd-detailsPopup .action-buttons {
+	position: fixed;
+	bottom: 0;
+	width: 271px;
+	background-color: white;
+	height: 30px;
+	z-index: 1;
+	border: 2px solid white;
+}
+
+.sd-detailsPopup .action-buttons > ul {
+	display: inline-flex;
+	height: 100%;
+	width: 100%;
+	background-color: #383838;
+}
+
+.sd-detailsPopup .action-buttons > ul > li {
+	width: 100%;
+	border-left: 1px solid white;
+	border-right: 1px solid white;
+	padding-top: 5px;
+	color: white;
+}

@@ -19,29 +19,29 @@
 				this.expand();
 
 			// if hovering over a kanji card
-			if (node.classList.contains("wkhighlighter_detailsPopup_vocab_row") || node.classList.contains("wkhighlighter_detailsPopup_similarKanji_row") || (node.classList.contains("wkhighlighter_detailsPopup_cards") && (node.parentElement.parentElement.classList.contains("wkhighlighter_detailsPopup_similarKanji_row") || node.parentElement.parentElement.classList.contains("wkhighlighter_detailsPopup_vocab_row")))) {
-				document.querySelectorAll(".itemLevelCard").forEach(levelCard => levelCard.style.display = "inline");
-				document.querySelectorAll(".wkhighlighter_detailsPopup_cardRow").forEach(card => card.style.filter = "brightness(0.5)");
-				document.querySelectorAll(".wkhighlighter_detailsPopup_cardSideBar").forEach(node => node.remove());
-				const target = node.classList.contains("wkhighlighter_detailsPopup_cards") ? node.parentElement.parentElement : node;
+			if (node.classList.contains("sd-detailsPopup_vocab_row") || node.classList.contains("sd-detailsPopup_similarKanji_row") || (node.classList.contains("sd-detailsPopup_cards") && (node.parentElement.parentElement.classList.contains("sd-detailsPopup_similarKanji_row") || node.parentElement.parentElement.classList.contains("sd-detailsPopup_vocab_row")))) {
+				document.querySelectorAll(".sd-itemLevelCard").forEach(levelCard => levelCard.style.display = "inline");
+				document.querySelectorAll(".sd-detailsPopup_cardRow").forEach(card => card.style.filter = "brightness(0.5)");
+				document.querySelectorAll(".sd-detailsPopup_cardSideBar").forEach(node => node.remove());
+				const target = node.classList.contains("sd-detailsPopup_cards") ? node.parentElement.parentElement : node;
 				target.style.filter = "unset";
-				const type = target.classList.contains("wkhighlighter_detailsPopup_vocab_row") ? "vocabulary" : "kanji";
+				const type = target.classList.contains("sd-detailsPopup_vocab_row") ? "vocabulary" : "kanji";
 				let id = "";
 				target.childNodes.forEach(child => {
 					if (child.tagName == "A")
 						id = child.childNodes[0].getAttribute("data-item-id");
 		
-					if (child.classList.contains("itemLevelCard"))
+					if (child.classList.contains("sd-itemLevelCard"))
 						child.style.display = "none";
 				});
 		
 				if (target.childNodes.length == 4) {
 					const sideBar = document.createElement("div");
 					target.appendChild(sideBar);
-					sideBar.classList.add("wkhighlighter_detailsPopup_cardSideBar");
+					sideBar.classList.add("sd-detailsPopup_cardSideBar");
 					const ul = document.createElement("ul");
 					sideBar.appendChild(ul);
-					const classes = ["wkhighlighter_detailsPopup_cardSideBarAudio", "wkhighlighter_detailsPopup_cardSideBarInfo"];
+					const classes = ["sd-detailsPopup_cardSideBarAudio", "sd-detailsPopup_cardSideBarInfo"];
 					const icons = ["https://i.imgur.com/ETwuWqJ.png", "https://i.imgur.com/z5eKtlN.png"];
 					if (type == "kanji") {
 						classes.shift();
@@ -53,8 +53,8 @@
 						li.classList.add("clickable" ,classes[i]);
 						const img = document.createElement("img");
 						li.appendChild(img);
-						li.title = "Subject "+classes[i].split("wkhighlighter_detailsPopup_cardSideBar")[1];
-						img.classList.add("wkhighlighter_detailsPopup_cardSideBar_icon");
+						li.title = "Subject "+classes[i].split("sd-detailsPopup_cardSideBar")[1];
+						img.classList.add("sd-detailsPopup_cardSideBar_icon");
 						img.src = src;
 					}
 					const li = document.createElement("li");
@@ -68,10 +68,10 @@
 			}
 			
 			// if hovering outside kanji card wrapper
-			if (node && !(node.classList.contains("wkhighlighter_detailsPopup_cardRow") || (node.parentElement && node.parentElement.classList.contains("wkhighlighter_detailsPopup_cardRow")) || node.classList.contains("wkhighlighter_detailsPopup_cards") || (node.parentElement && node.parentElement.classList.contains("wkhighlighter_detailsPopup_cardSideBar")) || (node. parentElement && node.parentElement.parentElement && node.parentElement.parentElement.classList.contains("wkhighlighter_detailsPopup_cardSideBar")) || (node.parentElement && node.parentElement.parentElement && node.parentElement.parentElement.parentElement && node.parentElement.parentElement.parentElement.classList.contains("wkhighlighter_detailsPopup_cardSideBar")))) {
-				document.querySelectorAll(".itemLevelCard").forEach(levelCard => levelCard.style.removeProperty("display"));
-				document.querySelectorAll(".wkhighlighter_detailsPopup_cardRow").forEach(card => card.style.removeProperty("filter"));
-				document.querySelectorAll(".wkhighlighter_detailsPopup_cardSideBar").forEach(node => node.remove());
+			if (node && !(node.classList.contains("sd-detailsPopup_cardRow") || (node.parentElement && node.parentElement.classList.contains("sd-detailsPopup_cardRow")) || node.classList.contains("sd-detailsPopup_cards") || (node.parentElement && node.parentElement.classList.contains("sd-detailsPopup_cardSideBar")) || (node. parentElement && node.parentElement.parentElement && node.parentElement.parentElement.classList.contains("sd-detailsPopup_cardSideBar")) || (node.parentElement && node.parentElement.parentElement && node.parentElement.parentElement.parentElement && node.parentElement.parentElement.parentElement.classList.contains("sd-detailsPopup_cardSideBar")))) {
+				document.querySelectorAll(".sd-itemLevelCard").forEach(levelCard => levelCard.style.removeProperty("display"));
+				document.querySelectorAll(".sd-detailsPopup_cardRow").forEach(card => card.style.removeProperty("filter"));
+				document.querySelectorAll(".sd-detailsPopup_cardSideBar").forEach(node => node.remove());
 			}
 		});
 
@@ -79,7 +79,7 @@
 			const node = e.target;
 
 			// if clicked on close button
-			if (node.id == "wkhighlighter_detailsPopupCloseX")
+			if (node.id == "sd-detailsPopupCloseX")
 				this.close(200);
 
 			const getItemIdFromSideBar = (node) => {
@@ -96,7 +96,7 @@
 			}
 			
 			// clicked on sidebar audio
-			if (node.classList.contains("wkhighlighter_detailsPopup_cardSideBarAudio")) {
+			if (node.classList.contains("sd-detailsPopup_cardSideBarAudio")) {
 				const id = getItemIdFromSideBar(node.parentElement.parentElement.parentElement);
 				if (id) {
 					const audio = new Audio();
@@ -107,7 +107,7 @@
 			}
 	
 			// clicked on sidebar info
-			if (node.classList.contains("wkhighlighter_detailsPopup_cardSideBarInfo")) {
+			if (node.classList.contains("sd-detailsPopup_cardSideBarInfo")) {
 				const target = node.parentElement.parentElement.parentElement;
 				const id = getItemIdFromSideBar(target);
 				if (id)
@@ -115,28 +115,28 @@
 			}
 
 			// clicked a button in kanji container
-			if (node.classList.contains("wkhighlighter_detailsPopupButton")) {
+			if (node.classList.contains("sd-detailsPopupButton")) {
 				// don't switchClass in the nodes inside the array
-				if (!["wkhighlighter_detailsPopupCloseX", "wkhighlighter_detailsPopupGoBack", "wkhighlighter_detailsPopupGoUp"].includes(node.id)) {
+				if (!["sd-detailsPopupCloseX", "sd-detailsPopupGoBack", "sd-detailsPopupGoUp"].includes(node.id)) {
 					if (node.classList.contains("faded"))
 						node.classList.remove("faded");
 					else
 						node.classList.add("faded");
 				}
 
-				if (node.id == "wkhighlighter_detailsPopupFix")
+				if (node.id == "sd-detailsPopupFix")
 					this.fixed = !this.fixed;
 				
-				if (node.id == "wkhighlighter_detailsPopupKanjiLock")
+				if (node.id == "sd-detailsPopupKanjiLock")
 					this.locked = !this.locked;
 
-				if (node.id == "wkhighlighter_detailsPopupGoUp") {
+				if (node.id == "sd-detailsPopupGoUp") {
 					if (this.detailsPopup) {
 						this.detailsPopup.scrollTo(0, 0);
 					}
 				}
 
-				if (node.id == "wkhighlighter_detailsPopupGoBack") {
+				if (node.id == "sd-detailsPopupGoBack") {
 					if (this.openedSubjects.length > 0)
 						this.openedSubjects.pop();
 
@@ -155,9 +155,9 @@
 		// create popup
 		create: function() {
 			this.detailsPopup = document.createElement("div");
-			this.detailsPopup.className = "wkhighlighter_rightOverFlowPopup wkhighlighter_detailsPopup";
+			this.detailsPopup.className = "sd-rightOverFlowPopup sd-detailsPopup";
 			this.wrapper.appendChild(this.detailsPopup);
-			setTimeout(() => this.detailsPopup.classList.remove("wkhighlighter_rightOverFlowPopup"), 20);
+			setTimeout(() => this.detailsPopup.classList.remove("sd-rightOverFlowPopup"), 20);
 		},
 
 		// update popup
@@ -175,7 +175,7 @@
 				this.detailsPopup.appendChild(this.charContainer(item["characters"], id, save));
 
 				
-				const detailedInfoWrapper = this.detailsPopup.getElementsByClassName("wkhighlighter_popupDetails_detailedInfoWrapper");
+				const detailedInfoWrapper = this.detailsPopup.getElementsByClassName("sd-popupDetails_detailedInfoWrapper");
 				if (detailedInfoWrapper)
 					Array.from(detailedInfoWrapper).forEach(wrapper => wrapper.remove());
 				
@@ -183,7 +183,7 @@
 					this.detailsPopup.appendChild(type === "kanji" ? this.kanjiDetailedInfo(item) : this.vocabDetailedInfo(item));
 
 					// show kanji container buttons
-					const buttons = Array.from(this.detailsPopup.getElementsByClassName("wkhighlighter_detailsPopupButton"));
+					const buttons = Array.from(this.detailsPopup.getElementsByClassName("sd-detailsPopupButton"));
 					if (buttons)
 						buttons.forEach(button => button.classList.remove("hidden"));
 				}
@@ -192,17 +192,17 @@
 
 		// expand popup
 		expand : function () {
-			this.detailsPopup.classList.add("wkhighlighter_focusPopup");
+			this.detailsPopup.classList.add("sd-focusPopup");
 			this.detailsPopup.style.height = window.innerHeight+"px";
 			console.log(this.detailsPopup);
 
 			// remove temp kanji info from small details popup
-			const tempKanjiTitle = this.detailsPopup.getElementsByClassName("wkhighlighter_smallDetailsPopupKanjiTitle")[0];
+			const tempKanjiTitle = this.detailsPopup.getElementsByClassName("sd-smallDetailsPopupKanjiTitle")[0];
 			if (tempKanjiTitle)
 				tempKanjiTitle.remove();
 
 			// remove ... from readings
-			const readingsRow = Array.from(this.detailsPopup.getElementsByClassName("wkhighlighter_popupDetails_readings_row"));
+			const readingsRow = Array.from(this.detailsPopup.getElementsByClassName("sd-popupDetails_readings_row"));
 			readingsRow.forEach(row => {
 				const ellipsis = row.childNodes[row.childNodes.length-1];
 				if (ellipsis && ellipsis.innerText == "...")
@@ -211,18 +211,18 @@
 
 			const itemWrapper = this.detailsPopup.firstChild;
 			setTimeout(() => {
-				itemWrapper.classList.add("wkhighlighter_focusPopup_kanji");
+				itemWrapper.classList.add("sd-focusPopup_kanji");
 				itemWrapper.style.width = this.width+"px";
 				this.detailsPopup.style.overflowY = "auto";
 				this.detailsPopup.style.maxHeight = window.innerHeight+"px";
 			}, 200);
 
-			const type = itemWrapper.getElementsByClassName("wkhighlighter_detailsPopup_kanji")[0].getAttribute('data-item-type');
-			const id = itemWrapper.getElementsByClassName("wkhighlighter_detailsPopup_kanji")[0].getAttribute('data-item-id');
+			const type = itemWrapper.getElementsByClassName("sd-detailsPopup_kanji")[0].getAttribute('data-item-type');
+			const id = itemWrapper.getElementsByClassName("sd-detailsPopup_kanji")[0].getAttribute('data-item-id');
 			this.detailsPopup.appendChild(type == "kanji" ? this.kanjiDetailedInfo(this.allKanji[id]) : this.vocabDetailedInfo(this.allVocab[id]));
 
 			// show kanji container buttons
-			const buttons = Array.from(document.getElementsByClassName("wkhighlighter_detailsPopupButton"));
+			const buttons = Array.from(document.getElementsByClassName("sd-detailsPopupButton"));
 			if (buttons)
 				buttons.forEach(button => button.classList.remove("hidden"));
 
@@ -232,7 +232,7 @@
 		// close popup
 		close: function (delay) {
 			if (!this.fixed) {
-				this.detailsPopup.classList.add("wkhighlighter_rightOverFlowPopup");
+				this.detailsPopup.classList.add("sd-rightOverFlowPopup");
 
 				setTimeout(() => {
 					this.expanded = false;
@@ -246,8 +246,8 @@
 		kanjiDetailedInfo: function (kanjiInfo) {
 			// detailed info section
 			const detailedInfoWrapper = document.createElement("div");
-			detailedInfoWrapper.classList.add("wkhighlighter_popupDetails_detailedInfoWrapper");
-			const kanjiWrapper = document.getElementsByClassName("wkhighlighter_focusPopup_kanji")[0];
+			detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
+			const kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
 			if (kanjiWrapper)
 				detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
 
@@ -265,7 +265,7 @@
 		
 			// meaning container
 			const meaning = document.createElement("div");
-			meaning.classList.add("wkhighlighter_popupDetails_kanjiTitle");
+			meaning.classList.add("sd-popupDetails_kanjiTitle");
 			const meaningTitle = document.createElement("strong");
 			meaningTitle.appendChild(document.createTextNode(kanjiInfo["meanings"].join(", ")));
 			meaning.appendChild(meaningTitle);
@@ -278,13 +278,13 @@
 			details.appendChild(infoTable("Reading Mnemonic", [parseTags(kanjiInfo["reading_mnemonic"]), parseTags(kanjiInfo["reading_hint"])]));
 			
 			// used radicals cards
-			details.appendChild(itemCardsSection(kanjiInfo, "component_subject_ids", "Used Radicals", "wkhighlighter_detailsPopup_usedRadicals_row", this.allRadicals));
+			details.appendChild(itemCardsSection(kanjiInfo, "component_subject_ids", "Used Radicals", "sd-detailsPopup_usedRadicals_row", this.allRadicals));
 		
 			// similar kanji cards
-			details.appendChild(itemCardsSection(kanjiInfo, "visually_similar_subject_ids", "Similar Kanji", "wkhighlighter_detailsPopup_similarKanji_row", this.allKanji));
+			details.appendChild(itemCardsSection(kanjiInfo, "visually_similar_subject_ids", "Similar Kanji", "sd-detailsPopup_similarKanji_row", this.allKanji));
 		
 			// vocab with that kanji
-			details.appendChild(itemCardsSection(kanjiInfo, "amalgamation_subject_ids", "Vocabulary", "wkhighlighter_detailsPopup_vocab_row", this.allVocab));
+			details.appendChild(itemCardsSection(kanjiInfo, "amalgamation_subject_ids", "Vocabulary", "sd-detailsPopup_vocab_row", this.allVocab));
 		
 			this.detailsPopup.scrollTo(0, 0);
 			return detailedInfoWrapper;
@@ -293,14 +293,14 @@
 		vocabDetailedInfo: function (vocabInfo) {
 			// detailed info section
 			const detailedInfoWrapper = document.createElement("div");
-			detailedInfoWrapper.classList.add("wkhighlighter_popupDetails_detailedInfoWrapper");
-			let kanjiWrapper = document.getElementsByClassName("wkhighlighter_focusPopup_kanji")[0];
+			detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
+			let kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
 			if (kanjiWrapper)
 				detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
 			else {
 				// guarantee that the kanjiWrapper exists and is full setup to get its correct size
 				const heightUpdaterInterval = setInterval(() => {
-					kanjiWrapper = document.getElementsByClassName("wkhighlighter_focusPopup_kanji")[0];
+					kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
 					if (kanjiWrapper && kanjiWrapper.childElementCount > 1) {
 						// wait for the elements to be all setup
 						setTimeout(() => {
@@ -325,7 +325,7 @@
 
 			// meaning container
 			const meaning = document.createElement("div");
-			meaning.classList.add("wkhighlighter_popupDetails_kanjiTitle");
+			meaning.classList.add("sd-popupDetails_kanjiTitle");
 			const meaningTitle = document.createElement("strong");
 			meaningTitle.appendChild(document.createTextNode(vocabInfo["meanings"].join(", ")));
 			meaning.appendChild(meaningTitle);
@@ -338,7 +338,7 @@
 			details.appendChild(infoTable("Reading Mnemonic:", [parseTags(vocabInfo["reading_mnemonic"])]));
 
 			// used kanji
-			details.appendChild(itemCardsSection(vocabInfo, "component_subject_ids", "Used Kanji", "wkhighlighter_detailsPopup_similarKanji_row", this.allKanji));
+			details.appendChild(itemCardsSection(vocabInfo, "component_subject_ids", "Used Kanji", "sd-detailsPopup_similarKanji_row", this.allKanji));
 
 			// sentences
 			const sentencesTable = infoTable("Example Sentences:", []); 
@@ -346,11 +346,11 @@
 			vocabInfo["context_sentences"].forEach(sentence => {
 				const wrapper = document.createElement("ul");
 				sentencesTable.appendChild(wrapper);
-				wrapper.classList.add("wkhighlighter_detailsPopup_sentencesWrapper");
+				wrapper.classList.add("sd-detailsPopup_sentencesWrapper");
 
 				const en = document.createElement("li");
 				wrapper.appendChild(en);
-				en.classList.add("wkhighlighter_popupDetails_p");
+				en.classList.add("sd-popupDetails_p");
 				en.style.backgroundColor = "var(--vocab-tag-color)";
 				en.style.padding = "0px 5px";
 				en.appendChild(document.createTextNode(sentence["en"]));
@@ -372,7 +372,7 @@
 
 			const itemWrapper = document.createElement("div");
 			if (this.expanded) {
-				itemWrapper.classList.add("wkhighlighter_focusPopup_kanji");
+				itemWrapper.classList.add("sd-focusPopup_kanji");
 				itemWrapper.style.width = this.width+"px";
 			}
 			else {
@@ -385,7 +385,7 @@
 				kanjiTitle.style.marginBottom = "8px";
 				kanjiTitle.style.textAlign = "center";
 				kanjiTitle.appendChild(document.createTextNode(item["meanings"][0]));
-				kanjiTitle.classList.add("wkhighlighter_smallDetailsPopupKanjiTitle");
+				kanjiTitle.classList.add("sd-smallDetailsPopupKanjiTitle");
 
 				if (characters.length >= 3)
 					this.detailsPopup.style.width = this.width+"px";
@@ -393,23 +393,23 @@
 			
 			// kanji container buttons
 			const buttons = [
-				{id:"wkhighlighter_detailsPopupCloseX", alt: "Close", active:true, src:"https://i.imgur.com/KUjkFI9.png"},
-				{id:"wkhighlighter_detailsPopupGoBack", alt: "Go back", active:true, src:"https://i.imgur.com/e6j4jSV.png"},
-				{id:"wkhighlighter_detailsPopupGoUp", alt: "Go up", active:true, src:"https://i.imgur.com/fszQn7s.png"},
-				{id:"wkhighlighter_detailsPopupKanjiLock", alt: "Kanji lock", active:this.locked, src:"https://i.imgur.com/gaKRPen.png"},
-				{id:"wkhighlighter_detailsPopupFix", alt: "Kanji fix", active:this.fixed, src:"https://i.imgur.com/vZqwGZr.png"}
+				{id:"sd-detailsPopupCloseX", alt: "Close", active:true, src:"https://i.imgur.com/KUjkFI9.png"},
+				{id:"sd-detailsPopupGoBack", alt: "Go back", active:true, src:"https://i.imgur.com/e6j4jSV.png"},
+				{id:"sd-detailsPopupGoUp", alt: "Go up", active:true, src:"https://i.imgur.com/fszQn7s.png"},
+				{id:"sd-detailsPopupKanjiLock", alt: "Kanji lock", active:this.locked, src:"https://i.imgur.com/gaKRPen.png"},
+				{id:"sd-detailsPopupFix", alt: "Kanji fix", active:this.fixed, src:"https://i.imgur.com/vZqwGZr.png"}
 			];
 			for (let i in buttons) {
 				const button = buttons[i];
 
 				// don't add go back button if there are no kanji to go back to
-				if (button["id"] == "wkhighlighter_detailsPopupGoBack" && this.openedSubjects.length == 1)
+				if (button["id"] == "sd-detailsPopupGoBack" && this.openedSubjects.length == 1)
 					continue;
 
 				const wrapper = document.createElement("div");
 				itemWrapper.appendChild(wrapper);
 				wrapper.id = button["id"];
-				wrapper.classList.add("wkhighlighter_detailsPopupButton", "clickable", "hidden");
+				wrapper.classList.add("sd-detailsPopupButton", "clickable", "hidden");
 				// add class faded to those buttons only
 				if (!button["active"])
 					wrapper.classList.add("faded");
@@ -443,19 +443,19 @@
 			if (characters.length > 4) 
 				charsWrapper.style.setProperty("font-size", (48-6*(characters.length - 5))+"px", "important");
 		
-			charsWrapper.classList.add("wkhighlighter_detailsPopup_kanji");
+			charsWrapper.classList.add("sd-detailsPopup_kanji");
 		
 			link.href = item["document_url"];
 		
 			const ul = document.createElement("ul");
-			ul.classList.add("wkhighlighter_popupDetails_readings");
+			ul.classList.add("sd-popupDetails_readings");
 					
 			const readings = item["readings"];
 			if (type == "kanji") {
 				([["ON", "onyomi"], ["KUN", "kunyomi"]]).forEach(type => {
 					const li = document.createElement("li");
 					li.innerHTML = `<strong>${type[0]}: </strong>`;
-					li.classList.add("wkhighlighter_popupDetails_readings_row");
+					li.classList.add("sd-popupDetails_readings_row");
 					const span = document.createElement("span");
 					const readingsString = readings.filter(reading => reading.type===type[1]).map(reading => reading.reading).join(", ");
 					span.appendChild(document.createTextNode(readingsString));
@@ -471,7 +471,7 @@
 			}
 			else {
 				const li = document.createElement("li");
-				li.classList.add("wkhighlighter_popupDetails_readings_row");
+				li.classList.add("sd-popupDetails_readings_row");
 				li.appendChild(document.createTextNode(readings.join(", ")));
 				ul.appendChild(li);
 			}
@@ -493,7 +493,7 @@
 			filter.forEach(substring => {
 				if (!tags.includes(substring)) {
 					if (tagOpen)
-						finalString += `<span class="wkhighlighter_${tagOpen}Tag">${substring}</span>`;
+						finalString += `<span class="sd-${tagOpen}Tag">${substring}</span>`;
 					else
 						finalString += substring;
 				}
@@ -509,7 +509,7 @@
 		const ids = kanjiInfo[idsTag];
 		const nmrItems = ids.length;
 		const table = infoTable(`${title} (${nmrItems})`, []);
-		table.classList.add("wkhighlighter_detailsPopup_sectionContainer");
+		table.classList.add("sd-detailsPopup_sectionContainer");
 		if (nmrItems > 0)
 			table.appendChild(itemCards(ids, list, itemCardsclass, title !== "Used Kanji"));
 		else {
@@ -535,7 +535,7 @@
 				if (thisData["readings"]) rows.push(thisData["subject_type"] == "kanji" ? thisData["readings"].filter(reading => reading["primary"])[0]["reading"] : thisData["readings"][0]);
 				const card = itemCard(thisData["characters"], rows, thisData["level"]);
 				wrapper.appendChild(card);
-				card.classList.add("wkhighlighter_detailsPopup_cardRow", className);
+				card.classList.add("sd-detailsPopup_cardRow", className);
 				card.title = thisData["characters"]+" in WaniKani";
 
 				card.getElementsByTagName("A")[0].href = thisData["document_url"];
@@ -549,7 +549,7 @@
 					p.appendChild(img);
 				}
 
-				p.classList.add("wkhighlighter_detailsPopup_cards", "wkhighlighter_highlightedNotLearned");
+				p.classList.add("sd-detailsPopup_cards", "sd-highlightedNotLearned");
 				p.setAttribute('data-item-id', thisData.id);
 			});
 		}
@@ -586,7 +586,7 @@
 			const levelDiv = document.createElement("div");
 			li.appendChild(levelDiv);
 			levelDiv.appendChild(document.createTextNode(level));
-			levelDiv.classList.add("itemLevelCard");
+			levelDiv.classList.add("sd-itemLevelCard");
 		}
 
 		return li;
@@ -594,18 +594,18 @@
 
 	const infoTable = (titleText, paragraphs) => {
 		const wrapper = document.createElement("div");
-		wrapper.classList.add("wkhighlighter_detailsPopup_sectionContainer");
+		wrapper.classList.add("sd-detailsPopup_sectionContainer");
 		
 		if (titleText) {
 			const title = document.createElement("strong");
-			title.classList.add("wkhighlighter_popupDetails_title");
+			title.classList.add("sd-popupDetails_title");
 			title.appendChild(document.createTextNode(titleText));
 			wrapper.appendChild(title);
 		}
 	
 		paragraphs.forEach(pText => {
 			const p = document.createElement("p");
-			p.classList.add("wkhighlighter_popupDetails_p");
+			p.classList.add("sd-popupDetails_p");
 			p.innerHTML = pText;
 			wrapper.appendChild(p);
 		});

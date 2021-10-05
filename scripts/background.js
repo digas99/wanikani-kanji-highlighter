@@ -60,7 +60,7 @@ const fetchReviewedKanjiID = async (apiToken, page) => {
 			// return an array of all learned kanji IDs
 			return reviews
 				.map(content => content.data
-					.filter(content => content.data.subject_type === "kanji"))
+					.filter(content => content.data.subject_type === "kanji" && content.data.srs_stage > 0))
 				.flat(1)
 				.map(content => content.data.subject_id);
 		})
@@ -71,15 +71,18 @@ const fetchReviewedKanjiID = async (apiToken, page) => {
 const setupLearnedKanji = async (apiToken, page, kanji) => {
 	const IDs = await fetchReviewedKanjiID(apiToken, page);
 	const learnedKanji = IDs.map(id => kanji["wkhighlight_allkanji"][id].slug);
+	console.log(learnedKanji);
 	chrome.storage.local.set({"wkhighlight_learnedKanji": learnedKanji, "wkhighlight_learnedKanji_updated":formatDate(new Date())});
 	return learnedKanji;
 }
 
 const executeScripts = scripts => scripts.forEach(script => tabs.executeScript(null, {file: script}));
+const insertStyles = styles => styles.forEach(style => tabs.insertCSS(null, {file: style}));
 
 const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	// setup all learnable kanji if not yet
 	console.log("setupContentScripts");
+	console.log("source: ", learnedKanjiSource);
 	chrome.storage.local.get(["wkhighlight_allLearnableKanji"], result => {
 		let allLearnableKanji = result["wkhighlight_allLearnableKanji"];
 		const kanjiList = [];
@@ -93,10 +96,12 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	});
 
 	const scripts = kanji => {
-		tabs.insertCSS(null, {file: 'styles/foreground-styles.css'});
+		insertStyles(['styles/foreground-styles.css']);
 		console.log("scripts");
-		if (settings["kanji_details_popup"]["activated"])
+		if (settings["kanji_details_popup"]["activated"]) {
 			executeScripts(['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-creation.js', 'scripts/details-popup/subject-display.js']);
+			insertStyles(['styles/subject-display.css']);
+		}
 
 		tabs.executeScript(null, {file: 'scripts/highlight.js'}, () => {
 			injectedHighlighter = true;
@@ -233,14 +238,14 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 																	kanji_assoc[data.slug] = kanji.id;
 																});
 															
-															setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", {"wkhighlight_allkanji":kanji_dict});
+															setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", {"wkhighlight_allkanji":kanji_dict});
 															// saving all kanji
 															chrome.storage.local.set({"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc, "wkhighlight_allkanji_updated": now});
 														})
 														.catch(errorHandling);
 												}
 												else {
-													setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", result);
+													setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", result);
 												}
 											});
 										

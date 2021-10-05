@@ -17,9 +17,12 @@
 
 			chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				// create kanji details popup coming from search
-				const infoPopupFromSearch = request["infoPopupFromSearch"];
+				const infoPopupFromSearch = request.infoPopupFromSearch;
 				if (infoPopupFromSearch) 
 					detailsPopup.update(infoPopupFromSearch, true);
+
+				if (request.uptime === "Details Popup")
+					sendResponse({uptime:true});
 			});
 
 			document.addEventListener("mouseover", e => {
@@ -45,7 +48,7 @@
 								
 				if (detailsPopup.detailsPopup) {
 					// clicked outside details popup
-					if (node !== detailsPopup.detailsPopup && !detailsPopup.detailsPopup.contains(node) && !node.classList.contains("wkhighlighter_detailsPopup_cardSideBarInfo") && node.id !== "wkhighlighter_detailsPopupGoBack" && getComputedStyle(node).cursor !== "pointer")
+					if (node !== detailsPopup.detailsPopup && !detailsPopup.detailsPopup.contains(node) && !node.classList.contains("sd-detailsPopup_cardSideBarInfo") && node.id !== "sd-detailsPopupGoBack" && getComputedStyle(node).cursor !== "pointer")
 						detailsPopup.close(200);
 					
 					// clicked in a highlighted kanji (within the info popup)
@@ -73,7 +76,7 @@
 					if (key == 'l' || key == 'L') {
 						// LOCK KANJI ON DETAILS POPUP
 						detailsPopup.locked = !detailsPopup.locked;
-						switchClass(document.getElementById("wkhighlighter_detailsPopupKanjiLock"), "faded");
+						switchClass(document.getElementById("sd-detailsPopupKanjiLock"), "faded");
 					}
 				}
 
@@ -82,7 +85,7 @@
 					if (key == 'f' || key == 'F') {
 						// FIX DETAILS POPUP
 						detailsPopup.fixed = !detailsPopup.fixed;
-						switchClass(document.getElementById("wkhighlighter_detailsPopupFix"), "faded");
+						switchClass(document.getElementById("sd-detailsPopupFix"), "faded");
 					}
 
 					if (key == 'u' || key == 'U') {
