@@ -1,4 +1,4 @@
-const separateRomaji = (input) => {
+const separateRomaji = input => {
 	let finalArray = [];
 	let word = "";
 
@@ -16,7 +16,7 @@ const separateRomaji = (input) => {
 	return finalArray;
 }
 
-const convertToKana = (text) => {
+const convertToKana = text => {
 	let finalValue = "";
 	const vowels = ["a", "i", "u", "e", "o", "A", "I", "U", "E", "O"];
 	const split = separateRomaji(text);
@@ -31,6 +31,18 @@ const convertToKana = (text) => {
 		finalValue += kanaValue ? kanaValue : word;
 	}
 	return finalValue;
+}
+
+const isAllKana = text => {
+	// TODO
+}
+
+const isAllKanji = text => {
+	// TODO
+}
+
+const hasNonJapaneseCharacters = text => {
+	// TODO
 }
 
 const kana = {

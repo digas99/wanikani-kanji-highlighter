@@ -4,22 +4,22 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width">
 	<title>WKHighlighter</title>
-	<link rel="stylesheet" href="styles/foreground-styles.css">
+	<link rel="stylesheet" href="styles/subject-display.css">
 </head>
 <body style="font-family: sans-serif;">
 
-	<div class="wkhighlighter_detailsPopup wkhighlighter_focusPopup" style="height: 948px; overflow-y: auto; max-height: 948px; background-color: #383838;">
-		<div class="wkhighlighter_focusPopup_kanji" style="width: 275px; background-color: #383838;">
-		  <div id="wkhighlighter_detailsPopupCloseX" class="wkhighlighter_detailsPopupButton clickable" title="Close">
+	<div class="sd-detailsPopup sd-focusPopup" style="height: 948px; overflow-y: auto; max-height: 948px; background-color: #383838;">
+		<div class="sd-focusPopup_kanji" style="width: 275px; background-color: #383838;">
+		  <div id="sd-detailsPopupCloseX" class="sd-detailsPopupButton clickable" title="Close">
 			<img src="https://i.imgur.com/KUjkFI9.png" alt="Close">
 		  </div>
-		  <div id="wkhighlighter_detailsPopupGoUp" class="wkhighlighter_detailsPopupButton clickable" title="Go up">
+		  <div id="sd-detailsPopupGoUp" class="sd-detailsPopupButton clickable" title="Go up">
 			<img src="https://i.imgur.com/fszQn7s.png" alt="Go up">
 		  </div>
-		  <div id="wkhighlighter_detailsPopupKanjiLock" class="wkhighlighter_detailsPopupButton clickable" title="Kanji lock">
+		  <div id="sd-detailsPopupSubjectLock" class="sd-detailsPopupButton clickable" title="Kanji lock">
 			<img src="https://i.imgur.com/gaKRPen.png" alt="Kanji lock">
 		  </div>
-		  <div id="wkhighlighter_detailsPopupFix" class="wkhighlighter_detailsPopupButton clickable" title="Kanji fix">
+		  <div id="sd-detailsPopupFix" class="sd-detailsPopupButton clickable" title="Kanji fix">
 			<img src="https://i.imgur.com/vZqwGZr.png" alt="Kanji fix">
 		  </div>
 		  <div style="margin: 0px;">
@@ -31,17 +31,17 @@
 				margin-bottom: 12px;
 				" placeholder="漢字" title="Subject characters">
 			</div>
-			<ul class="wkhighlighter_popupDetails_readings" title="Readings">
-			  <li class="wkhighlighter_popupDetails_readings_row" style="margin-bottom: 5px;">
+			<ul class="sd-popupDetails_readings" title="Readings">
+			  <li class="sd-popupDetails_readings_row" style="margin-bottom: 5px;">
 				  <input placeholder="Onyomi" style="text-align: center;">
 			  </li>
-			  <li class="wkhighlighter_popupDetails_readings_row">
+			  <li class="sd-popupDetails_readings_row">
 				  <input placeholder="Kunyomi" style="text-align: center;">
 			  </li>
 			</ul>
 		  </div>
 		</div>
-		<div class="wkhighlighter_popupDetails_detailedInfoWrapper">
+		<div class="sd-popupDetails_detailedInfoWrapper">
 		  <div style="padding: 15px;padding-top: 20px;">
 			<div style="margin-bottom: 10px;">
 			  <select title ="Subject type">
@@ -49,24 +49,24 @@
 				<option>Vocabulary</option>
 			  </select>
 			</div>
-			<div class="wkhighlighter_popupDetails_kanjiTitle"><input placeholder="Meanings" style="
+			<div class="sd-popupDetails_kanjiTitle"><input placeholder="Meanings" style="
 			  width: 100%; font-size: 20px;"></div>
-			<div class="wkhighlighter_detailsPopup_sectionContainer">
-			  <strong class="wkhighlighter_popupDetails_title">Meaning Mnemonic</strong>
-			  <p class="wkhighlighter_popupDetails_p"> <textarea placeholder="Your mnemonic for the meanings..." style="
+			<div class="sd-detailsPopup_sectionContainer">
+			  <strong class="sd-popupDetails_title">Meaning Mnemonic</strong>
+			  <p class="sd-popupDetails_p"> <textarea placeholder="Your mnemonic for the meanings..." style="
 				width: 100%;
 				" rows="7"></textarea></p>
 			</div>
-			<div class="wkhighlighter_detailsPopup_sectionContainer">
-			  <strong class="wkhighlighter_popupDetails_title">Reading Mnemonic</strong>
-			  <p class="wkhighlighter_popupDetails_p"><textarea placeholder="Your mnemonic for the readings..." style="
+			<div class="sd-detailsPopup_sectionContainer">
+			  <strong class="sd-popupDetails_title">Reading Mnemonic</strong>
+			  <p class="sd-popupDetails_p"><textarea placeholder="Your mnemonic for the readings..." style="
 				width: 100%;
 				" rows="7"></textarea></p>
 			</div>
-			<div class="wkhighlighter_detailsPopup_sectionContainer">
-			  <strong class="wkhighlighter_popupDetails_title">Used Radicals</strong>
+			<div class="sd-detailsPopup_sectionContainer">
+			  <strong class="sd-popupDetails_title">Used Radicals</strong>
 			  <ul style="padding: 0px;">
-				<li class="wkhighlighter_detailsPopup_cardRow " title="Add a Radical that makes up this Kanji" style="filter: unset; width: 60px; background-color: white;">
+				<li class="sd-detailsPopup_cardRow " title="Add a Radical that makes up this Kanji" style="filter: unset; width: 60px; background-color: white;">
 				  <div style="
 					font-size: 50px;
 					">+</div>
@@ -74,10 +74,10 @@
 				</li>
 			  </ul>
 			</div>
-			<div class="wkhighlighter_detailsPopup_sectionContainer">
-			  <strong class="wkhighlighter_popupDetails_title">Similar Kanji</strong>
+			<div class="sd-detailsPopup_sectionContainer">
+			  <strong class="sd-popupDetails_title">Similar Kanji</strong>
 			  <ul style="padding: 0px;">
-				<li class="wkhighlighter_detailsPopup_cardRow wkhighlighter_detailsPopup_similarKanji_row" title="Add a Similar Kanji to this one" style="filter: unset; width: 60px; background-color: white;">
+				<li class="sd-detailsPopup_cardRow sd-detailsPopup_similarKanji_row" title="Add a Similar Kanji to this one" style="filter: unset; width: 60px; background-color: white;">
 				  <div style="
 					font-size: 50px;
 					">+</div>
@@ -85,10 +85,10 @@
 				</li>
 			  </ul>
 			</div>
-			<div class="wkhighlighter_detailsPopup_sectionContainer">
-			  <strong class="wkhighlighter_popupDetails_title">Vocabulary</strong>
+			<div class="sd-detailsPopup_sectionContainer">
+			  <strong class="sd-popupDetails_title">Vocabulary</strong>
 			  <ul style="padding: 0px;">
-				<li class="wkhighlighter_detailsPopup_cardRow wkhighlighter_detailsPopup_vocab_row" title="Add a Vocabulary containing this Kanji" style="filter: unset; background-color: white;">
+				<li class="sd-detailsPopup_cardRow sd-detailsPopup_vocab_row" title="Add a Vocabulary containing this Kanji" style="filter: unset; background-color: white;">
 				  <div style="
 					font-size: 50px;
 					">+</div>

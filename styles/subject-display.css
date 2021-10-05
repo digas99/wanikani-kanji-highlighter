@@ -83,6 +83,23 @@
 	text-align: left;
 }
 
+.clickable { 
+	cursor: pointer;
+	transition: 0.2s;
+}
+
+.clickable:hover {
+	opacity: 0.5 !important;
+}
+
+.hidden {
+	display: none !important;
+}
+
+.faded {
+	opacity: 0.3 !important;
+}
+
 	/* 1 SCROLLBAR */
 
 .sd-detailsPopup::-webkit-scrollbar {
@@ -112,13 +129,18 @@
 	z-index: 1;
 }
 
-#sd-detailsPopupKanjiLock {
+#sd-detailsPopupSubjectLock {
     bottom: 14px;
     left: 9px;
 }
 
 #sd-detailsPopupFix {
-    bottom: 40px;
+    bottom: 42px;
+    left: 9px;
+}
+
+#sd-detailsPopupEdit {
+    bottom: 70px;
     left: 9px;
 }
 
@@ -129,7 +151,7 @@
 
 #sd-detailsPopupGoBack {
     top: 8px;
-    left: 9px;
+    left: 6px;
 	transform: rotate(-90deg);
 }
 
@@ -358,38 +380,53 @@
 
 	/* 4. SUBJECT CREATION */
 
+.sd-detailsPopup input, .sd-detailsPopup textarea, .sd-detailsPopup select, .sd-detailsPopup option {
+	all: unset !important;
+}
+
 .sd-detailsPopup input {
-	border: none;
-	outline: none;
-	background-color: unset;
-	border-bottom: 2px solid white;
-	color: white;
+	font-size: 18px !important;
 }
 
 .sd-detailsPopup input::placeholder {
-	color: rgb(196, 196, 196);
+	color: rgb(196, 196, 196) !important;
 }
 
 .sd-detailsPopup select {
-	background-color: unset;
-	color: white;
-	border: 2px solid white;
+	background-color: unset !important;
+	color: white !important;
+	border: 2px solid white !important;
 }
 
 .sd-detailsPopup option {
-	color: black;
+	color: black !important;
+}
+
+.sd-detailsPopup textarea, .sd-detailsPopup input {
+	border: none !important;
+	outline: none !important;
+	background-color: unset !important;
+	color: #d2d2d2 !important;
+	border-bottom: 2px solid white !important;
 }
 
 .sd-detailsPopup textarea {
-	border: none;
-	outline: none;
-	background-color: unset;
-	color: white;
-	border-bottom: 2px solid white;
+	font-size: 17px !important;
 }
 
+.sd-detailsPopup textarea:focus, .sd-detailsPopup input:focus {
+	color: white !important;
+	border: 2px solid white !important;
+	padding: 5px !important;
+}
+
+.sd-detailsPopup textarea:focus {
+	width: 95% !important;
+}
+
+
 .sd-detailsPopup textarea::placeholder {
-	color: rgb(196, 196, 196);
+	color: rgb(196, 196, 196) !important;
 }
 
 .sd-detailsPopup .action-buttons {
@@ -397,7 +434,7 @@
 	bottom: 0;
 	width: 271px;
 	background-color: white;
-	height: 30px;
+	height: 35px;
 	z-index: 1;
 	border: 2px solid white;
 }

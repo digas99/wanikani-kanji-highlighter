@@ -99,7 +99,7 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 		insertStyles(['styles/foreground-styles.css']);
 		console.log("scripts");
 		if (settings["kanji_details_popup"]["activated"]) {
-			executeScripts(['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-creation.js', 'scripts/details-popup/subject-display.js']);
+			executeScripts(['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js', 'scripts/kana.js']);
 			insertStyles(['styles/subject-display.css']);
 		}
 
@@ -109,7 +109,6 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 			chrome.storage.local.get(["wkhighlight_allLearnableKanji"], result => {
 				const allKanji = result["wkhighlight_allLearnableKanji"];
 				if (allKanji) {
-					console.log("classes: ", highlightingClass, notLearnedHighlightingClass);
 					tabs.sendMessage(thisTabId, {
 						functionDelay: functionDelay, 
 						values: kanji,
@@ -167,7 +166,6 @@ tabs.onActivated.addListener(activeInfo => {
 				}
 			}
 			else {
-				console.log("in wanikani");
 				chrome.browserAction.setBadgeText({text: "W", tabId:thisTabId});
 				chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1", tabId:thisTabId});
 			}
@@ -323,6 +321,11 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 				else {
 					chrome.browserAction.setBadgeText({text: "W", tabId:thisTabId});
 					chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1", tabId:thisTabId});
+					// inject details popup to allow subjects creation
+					if (settings["kanji_details_popup"]["activated"]) {
+						executeScripts(['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js', 'scripts/kana.js']);
+						insertStyles(['styles/subject-display.css']);
+					}
 				}
 			}
 		});

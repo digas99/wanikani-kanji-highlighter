@@ -17,9 +17,13 @@
 
 			chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				// create kanji details popup coming from search
-				const infoPopupFromSearch = request.infoPopupFromSearch;
-				if (infoPopupFromSearch) 
-					detailsPopup.update(infoPopupFromSearch, true);
+				if (!detailsPopup.editing) {
+					if (request.infoPopupFromSearch) 
+						detailsPopup.update(request.infoPopupFromSearch, true);
+
+					if (request.createSubjectFromPopup)
+						detailsPopup.edit();
+				}
 
 				if (request.uptime === "Details Popup")
 					sendResponse({uptime:true});
@@ -48,7 +52,7 @@
 								
 				if (detailsPopup.detailsPopup) {
 					// clicked outside details popup
-					if (node !== detailsPopup.detailsPopup && !detailsPopup.detailsPopup.contains(node) && !node.classList.contains("sd-detailsPopup_cardSideBarInfo") && node.id !== "sd-detailsPopupGoBack" && getComputedStyle(node).cursor !== "pointer")
+					if (node !== detailsPopup.detailsPopup && !detailsPopup.detailsPopup.contains(node) && !node.classList.contains("sd-detailsPopup_cardSideBarInfo") && !["sd-detailsPopupGoBack", "sd-detailsPopupEdit"].includes(node.id) && getComputedStyle(node).cursor !== "pointer")
 						detailsPopup.close(200);
 					
 					// clicked in a highlighted kanji (within the info popup)
@@ -66,50 +70,52 @@
 			document.addEventListener("keydown", e => {
 				const key = e.key;
 
-				// if there is detailsPopup
-				if (detailsPopup.detailsPopup) {
-					if (key == 'x' || key == 'X') {
-						// CLOSE DETAILS POPUP
-						detailsPopup.close(200);
-					}
+				if (!detailsPopup.editing) {
+					// if there is detailsPopup
+					if (detailsPopup.detailsPopup) {
+						if (key == 'x' || key == 'X') {
+							// CLOSE DETAILS POPUP
+							detailsPopup.close(200);
+						}
 
-					if (key == 'l' || key == 'L') {
-						// LOCK KANJI ON DETAILS POPUP
-						detailsPopup.locked = !detailsPopup.locked;
-						switchClass(document.getElementById("sd-detailsPopupKanjiLock"), "faded");
-					}
-				}
-
-				// if details popup is expanded
-				if (detailsPopup.expanded) {
-					if (key == 'f' || key == 'F') {
-						// FIX DETAILS POPUP
-						detailsPopup.fixed = !detailsPopup.fixed;
-						switchClass(document.getElementById("sd-detailsPopupFix"), "faded");
-					}
-
-					if (key == 'u' || key == 'U') {
-						// SCROLL UP
-						if (detailsPopup.detailsPopup) {
-							detailsPopup.detailsPopup.scrollTo(0, 0);
+						if (key == 'l' || key == 'L') {
+							// LOCK KANJI ON DETAILS POPUP
+							detailsPopup.locked = !detailsPopup.locked;
+							switchClass(document.getElementById("sd-detailsPopupKanjiLock"), "faded");
 						}
 					}
 
-					if (key == 'b' || key == "B") {
-						// SHOW PREVIOUS KANJI INFO
-						if (detailsPopup.openedSubjects.length > 0)
-							detailsPopup.openedSubjects.pop();
+					// if details popup is expanded
+					if (detailsPopup.expanded) {
+						if (key == 'f' || key == 'F') {
+							// FIX DETAILS POPUP
+							detailsPopup.fixed = !detailsPopup.fixed;
+							switchClass(document.getElementById("sd-detailsPopupFix"), "faded");
+						}	
 
-						const kanji = detailsPopup.openedSubjects[detailsPopup.openedSubjects.length-1];
-						if (kanji)
-						detailsPopup.update(kanji["id"], false);
+						if (key == 'b' || key == "B") {
+							// SHOW PREVIOUS KANJI INFO
+							if (detailsPopup.openedSubjects.length > 0)
+								detailsPopup.openedSubjects.pop();
+
+							const kanji = detailsPopup.openedSubjects[detailsPopup.openedSubjects.length-1];
+							if (kanji)
+								detailsPopup.update(kanji["id"], false);
+						}
+						
+						if (key == 'u' || key == 'U') {
+							// SCROLL UP
+							if (detailsPopup.detailsPopup) {
+								detailsPopup.detailsPopup.scrollTo(0, 0);
+							}
+						}
 					}
-				}
-				// if it is not expanded
-				else {
-					if (key == 'o' || key == 'O') {
-						// EXPAND SMALL KANJI DETAILS POPUP
-						detailsPopup.expand();
+					// if it is not expanded
+					else {
+						if (key == 'o' || key == 'O') {
+							// EXPAND SMALL KANJI DETAILS POPUP
+							detailsPopup.expand();
+						}
 					}
 				}
 			});

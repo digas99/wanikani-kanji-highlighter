@@ -320,7 +320,7 @@ window.onload = () => {
 
 														chrome.storage.local.set({"wkhighlight_burger_menu":true});
 
-														document.body.style.minHeight = "340px";
+														document.body.style.minHeight = "365px";
 
 														// hide navbar icons and logo wrapper
 														Array.from(document.getElementsByClassName("navbar_icon"))
@@ -353,7 +353,7 @@ window.onload = () => {
 
 														const ul = document.createElement("ul");
 														container.appendChild(ul);
-														["../images/settings.png", "../images/search.png", "../images/blacklist.png", "../images/about.png", "../images/exit.png"].forEach(img => {
+														["../images/settings.png", "../images/search.png", "../images/create.png", "../images/blacklist.png", "../images/about.png", "../images/exit.png"].forEach(img => {
 															const li = document.createElement("li");
 															ul.appendChild(li);
 															const link = document.createElement("a");
@@ -944,7 +944,7 @@ document.addEventListener("click", e => {
 			.forEach(icon => icon.classList.remove("disabled"));
 	}
 
-	if (targetElem.id === "exit" || (targetElem.childNodes[0] && targetElem.childNodes[0].id === "exit")) {
+	if (sidePanelIconTargeted(targetElem, "exit")) {
 		const main = document.getElementById("main");
 		chrome.storage.local.clear();
 		if (main) {
@@ -1227,6 +1227,12 @@ document.addEventListener("click", e => {
 					clearCacheDescription.appendChild(document.createTextNode(button["description"]));
 				});
 			}
+		});
+	}
+
+	if (sidePanelIconTargeted(targetElem, "create")) {
+		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+			chrome.tabs.sendMessage(tabs[0].id, {createSubjectFromPopup:true}, () => window.chrome.runtime.lastError);
 		});
 	}
 

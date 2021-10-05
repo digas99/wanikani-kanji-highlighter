@@ -8,6 +8,7 @@
 		this.fixed = false;
 		this.locked = false;
 		this.expanded = false;
+		this.editing = false;
 		this.openedSubjects = [];
 		this.wrapper = wrapper;
 
@@ -20,11 +21,11 @@
 
 			// if hovering over a kanji card
 			if (node.classList.contains("sd-detailsPopup_vocab_row") || node.classList.contains("sd-detailsPopup_similarKanji_row") || (node.classList.contains("sd-detailsPopup_cards") && (node.parentElement.parentElement.classList.contains("sd-detailsPopup_similarKanji_row") || node.parentElement.parentElement.classList.contains("sd-detailsPopup_vocab_row")))) {
-				document.querySelectorAll(".sd-itemLevelCard").forEach(levelCard => levelCard.style.display = "inline");
-				document.querySelectorAll(".sd-detailsPopup_cardRow").forEach(card => card.style.filter = "brightness(0.5)");
+				document.querySelectorAll(".sd-itemLevelCard").forEach(levelCard => levelCard.style.setProperty("display", "inline", "important"));
+				document.querySelectorAll(".sd-detailsPopup_cardRow").forEach(card => card.style.setProperty("filter", "brightness(0.5)", "important"));
 				document.querySelectorAll(".sd-detailsPopup_cardSideBar").forEach(node => node.remove());
 				const target = node.classList.contains("sd-detailsPopup_cards") ? node.parentElement.parentElement : node;
-				target.style.filter = "unset";
+				target.style.setProperty("filter", "unset", "important")
 				const type = target.classList.contains("sd-detailsPopup_vocab_row") ? "vocabulary" : "kanji";
 				let id = "";
 				target.childNodes.forEach(child => {
@@ -32,7 +33,7 @@
 						id = child.childNodes[0].getAttribute("data-item-id");
 		
 					if (child.classList.contains("sd-itemLevelCard"))
-						child.style.display = "none";
+						child.style.setProperty("display", "none", "important")
 				});
 		
 				if (target.childNodes.length == 4) {
@@ -59,7 +60,7 @@
 					}
 					const li = document.createElement("li");
 					ul.appendChild(li);
-					li.style.fontWeight = "900";
+					li.style.setProperty("font-weight", "900", "important")
 					li.title = "Subject Level";
 					const list = type == "kanji" ? this.allKanji[id] : this.allVocab[id];
 					if (list)
@@ -127,8 +128,60 @@
 				if (node.id == "sd-detailsPopupFix")
 					this.fixed = !this.fixed;
 				
-				if (node.id == "sd-detailsPopupKanjiLock")
+				if (node.id == "sd-detailsPopupSubjectLock")
 					this.locked = !this.locked;
+
+				if (node.id == "sd-detailsPopupEdit") {
+					let values = null;
+					if (this.detailsPopup) {
+						values = {
+							characters: this.detailsPopup.getElementsByClassName("sd-detailsPopup_kanji")[0].innerText,
+							readings: {
+								on: this.detailsPopup.getElementsByClassName("sd-popupDetails_readings_row")[0].getElementsByTagName("span")[0].innerText,
+								kun: this.detailsPopup.getElementsByClassName("sd-popupDetails_readings_row")[1].getElementsByTagName("span")[0].innerText
+							},
+							meanings: this.detailsPopup.getElementsByClassName("sd-popupDetails_kanjiTitle")[0].children[0].innerText,
+							meaning_mnemonic: this.detailsPopup.getElementsByClassName("sd-detailsPopup_sectionContainer")[0].getElementsByClassName("sd-popupDetails_p")[0].innerText,
+							reading_mnemonic: this.detailsPopup.getElementsByClassName("sd-detailsPopup_sectionContainer")[1].getElementsByClassName("sd-popupDetails_p")[0].innerText,
+						}
+						// get radicals
+						const radicals = this.detailsPopup.getElementsByClassName("sd-detailsPopup_usedRadicals_row");
+						if (radicals) {
+							values["radicals"] = [];
+							Array.from(radicals).forEach(radical => {
+								values["radicals"].push({
+									characters: radical.getElementsByClassName("sd-detailsPopup_cards")[0].innerText,
+									rows: [radical.children[1].innerText]
+								});
+							});
+						}
+						// get kanji
+						const kanjis = this.detailsPopup.getElementsByClassName("sd-detailsPopup_similarKanji_row");
+						if (kanjis) {
+							values["kanji"] = [];
+							Array.from(kanjis).forEach(kanji => {
+								values["kanji"].push({
+									characters: kanji.getElementsByClassName("sd-detailsPopup_cards")[0].innerText,
+									rows: [kanji.children[1].innerText, kanji.children[2].innerText]
+								});
+							});
+						}
+
+					}
+					// get vocab
+					const vocabs = this.detailsPopup.getElementsByClassName("sd-detailsPopup_vocab_row");
+					if (vocabs) {
+						values["vocabulary"] = [];
+						Array.from(vocabs).forEach(vocab => {
+							values["vocabulary"].push({
+								characters: vocab.getElementsByClassName("sd-detailsPopup_cards")[0].innerText,
+								rows: [vocab.children[1].innerText, vocab.children[2].innerText]
+							});
+						});
+					}
+
+					this.edit(values);
+				}
 
 				if (node.id == "sd-detailsPopupGoUp") {
 					if (this.detailsPopup) {
@@ -190,11 +243,48 @@
 			}
 		},
 
+		// update popup
+		edit: function (values) {
+			// force values
+			this.locked = true;
+			this.editing = true;
+
+			const type = "kanji";
+
+			if (!this.detailsPopup) this.create();
+
+			if (!this.expanded) this.expand();
+
+			if (this.detailsPopup.firstChild)
+				this.detailsPopup.firstChild.remove();
+			this.detailsPopup.appendChild(this.charContainerMaker(values));
+			
+			const detailedInfoWrapper = this.detailsPopup.getElementsByClassName("sd-popupDetails_detailedInfoWrapper");
+			if (detailedInfoWrapper)
+				Array.from(detailedInfoWrapper).forEach(wrapper => wrapper.remove());
+		
+			this.detailsPopup.appendChild(type === "kanji" ? this.kanjiMaker(values) : this.vocabDetailedInfo(item));
+
+			// bottom buttons
+			const actionButtons = document.createElement("div");
+			this.detailsPopup.appendChild(actionButtons);
+			actionButtons.classList.add("action-buttons");
+			const buttonsUl = document.createElement("ul");
+			actionButtons.appendChild(buttonsUl);
+			["Create", "Save", "Delete"].forEach(button => {
+				const buttonsLi = document.createElement("li");
+				buttonsUl.appendChild(buttonsLi);
+				buttonsLi.classList.add("clickable");
+				buttonsLi.appendChild(document.createTextNode(button));
+			});
+		},
+
 		// expand popup
 		expand : function () {
 			this.detailsPopup.classList.add("sd-focusPopup");
-			this.detailsPopup.style.height = window.innerHeight+"px";
-			console.log(this.detailsPopup);
+			this.detailsPopup.style.setProperty("height", window.innerHeight+"px", "important")
+			
+			this.expanded = true;
 
 			// remove temp kanji info from small details popup
 			const tempKanjiTitle = this.detailsPopup.getElementsByClassName("sd-smallDetailsPopupKanjiTitle")[0];
@@ -211,27 +301,34 @@
 
 			const itemWrapper = this.detailsPopup.firstChild;
 			setTimeout(() => {
-				itemWrapper.classList.add("sd-focusPopup_kanji");
-				itemWrapper.style.width = this.width+"px";
-				this.detailsPopup.style.overflowY = "auto";
-				this.detailsPopup.style.maxHeight = window.innerHeight+"px";
+				if (itemWrapper) {
+					itemWrapper.classList.add("sd-focusPopup_kanji");
+					itemWrapper.style.setProperty("width", this.width+"px", "important")
+				}
+				this.detailsPopup.style.setProperty("overflow", "auto", "important")
+				this.detailsPopup.style.setProperty("max-height", window.innerHeight+"px", "important")
 			}, 200);
 
-			const type = itemWrapper.getElementsByClassName("sd-detailsPopup_kanji")[0].getAttribute('data-item-type');
-			const id = itemWrapper.getElementsByClassName("sd-detailsPopup_kanji")[0].getAttribute('data-item-id');
-			this.detailsPopup.appendChild(type == "kanji" ? this.kanjiDetailedInfo(this.allKanji[id]) : this.vocabDetailedInfo(this.allVocab[id]));
-
-			// show kanji container buttons
-			const buttons = Array.from(document.getElementsByClassName("sd-detailsPopupButton"));
-			if (buttons)
-				buttons.forEach(button => button.classList.remove("hidden"));
-
-			this.expanded = true;
+			if (itemWrapper) {
+				const type = itemWrapper.getElementsByClassName("sd-detailsPopup_kanji")[0].getAttribute('data-item-type');
+				const id = itemWrapper.getElementsByClassName("sd-detailsPopup_kanji")[0].getAttribute('data-item-id');
+				this.detailsPopup.appendChild(type == "kanji" ? this.kanjiDetailedInfo(this.allKanji[id]) : this.vocabDetailedInfo(this.allVocab[id]));
+			
+				// show kanji container buttons
+				const buttons = Array.from(document.getElementsByClassName("sd-detailsPopupButton"));
+				if (buttons)
+					buttons.forEach(button => button.classList.remove("hidden"));
+			}
 		},
 
 		// close popup
 		close: function (delay) {
+			if (this.editing && !confirm("Editing Subject, exit and discard all changes?"))
+				return false;
+
 			if (!this.fixed) {
+				this.editing = false;
+				this.locked = false;
 				this.detailsPopup.classList.add("sd-rightOverFlowPopup");
 
 				setTimeout(() => {
@@ -253,7 +350,7 @@
 
 			// details container
 			const details = document.createElement("div");
-			details.style.padding = "15px";
+			details.style.setProperty("padding", "15px", "important")
 			detailedInfoWrapper.appendChild(details);
 		
 			// level container
@@ -290,6 +387,59 @@
 			return detailedInfoWrapper;
 		},
 
+
+		kanjiMaker: function (values) {
+			console.log(values);
+			// detailed info section
+			const detailedInfoWrapper = document.createElement("div");
+			detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
+			const kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
+			if (kanjiWrapper)
+				detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
+
+			// details container
+			const details = document.createElement("div");
+			details.style.setProperty("padding", "15px", "important")
+			detailedInfoWrapper.appendChild(details);
+
+			const typeSelectorWrapper = document.createElement("div");
+			details.appendChild(typeSelectorWrapper);
+			typeSelectorWrapper.style.setProperty("margin-bottom", "10px", "important")
+			const selector = document.createElement("select");
+			typeSelectorWrapper.appendChild(selector);
+			selector.title = "Subject type";
+			["Kanji", "Vocabulary"].forEach(type => {
+				const option = document.createElement("option");
+				selector.appendChild(option);
+				option.appendChild(document.createTextNode(type));
+			});
+
+			const meaning = document.createElement("div");
+			details.appendChild(meaning);
+			const meaningInput = document.createElement("input");
+			meaning.appendChild(meaningInput);
+			meaningInput.placeholder = "Meanings";
+			meaning.spellcheck = false;
+			meaning.style.setProperty("width", "100%", "important")
+			meaning.style.setProperty("font-size", "20px", "important")
+			if (values && values["meanings"]) meaningInput.value = values["meanings"];
+
+			if (values && values["meaning_mnemonic"] && values["reading_mnemonic"]) ["Meaning", "Reading"].forEach(type => details.appendChild(infoTableCreator(type+" Mnemonic", "Your mnemonic for the "+type.toLowerCase()+"s...", values[type.toLowerCase()+"_mnemonic"])));
+			else ["Meaning", "Reading"].forEach(type => details.appendChild(infoTableCreator(type+" Mnemonic", "Your mnemonic for the "+type.toLowerCase()+"s...")));
+
+			if (values && values["radicals"]) details.appendChild(itemCardsCreator("Used Radicals", "Radical", "sd-detailsPopup_usedRadicals_row", values["radicals"]));
+			else details.appendChild(itemCardsCreator("Used Radicals", "Radical", "sd-detailsPopup_usedRadicals_row"));
+
+			if (values && values["kanji"]) details.appendChild(itemCardsCreator("Similar Kanji", "Kanji", "sd-detailsPopup_similarKanji_row", values["kanji"]));
+			else details.appendChild(itemCardsCreator("Similar Kanji", "Kanji", "sd-detailsPopup_similarKanji_row"));
+
+			if (values && values["vocabulary"]) details.appendChild(itemCardsCreator("Vocabulary", "Vocabulary", "sd-detailsPopup_vocab_row", values["vocabulary"]));
+			else details.appendChild(itemCardsCreator("Vocabulary", "Vocabulary", "sd-detailsPopup_vocab_row"));
+
+			this.detailsPopup.scrollTo(0, 0);
+			return detailedInfoWrapper;
+		},
+
 		vocabDetailedInfo: function (vocabInfo) {
 			// detailed info section
 			const detailedInfoWrapper = document.createElement("div");
@@ -313,7 +463,7 @@
 
 			// details container
 			const details = document.createElement("div");
-			details.style.padding = "15px";
+			details.style.setProperty("padding", "15px", "important")
 			detailedInfoWrapper.appendChild(details);
 
 			// level container
@@ -351,13 +501,13 @@
 				const en = document.createElement("li");
 				wrapper.appendChild(en);
 				en.classList.add("sd-popupDetails_p");
-				en.style.backgroundColor = "var(--vocab-tag-color)";
-				en.style.padding = "0px 5px";
+				en.style.setProperty("background-color", "var(--vocab-tag-color)", "important");
+				en.style.setProperty("padding", "0px 5px", "important");
 				en.appendChild(document.createTextNode(sentence["en"]));
 
 				const ja = document.createElement("li");
 				wrapper.appendChild(ja);
-				ja.style.padding = "0px 5px";
+				ja.style.setProperty("padding", "0px 5px", "important");
 				ja.appendChild(document.createTextNode(sentence["ja"]));
 
 			});
@@ -373,22 +523,22 @@
 			const itemWrapper = document.createElement("div");
 			if (this.expanded) {
 				itemWrapper.classList.add("sd-focusPopup_kanji");
-				itemWrapper.style.width = this.width+"px";
+				itemWrapper.style.setProperty("width", this.width+"px", "important");
 			}
 			else {
 				// add kanji first meaning to small details popup
 				const kanjiTitle = document.createElement("p");
 				itemWrapper.appendChild(kanjiTitle);
-				kanjiTitle.style.color = "black";
-				kanjiTitle.style.fontSize = "19px";
-				kanjiTitle.style.backgroundColor = "white";
-				kanjiTitle.style.marginBottom = "8px";
-				kanjiTitle.style.textAlign = "center";
+				kanjiTitle.style.setProperty("color", "black", "important");
+				kanjiTitle.style.setProperty("font-size", "19px", "important");
+				kanjiTitle.style.setProperty("background-color", "white", "important");
+				kanjiTitle.style.setProperty("margin-bottom", "8px", "important");
+				kanjiTitle.style.setProperty("text-align", "center", "important");
 				kanjiTitle.appendChild(document.createTextNode(item["meanings"][0]));
 				kanjiTitle.classList.add("sd-smallDetailsPopupKanjiTitle");
 
 				if (characters.length >= 3)
-					this.detailsPopup.style.width = this.width+"px";
+					this.detailsPopup.style.setProperty("width", this.width+"px", "important");
 			}
 			
 			// kanji container buttons
@@ -396,8 +546,9 @@
 				{id:"sd-detailsPopupCloseX", alt: "Close", active:true, src:"https://i.imgur.com/KUjkFI9.png"},
 				{id:"sd-detailsPopupGoBack", alt: "Go back", active:true, src:"https://i.imgur.com/e6j4jSV.png"},
 				{id:"sd-detailsPopupGoUp", alt: "Go up", active:true, src:"https://i.imgur.com/fszQn7s.png"},
-				{id:"sd-detailsPopupKanjiLock", alt: "Kanji lock", active:this.locked, src:"https://i.imgur.com/gaKRPen.png"},
-				{id:"sd-detailsPopupFix", alt: "Kanji fix", active:this.fixed, src:"https://i.imgur.com/vZqwGZr.png"}
+				{id:"sd-detailsPopupSubjectLock", alt: "Subject lock", active:this.locked, src:"https://i.imgur.com/gaKRPen.png"},
+				{id:"sd-detailsPopupFix", alt: "Subject fix", active:this.fixed, src:"https://i.imgur.com/vZqwGZr.png"},
+				{id:"sd-detailsPopupEdit", alt: "Subject Edit", active:true, src:"https://i.imgur.com/0k9pNho.png"}
 			];
 			for (let i in buttons) {
 				const button = buttons[i];
@@ -427,8 +578,8 @@
 			
 			const kanjiContainerWrapper = document.createElement("div");
 			itemWrapper.appendChild(kanjiContainerWrapper);
-			kanjiContainerWrapper.style.margin = `${characters.length >= 4 ? 30 : 0}px 0`;
-			kanjiContainerWrapper.style.textAlign = "center";
+			kanjiContainerWrapper.style.setProperty("margin", `${characters.length >= 4 ? 30 : 0}px 0`, "important");
+			kanjiContainerWrapper.style.setProperty("text-align", "center", "important");
 	
 			const link = document.createElement("a");
 			link.target = "_blank";
@@ -478,6 +629,70 @@
 			kanjiContainerWrapper.appendChild(ul);
 		
 			return itemWrapper;
+		},
+
+		charContainerMaker: function (values) {
+			const itemWrapper = document.createElement("div");
+			itemWrapper.classList.add("sd-focusPopup_kanji");
+			itemWrapper.style.setProperty("width", this.width+"px", "important");
+			
+			// kanji container buttons
+			const buttons = [
+				{id:"sd-detailsPopupCloseX", alt: "Close", active:true, src:"https://i.imgur.com/KUjkFI9.png"},
+				{id:"sd-detailsPopupGoUp", alt: "Go up", active:true, src:"https://i.imgur.com/fszQn7s.png"}
+			];
+			for (let i in buttons) {
+				const button = buttons[i];
+
+				const wrapper = document.createElement("div");
+				itemWrapper.appendChild(wrapper);
+				wrapper.id = button["id"];
+				wrapper.classList.add("sd-detailsPopupButton", "clickable");
+				// add class faded to those buttons only
+				if (!button["active"])
+					wrapper.classList.add("faded");
+				const img = document.createElement("img");
+				img.src = button["src"];
+				img.alt = button["alt"];
+				wrapper.title = img.alt;
+				wrapper.appendChild(img);
+			}
+			
+			const container = document.createElement("div");
+			itemWrapper.appendChild(container);
+			container.style.setProperty("margin", "0px", "important");
+
+			const charsWrapper = document.createElement("div");
+			container.appendChild(charsWrapper);
+			const charsInput = document.createElement("input");
+			charsWrapper.appendChild(charsInput);
+			charsInput.spellcheck = false;
+			if (values && values["characters"]) charsInput.value = values["characters"];
+			charsInput.style.setProperty("font-size", "50px", "important");
+			charsInput.style.setProperty("width", "170px", "important");
+			charsInput.style.setProperty("text-align", "center", "important");
+			charsInput.style.setProperty("margin-bottom", "12px", "important");
+			charsInput.placeholder = "漢字";
+			charsInput.title ="Subject characters";
+		
+			const ul = document.createElement("ul");
+			container.appendChild(ul);
+			ul.classList.add("sd-popupDetails_readings");
+			
+			([["Onyomi", "on"], ["Kunyomi", "kun"]]).forEach(type => {
+				const li = document.createElement("li");
+				ul.appendChild(li);
+				li.classList.add("sd-popupDetails_readings_row");
+				const input = document.createElement("input");
+				li.appendChild(input);
+				input.addEventListener("input", e => e.target.value = convertToKana(e.target.value));
+				input.spellcheck = false;
+				input.placeholder = type[0];
+				if (values && values["readings"] && values["readings"][type[1]]) input.value = values["readings"][type[1]];
+				input.style.setProperty("text-align", "center", "important");
+			});
+
+			return itemWrapper;
 		}
 	}
 
@@ -516,15 +731,15 @@
 			const nonefound = document.createElement("p");
 			table.appendChild(nonefound);
 			nonefound.appendChild(document.createTextNode("(None found)"));
-			nonefound.style.fontWeight = "900";
-			nonefound.style.padding = "5px";
+			nonefound.style.setProperty("font-weight", "900", "important");
+			nonefound.style.setProperty("padding", "5px", "important");
 		}
 		return table;
 	}
 
 	const itemCards = (ids, data, className, sorted) => {
 		const wrapper = document.createElement("ul");
-		wrapper.style.padding = "0";
+		wrapper.style.setProperty("padding", "0px", "important");
 		if (ids && data) {
 			let info = ids.map(id => data[id]);
 			if (sorted && info)
@@ -545,16 +760,44 @@
 					const img = document.createElement("img");
 					const svgs = thisData["character_images"].filter(img => img["content_type"] === "image/png" && img["metadata"]["dimensions"] === "64x64");
 					img.src = svgs[0].url;
-					img.style.width = "40px";
+					img.style.setProperty("width", "40px", "important");
 					p.appendChild(img);
 				}
 
-				p.classList.add("sd-detailsPopup_cards", "sd-highlightedNotLearned");
+				p.classList.add("sd-detailsPopup_cards");
 				p.setAttribute('data-item-id', thisData.id);
 			});
 		}
 
 		return ids.length > 0 ? wrapper : document.createDocumentFragment();
+	}
+
+	const itemCardsCreator = (sectionTitle, type, className, cards) => {
+		const table = infoTable(`${sectionTitle} (${cards ? cards.length : 0})`, []);
+		table.classList.add("sd-detailsPopup_sectionContainer");
+		const wrapper = document.createElement("ul");
+		table.appendChild(wrapper);
+		const rows = [type];
+		if (type !== "Radical")
+			rows.push("かな");
+		const card = itemCard("+", rows);
+		wrapper.appendChild(card);
+		card.classList.add("sd-detailsPopup_cardRow", className);
+		card.title = `Add ${type}`;
+		card.getElementsByTagName("p")[0].classList.add("sd-detailsPopup_cards");
+		card.style.setProperty("background-color", "white", "important");
+		if (type !== "Vocabulary")
+			card.style.setProperty("width", "60px", "important");
+		card.getElementsByTagName("A")[0].style.setProperty("font-size", "40px", "important");
+		if (cards) {
+			cards.forEach(cardValues => {
+				const existingCard = itemCard(cardValues["characters"], cardValues["rows"]);
+				existingCard.classList.add("sd-detailsPopup_cardRow", className);
+				existingCard.getElementsByTagName("p")[0].classList.add("sd-detailsPopup_cards");
+				wrapper.appendChild(existingCard);
+			});
+		}
+		return table;
 	}
 
 	const itemCard = (characters, textRows, level) => {
@@ -573,14 +816,17 @@
 				p.style.setProperty("font-size",(170/characters.length)+"px", "important");
 		}
 
-		textRows.forEach(row => {
-			if (row) {
-				const rowDiv = document.createElement("div");
-				li.appendChild(rowDiv);
-				rowDiv.appendChild(document.createTextNode(row));
-				rowDiv.style.textAlign = "center";
-			}
-		});
+		if (textRows) {
+			textRows.forEach(row => {
+				if (row) {
+					const rowDiv = document.createElement("div");
+					li.appendChild(rowDiv);
+					rowDiv.appendChild(document.createTextNode(row));
+					rowDiv.style.setProperty("text-align", "center", "important");
+				}
+			});
+	
+		}
 
 		if (level) {
 			const levelDiv = document.createElement("div");
@@ -610,6 +856,32 @@
 			wrapper.appendChild(p);
 		});
 	
+		return wrapper;
+	}
+
+	const infoTableCreator = (titleText, placeholder, value) => {
+		const wrapper = document.createElement("div");
+		wrapper.classList.add("sd-detailsPopup_sectionContainer");
+		
+		if (titleText) {
+			const title = document.createElement("strong");
+			title.classList.add("sd-popupDetails_title");
+			title.appendChild(document.createTextNode(titleText));
+			wrapper.appendChild(title);
+		}
+	
+		const textArea = document.createElement("textarea");
+		wrapper.appendChild(textArea);
+		textArea.spellcheck = false;
+		textArea.style.setProperty("width", "100%", "important");
+		textArea.style.setProperty("margin-top", "5px", "important");
+		textArea.rows = "7";
+		if (placeholder)
+			textArea.placeholder = placeholder;
+		
+		if (value)
+			textArea.value = value;
+		
 		return wrapper;
 	}
 

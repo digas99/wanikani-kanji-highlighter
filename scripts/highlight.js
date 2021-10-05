@@ -183,7 +183,7 @@
 		// 		chrome.runtime.sendMessage({key: "down"});
 		// });
 
-		document.addEventListener("click", e => {
+		document.addEventListener("click", () => {
 			chrome.runtime.sendMessage({selectedText: window.getSelection().toString().trim()});
 		});
 	});
