@@ -52,7 +52,6 @@ const blacklisted = (blacklist, url) => {
 	return regex.test(url);
 }
 
-
 const fetchReviewedKanjiID = async (apiToken, page) => {
 	//fetch all reviewed kanji
 	return await fetchAllPages(apiToken, page)
@@ -60,7 +59,7 @@ const fetchReviewedKanjiID = async (apiToken, page) => {
 			// return an array of all learned kanji IDs
 			return reviews
 				.map(content => content.data
-					.filter(content => content.data.subject_type === "kanji"))
+					.filter(content => content.data.subject_type === "kanji" && content.data.srs_stage > 0))
 				.flat(1)
 				.map(content => content.data.subject_id);
 		})
@@ -231,14 +230,14 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 																	kanji_assoc[data.slug] = kanji.id;
 																});
 															
-															setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", {"wkhighlight_allkanji":kanji_dict});
+															setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", {"wkhighlight_allkanji":kanji_dict});
 															// saving all kanji
 															chrome.storage.local.set({"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc, "wkhighlight_allkanji_updated": now});
 														})
 														.catch(errorHandling);
 												}
 												else {
-													setupContentScripts(apiToken, "https://api.wanikani.com/v2/review_statistics", result);
+													setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", result);
 												}
 											});
 										
