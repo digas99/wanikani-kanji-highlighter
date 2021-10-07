@@ -20,7 +20,7 @@
 				this.expand();
 
 			// if hovering over a kanji card
-			if (node.classList.contains("sd-detailsPopup_vocab_row") || node.classList.contains("sd-detailsPopup_similarKanji_row") || (node.classList.contains("sd-detailsPopup_cards") && (node.parentElement.parentElement.classList.contains("sd-detailsPopup_similarKanji_row") || node.parentElement.parentElement.classList.contains("sd-detailsPopup_vocab_row")))) {
+			if (node.classList.contains("sd-detailsPopup_vocab_row") || node.classList.contains("sd-detailsPopup_kanji_row") || (node.classList.contains("sd-detailsPopup_cards") && (node.parentElement.parentElement.classList.contains("sd-detailsPopup_kanji_row") || node.parentElement.parentElement.classList.contains("sd-detailsPopup_vocab_row")))) {
 				document.querySelectorAll(".sd-itemLevelCard").forEach(levelCard => levelCard.style.setProperty("display", "inline", "important"));
 				document.querySelectorAll(".sd-detailsPopup_cardRow").forEach(card => card.style.setProperty("filter", "brightness(0.5)", "important"));
 				document.querySelectorAll(".sd-detailsPopup_cardSideBar").forEach(node => node.remove());
@@ -133,54 +133,47 @@
 
 				if (node.id == "sd-detailsPopupEdit") {
 					let values = null;
+					let type = "kanji";
 					if (this.detailsPopup) {
 						values = {
 							characters: this.detailsPopup.getElementsByClassName("sd-detailsPopup_kanji")[0].innerText,
-							readings: {
-								on: this.detailsPopup.getElementsByClassName("sd-popupDetails_readings_row")[0].getElementsByTagName("span")[0].innerText,
-								kun: this.detailsPopup.getElementsByClassName("sd-popupDetails_readings_row")[1].getElementsByTagName("span")[0].innerText
-							},
 							meanings: this.detailsPopup.getElementsByClassName("sd-popupDetails_kanjiTitle")[0].children[0].innerText,
 							meaning_mnemonic: this.detailsPopup.getElementsByClassName("sd-detailsPopup_sectionContainer")[0].getElementsByClassName("sd-popupDetails_p")[0].innerText,
 							reading_mnemonic: this.detailsPopup.getElementsByClassName("sd-detailsPopup_sectionContainer")[1].getElementsByClassName("sd-popupDetails_p")[0].innerText,
 						}
-						// get radicals
-						const radicals = this.detailsPopup.getElementsByClassName("sd-detailsPopup_usedRadicals_row");
-						if (radicals) {
-							values["radicals"] = [];
-							Array.from(radicals).forEach(radical => {
-								values["radicals"].push({
-									characters: radical.getElementsByClassName("sd-detailsPopup_cards")[0].innerText,
-									rows: [radical.children[1].innerText]
-								});
-							});
+
+						// setup readings
+						const readingsWrapper = this.detailsPopup.getElementsByClassName("sd-popupDetails_readings_row"); 
+						if (readingsWrapper.length === 1) {
+							type = "vocabulary";
+							values["readings"] = readingsWrapper.innerText;
 						}
-						// get kanji
-						const kanjis = this.detailsPopup.getElementsByClassName("sd-detailsPopup_similarKanji_row");
-						if (kanjis) {
-							values["kanji"] = [];
-							Array.from(kanjis).forEach(kanji => {
-								values["kanji"].push({
-									characters: kanji.getElementsByClassName("sd-detailsPopup_cards")[0].innerText,
-									rows: [kanji.children[1].innerText, kanji.children[2].innerText]
-								});
-							});
+						else {
+							type = "kanji";
+							values["readings"] = {
+								on: readingsWrapper[0].getElementsByTagName("span")[0].innerText,
+								kun: readingsWrapper[1].getElementsByTagName("span")[0].innerText
+							};
 						}
 
-					}
-					// get vocab
-					const vocabs = this.detailsPopup.getElementsByClassName("sd-detailsPopup_vocab_row");
-					if (vocabs) {
-						values["vocabulary"] = [];
-						Array.from(vocabs).forEach(vocab => {
-							values["vocabulary"].push({
-								characters: vocab.getElementsByClassName("sd-detailsPopup_cards")[0].innerText,
-								rows: [vocab.children[1].innerText, vocab.children[2].innerText]
-							});
-						});
+						// get cards
+						Array.from(["radicals", "kanji", "vocab"]).forEach(type => {
+							const rows = this.detailsPopup.getElementsByClassName(`sd-detailsPopup_${type}_row`);
+							if (rows) {
+								values[type] = [];
+								Array.from(rows).forEach(row => {
+									values[type].push({
+										characters: row.getElementsByClassName("sd-detailsPopup_cards")[0].innerText,
+										rows: Array.from(row.getElementsByTagName("DIV"))
+											.filter(child => child.className === "")
+											.map(child => child.innerText)
+									});
+								});
+							}
+						});						
 					}
 
-					this.edit(values);
+					this.edit(type, values);
 				}
 
 				if (node.id == "sd-detailsPopupGoUp") {
@@ -244,12 +237,10 @@
 		},
 
 		// update popup
-		edit: function (values) {
+		edit: function (type, values) {
 			// force values
 			this.locked = true;
 			this.editing = true;
-
-			const type = "kanji";
 
 			if (!this.detailsPopup) this.create();
 
@@ -257,13 +248,13 @@
 
 			if (this.detailsPopup.firstChild)
 				this.detailsPopup.firstChild.remove();
-			this.detailsPopup.appendChild(this.charContainerMaker(values));
+			this.detailsPopup.appendChild(this.charContainerEdit(type, values));
 			
 			const detailedInfoWrapper = this.detailsPopup.getElementsByClassName("sd-popupDetails_detailedInfoWrapper");
 			if (detailedInfoWrapper)
 				Array.from(detailedInfoWrapper).forEach(wrapper => wrapper.remove());
 		
-			this.detailsPopup.appendChild(type === "kanji" ? this.kanjiMaker(values) : this.vocabDetailedInfo(item));
+			this.detailsPopup.appendChild(this.subjectDetailedInfoEdit(type, values));
 
 			// bottom buttons
 			const actionButtons = document.createElement("div");
@@ -375,67 +366,14 @@
 			details.appendChild(infoTable("Reading Mnemonic", [parseTags(kanjiInfo["reading_mnemonic"]), parseTags(kanjiInfo["reading_hint"])]));
 			
 			// used radicals cards
-			details.appendChild(itemCardsSection(kanjiInfo, "component_subject_ids", "Used Radicals", "sd-detailsPopup_usedRadicals_row", this.allRadicals));
+			details.appendChild(itemCardsSection(kanjiInfo, "component_subject_ids", "Used Radicals", "sd-detailsPopup_radicals_row", this.allRadicals));
 		
 			// similar kanji cards
-			details.appendChild(itemCardsSection(kanjiInfo, "visually_similar_subject_ids", "Similar Kanji", "sd-detailsPopup_similarKanji_row", this.allKanji));
+			details.appendChild(itemCardsSection(kanjiInfo, "visually_similar_subject_ids", "Similar Kanji", "sd-detailsPopup_kanji_row", this.allKanji));
 		
 			// vocab with that kanji
 			details.appendChild(itemCardsSection(kanjiInfo, "amalgamation_subject_ids", "Vocabulary", "sd-detailsPopup_vocab_row", this.allVocab));
 		
-			this.detailsPopup.scrollTo(0, 0);
-			return detailedInfoWrapper;
-		},
-
-
-		kanjiMaker: function (values) {
-			console.log(values);
-			// detailed info section
-			const detailedInfoWrapper = document.createElement("div");
-			detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
-			const kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
-			if (kanjiWrapper)
-				detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
-
-			// details container
-			const details = document.createElement("div");
-			details.style.setProperty("padding", "15px", "important")
-			detailedInfoWrapper.appendChild(details);
-
-			const typeSelectorWrapper = document.createElement("div");
-			details.appendChild(typeSelectorWrapper);
-			typeSelectorWrapper.style.setProperty("margin-bottom", "10px", "important")
-			const selector = document.createElement("select");
-			typeSelectorWrapper.appendChild(selector);
-			selector.title = "Subject type";
-			["Kanji", "Vocabulary"].forEach(type => {
-				const option = document.createElement("option");
-				selector.appendChild(option);
-				option.appendChild(document.createTextNode(type));
-			});
-
-			const meaning = document.createElement("div");
-			details.appendChild(meaning);
-			const meaningInput = document.createElement("input");
-			meaning.appendChild(meaningInput);
-			meaningInput.placeholder = "Meanings";
-			meaning.spellcheck = false;
-			meaning.style.setProperty("width", "100%", "important")
-			meaning.style.setProperty("font-size", "20px", "important")
-			if (values && values["meanings"]) meaningInput.value = values["meanings"];
-
-			if (values && values["meaning_mnemonic"] && values["reading_mnemonic"]) ["Meaning", "Reading"].forEach(type => details.appendChild(infoTableCreator(type+" Mnemonic", "Your mnemonic for the "+type.toLowerCase()+"s...", values[type.toLowerCase()+"_mnemonic"])));
-			else ["Meaning", "Reading"].forEach(type => details.appendChild(infoTableCreator(type+" Mnemonic", "Your mnemonic for the "+type.toLowerCase()+"s...")));
-
-			if (values && values["radicals"]) details.appendChild(itemCardsCreator("Used Radicals", "Radical", "sd-detailsPopup_usedRadicals_row", values["radicals"]));
-			else details.appendChild(itemCardsCreator("Used Radicals", "Radical", "sd-detailsPopup_usedRadicals_row"));
-
-			if (values && values["kanji"]) details.appendChild(itemCardsCreator("Similar Kanji", "Kanji", "sd-detailsPopup_similarKanji_row", values["kanji"]));
-			else details.appendChild(itemCardsCreator("Similar Kanji", "Kanji", "sd-detailsPopup_similarKanji_row"));
-
-			if (values && values["vocabulary"]) details.appendChild(itemCardsCreator("Vocabulary", "Vocabulary", "sd-detailsPopup_vocab_row", values["vocabulary"]));
-			else details.appendChild(itemCardsCreator("Vocabulary", "Vocabulary", "sd-detailsPopup_vocab_row"));
-
 			this.detailsPopup.scrollTo(0, 0);
 			return detailedInfoWrapper;
 		},
@@ -488,7 +426,7 @@
 			details.appendChild(infoTable("Reading Mnemonic:", [parseTags(vocabInfo["reading_mnemonic"])]));
 
 			// used kanji
-			details.appendChild(itemCardsSection(vocabInfo, "component_subject_ids", "Used Kanji", "sd-detailsPopup_similarKanji_row", this.allKanji));
+			details.appendChild(itemCardsSection(vocabInfo, "component_subject_ids", "Used Kanji", "sd-detailsPopup_kanji_row", this.allKanji));
 
 			// sentences
 			const sentencesTable = infoTable("Example Sentences:", []); 
@@ -631,7 +569,68 @@
 			return itemWrapper;
 		},
 
-		charContainerMaker: function (values) {
+		subjectDetailedInfoEdit: function (type, values) {
+			console.log(values, type);
+			// detailed info section
+			const detailedInfoWrapper = document.createElement("div");
+			detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
+			const kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
+			if (kanjiWrapper)
+				detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
+
+			// details container
+			const details = document.createElement("div");
+			details.style.setProperty("padding", "15px", "important")
+			detailedInfoWrapper.appendChild(details);
+
+			const typeSelectorWrapper = document.createElement("div");
+			details.appendChild(typeSelectorWrapper);
+			typeSelectorWrapper.style.setProperty("margin-bottom", "10px", "important")
+			const selector = document.createElement("select");
+			typeSelectorWrapper.appendChild(selector);
+			selector.title = "Subject type";
+			selector.addEventListener("input", () => {
+				this.edit(selector.value.toLowerCase(), values);
+			});
+			["Kanji", "Vocabulary"].forEach(value => {
+				const option = document.createElement("option");
+				selector.appendChild(option);
+				option.appendChild(document.createTextNode(value));
+				if (value.toLowerCase() === type)
+					option.selected = true;
+			});
+
+			const meaning = document.createElement("div");
+			details.appendChild(meaning);
+			const meaningInput = document.createElement("input");
+			meaning.appendChild(meaningInput);
+			meaningInput.placeholder = "Meanings";
+			meaning.spellcheck = false;
+			meaning.style.setProperty("width", "100%", "important")
+			meaning.style.setProperty("font-size", "20px", "important")
+			if (values && values["meanings"]) meaningInput.value = values["meanings"];
+
+			if (values && values["meaning_mnemonic"] && values["reading_mnemonic"]) ["Meaning", "Reading"].forEach(type => details.appendChild(infoTableCreator(type+" Mnemonic", "Your mnemonic for the "+type.toLowerCase()+"s...", values[type.toLowerCase()+"_mnemonic"])));
+			else ["Meaning", "Reading"].forEach(type => details.appendChild(infoTableCreator(type+" Mnemonic", "Your mnemonic for the "+type.toLowerCase()+"s...")));
+
+			if (type === "kanji") {
+				if (values && values["radicals"]) details.appendChild(itemCardsCreator("Used Radicals", "Radical", "sd-detailsPopup_radicals_row", values["radicals"]));
+				else details.appendChild(itemCardsCreator("Used Radicals", "Radical", "sd-detailsPopup_radicals_row"));	
+			}
+
+			if (values && values["kanji"]) details.appendChild(itemCardsCreator(type === "kanji" ? "Similar Kanji" : "Used Kanji", "Kanji", "sd-detailsPopup_kanji_row", values["kanji"]));
+			else details.appendChild(itemCardsCreator("Similar Kanji", "Kanji", "sd-detailsPopup_kanji_row"));
+
+			if (type === "kanji") {
+				if (values && values["vocab"]) details.appendChild(itemCardsCreator("Vocabulary", "Vocabulary", "sd-detailsPopup_vocab_row", values["vocab"]));
+				else details.appendChild(itemCardsCreator("Vocabulary", "Vocabulary", "sd-detailsPopup_vocab_row"));
+			}
+
+			this.detailsPopup.scrollTo(0, 0);
+			return detailedInfoWrapper;
+		},
+
+		charContainerEdit: function (type, values) {
 			const itemWrapper = document.createElement("div");
 			itemWrapper.classList.add("sd-focusPopup_kanji");
 			itemWrapper.style.setProperty("width", this.width+"px", "important");
@@ -679,7 +678,21 @@
 			container.appendChild(ul);
 			ul.classList.add("sd-popupDetails_readings");
 			
-			([["Onyomi", "on"], ["Kunyomi", "kun"]]).forEach(type => {
+			if (type === "kanji") {
+				([["Onyomi", "on"], ["Kunyomi", "kun"]]).forEach(readingType => {
+					const li = document.createElement("li");
+					ul.appendChild(li);
+					li.classList.add("sd-popupDetails_readings_row");
+					const input = document.createElement("input");
+					li.appendChild(input);
+					input.addEventListener("input", e => e.target.value = convertToKana(e.target.value));
+					input.spellcheck = false;
+					input.placeholder = readingType[0];
+					if (values && values["readings"] && values["readings"][readingType[1]]) input.value = values["readings"][readingType[1]];
+					input.style.setProperty("text-align", "center", "important");
+				});
+			}
+			else {
 				const li = document.createElement("li");
 				ul.appendChild(li);
 				li.classList.add("sd-popupDetails_readings_row");
@@ -687,10 +700,10 @@
 				li.appendChild(input);
 				input.addEventListener("input", e => e.target.value = convertToKana(e.target.value));
 				input.spellcheck = false;
-				input.placeholder = type[0];
-				if (values && values["readings"] && values["readings"][type[1]]) input.value = values["readings"][type[1]];
+				input.placeholder = "Readings";
+				if (values && values["readings"] && values["readings"].length === 0) input.value = values["readings"];
 				input.style.setProperty("text-align", "center", "important");
-			});
+			}
 
 			return itemWrapper;
 		}
@@ -873,7 +886,6 @@
 		const textArea = document.createElement("textarea");
 		wrapper.appendChild(textArea);
 		textArea.spellcheck = false;
-		textArea.style.setProperty("width", "100%", "important");
 		textArea.style.setProperty("margin-top", "5px", "important");
 		textArea.rows = "7";
 		if (placeholder)

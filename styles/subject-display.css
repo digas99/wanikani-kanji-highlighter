@@ -8,6 +8,7 @@
 	--popup-details-title-color: white;
 	--popup-details-title-bkcolor: #666464;
 	--detailsPopup-opacity: 0.8;
+	--detailsPopup-width: 275px;
 }
 
 	/* 0. DEFAULTS */
@@ -68,7 +69,7 @@
 }
 
 .sd-focusPopup {
-    width: 275px;
+    width: var(--detailsPopup-width);
 	opacity: 1;
 	overflow: hidden;
 	transition: 0.3s;
@@ -310,11 +311,11 @@
 	padding: 0 7px !important;
 }
 
-.sd-detailsPopup_usedRadicals_row {
+.sd-detailsPopup_radicals_row {
 	background-color: var(--radical-tag-color);
 }
 
-.sd-detailsPopup_similarKanji_row {
+.sd-detailsPopup_kanji_row {
 	background-color: var(--kanji-tag-color);
 }
 
@@ -329,7 +330,7 @@
 }
 
 .sd-detailsPopup_vocab_row:hover,
-.sd-detailsPopup_similarKanji_row:hover {
+.sd-detailsPopup_kanji_row:hover {
 	border-radius: 2px 0px 0px 2px;
 }
 
@@ -396,6 +397,7 @@
 	background-color: unset !important;
 	color: white !important;
 	border: 2px solid white !important;
+    appearance: auto !important;
 }
 
 .sd-detailsPopup option {
@@ -408,22 +410,18 @@
 	background-color: unset !important;
 	color: #d2d2d2 !important;
 	border-bottom: 2px solid white !important;
+	padding: 5px !important;
 }
 
 .sd-detailsPopup textarea {
 	font-size: 17px !important;
+	width: 100% !important;
 }
 
 .sd-detailsPopup textarea:focus, .sd-detailsPopup input:focus {
 	color: white !important;
 	border: 2px solid white !important;
-	padding: 5px !important;
 }
-
-.sd-detailsPopup textarea:focus {
-	width: 95% !important;
-}
-
 
 .sd-detailsPopup textarea::placeholder {
 	color: rgb(196, 196, 196) !important;
@@ -432,7 +430,7 @@
 .sd-detailsPopup .action-buttons {
 	position: fixed;
 	bottom: 0;
-	width: 271px;
+	width: var(--detailsPopup-width);
 	background-color: white;
 	height: 35px;
 	z-index: 1;

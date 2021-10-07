@@ -22,7 +22,7 @@
 						detailsPopup.update(request.infoPopupFromSearch, true);
 
 					if (request.createSubjectFromPopup)
-						detailsPopup.edit();
+						detailsPopup.edit("kanji");
 				}
 
 				if (request.uptime === "Details Popup")
