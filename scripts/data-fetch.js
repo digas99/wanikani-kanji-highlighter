@@ -41,7 +41,6 @@ const fetchPage = async (apiToken, page) => {
 		.then(response => response.json())
 		.then(responseBody => {
 			const result = responseBody;
-			console.log(result);
 			return result;
 		})
 		.catch(errorHandling);
@@ -67,7 +66,6 @@ const modifiedSince = async (apiKey, date, url) => {
 	return fetch(endpoint)
 		.then(response => {
 			const result = response.status !== 304;
-			console.log(response);
 			console.log("MODIFIED: "+result);
 			return result;
 	

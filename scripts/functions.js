@@ -209,6 +209,19 @@ const clearCache = () => {
 	});
 }
 
+const clearSubjects = () => {
+	chrome.storage.local.get(null, data => {
+		let keysToRemove = [];
+		Object.keys(data).forEach(key => {
+			if (/^wkhighlight_all.*/g.test(key)) {
+				keysToRemove.push(key);
+			}
+		});
+		window.location.reload();
+		chrome.storage.local.remove(keysToRemove);
+	});
+}
+
 const rand = (min, max) => {
 	return Math.floor(Math.random() * (max - min) ) + min;
 }

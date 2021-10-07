@@ -12,6 +12,14 @@ let thisUrl;
 
 chrome.runtime.onConnect.addListener(port => externalPort = port);
 
+chrome.runtime.onInstalled.addListener(details => {
+	// clear all subjects on extension update
+	if (details.reason == "update") {
+		console.log("extension updated");
+		clearSubjects();
+	}
+});
+
 let settings;
 // set settings
 const setSettings = () => {
