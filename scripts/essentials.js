@@ -18,8 +18,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		// store flag to indicate the page was reloaded
 		sessionStorage.setItem("is_reloaded", true);
 	}
-
-	// sendResponse(response);
 });
 
 window.onbeforeunload = () => {
@@ -49,4 +47,9 @@ chrome.storage.local.get("wkhighlight_settings", result => {
 		documentStyle.setProperty('--enl-color', appearance["enl_color"]);
 		documentStyle.setProperty('--brn-color', appearance["brn_color"]);
 	}
+});
+
+
+document.addEventListener("click", () => {
+	chrome.runtime.sendMessage({selectedText: window.getSelection().toString().trim()});
 });

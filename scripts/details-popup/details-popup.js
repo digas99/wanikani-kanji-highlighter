@@ -1,5 +1,3 @@
-'use strict';
-
 (() => {
 	chrome.storage.local.get(["wkhighlight_allkanji", "wkhighlight_allradicals", "wkhighlight_allvocab", "wkhighlight_settings"], result => {
 		const allKanji = result["wkhighlight_allkanji"];

@@ -1,7 +1,7 @@
 const tabs = chrome.tabs;
 let thisTabId, apiToken;
 // highlighting properties
-const functionDelay = "20";
+const functionDelay = 20;
 let highlightingClass = "";
 let notLearnedHighlightingClass = "";
 
@@ -99,26 +99,31 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 		insertStyles(['styles/foreground-styles.css']);
 		console.log("scripts");
 		if (settings["kanji_details_popup"]["activated"]) {
+			console.log("details-popup");
 			executeScripts(['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js', 'scripts/kana.js']);
 			insertStyles(['styles/subject-display.css']);
 		}
 
-		tabs.executeScript(null, {file: 'scripts/highlight.js'}, () => {
-			injectedHighlighter = true;
+		tabs.executeScript(null, {file: 'scripts/highlighter/highlight.js'}, () => {
+			tabs.executeScript(null, {file: 'scripts/highlighter/highlight-setup.js'}, () => injectedHighlighter = true);
 
 			chrome.storage.local.get(["wkhighlight_allLearnableKanji"], result => {
 				const allKanji = result["wkhighlight_allLearnableKanji"];
 				if (allKanji) {
-					tabs.sendMessage(thisTabId, {
+					const highlightSetup = {
 						functionDelay: functionDelay, 
-						values: kanji,
-						notLearnedYet: allKanji.filter(k => !kanji.includes(k)),
+						learned: kanji,
+						notLearned: allKanji.filter(k => !kanji.includes(k)),
 						unwantedTags: unwantedTags,
-						highlightingClass: highlightingClass,
-						notLearnedHighlightingClass: notLearnedHighlightingClass
-					});
+						learnedClass: highlightingClass,
+						notLearnedClass: notLearnedHighlightingClass
+					};
+
+					chrome.storage.local.set({"wkhighlight_highlight_setup": highlightSetup});
+					tabs.sendMessage(thisTabId, highlightSetup);
 				}
 			});
+			
 			chrome.runtime.lastError;
 		});
 	}
