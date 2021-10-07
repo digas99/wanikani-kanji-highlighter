@@ -1,17 +1,10 @@
-/* Table Of Contents 			*/
-/* 1. VARIABLES 				*/
-/* 2. GENERAL 					*/
-/* 3. HIGHLIGHTS 				*/
-
-/* 1. VARIABLES */
-
 :root {
 	--highlight-default-color: #2c5091;
 	--default-color: #475058;
 	--notLearned-color: #a32727;
+	--notInWanikani-color: #12a700;
 }
 
-/* 2. GENERAL */
 .clickable { 
 	cursor: pointer;
 	transition: 0.2s;
@@ -29,17 +22,16 @@
 	opacity: 0.3 !important;
 }
 
-/* 3. HIGHGLGHTS */
-
 .wkhighlighter_highlighted,
 .wkhighlighter_highlighted_underlined,
 .wkhighlighter_highlighted_bold,
-.wkhighlighter_highlightedNotLearned {
+.wkhighlighter_highlightedNotLearned,
+.wkhighlighter_highlightedNotInWanikani {
 	font-size: 100% !important;
 	display: unset !important;
 }
 
-.wkhighlighter_highlighted, .wkhighlighter_highlightedNotLearned {
+.wkhighlighter_highlighted, .wkhighlighter_highlightedNotLearned, .wkhighlighter_highlightedNotInWanikani {
 	all: unset !important;
 	color: white !important;
 }
@@ -50,6 +42,10 @@
 
 .wkhighlighter_highlighted {
 	background-color: var(--highlight-default-color) !important;
+}
+
+.wkhighlighter_highlightedNotInWanikani {
+	background-color: var(--notInWanikani-color) !important;
 }
 
 .wkhighlighter_highlighted_underlined {
@@ -68,14 +64,22 @@
 	color: var(--notLearned-color) !important;
 }
 
-.wkhighlighter_highlighted_underlined, .wkhighlighter_highlightedNotLearned_underlined {
+.wkhighlighter_highlightedNotInWanikani_underlined {
+	border-bottom: 3px solid var(--notInWanikani-color) !important;
+}
+
+.wkhighlighter_highlightedNotInWanikani_bold {
+	color: var(--notInWanikani-color) !important;
+}
+
+.wkhighlighter_highlighted_underlined, .wkhighlighter_highlightedNotLearned_underlined, .wkhighlighter_highlightedNotInWanikani_underlined {
     color: inherit !important;
 }
 
-.wkhighlighter_highlighted_bold, .wkhighlighter_highlightedNotLearned_bold {
+.wkhighlighter_highlighted_bold, .wkhighlighter_highlightedNotLearned_bold, .wkhighlighter_highlightedNotInWanikani_bold {
     font-weight: bold !important;
 }
 
-.wkhighlighter_highlighted_underlined, .wkhighlighter_highlighted_bold, .wkhighlighter_highlightedNotLearned_underlined, .wkhighlighter_highlightedNotLearned_bold {
+.wkhighlighter_highlighted_underlined, .wkhighlighter_highlighted_bold, .wkhighlighter_highlightedNotLearned_underlined, .wkhighlighter_highlightedNotLearned_bold, .wkhighlighter_highlightedNotInWanikani_underlined, .wkhighlighter_highlightedNotInWanikani_bold {
     background: unset !important;
 }

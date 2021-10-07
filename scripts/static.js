@@ -27,7 +27,8 @@ const defaultSettings = {
 	},
 	"highlight_style": {
 		learned: "wkhighlighter_highlighted",
-		not_learned: "wkhighlighter_highlightedNotLearned"
+		not_learned: "wkhighlighter_highlightedNotLearned",
+		not_in_wanikani: "wkhighlighter_highlightedNotInWanikani"
 	},
 	"search": {
 		targeted_search: false,

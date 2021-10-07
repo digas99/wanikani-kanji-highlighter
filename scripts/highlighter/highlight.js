@@ -1,7 +1,6 @@
 (function () {
 	// constructor
 	const Highlight = function(characters, highlightClass, otherClasses, unwantedTags, tagFilter) {
-		console.log(characters);
 		this.characters = characters;
 		this.highlightClass = highlightClass;
 		this.otherClasses = otherClasses;
@@ -21,7 +20,6 @@
 			Array.from(tags).filter(tag => tag.textContent.match(regex)?.length > 0 && this.tagValidation(tag))
 				.forEach(node => this.highlighted = this.highlighted.concat(replaceMatchesWithElem(node, regex, span)));
 			
-			console.log(this.highlighted);
 		},
 
 		// check if given tag is of interest

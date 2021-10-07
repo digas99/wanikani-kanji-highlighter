@@ -577,13 +577,15 @@ window.onload = () => {
 																		kanjiFoundUl.style.textAlign = "center";
 																	const learned = response["learned"];
 																	const notLearned = response["notLearned"];
-																	[learned, notLearned].forEach(type => {
+																	const notInWanikani = response["notInWanikani"];
+																	const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned", "kanjiHighlightedNotInWanikani"];
+																	[learned, notLearned, notInWanikani].forEach((type, i) => {
 																		type.forEach(kanji => {
 																			const kanjiFoundLi = document.createElement("li");
 																			kanjiFoundUl.appendChild(kanjiFoundLi);
-																			kanjiFoundLi.classList.add("clickable", "kanjiDetails", type === learned ? "kanjiHighlightedLearned" : "kanjiHighlightedNotLearned");
+																			kanjiFoundLi.classList.add("clickable", "kanjiDetails", classes[i]);
 																			kanjiFoundLi.appendChild(document.createTextNode(kanji));
-																			if (kanjiAssoc) kanjiFoundLi.setAttribute("data-item-id", kanjiAssoc[kanji]);
+																			if (kanjiAssoc && kanjiAssoc[kanji]) kanjiFoundLi.setAttribute("data-item-id", kanjiAssoc[kanji]);
 																		});
 																	});
 																});

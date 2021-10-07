@@ -4,6 +4,7 @@ let thisTabId, apiToken;
 const functionDelay = 20;
 let highlightingClass = "";
 let notLearnedHighlightingClass = "";
+let notInWanikaniHighlightingClass = "";
 
 let injectedHighlighter = false;
 let externalPort;
@@ -43,6 +44,7 @@ const setSettings = () => {
 		// setup highlighting class value from settings
 		highlightingClass = settings["highlight_style"]["learned"];
 		notLearnedHighlightingClass = settings["highlight_style"]["not_learned"];
+		notInWanikaniHighlightingClass = settings["highlight_style"]["not_in_wanikani"]
 	});
 }
 setSettings();
@@ -96,34 +98,37 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	});
 
 	const scripts = kanji => {
-		insertStyles(['styles/foreground-styles.css']);
 		console.log("scripts");
+		// inject details popup
 		if (settings["kanji_details_popup"]["activated"]) {
 			console.log("details-popup");
 			executeScripts(['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js', 'scripts/kana.js']);
 			insertStyles(['styles/subject-display.css']);
 		}
 
+		// inject highlighter
 		tabs.executeScript(null, {file: 'scripts/highlighter/highlight.js'}, () => {
+			insertStyles(['styles/highlight.css']);
 			tabs.executeScript(null, {file: 'scripts/highlighter/highlight-setup.js'}, () => injectedHighlighter = true);
 
 			chrome.storage.local.get(["wkhighlight_allLearnableKanji"], result => {
 				const allKanji = result["wkhighlight_allLearnableKanji"];
+				const notLearnedKanji = allKanji.filter(k => !kanji.includes(k));
+				const notInWanikaniKanji = fullKanjiList.filter(k => !kanji.includes(k) && !notLearnedKanji.includes(k));
 				if (allKanji) {
-					const highlightSetup = {
+					chrome.storage.local.set({"wkhighlight_highlight_setup": {
 						functionDelay: functionDelay, 
 						learned: kanji,
-						notLearned: allKanji.filter(k => !kanji.includes(k)),
+						notLearned: notLearnedKanji,
+						notInWanikani: notInWanikaniKanji,
 						unwantedTags: unwantedTags,
 						learnedClass: highlightingClass,
-						notLearnedClass: notLearnedHighlightingClass
-					};
-
-					chrome.storage.local.set({"wkhighlight_highlight_setup": highlightSetup});
-					tabs.sendMessage(thisTabId, highlightSetup);
+						notLearnedClass: notLearnedHighlightingClass,
+						notInWanikaniClass: notInWanikaniHighlightingClass
+					}});
 				}
 			});
-			
+
 			chrome.runtime.lastError;
 		});
 	}
