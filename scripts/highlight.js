@@ -13,6 +13,14 @@
 		if (!loaded) {
 			loaded = true;
 
+			// youtube temporary fix
+			window.addEventListener('yt-page-data-updated', () => {
+				if (totalHighlightedKanji > 0) {
+					console.log("reload");
+					window.location.reload();
+				}
+			});
+
 			const functionDelay = request.functionDelay;
 			const values = request.values;
 			const notLearnedYet = request.notLearnedYet;
