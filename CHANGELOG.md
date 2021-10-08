@@ -1,5 +1,5 @@
-# Changelog v0.5.7
-Not Released Yet
+# [Changelog v0.5.7](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.7)
+Released on 08/10/2021
 
 ## Bug Fix
 - Fixed issue where, on Youtube, highlighted content wouldn't update when clicking on a new video
