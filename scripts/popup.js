@@ -1087,14 +1087,15 @@ document.addEventListener("click", e => {
 				highlightStyleWrapper.appendChild(highlightStyleTitle);
 				highlightStyleTitle.appendChild(document.createTextNode("Highlight Style"));
 
-				["wkhighlighter_highlighted", "wkhighlighter_highlightedNotLearned"]. forEach(mainClass => {
+				const labels = ["Learned", "Not Learned", "Not In Wanikani"];
+				["wkhighlighter_highlighted", "wkhighlighter_highlightedNotLearned", "wkhighlighter_highlightedNotInWanikani"].forEach((mainClass, i) => {
 					const div = document.createElement("div");
 					highlightStyleWrapper.appendChild(div);
 
 					const label = document.createElement("label");
 					div.appendChild(label);
 					label.classList.add("settingsItemLabel");
-					label.appendChild(document.createTextNode(mainClass == "wkhighlighter_highlighted" ? "Learned" : "Not Learned"));
+					label.appendChild(document.createTextNode(labels[i]));
 
 					const inputDiv = document.createElement("div");
 					inputDiv.classList.add("checkbox_wrapper");
