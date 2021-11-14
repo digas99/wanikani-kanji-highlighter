@@ -1286,7 +1286,7 @@ document.addEventListener("click", e => {
 			.filter(icon => icon.getElementsByTagName("IMG")[0].title === "About" && icon.closest(".side-panel"))[0];
 		targetIcon?.classList.add("disabled");
 
-		const content = secundaryPage("About", 260);
+		const content = secundaryPage("About", 300);
 
 		const appInfo = document.createElement("div");
 		content.appendChild(appInfo);
@@ -1308,7 +1308,7 @@ document.addEventListener("click", e => {
 		readme.style.padding = "20px 10px";
 		readme.style.borderBottom = "1px solid silver";
 		const readmeContent = document.createElement("div");
-		readmeContent.style.maxHeight = "140px";
+		readmeContent.style.maxHeight = "245px";
 		readmeContent.style.overflowY = "auto";
 		readme.appendChild(readmeContent);
 		fetch('../CHANGELOG.md')
@@ -1318,6 +1318,13 @@ document.addEventListener("click", e => {
 					readmeContent.appendChild(mdToHTML(line));
 				});
 				readmeContent.getElementsByTagName("h2")[0].style.removeProperty("margin-top");
+
+				Array.from(readmeContent.getElementsByTagName("h2"))
+					.forEach(h2 => {
+						h2.style.backgroundColor = "var(--default-color)";
+						h2.style.padding = "4px";
+						h2.style.color = "white";
+					});
 			});
 		
 		const footer = document.createElement("div");
@@ -1450,6 +1457,9 @@ document.addEventListener("click", e => {
 
 	if (targetElem.id === "clearAll")
 		clearCache();
+
+	if (targetElem.id === "clearSubjectsData")
+		clearSubjects();
 
 	if (targetElem.id === "blacklistedSitesList" || (targetElem.parent && targetElem.parentElement.id === "blacklistedSitesList")) {
 		const wrapper = document.getElementById("blacklistedSitesWrapper");

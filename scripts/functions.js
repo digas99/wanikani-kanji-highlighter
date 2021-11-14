@@ -268,14 +268,15 @@ const mdToHTML = line => {
 	let elem;
 	if (hCounter == 1) {
 		elem = document.createElement("p");
+		elem.style.fontSize = "14px";
 	}
 	else {
 		elem = document.createElement("h"+hCounter);
 		if (hCounter == 2) {
-			elem.style.paddingTop = "10px";
 			elem.style.marginTop = "10px";
 			elem.style.borderTop = "1px solid silver";
 		}
+		if (hCounter == 3) elem.style.fontSize = "16px";
 	}
 
 	// detect links headers

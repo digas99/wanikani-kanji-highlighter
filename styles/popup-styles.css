@@ -1117,7 +1117,7 @@ transform: rotate(134deg);
 
 	/* 10.3 DANGER ZONE */
 .dangerItem {
-	padding: 0 10px !important;
+	padding: 3px 10px !important;
 	display: unset !important;
 }
 

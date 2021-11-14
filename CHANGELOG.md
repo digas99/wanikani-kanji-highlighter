@@ -1,5 +1,4 @@
 # Changelog v0.6.0
-Not Released Yet
 
 ## Content
 - Notifications to remind you to practice daily
