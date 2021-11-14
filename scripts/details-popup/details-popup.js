@@ -1,5 +1,7 @@
 (() => {
 	chrome.storage.local.get(["wkhighlight_allkanji", "wkhighlight_allradicals", "wkhighlight_allvocab", "wkhighlight_settings"], result => {
+		chrome.runtime.sendMessage({uptime:"Details Popup"});
+
 		const allKanji = result["wkhighlight_allkanji"];
 		const allRadicals = result["wkhighlight_allradicals"];
 		const allVocab = result["wkhighlight_allvocab"];

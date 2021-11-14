@@ -238,3 +238,48 @@ const updateAvailableAssignments = (apiKey, callback) => {
 				});
 		});
 }
+
+const mdToHTML = line => {
+	line = line.trim();
+	// start at 1 to ignore h1
+	let hCounter = 1;
+	// counter number of # in a row
+	for (let i = 0; i < 3; i++) {
+		if (line.charAt(0) == '#') {
+			hCounter++;
+			line = line.substring(1);
+		}
+		else break;
+	}
+
+	let elem;
+	if (hCounter == 1) {
+		elem = document.createElement("p");
+	}
+	else {
+		elem = document.createElement("h"+hCounter);
+		if (hCounter == 2) {
+			elem.style.paddingTop = "10px";
+			elem.style.marginTop = "10px";
+			elem.style.borderTop = "1px solid silver";
+		}
+	}
+
+	// detect links headers
+	let insideLink = false;
+	let newLine = "";
+	for (let i = 0; i < line.length; i++) {
+		if (line.charAt(i) == ']') {
+			line = newLine;
+			break;
+		}
+		
+		if (insideLink) newLine+=line.charAt(i);
+
+		if (line.charAt(i) == '[') insideLink = true;
+	}
+
+	elem.appendChild(document.createTextNode(line));
+
+	return elem;
+}

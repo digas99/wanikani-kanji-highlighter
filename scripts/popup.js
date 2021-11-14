@@ -43,7 +43,7 @@ const footer = () => {
 	versionWrapper.appendChild(version);
 
 	reposFirstVersion("digas99", "wanikani-kanji-highlighter").then(result => {
-		version.href = `https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/${result}`;
+		version.href = "https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/"+result;
 		version.appendChild(document.createTextNode("beta-"+result));
 		version.target = "_blank";
 		versionWrapper.style.marginTop = "4px";
@@ -156,11 +156,11 @@ window.onload = () => {
 						else {
 							// check if all settings are stored
 							notStored = [];
-							Object.keys(defaultSettings).map(key => {
+							Object.keys(defaultSettings).forEach(key => {
 								if (!Object.keys(settings).includes(key))
 									settings[key] = {};
 
-								Object.keys(defaultSettings[key]).map(innerKey => {
+								Object.keys(defaultSettings[key]).forEach(innerKey => {
 									// if it doesn't exists in settings
 									if (typeof settings[key][innerKey] === 'undefined')
 										notStored.push([key, innerKey]);
@@ -228,25 +228,25 @@ window.onload = () => {
 												main.appendChild(userInfoWrapper);
 					
 												// scripts uptime
-												const scriptsUptimeWrapper = document.createElement("div");
-												userInfoWrapper.appendChild(scriptsUptimeWrapper);
-												scriptsUptimeWrapper.title = "Scripts Uptime Status";
-												scriptsUptimeWrapper.id = "scriptsUptime";
-												const scriptsUptimeUl = document.createElement("ul");
-												scriptsUptimeWrapper.appendChild(scriptsUptimeUl);
-												chrome.tabs.query({currentWindow: true, active: true}, tabs => {
-													["Highlighter", "Details Popup"].forEach(script => {
-														const scriptsUptimeLi = document.createElement("li");
-														scriptsUptimeUl.appendChild(scriptsUptimeLi);
-														scriptsUptimeLi.appendChild(document.createTextNode(script));
-														const scriptsUptimeSignal = document.createElement("div");
-														scriptsUptimeLi.appendChild(scriptsUptimeSignal);
+												// const scriptsUptimeWrapper = document.createElement("div");
+												// userInfoWrapper.appendChild(scriptsUptimeWrapper);
+												// scriptsUptimeWrapper.title = "Scripts Uptime Status";
+												// scriptsUptimeWrapper.id = "scriptsUptime";
+												// const scriptsUptimeUl = document.createElement("ul");
+												// scriptsUptimeWrapper.appendChild(scriptsUptimeUl);
+												// chrome.tabs.query({currentWindow: true, active: true}, tabs => {
+												// 	["Highlighter", "Details Popup"].forEach(script => {
+												// 		const scriptsUptimeLi = document.createElement("li");
+												// 		scriptsUptimeUl.appendChild(scriptsUptimeLi);
+												// 		scriptsUptimeLi.appendChild(document.createTextNode(script));
+												// 		const scriptsUptimeSignal = document.createElement("div");
+												// 		scriptsUptimeLi.appendChild(scriptsUptimeSignal);
 
-														chrome.tabs.sendMessage(tabs[0].id, {uptime: script}, response => {
-															if (response) scriptsUptimeSignal.style.backgroundColor = "#80fd80";
-														});
-													});
-												});
+												// 		chrome.tabs.sendMessage(tabs[0].id, {uptime: script}, response => {
+												// 			if (response) scriptsUptimeSignal.style.backgroundColor = "#80fd80";
+												// 		});
+												// 	});
+												// });
 
 												const topRightNavbar = document.createElement("div");
 												userInfoWrapper.appendChild(topRightNavbar);
@@ -353,7 +353,7 @@ window.onload = () => {
 
 														const ul = document.createElement("ul");
 														container.appendChild(ul);
-														["../images/settings.png", "../images/search.png", "../images/create.png", "../images/blacklist.png", "../images/about.png", "../images/exit.png"].forEach(img => {
+														["../images/settings.png", "../images/search.png", "../images/blacklist.png", "../images/about.png", "../images/exit.png"].forEach(img => {
 															const li = document.createElement("li");
 															ul.appendChild(li);
 															const link = document.createElement("a");
@@ -577,9 +577,8 @@ window.onload = () => {
 																		kanjiFoundUl.style.textAlign = "center";
 																	const learned = response["learned"];
 																	const notLearned = response["notLearned"];
-																	const notInWanikani = response["notInWanikani"];
-																	const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned", "kanjiHighlightedNotInWanikani"];
-																	[learned, notLearned, notInWanikani].forEach((type, i) => {
+																	const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned"];
+																	[learned, notLearned].forEach((type, i) => {
 																		type.forEach(kanji => {
 																			const kanjiFoundLi = document.createElement("li");
 																			kanjiFoundUl.appendChild(kanjiFoundLi);
@@ -1087,8 +1086,8 @@ document.addEventListener("click", e => {
 				highlightStyleWrapper.appendChild(highlightStyleTitle);
 				highlightStyleTitle.appendChild(document.createTextNode("Highlight Style"));
 
-				const labels = ["Learned", "Not Learned", "Not In Wanikani"];
-				["wkhighlighter_highlighted", "wkhighlighter_highlightedNotLearned", "wkhighlighter_highlightedNotInWanikani"].forEach((mainClass, i) => {
+				const labels = ["Learned", "Not Learned"];
+				["wkhighlighter_highlighted", "wkhighlighter_highlightedNotLearned"].forEach((mainClass, i) => {
 					const div = document.createElement("div");
 					highlightStyleWrapper.appendChild(div);
 
@@ -1289,6 +1288,70 @@ document.addEventListener("click", e => {
 
 		const content = secundaryPage("About", 260);
 
+		const appInfo = document.createElement("div");
+		content.appendChild(appInfo);
+		appInfo.style.padding = "20px 10px";
+		appInfo.style.borderBottom = "1px solid silver";
+		const title = document.createElement("h2");
+		appInfo.appendChild(title);
+		title.appendChild(document.createTextNode("WaniKani Kanji Highlighter"));
+		const version = document.createElement("h3");
+		appInfo.appendChild(version);
+		version.appendChild(document.createTextNode("Version: "));
+		reposFirstVersion("digas99", "wanikani-kanji-highlighter").then(result => version.appendChild(document.createTextNode(result)));
+		const description = document.createElement("p");
+		appInfo.appendChild(description)
+		description.appendChild(document.createTextNode("Unofficial kanji highlighter, matching kanji learned with WaniKani."));
+
+		const readme = document.createElement("div");
+		content.appendChild(readme);
+		readme.style.padding = "20px 10px";
+		readme.style.borderBottom = "1px solid silver";
+		const readmeContent = document.createElement("div");
+		readmeContent.style.maxHeight = "140px";
+		readmeContent.style.overflowY = "auto";
+		readme.appendChild(readmeContent);
+		fetch('../CHANGELOG.md')
+			.then(response => response.text())
+			.then(text => {
+				text.split("\n").forEach(line => {
+					readmeContent.appendChild(mdToHTML(line));
+				});
+				readmeContent.getElementsByTagName("h2")[0].style.removeProperty("margin-top");
+			});
+		
+		const footer = document.createElement("div");
+		content.appendChild(footer);
+		footer.style.padding = "20px 10px";
+		const myself = document.createElement("p");
+		footer.appendChild(myself);
+		myself.appendChild(document.createTextNode(`Hi, my name is Diogo. I'm from Portugal and I'm a student at Universidade de Aveiro. I am ${new Date().getFullYear() - new Date(1999, 5, 29).getFullYear()} years old.`));
+		const links = document.createElement("div");
+		footer.appendChild(links);
+		links.style.paddingTop = "10px";
+		[
+			{
+				link: "https://github.com/digas99/wanikani-kanji-highlighter",
+				title: "Source Code",
+				img: "../images/github-logo.png"
+			},
+			{
+				link: "https://www.wanikani.com",
+				title: "WaniKani",
+				img: "../images/wanikani-logo.png"
+			}
+		].forEach(logo => {
+			const link = document.createElement("a");
+			links.appendChild(link);
+			link.href = logo["link"];
+			link.target = "_blank";
+			link.title = logo["title"];
+			link.style.marginRight = "5px";
+			const githublogo = document.createElement("img");
+			link.appendChild(githublogo);
+			githublogo.src = logo["img"];
+			githublogo.style.width = "30px";
+		});
 	}
 
 	// settings checkboxes
@@ -2471,6 +2534,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			}
 		});
 	}
+
+	// if (request.uptime) {
+	// 	const wrapper = document.getElementById("scriptsUptime");
+	// 	switch(request.uptime) {
+	// 		case "Highlight":
+	// 			wrapper.getElementsByTagName("DIV")[0].style.backgroundColor = "#80fd80";
+	// 			break;
+
+	// 		case "Details Popup":
+	// 			wrapper.getElementsByTagName("DIV")[1].style.backgroundColor = "#80fd80";
+	// 			break;
+	// 	}
+	// }
 });
 
 const loadItemsLists = (callback) => {

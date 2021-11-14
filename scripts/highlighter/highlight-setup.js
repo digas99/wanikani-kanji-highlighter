@@ -5,6 +5,8 @@
 	chrome.storage.local.get("wkhighlight_highlight_setup", result => {
 		result = result["wkhighlight_highlight_setup"];
 
+		chrome.runtime.sendMessage({uptime:"Highlighter"});
+
 		// youtube temporary fix
 		window.addEventListener('yt-page-data-updated', () => {
 			console.log(totalHighlighted);
@@ -17,7 +19,6 @@
 
 		const learned = new Highlight(result.learned, result.learnedClass, otherClasses, result.unwantedTags, tagFilter);
 		const notLearned = new Highlight(result.notLearned, result.notLearnedClass, otherClasses, result.unwantedTags, tagFilter);
-		const notInWanikani = new Highlight(result.notInWanikani, result.notInWanikaniClass, [], result.unwantedTags, tagFilter);
 
 		let delay = result.functionDelay;
 		let interval = 0;
@@ -34,7 +35,6 @@
 						if (iframe.contentDocument && !Array.from(iframe.contentDocument?.styleSheets[0].rules).map(rule => rule.selectorText).includes(".wkhighlighter_highlighted")) {
 							addStylesToFrame(iframe, "--highlight-default-color", "wkhighlighter_highlighted");
 							addStylesToFrame(iframe, "--notLearned-color", "wkhighlighter_highlightedNotLearned");
-							addStylesToFrame(iframe, "--notInWanikani-color", "wkhighlighter_highlightedNotInWanikani");
 						}
 						allTags = allTags.concat(Array.from(iframe.contentWindow.document.getElementsByTagName("*")));
 					}
@@ -50,10 +50,9 @@
 				setTimeout(() => {
 					learned.highlighter(allTags);
 					notLearned.highlighter(allTags);
-					notInWanikani.highlighter(allTags);
 
-					totalHighlighted = learned.size() + notLearned.size() + notInWanikani.size();
-					contentHighlighted = {learned:learned.highlightedSet(), notLearned:notLearned.highlightedSet(), notInWanikani:notInWanikani.highlightedSet()};
+					totalHighlighted = learned.size() + notLearned.size();
+					contentHighlighted = {learned:learned.highlightedSet(), notLearned:notLearned.highlightedSet()};
 
 					chrome.runtime.sendMessage({badge:totalHighlighted, nmrKanjiHighlighted:totalHighlighted, kanjiHighlighted:contentHighlighted});
 					chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlighted, "wkhighlight_allHighLightedKanji":contentHighlighted});

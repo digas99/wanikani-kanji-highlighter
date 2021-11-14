@@ -17,7 +17,7 @@ const defaultSettings = {
 	},
 	"extension_icon": {
 		kanji_counter: true,
-		time_until_next_reviews: false
+		// time_until_next_reviews: false
 	},
 	"notifications": {
 		new_reviews: false,
@@ -28,7 +28,6 @@ const defaultSettings = {
 	"highlight_style": {
 		learned: "wkhighlighter_highlighted",
 		not_learned: "wkhighlighter_highlightedNotLearned",
-		not_in_wanikani: "wkhighlighter_highlightedNotInWanikani"
 	},
 	"search": {
 		targeted_search: false,
@@ -68,7 +67,7 @@ const defaultSettings = {
 	},
 	"miscellaneous": {
 		time_in_12h_format: true,
-		show_scripts_status: true
+		// show_scripts_status: true
 	}
 };
 
@@ -91,21 +90,21 @@ const settingsInterface = [
 				type: "checkbox",
 				id:"settings-extension_icon-kanji_counter"
 			},
-			{
-				title:"Time Until Next Reviews",
-				type: "checkbox",
-				id:"settings-extension_icon-time_until_next_reviews"
-			},
-			{
-				title:"Number of Reviews",
-				type: "checkbox",
-				id:"settings-extension_icon-number_of_reviews"
-			},
-			{
-				title:"Number of Lessons",
-				type: "checkbox",
-				id:"settings-extension_icon-number_of_lessons"
-			}
+			// {
+			// 	title:"Time Until Next Reviews",
+			// 	type: "checkbox",
+			// 	id:"settings-extension_icon-time_until_next_reviews"
+			// },
+			// {
+			// 	title:"Number of Reviews",
+			// 	type: "checkbox",
+			// 	id:"settings-extension_icon-number_of_reviews"
+			// },
+			// {
+			// 	title:"Number of Lessons",
+			// 	type: "checkbox",
+			// 	id:"settings-extension_icon-number_of_lessons"
+			// }
 		]
 	},
 	{
@@ -136,11 +135,11 @@ const settingsInterface = [
 				type: "checkbox",
 				id: "settings-miscellaneous-time_in_12h_format"
 			},
-			{
-				title: "Show Scripts Status",
-				type: "checkbox",
-				id: "show_scripts_status"
-			}
+			// {
+			// 	title: "Show Scripts Status",
+			// 	type: "checkbox",
+			// 	id: "show_scripts_status"
+			// }
 		]
 	}
 	// {

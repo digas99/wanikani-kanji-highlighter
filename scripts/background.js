@@ -4,7 +4,6 @@ let thisTabId, apiToken;
 const functionDelay = 20;
 let highlightingClass = "";
 let notLearnedHighlightingClass = "";
-let notInWanikaniHighlightingClass = "";
 
 let injectedHighlighter = false;
 let externalPort;
@@ -23,9 +22,9 @@ const setSettings = () => {
 			settings = defaultSettings;
 		else {
 			// check if all settings are stored
-			notStored = [];
-			Object.keys(defaultSettings).map(key => {
-				(Object.keys(defaultSettings[key]).map(innerKey => {
+			const notStored = [];
+			Object.keys(defaultSettings).forEach(key => {
+				(Object.keys(defaultSettings[key]).forEach(innerKey => {
 					// if it doesn't exists in settings
 					if (typeof settings[key][innerKey] === 'undefined')
 						notStored.push([key, innerKey]);
@@ -44,7 +43,6 @@ const setSettings = () => {
 		// setup highlighting class value from settings
 		highlightingClass = settings["highlight_style"]["learned"];
 		notLearnedHighlightingClass = settings["highlight_style"]["not_learned"];
-		notInWanikaniHighlightingClass = settings["highlight_style"]["not_in_wanikani"]
 	});
 }
 setSettings();
@@ -78,8 +76,8 @@ const setupLearnedKanji = async (apiToken, page, kanji) => {
 	return learnedKanji;
 }
 
-const executeScripts = scripts => scripts.forEach(script => tabs.executeScript(null, {file: script}));
-const insertStyles = styles => styles.forEach(style => tabs.insertCSS(null, {file: style}));
+const executeScripts = (scripts, tabId) => scripts.forEach(script => tabs.executeScript(tabId, {file: script}));
+const insertStyles = (styles, tabId) => styles.forEach(style => tabs.insertCSS(tabId, {file: style}));
 
 const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	// setup all learnable kanji if not yet
@@ -102,29 +100,26 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 		// inject details popup
 		if (settings["kanji_details_popup"]["activated"]) {
 			console.log("details-popup");
-			executeScripts(['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js', 'scripts/kana.js']);
-			insertStyles(['styles/subject-display.css']);
+			executeScripts(['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js', 'scripts/kana.js'], thisTabId);
+			insertStyles(['styles/subject-display.css'], thisTabId);
 		}
 
 		// inject highlighter
-		tabs.executeScript(null, {file: 'scripts/highlighter/highlight.js'}, () => {
-			insertStyles(['styles/highlight.css']);
-			tabs.executeScript(null, {file: 'scripts/highlighter/highlight-setup.js'}, () => injectedHighlighter = true);
+		tabs.executeScript(thisTabId, {file: 'scripts/highlighter/highlight.js'}, () => {
+			insertStyles(['styles/highlight.css'], thisTabId);
+			tabs.executeScript(thisTabId, {file: 'scripts/highlighter/highlight-setup.js'}, () => injectedHighlighter = true);
 
 			chrome.storage.local.get(["wkhighlight_allLearnableKanji"], result => {
 				const allKanji = result["wkhighlight_allLearnableKanji"];
 				const notLearnedKanji = allKanji.filter(k => !kanji.includes(k));
-				const notInWanikaniKanji = fullKanjiList.filter(k => !kanji.includes(k) && !notLearnedKanji.includes(k));
 				if (allKanji) {
 					chrome.storage.local.set({"wkhighlight_highlight_setup": {
 						functionDelay: functionDelay, 
 						learned: kanji,
 						notLearned: notLearnedKanji,
-						notInWanikani: notInWanikaniKanji,
 						unwantedTags: unwantedTags,
 						learnedClass: highlightingClass,
 						notLearnedClass: notLearnedHighlightingClass,
-						notInWanikaniClass: notInWanikaniHighlightingClass
 					}});
 				}
 			});
@@ -333,8 +328,8 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 					chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1", tabId:thisTabId});
 					// inject details popup to allow subjects creation
 					if (settings["kanji_details_popup"]["activated"]) {
-						executeScripts(['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js', 'scripts/kana.js']);
-						insertStyles(['styles/subject-display.css']);
+						executeScripts(['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js', 'scripts/kana.js'], thisTabId);
+						insertStyles(['styles/subject-display.css'], thisTabId);
 					}
 				}
 			}

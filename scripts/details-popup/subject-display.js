@@ -209,10 +209,8 @@
 		// update popup
 		update: function (id, save) {
 			if (id) {
-				console.log(this);
 				const type = this.allKanji[id] ? "kanji" : "vocabulary";
 				const item = type === "kanji" ? this.allKanji[id] : this.allVocab[id];
-				console.log(id);
 
 				if (!this.detailsPopup) this.create();
 
@@ -486,7 +484,7 @@
 				{id:"sd-detailsPopupGoUp", alt: "Go up", active:true, src:"https://i.imgur.com/fszQn7s.png"},
 				{id:"sd-detailsPopupSubjectLock", alt: "Subject lock", active:this.locked, src:"https://i.imgur.com/gaKRPen.png"},
 				{id:"sd-detailsPopupFix", alt: "Subject fix", active:this.fixed, src:"https://i.imgur.com/vZqwGZr.png"},
-				{id:"sd-detailsPopupEdit", alt: "Subject Edit", active:true, src:"https://i.imgur.com/0k9pNho.png"}
+				// {id:"sd-detailsPopupEdit", alt: "Subject Edit", active:true, src:"https://i.imgur.com/0k9pNho.png"}
 			];
 			for (let i in buttons) {
 				const button = buttons[i];
@@ -570,7 +568,6 @@
 		},
 
 		subjectDetailedInfoEdit: function (type, values) {
-			console.log(values, type);
 			// detailed info section
 			const detailedInfoWrapper = document.createElement("div");
 			detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");

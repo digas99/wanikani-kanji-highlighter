@@ -40,8 +40,6 @@ Table Of Contents
 	--highlight-default-color-font: #000000;
 	--notLearned-color: #a32727;
 	--notLearned-color-font: #000000;
-	--notInWanikani-color: #12a700;
-	--notInWanikani-color-font: #000000;
 	--wanikani: #f100a1;
 	--dark-back: #383838;
 	--reviews-color: #2c7080;
@@ -558,11 +556,7 @@ transform: rotate(134deg);
 	background-color: var(--notLearned-color);
 }
 
-.kanjiHighlightedNotInWanikani {
-	background-color: var(--notInWanikani-color);
-}
-
-.kanjiHighlightedLearned, .kanjiHighlightedNotLearned, .kanjiHighlightedNotInWanikani {
+.kanjiHighlightedLearned, .kanjiHighlightedNotLearned {
 	color: white;
 }
 
@@ -643,7 +637,6 @@ transform: rotate(134deg);
 
 #assignmentsMaterialList > ul {
 	font-size: 20px;
-	padding-bottom: 5px;
     max-height: 187px;
     overflow: auto;
 	scroll-behavior: smooth;
@@ -1144,7 +1137,7 @@ transform: rotate(134deg);
 .wkhighlighter_highlighted,
 .wkhighlighter_highlighted_underlined,
 .wkhighlighter_highlighted_bold,
-.wkhighlighter_highlightedNotLearned {
+.wkhighlighter_highlightedNotLearned{
 	font-size: 100% !important;
 }
 
@@ -1183,7 +1176,6 @@ transform: rotate(134deg);
 .wkhighlighter_highlighted_bold, .wkhighlighter_highlightedNotLearned_bold {
     font-weight: bold !important;
 }
-
 
 /* 12. FOOTER */
 
