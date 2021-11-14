@@ -12,6 +12,14 @@ let thisUrl;
 
 chrome.runtime.onConnect.addListener(port => externalPort = port);
 
+chrome.runtime.onInstalled.addListener(details => {
+	// clear all subjects on extension update
+	if (details.reason == "update") {
+		console.log("extension updated");
+		clearSubjects();
+	}
+});
+
 let settings;
 // set settings
 const setSettings = () => {
@@ -51,7 +59,6 @@ const blacklisted = (blacklist, url) => {
 	const regex = new RegExp(`^http(s)?:\/\/(www\.)?(${blacklist.join("|")})(\/)?([a-z]+.*)?`, "g");
 	return regex.test(url);
 }
-
 
 const fetchReviewedKanjiID = async (apiToken, page) => {
 	//fetch all reviewed kanji

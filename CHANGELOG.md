@@ -10,12 +10,15 @@ Not Released Yet
 - New side panel that is more interactive and gives a refreshed look to the app (can be activated by clicking the hamburger menu, or switched back to the old interface)
 - New About page with information regarding the App, and more
 
+# [Changelog v0.5.7](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.7)
+Released on 08/10/2021
+
 ## Bug Fix
 - Fixed issue where, on Youtube, highlighted content wouldn't update when clicking on a new video
 - Fixed issue where some kanji would be highlighted as learned, when it was not the case
 
-# Changelog v0.5.6
-Not Released Yet
+# [Changelog v0.5.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.6)
+Released on 03/10/2021
 
 ## Bug Fix
 - Fixed issue where future reviews were not being fetched and displayed in the future reviews chart
