@@ -5,13 +5,13 @@ This is an unofficial extension for the browser for Kanji Highlighting, matching
 It works with any website, and provides detailed information about any kanji that is highlighted.
 **Because it would be "cheating", the extension doesn't work on [WaniKani.com](https://www.wanikani.com/).**
 
-#### VERSION 0.5.7
+#### VERSION 0.6.0
 
 ## [Get it on Chrome Webstore](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/)
 ## [Get it on Mozilla Add-ons](https://addons.mozilla.org/pt-PT/firefox/addon/wanikani-kanji-highlighter/)
 
 ## Table of contents:
-1. [Latest Features](#changelog-v057)
+1. [Latest Features](#changelog-v060)
 2. [Usage Guide](#usage-guide)
    * 2.1. [WaniKani API Token](#wanikani-api-token)
    * 2.2. [Kanji Details](#kanji-details)
@@ -23,98 +23,17 @@ It works with any website, and provides detailed information about any kanji tha
    * 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
-# Changelog v0.5.7
-Released on 08/10/2021
+## Changelog v0.6.0
+Released on 16/11/2021
 
-## Bug Fix
-- Fixed issue where, on Youtube, highlighted content wouldn't update when clicking on a new video
-- Fixed issue where some kanji would be highlighted as learned, when it was not the case
+### Content
+- Notifications to remind you to practice daily
+- Used Kanji in Details Popup is no longer sorted by level, but by its position in the vocabulary subject (as it was before)
+- Added highlighting to elements from within an iframe (only to those iframes that allow it)
 
-## Changelog v0.5.6
-Released on 03/10/2021
-
-## Bug Fix
-- Fixed issue where future reviews were not being fetched and displayed in the future reviews chart
-
-## Changelog v0.5.5
-Released on 28/09/2021
-
-## Content
-- New notifications system to alert when there are new Reviews in queue
-
-## Popup
-- Improved "romaji to kana" system. Now, writing, for example, "kko" becomes "っこ", as it should
-- Possibility to change time format within extension popup between 12h and 24h
-
-## Bug Fix
-- Fixed Kanji Search Settings Navbar taking time to show up, or not loading at all
-- Details Popup no longer closes for no reason when clicking to see the details popup of a subject from within that details popup
-- Details Popup no longer shows duplicate information on a subject
-- Clicking in several subjects within the extension popup now displays the correct kanji information in the details popup created
-- Highlighted kanji in the page shown in the extension popup is way more stable now
-- Subject cards in the details popup are now correctly sorted by level, as they should
-
-## Changelog v0.5.4
-Released on 03/09/2021
-
-## Popup
-- Made all features of the extension available for any type of account (free, paid, etc)
-- Added user Avatar
-
-## Changelog v0.5.3
-Released on 30/08/2021
-
-## Bug Fix
-- Fixed issue where the app wouldn't fetch new subjects added/altered in WaniKani (Content Updates)
-- Going forwards or backwards in the future reviews chart now shows the correct day when entering a new month
-
-## Changelog v0.5.2
-Released on 15/08/2021
-
-## Popup
-- The display of reviews or lessons material is now divided by SRS Stages
-- The future reviews chart shows number of reviews divided by SRS Stage (Stacked bars)
-- More options to color customization in settings
-
-## Changelog v0.5.1
-Released on 10/08/2021
-
-## Popup
-- The future reviews chart can now show reviews for a specific day, chosen at "Select another day"
-- The same chart also has arrows to navigate through the days more easily. The left and right arrows of the keyboard can be used for the same effect
-- Reduced the time of the initial loading to almost none. The loading is now done only when needed, in certain key parts.
-
-## Bug Fix
-- Extension popup no longer reloads when user rejects the reset of all colors in settings
-
-## Changelog v0.5.0
-Released on 09/08/2021
-
-### - Reviews and Lessons tracking! Extra Highlight!
-
-## Content
-- Kanji you haven't learned yet are now also highlighted when they show up in the page, in a different color from the ones you learned. They work the same way as the ones you already learned, meaning they also have a details popup, etc...
-- The small details popup, that shows up in the bottom right corner of the page after hovering over a kanji, now also displays the main meaning of that kanji
-- Added shortcut keys to interact with the kanji details popup:
-  - **L:** Lock the kanji in the details popup, meaning it won't change when hover over other kanji (might come in hand when your mouse is surrounded by several highlighted kanji)   
-  - **F:** Fix the kanji details popup, not allowing it to close when clicking outside of it
-  - **X:** Close the kanji details popup
-  - **O:** Expand the small kanji details popup on the bottom right corner
-  - **U:** Scroll the kanji details popup all the way to the top
-  - **B:** Show information from the last kanji in the details popup
-- Added buttons to the kanji details popup, near the kanji container, to do the same thing as the sortcut keys, but manually
-- Highlighted kanji now change it's style immediately after it being changed in the extension popup settings
-- Kanji cards in details popup now also show the main meaning of the material and the main reading
-
-## Popup
-- Extension popup's first page now shows number of Lessons and Reviews available at the moment. It also shows when more reviews will be available
-- Clicking in the number of reviews or lessons will show the kanji material that will be taught/reviewed and also a chart with the reviews for the next 24 hours
-- The list of kanji that were highlighted now have colors to distinguish the kanji you learned from the kanji you didn't
-- Settings page is now organized into sections
-- Color of highlight and kanji cards can now be customized in the popup settings
-
-## Bug Fix
-- Fixed weird placements of elements inside kanji details popup (extra blank spaces, content too big for its container, etc...)
+### Popup
+- New side panel that is more interactive and gives a refreshed look to the app (can be activated by clicking the hamburger menu, or switched back to the old interface)
+- New About page with information regarding the App, and more
 
 #### [(All changelogs)](CHANGELOG.md)
 

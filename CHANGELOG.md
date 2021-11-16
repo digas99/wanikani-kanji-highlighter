@@ -1,4 +1,5 @@
-# Changelog v0.6.0
+# [Changelog v0.6.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.0)
+Released on 16/11/2021
 
 ## Content
 - Notifications to remind you to practice daily
