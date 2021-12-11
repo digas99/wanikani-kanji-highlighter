@@ -2055,7 +2055,6 @@ document.addEventListener("click", e => {
 							const enliData = setupReviewsDataForChart(nmrReviewsNext.filter(review => review["srs"] == 8), today, days, 1, time12h_format);
 		
 							const style = getComputedStyle(document.body);
-							console.log(style);
 							const data = {
 								labels: chartData["hours"],
 								datasets: [{

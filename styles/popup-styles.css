@@ -74,7 +74,7 @@ body {
 
 a {
 	text-decoration: none;
-	color: #001681;;
+	color: #001681;
 	transition: 0.3s;
 }
 
@@ -766,7 +766,7 @@ transform: rotate(134deg);
 
 #searchResultItemWrapper {
 	font-size: 15px;
-	max-height: 336px;;
+	max-height: 336px;
     overflow: auto;
 	text-align: center;
 }

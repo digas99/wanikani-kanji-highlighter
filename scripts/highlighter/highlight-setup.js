@@ -25,7 +25,7 @@
 		let nElemsLast = 0;
 
 		setInterval(() => {
-			const allTags = document.getElementsByTagName("*");
+			let allTags = document.getElementsByTagName("*");
 			// include iframes in the highlight
 			const iframes = document.getElementsByTagName("IFRAME");
 			if (iframes) {

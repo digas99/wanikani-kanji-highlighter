@@ -1,3 +1,9 @@
+# Changelog v0.6.1
+Not released yet
+
+## Bug Fix
+- Assignment material shown in reviews/lessons list now match the real number of assigments (only showing up to 500 assignments before, due to a bug)
+
 # [Changelog v0.6.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.0)
 Released on 16/11/2021
 

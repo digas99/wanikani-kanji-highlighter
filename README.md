@@ -5,13 +5,13 @@ This is an unofficial extension for the browser for Kanji Highlighting, matching
 It works with any website, and provides detailed information about any kanji that is highlighted.
 **Because it would be "cheating", the extension doesn't work on [WaniKani.com](https://www.wanikani.com/).**
 
-#### VERSION 0.6.0
+#### VERSION 0.6.1
 
 ## [Get it on Chrome Webstore](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm/)
 ## [Get it on Mozilla Add-ons](https://addons.mozilla.org/pt-PT/firefox/addon/wanikani-kanji-highlighter/)
 
 ## Table of contents:
-1. [Latest Features](#changelog-v060)
+1. [Latest Features](#changelog-v061)
 2. [Usage Guide](#usage-guide)
    * 2.1. [WaniKani API Token](#wanikani-api-token)
    * 2.2. [Kanji Details](#kanji-details)
@@ -22,6 +22,11 @@ It works with any website, and provides detailed information about any kanji tha
    * 2.6. [Blacklisting a Site](#blacklisting-a-site)
    * 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
+
+# Changelog v0.6.1
+
+## Bug Fix
+- Assignment material shown in reviews/lessons list now match the real number of assigments (only showing up to 500 assignments before, due to a bug)
 
 ## Changelog v0.6.0
 Released on 16/11/2021
