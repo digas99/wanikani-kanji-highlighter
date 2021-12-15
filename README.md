@@ -24,6 +24,7 @@ It works with any website, and provides detailed information about any kanji tha
 3. [Pictures](#pictures)
 
 # Changelog v0.6.1
+Released on 15/12/2021
 
 ## Bug Fix
 - Assignment material shown in reviews/lessons list now match the real number of assigments (only showing up to 500 assignments before, due to a bug)
