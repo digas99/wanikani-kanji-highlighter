@@ -470,12 +470,14 @@ window.onload = () => {
 													}
 												});
 
-												
-												const kanjiFound = document.createElement("li");
-												userElementsList.appendChild(kanjiFound);
-
-												const kanjiFoundList = document.createElement("li");
-												userElementsList.appendChild(kanjiFoundList);
+												const kanjiFoundWrapper = document.createElement("li");
+												userElementsList.appendChild(kanjiFoundWrapper);
+												const kanjiFound = document.createElement("div");
+												kanjiFoundWrapper.appendChild(kanjiFound);
+												const kanjiFoundBar = document.createElement("div");
+												kanjiFoundWrapper.appendChild(kanjiFoundBar);
+												const kanjiFoundList = document.createElement("div");
+												kanjiFoundWrapper.appendChild(kanjiFoundList);
 
 												const summaryWrapper = document.createElement("li");
 												userElementsList.appendChild(summaryWrapper);
@@ -558,8 +560,26 @@ window.onload = () => {
 															console.log("nmr kanji: ",response);
 															if (response) {
 																chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
+																	const learned = response["learned"];
+																	const notLearned = response["notLearned"];
+
 																	kanjiFound.id = "nmrKanjiHighlighted";
 																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: (in the page)`;
+
+																	const barData = [
+																		{
+																			link: "learnedKanji",
+																			color: "var(--highlight-default-color)",
+																			value: learned.length
+																		},
+																		{
+																			link: "notLearnedKanji",
+																			color: "var(--notLearned-color)",
+																			value: notLearned.length
+																		}
+																	];
+
+																	kanjiFoundBar.parentElement.replaceChild(itemsListBar(barData), kanjiFoundBar);
 
 																	kanjiFoundList.id = "kanjiHighlightedList";
 																	kanjiFoundList.classList.add("simple-grid");
@@ -570,8 +590,7 @@ window.onload = () => {
 																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${response["nmrKanjiHighlighted"]}</strong> (in the page)`;
 																	if (response["nmrKanjiHighlighted"] <= 10)
 																		kanjiFoundUl.style.textAlign = "center";
-																	const learned = response["learned"];
-																	const notLearned = response["notLearned"];
+			
 																	const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned"];
 																	[learned, notLearned].forEach((type, i) => {
 																		type.forEach(kanji => {
@@ -1771,8 +1790,6 @@ document.addEventListener("click", e => {
 	}
 
 	const displayAssignmentMaterials = (data, container, loading) => {
-		console.log("data");
-		console.log(data);
 		data.map(assignment => assignment["data"])
 			.sort((as1, as2) => new Date(as1["available_at"]).getTime() - new Date(as2["available_at"]).getTime())
 			.map(assignment => ({"srs_stage":assignment["srs_stage"], "subject_id":assignment["subject_id"], "subject_type":assignment["subject_type"]}));
@@ -1784,17 +1801,26 @@ document.addEventListener("click", e => {
 			if (settings) {
 				const displaySettings = settings["assignments"]["srsMaterialsDisplay"];
 				// filter by srs stages
-				let counter = 0;
-				let srsStagesBar = document.getElementById("srsStagesBar");
-				if (srsStagesBar)
-					srsStagesBar = srsStagesBar.getElementsByTagName("li");
+				const lessonsBarData = [];
+				const reviewsBarData = [];
 				Object.keys(srsStages).forEach(srsId => {
 					const assignments = data.filter(assignment => assignment["data"]["srs_stage"] == srsId);
 					// setup srsrStages bar
-					if (srsStagesBar) {
-						srsStagesBar[counter].style.width = (assignments.length/data.length*100)+"%";
-						srsStagesBar[counter++].dataset.size = assignments.length;
+					if (srsId == 0) {
+						lessonsBarData.push({
+							link: "reviews"+srsStages[srsId]["short"],
+							color: `var(--${srsStages[srsId]["short"].toLowerCase()}-color)`,
+							value: assignments.length,
+						});
 					}
+					else {
+						reviewsBarData.push({
+							link: "reviews"+srsStages[srsId]["short"],
+							color: `var(--${srsStages[srsId]["short"].toLowerCase()}-color)`,
+							value: assignments.length,
+						});
+					}
+
 					if (assignments.length > 0) {
 						const srsWrapper = document.createElement("li");
 						container.appendChild(srsWrapper);
@@ -1900,47 +1926,17 @@ document.addEventListener("click", e => {
 							if (characters !== "L" && li.children.length > 0 && li.style.color == "rgb(255, 255, 255)") li.children[0].style.filter = "invert(1)";
 						});
 					}
-				});	
+				});
+
+				const lessonsListBar = document.getElementById("lessonsListBar");
+				if (lessonsListBar)
+					lessonsListBar.parentElement.replaceChild(itemsListBar(lessonsBarData), lessonsListBar);
+				
+				const reviewsListBar = document.getElementById("reviewsListBar");
+				if (reviewsListBar)
+					reviewsListBar.parentElement.replaceChild(itemsListBar(reviewsBarData), reviewsListBar);
 			}
 		});
-	}
-
-	const srsStagesBar = () => {
-		const bar = document.createElement("div");
-		bar.id = "srsStagesBar";
-		const barUl = document.createElement("ul");
-		bar.appendChild(barUl);
-		let counter = 0;
-		["lkd", "ap1", "ap2", "ap3", "ap4", "gr1", "gr2", "mst", "enl", "brn"].forEach(id => {
-			const li = document.createElement("li");
-			barUl.appendChild(li);
-			const link = document.createElement("a");
-			li.appendChild(link);
-			link.classList.add("clickable");
-			link.href = "#reviews"+srsStages[counter++]["short"];;
-			link.style.height = "100%";
-			link.style.display = "block";
-			link.style.backgroundColor = `var(--${id}-color)`;
-			link.addEventListener("mouseover", e => {
-				const popup = document.createElement("div");
-				li.appendChild(popup);
-				popup.classList.add("srsStageBarInfoPopup");
-				popup.appendChild(document.createTextNode(e.target.parentElement.dataset.size));
-				const mostRightPos = popup.getBoundingClientRect().x + popup.offsetWidth;
-				const bodyWidth = document.body.offsetWidth;
-				// if popup overflows body
-				if (mostRightPos > bodyWidth) {
-					popup.style.setProperty("right", "0px", "important");
-					popup.style.setProperty("left", "unset", "important");
-				}
-			});
-			link.addEventListener("mouseout", e => {
-				const popup = e.target.parentElement.getElementsByClassName("srsStageBarInfoPopup")[0];
-				if (popup)
-					popup.remove();	
-			});
-		});
-		return bar;
 	}
 
 	// clicked in the number of reviews
@@ -1958,7 +1954,9 @@ document.addEventListener("click", e => {
 			const reviewsListTitle = document.createElement("p");
 			reviewsList.appendChild(reviewsListTitle);
 			reviewsListTitle.innerHTML = `<b>${reviews && reviews["count"] ? reviews["count"] : 0}</b> Reviews available right now!`;
-			reviewsList.appendChild(srsStagesBar());
+			const reviewsListBar = document.createElement("div");
+			reviewsListBar.id = "reviewsListBar";
+			reviewsList.appendChild(reviewsListBar);
 			const reviewsListUl = document.createElement("ul");
 			reviewsList.appendChild(reviewsListUl);
 			reviewsListUl.classList.add("bellow-border");
@@ -2171,7 +2169,9 @@ document.addEventListener("click", e => {
 			const lessonsListTitle = document.createElement("p");
 			lessonsList.appendChild(lessonsListTitle);
 			lessonsListTitle.innerHTML = `<b>${lessons && lessons["count"] ? lessons["count"] : 0}</b> Lessons available right now!`;
-			lessonsList.appendChild(srsStagesBar());
+			const lessonsListBar = document.createElement("div");
+			lessonsListBar.id = "lessonsListBar";
+			lessonsList.appendChild(lessonsListBar);
 			const lessonsListUl = document.createElement("ul");
 			lessonsList.appendChild(lessonsListUl);
 			lessonsListUl.style.maxHeight = "485px";
@@ -2503,11 +2503,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
 			const kanjiAssoc = result["wkhighlight_kanji_assoc"];
 			const kanjiHighlightedList = request.kanjiHighlighted;
-			const kanjiFoundWrapper = document.getElementById("kanjiHighlightedList");
-			if (kanjiFoundWrapper) {
-				kanjiFoundWrapper.childNodes[0].remove();
+			const kanjiFoundList = document.getElementById("kanjiHighlightedList");
+			if (kanjiFoundList) {
+				kanjiFoundList.childNodes[0].remove();
 				const kanjiFoundUl = document.createElement("ul");
-				kanjiFoundWrapper.appendChild(kanjiFoundUl);
+				kanjiFoundList.appendChild(kanjiFoundUl);
 				const allKanjiSize = kanjiHighlightedList["learned"].length + kanjiHighlightedList["notLearned"].length;
 				if (allKanjiSize <= 10)
 					kanjiFoundUl.style.textAlign = "center";

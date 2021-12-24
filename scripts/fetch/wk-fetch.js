@@ -128,34 +128,36 @@ const setupAssignments = (apiToken, callback) => {
 
 const setupAvailableAssignments = (apiToken, callback) => {
 	fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments?immediately_available_for_lessons")
-	.then(lessons => {
-		fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments?immediately_available_for_review")
-			.then(reviews => {
-				console.log("REVIEWSSSSS", reviews);
-				const countReviews = reviews[0]["total_count"];
-				const countLessons = lessons[0]["total_count"];
+		.then(lessons => {
+			fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments?immediately_available_for_review")
+				.then(reviews => {
+					console.log("REVIEWSSSSS", reviews);
+					const countReviews = reviews[0]["total_count"];
+					const countLessons = lessons[0]["total_count"];
 
-				// get all assigments into one array
-				reviews = Array.prototype.concat.apply([], reviews.map(assignments => assignments["data"]))
-				lessons = Array.prototype.concat.apply([], lessons.map(assignments => assignments["data"]))
-				chrome.storage.local.get(["wkhighlight_assignments"], result => {
-					const assignments = result["wkhighlight_assignments"];
-					if (lessons && reviews && assignments) {
-						const updatedReviews = {
-							"count":countReviews,
-							"data":reviews,
-							"next_reviews":filterAssignmentsByTime(assignments["future"], new Date(), changeDay(new Date(), 14))
-						};
-						const updatedLessons = {
-							"count":countLessons,
-							"data":lessons
-						};
-						chrome.storage.local.set({"wkhighlight_reviews": updatedReviews, "wkhighlight_lessons": updatedLessons}, () => {
-							if (callback)
-								callback(updatedReviews, updatedLessons);
-						});
-					}
-				});
-			});
-	});
+					// get all assigments into one array
+					reviews = Array.prototype.concat.apply([], reviews.map(assignments => assignments["data"]))
+					lessons = Array.prototype.concat.apply([], lessons.map(assignments => assignments["data"]))
+					chrome.storage.local.get(["wkhighlight_assignments"], result => {
+						const assignments = result["wkhighlight_assignments"];
+						if (lessons && reviews && assignments) {
+							const updatedReviews = {
+								"count":countReviews,
+								"data":reviews,
+								"next_reviews":filterAssignmentsByTime(assignments["future"], new Date(), changeDay(new Date(), 14))
+							};
+							const updatedLessons = {
+								"count":countLessons,
+								"data":lessons
+							};
+							chrome.storage.local.set({"wkhighlight_reviews": updatedReviews, "wkhighlight_lessons": updatedLessons}, () => {
+								if (callback)
+									callback(updatedReviews, updatedLessons);
+							});
+						}
+					});
+				})
+				.catch(errorHandling);
+		})
+		.catch(errorHandling);
 }
