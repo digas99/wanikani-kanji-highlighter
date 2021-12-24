@@ -199,17 +199,12 @@ window.onload = () => {
 
 							modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
 								.then(modified => {
-									// if user info has been updated in wanikani, then update cache
-									if (modified) {
-										fetchPage(apiKey, "https://api.wanikani.com/v2/user")
-											.then(user => {
-												// code 429 is Rate limit exceeded
-												if (!window.chrome.runtime.lastError && user && user.code != 429) 
-													chrome.storage.local.set({"wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
-										});
-									}
-	
 									const userInfo = result["wkhighlight_userInfo"]["data"];
+
+									// if user info has been updated in wanikani, then update cache
+									if (!userInfo || modified)
+										fetchUserInfo(apiKey)
+										
 									if (userInfo) {
 										// get user avatar
 										fetch("https://www.wanikani.com/users/"+userInfo["username"])
@@ -634,19 +629,8 @@ window.onload = () => {
 													modifiedSince(apiKey, result["wkhighlight_assignments_updated"], "https://api.wanikani.com/v2/assignments")
 														.then(modified => {
 															console.log(modified);
-															if (!assignments || modified) {
-																fetchAllPages(apiKey, "https://api.wanikani.com/v2/assignments")
-																	.then(data => {
-																		const allAssignments = data.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
-																		const allFutureAssignments = filterAssignmentsByTime(allAssignments, new Date(), null);
-																		const allAvailableReviews = filterAssignmentsByTime(allAssignments, new Date(), changeDay(new Date(), -1000));
-																		chrome.storage.local.set({"wkhighlight_assignments":{
-																			"all":allAssignments,
-																			"future":allFutureAssignments,
-																			"past":allAvailableReviews
-																		}, "wkhighlight_assignments_updated":formatDate(new Date())});
-																	});
-															}
+															if (!assignments || modified)
+																setupAssignments(apiKey, () => setupAvailableAssignments(apiKey, setupSummary));
 														});
 												});
 
@@ -729,7 +713,7 @@ window.onload = () => {
 												reviews = response["wkhighlight_reviews"];
 												lessons = response["wkhighlight_lessons"];
 												
-												updateAvailableAssignments(apiKey, setupSummary);
+												setupAvailableAssignments(apiKey, setupSummary);
 
 												setupSummary(reviews, lessons);
 												
@@ -795,31 +779,29 @@ const submitAction = () => {
 
 	const main = document.getElementById("main");
 
-	fetchPage(apiKey, "https://api.wanikani.com/v2/user")
-		.then(user => {
-			console.log("user: ",user);
-			if (!invalidKey && user.code != 401) {
-				let msg, color;
-				chrome.storage.local.set({"wkhighlight_apiKey":apiKey, "wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
-				msg = "The API key was accepted!";
-				color = "green";
+	fetchUserInfo(apiKey, user => {
+		console.log("user: ",user);
+		if (!invalidKey && user.code != 401) {
+			let msg, color;
+			chrome.storage.local.set({"wkhighlight_apiKey":apiKey, "wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
+			msg = "The API key was accepted!";
+			color = "green";
 
-				const apiInputWrapper = document.getElementsByClassName("apiKey_wrapper")[0];
-				if (apiInputWrapper)
-					apiInputWrapper.remove();
+			const apiInputWrapper = document.getElementsByClassName("apiKey_wrapper")[0];
+			if (apiInputWrapper)
+				apiInputWrapper.remove();
 
-				main.appendChild(reloadPage(msg, color));
-			}
-			else {
-				const submitMessage = document.createElement("p");
-				main.appendChild(submitMessage);
-				submitMessage.id = "message";
-				submitMessage.style.marginTop = "5px";	
-				submitMessage.style.color = "red";
-				submitMessage.appendChild(document.createTextNode("The API key is invalid!"));
-			}
-		})
-		.catch(errorHandling);
+			main.appendChild(reloadPage(msg, color));
+		}
+		else {
+			const submitMessage = document.createElement("p");
+			main.appendChild(submitMessage);
+			submitMessage.id = "message";
+			submitMessage.style.marginTop = "5px";	
+			submitMessage.style.color = "red";
+			submitMessage.appendChild(document.createTextNode("The API key is invalid!"));
+		}
+	});
 }
 
 const secundaryPage = (titleText, width) => {
@@ -1789,6 +1771,8 @@ document.addEventListener("click", e => {
 	}
 
 	const displayAssignmentMaterials = (data, container, loading) => {
+		console.log("data");
+		console.log(data);
 		data.map(assignment => assignment["data"])
 			.sort((as1, as2) => new Date(as1["available_at"]).getTime() - new Date(as2["available_at"]).getTime())
 			.map(assignment => ({"srs_stage":assignment["srs_stage"], "subject_id":assignment["subject_id"], "subject_type":assignment["subject_type"]}));
@@ -2041,11 +2025,9 @@ document.addEventListener("click", e => {
 							const time12h_format = settings["miscellaneous"]["time_in_12h_format"];
 							const days = 1;
 
-							console.log(reviews["next_reviews"]);
 							const nmrReviewsNext = filterAssignmentsByTime(reviews["next_reviews"], today, changeDay(today, days))
 															.map(review => ({hour:new Date(review["available_at"]).getHours(), day:new Date(review["available_at"]).getDate(), srs:review["srs_stage"]}));
 							futureReviewsLabel.getElementsByTagName("B")[0].innerText = nmrReviewsNext.length;
-							console.log(nmrReviewsNext);
 		
 							const chartData = setupReviewsDataForChart(nmrReviewsNext, today, days, 1, time12h_format);
 		
@@ -2558,153 +2540,79 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	// }
 });
 
+const setupSubjectsLists = (callback) => {
+	chrome.storage.local.get(["wkhighlight_allkanji", "wkhighlight_allvocab", "wkhighlight_allradicals"], result => {
+		const allKanji = result["wkhighlight_allkanji"];
+		const allVocab = result["wkhighlight_allvocab"];
+		const allRadicals = result["wkhighlight_allradicals"];
+
+		console.log("RESULT", result);
+
+		if (allKanji && kanjiList.length == 0) {
+			for (const index in allKanji) {
+				const kanji = allKanji[index];
+				kanjiList.push({
+					"type" : "kanji",
+					"id": index, 
+					"characters": kanji["characters"],
+					"meanings": kanji["meanings"],
+					"level": kanji["level"],
+					"readings": kanji["readings"],
+					"visually_similar_subject_ids": kanji["visually_similar_subject_ids"],
+					"amalgamation_subject_ids": kanji["amalgamation_subject_ids"]
+				});
+			}
+		}
+		if (allVocab && vocabList.length == 0) {
+			for (const index in allVocab) {
+				const vocab = allVocab[index];
+				vocabList.push({
+					"type" : "vocabulary",
+					"id": index,
+					"characters": vocab["characters"],
+					"meanings": vocab["meanings"],
+					"meaning_mnemonic": vocab["meaning_mnemonic"],
+					"level": vocab["level"],
+					"readings": vocab["readings"],
+					"reading_mnemonic": vocab["reading_mnemonic"],
+					"component_subject_ids": vocab["component_subject_ids"],
+					"context_sentences" : vocab["context_sentences"]
+				});
+			}
+		}
+		if (allRadicals && radicalList.length == 0) {
+			for (const index in allRadicals) {
+				const radical = allRadicals[index];
+				radicalList.push({
+					"type" : "vocabulary",
+					"id": index,
+					"meanings": radical["meanings"],
+					"characters": radical["characters"] ? radical["characters"] : `<img height="22px" style="margin-top:-3px;margin-bottom:-4px;padding-top:8px" src="${radical["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`,
+					"level": radical["level"],
+				});
+			}
+		}
+
+		if (callback)
+			callback();
+	});
+}
+
 const loadItemsLists = (callback) => {
 	chrome.storage.local.get(["wkhighlight_allkanji", "wkhighlight_allvocab", "wkhighlight_allradicals"], result => {
 		const allKanji = result["wkhighlight_allkanji"];
 		const allVocab = result["wkhighlight_allvocab"];
 		const allRadicals = result["wkhighlight_allradicals"];
 
-		const fetchFromLocalStorage = () => {
-			if (allKanji && kanjiList.length == 0) {
-				for (const index in allKanji) {
-					const kanji = allKanji[index];
-					kanjiList.push({
-						"type" : "kanji",
-						"id": index, 
-						"characters": kanji["characters"],
-						"meanings": kanji["meanings"],
-						"level": kanji["level"],
-						"readings": kanji["readings"],
-						"visually_similar_subject_ids": kanji["visually_similar_subject_ids"],
-						"amalgamation_subject_ids": kanji["amalgamation_subject_ids"]
-					});
-				}
-			}
-			if (allVocab && vocabList.length == 0) {
-				for (const index in allVocab) {
-					const vocab = allVocab[index];
-					vocabList.push({
-						"type" : "vocabulary",
-						"id": index,
-						"characters": vocab["characters"],
-						"meanings": vocab["meanings"],
-						"meaning_mnemonic": vocab["meaning_mnemonic"],
-						"level": vocab["level"],
-						"readings": vocab["readings"],
-						"reading_mnemonic": vocab["reading_mnemonic"],
-						"component_subject_ids": vocab["component_subject_ids"],
-						"context_sentences" : vocab["context_sentences"]
-					});
-				}
-			}
-			if (allRadicals && radicalList.length == 0) {
-				for (const index in allRadicals) {
-					const radical = allRadicals[index];
-					radicalList.push({
-						"type" : "vocabulary",
-						"id": index,
-						"meanings": radical["meanings"],
-						"characters": radical["characters"] ? radical["characters"] : `<img height="22px" style="margin-top:-3px;margin-bottom:-4px;padding-top:8px" src="${radical["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`,
-						"level": radical["level"],
-					});
-				}
-			}
-			
-		}
-
 		if (!allRadicals || !allKanji || !allVocab) {
-			if (!allKanji) {
-				// fetch all kanji
-				fetchAllPages(apiKey, "https://api.wanikani.com/v2/subjects?types=kanji")
-					.then(kanji_data => {
-						const kanji_dict = {};
-						const kanji_assoc = {};
-						kanji_data.map(content => content.data)
-							.flat(1)
-							.forEach(kanji => {
-								const data = kanji.data;
-								kanji_dict[kanji.id] = {
-									"amalgamation_subject_ids" : data.amalgamation_subject_ids,
-									"characters" : data.characters,
-									"component_subject_ids" : data.component_subject_ids,
-									"document_url" : data.document_url,
-									"level" : data.level,
-									"meaning_hint" : data.meaning_hint,
-									"meaning_mnemonic" : data.meaning_mnemonic,
-									"meanings" : data.meanings.map(data => data.meaning),
-									"reading_hint" : data.reading_hint,
-									"reading_mnemonic" : data.reading_mnemonic,
-									"readings" : data.readings,
-									"visually_similar_subject_ids" : data.visually_similar_subject_ids,
-									"slug": data.slug,
-									"id":kanji.id,
-									"subject_type":kanji.object
-								};
-								kanji_assoc[data.slug] = kanji.id;
-							});						
-						chrome.storage.local.set({"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc});
-					})
-					.catch(errorHandling);
-			}
-		
-			if (!allRadicals) {
-				// fetch all radicals
-				fetchAllPages(apiKey, "https://api.wanikani.com/v2/subjects?types=radical")
-					.then(radical_data => {
-						const radical_dict = {};
-						radical_data.map(content => content.data)
-							.flat(1)
-							.forEach(radical => {
-								const data = radical.data;
-								radical_dict[radical.id] = {
-									"characters" : data.characters,
-									"character_images" : data.character_images,
-									"document_url" : data.document_url,
-									"level" : data.level,
-									"id":radical,
-									"meanings": data.meanings.map(data => data.meaning),
-									"subject_type":radical.object
-								};
-							});
-						chrome.storage.local.set({"wkhighlight_allradicals": radical_dict});
-					})
-					.catch(errorHandling);
-			}
-
-			if (!allVocab) {
-				fetchAllPages(apiKey, "https://api.wanikani.com/v2/subjects?types=vocabulary")
-					.then(vocab => {
-						const vocab_dict = {};
-						vocab.map(content => content.data)
-							.flat(1)
-							.forEach(vocab => {
-								const data = vocab.data;
-								vocab_dict[vocab.id] = {
-									"characters" : data.characters,
-									"component_subject_ids" : data.component_subject_ids, 
-									"context_sentences" : data.context_sentences,
-									"document_url" : data.document_url,
-									"level" : data.level,
-									"meaning_mnemonic" : data.meaning_mnemonic,
-									"meanings" : data.meanings.map(data => data.meaning),
-									"parts_of_speech" : data.parts_of_speech,
-									"reading_mnemonic" : data.reading_mnemonic,
-									"readings" : data.readings.map(data => data.reading),
-									"pronunciation_audios" : data.pronunciation_audios,
-									"id":vocab.id,
-									"subject_type":vocab.object
-								};
-							});
-						chrome.storage.local.set({'wkhighlight_allvocab':vocab_dict});
-					})
-					.catch(errorHandling);
-			}
+			setupKanji(apiKey, () => {
+				setupRadicals(apiKey, () => {
+					setupVocab(apiKey, () => setupSubjectsLists(callback));
+				});	
+			});
 		}
 		else
-			fetchFromLocalStorage();
-
-		if (callback)
-			callback();
+			setupSubjectsLists(callback);
 	});
 }
 

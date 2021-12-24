@@ -10,12 +10,19 @@
         "128": "logo/logo_bb.png"
     },
     "background": {
-        "scripts": ["scripts/data-fetch.js", "scripts/functions.js", "scripts/static.js", "scripts/kana.js", "scripts/background.js"]
+        "scripts": ["scripts/fetch/data-fetch.js",
+                    "scripts/fetch/wk-fetch.js",
+                    "scripts/functions.js",
+                    "scripts/static.js",
+                    "scripts/kana.js",
+                    "scripts/background.js"]
     },
     "content_scripts": [
         {
             "matches": ["*://*/*"],
-            "js": ["scripts/essentials.js", "scripts/functions.js", "scripts/static.js"]
+            "js": ["scripts/essentials.js",
+                    "scripts/functions.js",
+                    "scripts/static.js"]
         }
     ],
     "browser_action": {
