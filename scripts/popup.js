@@ -1731,21 +1731,23 @@ document.addEventListener("click", e => {
 			const resultsWrapper = document.getElementById("searchResultItemWrapper");
 			if (resultsWrapper && resultsWrapper.childNodes.length > 0)
 				document.documentElement.style.setProperty('--body-base-width', '630px');
+			
+			const newClass = targetElem.id === "searchResultOptionmenu" ? "searchResultItemType-small" : "searchResultItemType-tiny"; 
+			Array.from(document.getElementsByClassName("searchResultItemType")).forEach(elem => elem.classList.replace(elem.classList[2], newClass));
 		}
 		else {
 			Array.from(document.getElementsByClassName("searchResultItemLine")).forEach(elem => {
 				elem.getElementsByClassName("searchResultItemInfo")[0].style.display = "grid";
 				removeSquareClasses(elem);
 			});
+			Array.from(document.getElementsByClassName("searchResultItemType")).forEach(elem => elem.classList.replace(elem.classList[2], "searchResultItemType-normal"));
 		}
 	}
 
 	if (targetElem.id == "searchResultOptionlist") {
 		Array.from(document.getElementsByClassName("searchResultItemSquare")).forEach(elem => {
 			elem.getElementsByClassName("searchResultItemInfo")[0].style.display = "grid";
-			const classes = elem.classList;
-			if (classes.contains("searchResultItemSquare")) classes.remove("searchResultItemSquare");
-			if (classes.contains("searchResultItemSquareSmall")) classes.remove("searchResultItemSquareSmall");
+			removeSquareClasses(elem);
 		});
 		document.documentElement.style.setProperty('--body-base-width', defaultWindowSize);
 	}
@@ -2382,18 +2384,14 @@ const searchSubject = (event) => {
 					const chars = data["characters"];
 		
 					const kanjiAlike = type == "kanji" || chars.length == 1;
-					const vocabAlike = type == "vocabulary" && chars.length > 1;
-		
-					let colorClass;
-					if (type == "kanji")
-						colorClass = "kanji_back";
-					else if (type == "vocabulary")
-						colorClass = "vocab_back";
+					const vocabAlike = type == "vocabulary" && chars.length > 1;	
 					
 					const li = document.createElement("li");
-					li.classList.add("searchResultItemLine", colorClass); 
+					li.classList.add("searchResultItemLine"); 
 					searchResultUL.appendChild(li);
 					li.setAttribute('data-item-id', data["id"]);
+					if (data["srs_stage"])
+						li.style.borderLeft = `4px solid var(--${srsStages[data["srs_stage"]]["short"].toLowerCase()}-color)`;
 					
 					const itemSpan = document.createElement("span");
 					itemSpan.classList.add("searchResultItem");
@@ -2434,16 +2432,33 @@ const searchSubject = (event) => {
 						itemInfoWrapper.appendChild(read);
 						read.appendChild(document.createTextNode(data["readings"].join(", ")));
 					}
-		
+
+					// subject type
+					const subjectType = document.createElement("div");
+					li.appendChild(subjectType);
+					let colorClass;
+					if (type == "kanji")
+						colorClass = "kanji_back";
+					else if (type == "vocabulary")
+						colorClass = "vocab_back";
+					subjectType.classList.add("searchResultItemType", colorClass);
+					
 					// if it is not in list type
 					if (settings["search"]["results_display"] != "searchResultOptionlist") {
-						if (settings["search"]["results_display"] == "searchResultOptionmenu")
+						if (settings["search"]["results_display"] == "searchResultOptionmenu") {
 							li.classList.add("searchResultItemSquare");
-						else if (settings["search"]["results_display"] == "searchResultOptiongrid")
+							subjectType.classList.add("searchResultItemType-small");
+						}
+						else if (settings["search"]["results_display"] == "searchResultOptiongrid") {
 							li.classList.add("searchResultItemSquareSmall");
+							subjectType.classList.add("searchResultItemType-tiny");
+						}
 						itemInfoWrapper.style.display = "none";
 					}
+					else
+						subjectType.classList.add("searchResultItemType-normal");
 				}
+
 				if (settings["search"]["results_display"] != "searchResultOptionlist")
 					document.documentElement.style.setProperty('--body-base-width', '630px');
 			}
@@ -2540,7 +2555,7 @@ const setupSubjectsLists = (callback) => {
 		if (allKanji && kanjiList.length == 0) {
 			for (const index in allKanji) {
 				const kanji = allKanji[index];
-				kanjiList.push({
+				const list = {
 					"type" : "kanji",
 					"id": index, 
 					"characters": kanji["characters"],
@@ -2548,14 +2563,17 @@ const setupSubjectsLists = (callback) => {
 					"level": kanji["level"],
 					"readings": kanji["readings"],
 					"visually_similar_subject_ids": kanji["visually_similar_subject_ids"],
-					"amalgamation_subject_ids": kanji["amalgamation_subject_ids"]
-				});
+					"amalgamation_subject_ids": kanji["amalgamation_subject_ids"],
+				};
+				if (kanji["srs_stage"])
+					list["srs_stage"] = kanji["srs_stage"];
+				kanjiList.push(list);
 			}
 		}
 		if (allVocab && vocabList.length == 0) {
 			for (const index in allVocab) {
 				const vocab = allVocab[index];
-				vocabList.push({
+				const list = {
 					"type" : "vocabulary",
 					"id": index,
 					"characters": vocab["characters"],
@@ -2565,20 +2583,26 @@ const setupSubjectsLists = (callback) => {
 					"readings": vocab["readings"],
 					"reading_mnemonic": vocab["reading_mnemonic"],
 					"component_subject_ids": vocab["component_subject_ids"],
-					"context_sentences" : vocab["context_sentences"]
-				});
+					"context_sentences" : vocab["context_sentences"],
+				};
+				if (vocab["srs_stage"])
+					list["srs_stage"] = vocab["srs_stage"];
+				vocabList.push(list);
 			}
 		}
 		if (allRadicals && radicalList.length == 0) {
 			for (const index in allRadicals) {
 				const radical = allRadicals[index];
-				radicalList.push({
+				const list = {
 					"type" : "vocabulary",
 					"id": index,
 					"meanings": radical["meanings"],
 					"characters": radical["characters"] ? radical["characters"] : `<img height="22px" style="margin-top:-3px;margin-bottom:-4px;padding-top:8px" src="${radical["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`,
 					"level": radical["level"],
-				});
+				};
+				if (radical["srs_stage"])
+					list["sts_stage"] = radical["srs_stage"];
+				radicalList.push(list);
 			}
 		}
 

@@ -204,6 +204,15 @@
 				}
 					
 			}
+			
+			// if clicking on navbar li
+			if (node.closest(".sd-popupDetails_navbar") && node.tagName === "LI") {
+				node.getElementsByTagName("A")[0].dispatchEvent(new MouseEvent("click", {
+					"view": window,
+					"bubbles": true,
+					"cancelable": false
+				}));
+			}
 		});
 	}
 
@@ -548,8 +557,8 @@
 				const en = document.createElement("li");
 				wrapper.appendChild(en);
 				en.classList.add("sd-popupDetails_p");
-				en.style.setProperty("background-color", "var(--vocab-tag-color)", "important");
-				en.style.setProperty("padding", "0px 5px", "important");
+				en.style.setProperty("background-color", "var(--detailsPopup-lightgray)", "important");
+				en.style.setProperty("padding", "5px", "important");
 				en.appendChild(document.createTextNode(sentence["en"]));
 
 				const ja = document.createElement("li");
@@ -632,11 +641,11 @@
 			
 			// kanji container buttons
 			const buttons = [
-				{id:"sd-detailsPopupCloseX", alt: "Close", active:true, src:"https://i.imgur.com/KUjkFI9.png"},
-				{id:"sd-detailsPopupGoBack", alt: "Go back", active:true, src:"https://i.imgur.com/e6j4jSV.png"},
-				{id:"sd-detailsPopupGoUp", alt: "Go up", active:true, src:"https://i.imgur.com/fszQn7s.png"},
-				{id:"sd-detailsPopupSubjectLock", alt: "Subject lock", active:this.locked, src:"https://i.imgur.com/gaKRPen.png"},
-				{id:"sd-detailsPopupFix", alt: "Subject fix", active:this.fixed, src:"https://i.imgur.com/vZqwGZr.png"},
+				{id:"sd-detailsPopupCloseX", alt: "Close (X)", active:true, src:"https://i.imgur.com/KUjkFI9.png"},
+				{id:"sd-detailsPopupGoBack", alt: "Go back (B)", active:true, src:"https://i.imgur.com/e6j4jSV.png"},
+				{id:"sd-detailsPopupGoUp", alt: "Go up (U)", active:true, src:"https://i.imgur.com/fszQn7s.png"},
+				{id:"sd-detailsPopupSubjectLock", alt: "Subject lock (L)", active:this.locked, src:"https://i.imgur.com/gaKRPen.png"},
+				{id:"sd-detailsPopupFix", alt: "Subject fix (F)", active:this.fixed, src:"https://i.imgur.com/vZqwGZr.png"},
 				// {id:"sd-detailsPopupEdit", alt: "Subject Edit", active:true, src:"https://i.imgur.com/0k9pNho.png"}
 			];
 			for (let i in buttons) {
@@ -902,7 +911,7 @@
 
 	const itemCards = (ids, data, className, sorted) => {
 		const wrapper = document.createElement("ul");
-		wrapper.style.setProperty("padding", "0px", "important");
+		wrapper.style.setProperty("margin-top", "10px", "important");
 		if (ids && data) {
 			let info = ids.map(id => data[id]);
 			if (sorted && info)
@@ -911,7 +920,7 @@
 				const rows = [];
 				if (thisData["meanings"]) rows.push(thisData["meanings"][0]);
 				if (thisData["readings"]) rows.push(thisData["subject_type"] == "kanji" ? thisData["readings"].filter(reading => reading["primary"])[0]["reading"] : thisData["readings"][0]);
-				const card = itemCard(thisData["characters"], rows, thisData["level"]);
+				const card = itemCard(thisData["characters"], rows, thisData["srs_stage"], thisData["level"]);
 				wrapper.appendChild(card);
 				card.classList.add("sd-detailsPopup_cardRow", className);
 				card.title = thisData["characters"]+" in WaniKani";
@@ -963,7 +972,7 @@
 		return table;
 	}
 
-	const itemCard = (characters, textRows, level) => {
+	const itemCard = (characters, textRows, srsId, level) => {
 		const li = document.createElement("li");
 
 		const a = document.createElement("a");
@@ -989,6 +998,10 @@
 				}
 			});
 	
+		}
+
+		if (srsId != undefined) {
+			li.style.setProperty("border-top", `4px solid var(--${srsStages[srsId]["short"].toLowerCase()}-color)`, "important");
 		}
 
 		if (level) {
@@ -1057,10 +1070,10 @@
 			const navbarLi = document.createElement("li");
 			navbarUl.appendChild(navbarLi);
 			navbarLi.title = info[0];
+			navbarLi.classList.add("clickable");
 			const link = document.createElement("a");
 			navbarLi.appendChild(link);
 			link.href = `#sd-popupDetails_${info[0]}Section`;
-			link.classList.add("clickable");
 			const icon = document.createElement("img");
 			link.append(icon);
 			icon.src = info[1];

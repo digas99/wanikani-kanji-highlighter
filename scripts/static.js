@@ -36,7 +36,7 @@ const defaultSettings = {
 	"appearance": {
 		highlight_learned: "#2c5091",
 		highlight_not_learned: "#a32727",
-		details_popup: "#475058",
+		details_popup: "#404040",
 		radical_color: "#65b6ae",
 		kanji_color: "#e7e485",
 		vocab_color: "#fc759b",

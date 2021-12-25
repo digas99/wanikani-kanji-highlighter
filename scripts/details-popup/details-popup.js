@@ -69,19 +69,16 @@
 			document.addEventListener("keydown", e => {
 				const key = e.key;
 
-				if (!detailsPopup.editing) {
-					// if there is detailsPopup
-					if (detailsPopup.detailsPopup) {
-						if (key == 'x' || key == 'X') {
-							// CLOSE DETAILS POPUP
-							detailsPopup.close(200);
-						}
+				if (detailsPopup.detailsPopup) {
+					if (key == 'x' || key == 'X') {
+						// CLOSE DETAILS POPUP
+						detailsPopup.close(200);
+					}
 
-						if (key == 'l' || key == 'L') {
-							// LOCK KANJI ON DETAILS POPUP
-							detailsPopup.locked = !detailsPopup.locked;
-							switchClass(document.getElementById("sd-detailsPopupKanjiLock"), "faded");
-						}
+					if (key == 'l' || key == 'L') {
+						// LOCK KANJI ON DETAILS POPUP
+						detailsPopup.locked = !detailsPopup.locked;
+						switchClass(document.getElementById("sd-detailsPopupSubjectLock"), "faded");
 					}
 
 					// if details popup is expanded

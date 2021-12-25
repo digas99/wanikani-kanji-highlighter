@@ -6,9 +6,10 @@
 	--vocab-tag-color: #fc759b;
 	--reading-tag-bkcolor: #2e2e2e;
 	--popup-details-title-color: white;
-	--popup-details-title-bkcolor: #666464;
+	--popup-details-title-bkcolor: #e36f94;
 	--detailsPopup-opacity: 0.8;
 	--detailsPopup-width: 275px;
+	--detailsPopup-lightgray: #6f6f6f;
 }
 
 	/* 0. DEFAULTS */
@@ -126,7 +127,7 @@
 	border-bottom: 3px solid white;
 	transition: 0.5s;
 	text-align: center !important;
-	z-index: 1;
+	z-index: 2;
 }
 
 #sd-detailsPopupSubjectLock {
@@ -212,7 +213,7 @@
     background-color: white;
     position: fixed;
 	text-align: center;
-	z-index: 1;
+	z-index: 2;
 }
 
 .sd-popupDetails_navbar > ul {
@@ -267,7 +268,7 @@
 .sd-popupDetails_title {
 	color: var(--popup-details-title-color);
     background-color: var(--popup-details-title-bkcolor);
-    padding: 2px 2px 2px 5px !important;
+    padding: 4px 10px !important;
 	border-left: 3px solid white;
 }
 
@@ -332,6 +333,7 @@
 	min-height: 53px;
 	display: inline-block;
     text-align: center;
+	background-color: white;
 }
 
 .sd-detailsPopup_cardRow a {
@@ -345,15 +347,15 @@
 }
 
 .sd-detailsPopup_radicals_row {
-	background-color: var(--radical-tag-color);
+	/*box-shadow: 0px 4px 0px 2px var(--radical-tag-color) !important;*/
 }
 
 .sd-detailsPopup_kanji_row {
-	background-color: var(--kanji-tag-color);
+	/*box-shadow: 0px 4px 0px 2px var(--kanji-tag-color) !important;*/
 }
 
 .sd-detailsPopup_vocab_row {
-	background-color: var(--vocab-tag-color);
+	/*box-shadow: 0px 4px 0px 2px var(--vocab-tag-color) !important;*/
 	width: 100%;
 }
 
