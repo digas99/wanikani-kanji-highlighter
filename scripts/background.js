@@ -203,17 +203,17 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 										.then(() => {
 											setupRadicals(apiToken)
 												.then(radicals_dict => {
-													assignUponSubjects(radicals_dict);
+													if (radicals_dict[1]) assignUponSubjects(radicals_dict[0]);
 
 													setupVocab(apiToken)
 														.then(vocab_dict => {
-															assignUponSubjects(vocab_dict);
+															if (vocab_dict[1]) assignUponSubjects(vocab_dict[0]);
 
 															// setup kanji last to make sure scripts run with all subjects
 															setupKanji(apiToken)
 																.then(kanji_dict => {
-																	assignUponSubjects(kanji_dict);
-																	setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", kanji_dict);
+																	if (kanji_dict[1]) assignUponSubjects(kanji_dict[0]);
+																	setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", kanji_dict[0]);
 																});
 														});
 												});

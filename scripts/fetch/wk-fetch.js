@@ -35,17 +35,17 @@ const setupKanji = (apiToken, callback) =>
 							// saving all kanji
 							chrome.storage.local.set({"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc, "wkhighlight_allkanji_updated": formatDate(new Date())}, () => {
 								console.log("Setup Kanji...");
-								resolve(kanji_dict);
+								resolve([kanji_dict, true]);
 								if (callback)
-									callback(kanji_dict);	
+									callback(kanji_dict, true);	
 							});
 						})
 						.catch(reject);
 					}
 					else {
-						resolve(result['wkhighlight_allkanji']);
+						resolve([result['wkhighlight_allkanji'], false]);
 						if (callback)
-							callback(result['wkhighlight_allkanji']);
+							callback(result['wkhighlight_allkanji'], false);
 					}
 				});
 		});
@@ -78,17 +78,17 @@ const setupRadicals = (apiToken, callback) =>
 							// saving all radical
 							chrome.storage.local.set({"wkhighlight_allradicals": radical_dict, "wkhighlight_allradicals_updated": formatDate(new Date())}, () => {
 								console.log("Setup Radicals...");
-								resolve(radical_dict);
+								resolve([radical_dict, true]);
 								if (callback)
-									callback(radical_dict);
+									callback(radical_dict, true);
 							});
 						})
 						.catch(reject);
 					}
 					else {
-						resolve(result['wkhighlight_allradicals']);
+						resolve([result['wkhighlight_allradicals'], false]);
 						if (callback)
-							callback(result['wkhighlight_allradicals']);
+							callback(result['wkhighlight_allradicals'], false);
 					}
 				});
 		});
@@ -127,17 +127,17 @@ const setupVocab = (apiToken, callback) =>
 							// saving all vocabulary
 							chrome.storage.local.set({'wkhighlight_allvocab':vocab_dict, "wkhighlight_allvocab_updated": formatDate(new Date())}, () => {
 								console.log("Setup Vocabulary...");
-								resolve(vocab_dict);
+								resolve([vocab_dict, true]);
 								if (callback)
-									callback(vocab_dict);
+									callback(vocab_dict, true);
 							});
 						})
 						.catch(reject);
 					}
 					else {
-						resolve(result['wkhighlight_allvocab']);
+						resolve([result['wkhighlight_allvocab'], false]);
 						if (callback)
-							callback(result['wkhighlight_allvocab']);
+							callback(result['wkhighlight_allvocab'], false);
 					}
 				});
 		});

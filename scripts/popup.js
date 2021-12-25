@@ -2622,9 +2622,9 @@ const loadItemsLists = callback => {
 				.then(values => {
 					setupSubjectsLists(callback);
 					
-					const allKanji = values[0];
-					const allRadicals = values[1];
-					const allVocab = values[2];
+					const allKanji = values[0][0];
+					const allRadicals = values[1][0];
+					const allVocab = values[2][0];
 					
 					// associate assignments info to subjects
 					if (allKanji)

@@ -1,10 +1,15 @@
 # Changelog v0.6.2
 Not Released Yet
 
+## Popup
+- Added SRS Stage to extension popup search results
+- Changed style of search result cards
+
 ## Content
 - Added navigation bar to details popup
 - Added SRS Stage information to details popup
 - Added Timestamp Stats to details popup
+- Changed the overall style of details popup
 
 ## Bug Fix
 - Fixed issue where subject data wasn't being loaded the first time the extension run
