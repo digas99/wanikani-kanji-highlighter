@@ -3,7 +3,7 @@ Not Released Yet
 
 ## Bug Fix
 - Fixed issue where subject data wasn't being loaded the first time the extension run
-- Notifications now show subject numbers updated (YET TO VERIFY IF WORKING)
+- Notifications now show subjects numbers updated (YET TO VERIFY IF WORKING)
 
 # [Changelog v0.6.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.1)
 Released on 15/12/2021

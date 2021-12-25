@@ -12,7 +12,6 @@ const itemsListBar = data => {
 		li.appendChild(link);
 		link.classList.add("clickable");
 		link.href = "#"+info["link"];
-		console.log(info["color"]);
 		link.style.backgroundColor = info["color"];
 		li.style.width = (info["value"]/dataSize*100)+"%";
 		link.addEventListener("mouseover", e => {

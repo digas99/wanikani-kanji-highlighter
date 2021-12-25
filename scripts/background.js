@@ -88,8 +88,6 @@ const insertStyles = (styles, tabId) => styles.forEach(style => tabs.insertCSS(t
 
 const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	// setup all learnable kanji if not yet
-	console.log("setupContentScripts");
-	console.log("source: ", learnedKanjiSource);
 	chrome.storage.local.get(["wkhighlight_allLearnableKanji"], result => {
 		let allLearnableKanji = result["wkhighlight_allLearnableKanji"];
 		const kanjiList = [];

@@ -1304,6 +1304,17 @@ document.addEventListener("click", e => {
 		appInfo.appendChild(description)
 		description.appendChild(document.createTextNode("Unofficial kanji highlighter, matching kanji learned with WaniKani."));
 
+		const apiKeyDisplayWrapper = document.createElement("div");
+		content.appendChild(apiKeyDisplayWrapper);
+		apiKeyDisplayWrapper.style.padding = "20px 10px";
+		apiKeyDisplayWrapper.style.borderBottom = "1px solid silver";
+		const apiKeyTitle = document.createElement("h3");
+		apiKeyDisplayWrapper.appendChild(apiKeyTitle);
+		apiKeyTitle.appendChild(document.createTextNode("API Key"));
+		const apiKeyValue = document.createElement("p");
+		apiKeyDisplayWrapper.appendChild(apiKeyValue);
+		chrome.storage.local.get(["wkhighlight_apiKey"], result => apiKeyValue.appendChild(document.createTextNode(result["wkhighlight_apiKey"])));
+
 		const readme = document.createElement("div");
 		content.appendChild(readme);
 		readme.style.padding = "20px 10px";
@@ -1974,7 +1985,7 @@ document.addEventListener("click", e => {
 						const loadingElem = loadingVal[0];
 						reviewsListUl.appendChild(loadingElem);
 
-						loadItemsLists(() => {;
+						loadItemsLists(() => {
 							displayAssignmentMaterials(reviews["data"], reviewsListUl, loadingElem);
 							clearInterval(loadingVal[1])
 						});
@@ -2598,18 +2609,68 @@ const setupSubjectsLists = (callback) => {
 	});
 }
 
-const loadItemsLists = (callback) => {
+const loadItemsLists = callback => {
 	chrome.storage.local.get(["wkhighlight_allkanji", "wkhighlight_allvocab", "wkhighlight_allradicals"], result => {
 		const allKanji = result["wkhighlight_allkanji"];
 		const allVocab = result["wkhighlight_allvocab"];
 		const allRadicals = result["wkhighlight_allradicals"];
 
 		if (!allRadicals || !allKanji || !allVocab) {
-			setupKanji(apiKey, () => {
-				setupRadicals(apiKey, () => {
-					setupVocab(apiKey, () => setupSubjectsLists(callback));
-				});	
-			});
+			Promise.all([setupKanji(apiKey), setupRadicals(apiKey), setupVocab(apiKey)])
+				.then(values => {
+					setupSubjectsLists(callback);
+					
+					const allKanji = values[0];
+					const allRadicals = values[1];
+					const allVocab = values[2];
+					
+					// associate assignments info to subjects
+					if (allKanji && allRadicals && allVocab) {
+						chrome.storage.local.get(["wkhighlight_assignments"], result => {
+							const allAssignments = result["wkhighlight_assignments"]["all"];
+							if (allAssignments) {
+								console.log("Associating assignments with subjects...");
+								allAssignments.forEach(assignment => {
+									const data = assignment["data"];
+									const type = data["subject_type"];
+									if (type) {
+										const timestamps = {
+											data_updated_at: assignment["data_updated_at"],
+											available_at: data["available_at"],
+											burned_at: data["burned_at"],
+											created_at: data["created_at"],
+											passed_at: data["passed_at"],
+											resurrected_at: data["resurrected_at"],
+											started_at: data["started_at"],
+											unlocked_at: data["unlocked_at"]
+										}
+										const subjectId = data["subject_id"];
+										let subject;
+										switch(type) {
+											case "radical":
+												if (allRadicals[subjectId])
+													subject = allRadicals[subjectId];
+												break;
+											case "kanji":
+												if (allKanji[subjectId])
+													subject = allKanji[subjectId];
+												break;
+											case "vocabulary":
+												if (allVocab[subjectId])
+													subject = allVocab[subjectId];
+												break;
+										}
+										subject["timestamps"] = timestamps;
+										subject["srs_stage"] = data["srs_stage"];
+										subject["hidden"] = data["hidden"];
+									}
+								});
+
+								chrome.storage.local.set({"wkhighlight_allkanji":allKanji, "wkhighlight_allradicals":allRadicals, "wkhighlight_allkvocab":allVocab});
+							}
+						});
+					}
+				});
 		}
 		else
 			setupSubjectsLists(callback);
