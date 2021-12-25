@@ -337,11 +337,20 @@
 			if (kanjiWrapper)
 				detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
 
+			// navbar
+			detailedInfoWrapper.appendChild(navbar(this.detailsPopup));
+			
 			// details container
 			const details = document.createElement("div");
-			details.style.setProperty("padding", "15px", "important")
+			details.style.setProperty("padding", "15px", "important");
+			details.style.setProperty("padding-top", "40px", "important");
 			detailedInfoWrapper.appendChild(details);
 		
+			const infoSection = document.createElement("div");
+			details.appendChild(infoSection);
+			infoSection.id = "sd-popupDetails_InfoSection";
+			infoSection.classList.add("sd-popupDetails_anchor");
+
 			// level container
 			const level = document.createElement("div");
 			const levelTitle = document.createElement("strong");
@@ -363,6 +372,11 @@
 			// reading mnemonic container
 			details.appendChild(infoTable("Reading Mnemonic", [parseTags(kanjiInfo["reading_mnemonic"]), parseTags(kanjiInfo["reading_hint"])]));
 			
+			const cardsSection = document.createElement("div");
+			details.appendChild(cardsSection);
+			cardsSection.id = "sd-popupDetails_CardsSection";
+			cardsSection.classList.add("sd-popupDetails_anchor");
+			
 			// used radicals cards
 			details.appendChild(itemCardsSection(kanjiInfo, "component_subject_ids", "Used Radicals", "sd-detailsPopup_radicals_row", this.allRadicals));
 		
@@ -372,6 +386,11 @@
 			// vocab with that kanji
 			details.appendChild(itemCardsSection(kanjiInfo, "amalgamation_subject_ids", "Vocabulary", "sd-detailsPopup_vocab_row", this.allVocab));
 		
+			const timestampsSection = document.createElement("div");
+			details.appendChild(timestampsSection);
+			timestampsSection.id = "sd-popupDetails_TimestampsSection";
+			timestampsSection.classList.add("sd-popupDetails_anchor");
+
 			this.detailsPopup.scrollTo(0, 0);
 			return detailedInfoWrapper;
 		},
@@ -397,10 +416,18 @@
 				}, 100);
 			}
 
+			// navbar
+			detailedInfoWrapper.appendChild(navbar(this.detailsPopup));
+
 			// details container
 			const details = document.createElement("div");
 			details.style.setProperty("padding", "15px", "important")
 			detailedInfoWrapper.appendChild(details);
+
+			const infoSection = document.createElement("div");
+			details.appendChild(infoSection);
+			infoSection.id = "sd-popupDetails_InfoSection";
+			infoSection.classList.add("sd-popupDetails_anchor");
 
 			// level container
 			const level = document.createElement("div");
@@ -422,6 +449,11 @@
 
 			// reading mnemonic container
 			details.appendChild(infoTable("Reading Mnemonic:", [parseTags(vocabInfo["reading_mnemonic"])]));
+
+			const cardsSection = document.createElement("div");
+			details.appendChild(cardsSection);
+			cardsSection.id = "sd-popupDetails_CardsSection";
+			cardsSection.classList.add("sd-popupDetails_anchor");
 
 			// used kanji
 			details.appendChild(itemCardsSection(vocabInfo, "component_subject_ids", "Used Kanji", "sd-detailsPopup_kanji_row", this.allKanji));
@@ -447,6 +479,11 @@
 				ja.appendChild(document.createTextNode(sentence["ja"]));
 
 			});
+
+			const timestampsSection = document.createElement("div");
+			details.appendChild(timestampsSection);
+			timestampsSection.id = "sd-popupDetails_TimestampsSection";
+			timestampsSection.classList.add("sd-popupDetails_anchor");
 
 			this.detailsPopup.scrollTo(0, 0);
 			return detailedInfoWrapper;
@@ -892,6 +929,54 @@
 			textArea.value = value;
 		
 		return wrapper;
+	}
+
+	const navbar = detailsPopup => {
+		const navbar = document.createElement("div");
+		navbar.classList.add("sd-popupDetails_navbar");
+		const navbarUl = document.createElement("ul");
+		navbar.appendChild(navbarUl);
+
+		[["Info", "https://i.imgur.com/E6Hrw7w.png"], ["Cards", "https://i.imgur.com/r991llA.png"], ["Timestamps", "https://i.imgur.com/dcT0L48.png"]].forEach(info => {
+			const navbarLi = document.createElement("li");
+			navbarUl.appendChild(navbarLi);
+			navbarLi.title = info[0];
+			const link = document.createElement("a");
+			navbarLi.appendChild(link);
+			link.href = `#sd-popupDetails_${info[0]}Section`;
+			link.classList.add("clickable");
+			const icon = document.createElement("img");
+			link.append(icon);
+			icon.src = info[1];
+			
+			if (info[0] == "Info") {
+				navbarLi.style.setProperty("background-color", "#d73267", "important");
+				icon.style.setProperty("filter", "invert(1)", "important");
+			}
+		});
+
+		const navbarHighlightChanger = li => {
+			Array.from(li.parentElement.children).forEach(child => {
+				child.style.removeProperty("background-color");
+				child.getElementsByTagName("img")[0].style.removeProperty("filter");
+			});
+			li.style.setProperty("background-color", "#d73267", "important");
+			li.getElementsByTagName("img")[0].style.setProperty("filter", "invert(1)", "important");
+		}
+
+		// navbar changes on scroll
+		detailsPopup.addEventListener("scroll", e => {
+			const scrollTop = e.target.scrollTop;
+
+			const cardsSection = document.getElementById("sd-popupDetails_CardsSection");
+			const timestampsSection = document.getElementById("sd-popupDetails_TimestampsSection");
+
+			if (scrollTop < cardsSection.offsetTop) navbarHighlightChanger(navbarUl.children[0]);
+			if (scrollTop >= cardsSection.offsetTop && scrollTop < timestampsSection.offsetTop) navbarHighlightChanger(navbarUl.children[1]);
+			if (scrollTop >= timestampsSection.offsetTop) navbarHighlightChanger(navbarUl.children[2]);
+		});
+
+		return navbar;
 	}
 
 	window.SubjectDisplay = SubjectDisplay;

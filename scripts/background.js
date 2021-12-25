@@ -216,7 +216,7 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 										modifiedSince(apiToken, kanjiUpdated, "https://api.wanikani.com/v2/subjects?types=kanji")
 											.then(modified => {
 												if (!result['wkhighlight_allkanji'] || modified)
-													setupKanji(apiToken, "https://api.wanikani.com/v2/subjects?types=kanji", kanji_dict => setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", kanji_dict));
+													setupKanji(apiToken, kanji_dict => setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", kanji_dict));
 												else
 													setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", result["wkhighlight_allkanji"]);
 											});
@@ -224,13 +224,13 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 										modifiedSince(apiToken, radicalsUpdated, "https://api.wanikani.com/v2/subjects?types=radical")
 											.then(modified => {
 												if (!result['wkhighlight_allradicals'] || modified)
-													setupRadicals(apiToken, "https://api.wanikani.com/v2/subjects?types=radical");
+													setupRadicals(apiToken);
 											});
 	
 										modifiedSince(apiToken, vocabUpdates, "https://api.wanikani.com/v2/subjects?types=vocabulary")
 											.then(modified => {
 												if (!result['wkhighlight_allvocab'] || modified)
-													setupVocab(apiToken, "https://api.wanikani.com/v2/subjects?types=vocabulary");
+													setupVocab(apiToken);
 											});
 									});
 	
