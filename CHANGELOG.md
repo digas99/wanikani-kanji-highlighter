@@ -4,6 +4,7 @@ Not Released Yet
 ## Content
 - Added navigation bar to details popup
 - Added SRS Stage information to details popup
+- Added Timestamp Stats to details popup
 
 ## Bug Fix
 - Fixed issue where subject data wasn't being loaded the first time the extension run

@@ -101,7 +101,6 @@ window.onload = () => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			activeTab = tabs[0];
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, response => {
-				console.log(response);
 				const url = response ? response["windowLocation"] : "";
 
 				atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url);
@@ -194,7 +193,6 @@ window.onload = () => {
 
 						document.body.style.cursor = "progress";
 						chrome.storage.local.get(["wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons"], response => {
-							console.log(response);									
 							const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatDate(new Date());
 
 							modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
@@ -557,7 +555,6 @@ window.onload = () => {
 
 													chrome.tabs.query({currentWindow: true, active: true}, tabs => {
 														chrome.tabs.sendMessage(tabs[0].id, {nmrKanjiHighlighted:"popup"}, response => {
-															console.log("nmr kanji: ",response);
 															if (response) {
 																chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
 																	const learned = response["learned"];
@@ -640,19 +637,9 @@ window.onload = () => {
 												blacklistButton.classList.add("button");
 												blacklistButton.appendChild(document.createTextNode("Don't Run On This Site"));
 
-
 												// get all assignments if there are none in storage or if they were modified
-												chrome.storage.local.get(["wkhighlight_assignments", "wkhighlight_assignments_updated"], result => {
-													const assignments = result["wkhighlight_assignments"];
-													console.log("here");
-													modifiedSince(apiKey, result["wkhighlight_assignments_updated"], "https://api.wanikani.com/v2/assignments")
-														.then(modified => {
-															console.log(modified);
-															if (!assignments || modified)
-																setupAssignments(apiKey, () => setupAvailableAssignments(apiKey, setupSummary));
-														});
-												});
-
+												setupAssignments(apiKey, () => setupAvailableAssignments(apiKey, setupSummary));
+										
 												const setupSummary = (reviews, lessons) => {
 													if (reviews) {
 														const currentTime = new Date().getTime();			
@@ -799,7 +786,6 @@ const submitAction = () => {
 	const main = document.getElementById("main");
 
 	fetchUserInfo(apiKey, user => {
-		console.log("user: ",user);
 		if (!invalidKey && user.code != 401) {
 			let msg, color;
 			chrome.storage.local.set({"wkhighlight_apiKey":apiKey, "wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
@@ -890,8 +876,6 @@ const arrowsDisplay = (leftArrow, rightArrow, value, min, max) => {
 
 document.addEventListener("click", e => {
 	const targetElem = e.target;
-
-	console.log(targetElem);
 
 	if (targetElem.id === "submit")
 		submitAction();
@@ -1251,7 +1235,6 @@ document.addEventListener("click", e => {
 				}));
 
 			const userInfoNav = document.getElementById("userInfoNavbar");
-			console.log(userInfoNav);
 			if (userInfoNav)
 				userInfoNav.classList.add("hidden");
 
@@ -1585,7 +1568,6 @@ document.addEventListener("click", e => {
 		}
 
 		if (!document.getElementById("searchResultNavbar")) {
-			console.log("here");
 			const navbarWrapper = document.createElement("div");
 			navbarWrapper.id = "searchResultNavbar";
 			searchResultWrapper.appendChild(navbarWrapper);
@@ -1637,7 +1619,6 @@ document.addEventListener("click", e => {
 				const loadingSubjects = loading(["main-loading", "search-loading"], ["kanjiHighlightedLearned"], 50, "Loading Subjects...");
 				const loadingSubjectsElem = loadingSubjects[0];
 				document.getElementById("userInfoWrapper").appendChild(loadingSubjectsElem);
-				console.log(loadingSubjectsElem);
 				loadItemsLists(() => {
 					loadingSubjectsElem.remove();
 					clearInterval(loadingSubjects[1]);
@@ -1841,7 +1822,6 @@ document.addEventListener("click", e => {
 						srsTitle.classList.add("clickable");
 						srsId = parseInt(srsId);
 						if (srsId !== 0) {
-							console.log("here");
 							const srsTitleEgg = document.createElement("div");
 							srsTitle.appendChild(srsTitleEgg);
 							srsTitleEgg.classList.add("srsTitleEgg");
@@ -2557,8 +2537,6 @@ const setupSubjectsLists = (callback) => {
 		const allVocab = result["wkhighlight_allvocab"];
 		const allRadicals = result["wkhighlight_allradicals"];
 
-		console.log("RESULT", result);
-
 		if (allKanji && kanjiList.length == 0) {
 			for (const index in allKanji) {
 				const kanji = allKanji[index];
@@ -2625,51 +2603,12 @@ const loadItemsLists = callback => {
 					const allVocab = values[2];
 					
 					// associate assignments info to subjects
-					if (allKanji && allRadicals && allVocab) {
-						chrome.storage.local.get(["wkhighlight_assignments"], result => {
-							const allAssignments = result["wkhighlight_assignments"]["all"];
-							if (allAssignments) {
-								console.log("Associating assignments with subjects...");
-								allAssignments.forEach(assignment => {
-									const data = assignment["data"];
-									const type = data["subject_type"];
-									if (type) {
-										const timestamps = {
-											data_updated_at: assignment["data_updated_at"],
-											available_at: data["available_at"],
-											burned_at: data["burned_at"],
-											created_at: data["created_at"],
-											passed_at: data["passed_at"],
-											resurrected_at: data["resurrected_at"],
-											started_at: data["started_at"],
-											unlocked_at: data["unlocked_at"]
-										}
-										const subjectId = data["subject_id"];
-										let subject;
-										switch(type) {
-											case "radical":
-												if (allRadicals[subjectId])
-													subject = allRadicals[subjectId];
-												break;
-											case "kanji":
-												if (allKanji[subjectId])
-													subject = allKanji[subjectId];
-												break;
-											case "vocabulary":
-												if (allVocab[subjectId])
-													subject = allVocab[subjectId];
-												break;
-										}
-										subject["timestamps"] = timestamps;
-										subject["srs_stage"] = data["srs_stage"];
-										subject["hidden"] = data["hidden"];
-									}
-								});
-
-								chrome.storage.local.set({"wkhighlight_allkanji":allKanji, "wkhighlight_allradicals":allRadicals, "wkhighlight_allvocab":allVocab});
-							}
-						});
-					}
+					if (allKanji)
+						assignUponSubjects(allKanji);
+					if (allRadicals)
+						assignUponSubjects(allRadicals);
+					if (allVocab)
+						assignUponSubjects(allVocab);
 				});
 		}
 		else

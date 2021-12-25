@@ -158,7 +158,6 @@ const updateChartReviewsOfDay = (reviews, chart, date, numberReviewsElement, tim
 	chartRemoveData(chart, chart.data.labels.length);
 	const nextReviews = filterAssignmentsByTime(reviews, newDate, changeDay(newDate, 1))
 							.map(review => ({hour:new Date(review["available_at"]).getHours(), day:new Date(review["available_at"]).getDate(), srs:review["srs_stage"]}));
-	console.log(nextReviews);
 	const apprData = setupReviewsDataForChart(nextReviews.filter(review => review["srs"] > 0 && review["srs"] <= 4), newDate, 1, 0, time12h_format);
 	const guruData = setupReviewsDataForChart(nextReviews.filter(review => review["srs"] == 5 || review["srs"] == 6), newDate, 1, 0, time12h_format);
 	const masterData = setupReviewsDataForChart(nextReviews.filter(review => review["srs"] == 7), newDate, 1, 0, time12h_format);
@@ -270,4 +269,50 @@ const mdToHTML = line => {
 	elem.appendChild(document.createTextNode(line));
 
 	return elem;
+}
+
+const assignUponSubjects = list => {
+	const type = list[Object.keys(list)[0]]["subject_type"];
+	if (list && type) {
+		chrome.storage.local.get(["wkhighlight_assignments"], result => {
+			const allAssignments = result["wkhighlight_assignments"]["all"];
+			if (allAssignments) {
+				console.log(`Associating assignments with ${type} ...`);
+				allAssignments.forEach(assignment => {
+					const data = assignment["data"];
+					const subjectId = data["subject_id"];
+					if (subjectId && list[subjectId]) {
+						const subject = list[subjectId];
+						const timestamps = {
+							data_updated_at: assignment["data_updated_at"],
+							available_at: data["available_at"],
+							burned_at: data["burned_at"],
+							created_at: data["created_at"],
+							passed_at: data["passed_at"],
+							resurrected_at: data["resurrected_at"],
+							started_at: data["started_at"],
+							unlocked_at: data["unlocked_at"]
+						}
+						subject["timestamps"] = timestamps;
+						subject["srs_stage"] = data["srs_stage"];
+						subject["hidden"] = data["hidden"];
+					}
+				});
+				let storageId;
+				switch(type) {
+					case "radical":
+						storageId = "wkhighlight_allradicals";
+						break;
+					case "kanji":
+						storageId = "wkhighlight_allkanji";
+						break;
+					case "vocabulary":
+						storageId = "wkhighlight_allvocab";
+						break;
+				}
+				if (storageId)
+					chrome.storage.local.set({[storageId]:list});
+			}
+		});
+	}
 }

@@ -31,10 +31,9 @@
 
 			document.addEventListener("mouseover", e => {
 				const node = e.target;
-					
+
 				// If hovering over a kanji
 				if ((highlightingClass && node.classList.contains("wkhighlighter_hoverable") && !(detailsPopup.detailsPopup && detailsPopup.detailsPopup.contains(node))) && !detailsPopup.locked) {
-		
 					if (!detailsPopup.detailsPopup)
 						detailsPopup.create();
 						

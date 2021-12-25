@@ -14,10 +14,8 @@ chrome.runtime.onConnect.addListener(port => externalPort = port);
 
 chrome.runtime.onInstalled.addListener(details => {
 	// clear all subjects on extension update
-	if (details.reason == "update") {
-		console.log("extension updated");
+	if (details.reason == "update")
 		clearSubjects();
-	}
 });
 
 let settings;
@@ -78,7 +76,6 @@ const fetchReviewedKanjiID = async (apiToken, page) => {
 const setupLearnedKanji = async (apiToken, page, kanji) => {
 	const IDs = await fetchReviewedKanjiID(apiToken, page);
 	const learnedKanji = IDs.map(id => kanji[id].slug);
-	console.log(learnedKanji);
 	chrome.storage.local.set({"wkhighlight_learnedKanji": learnedKanji, "wkhighlight_learnedKanji_updated":formatDate(new Date())});
 	return learnedKanji;
 }
@@ -101,10 +98,8 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	});
 
 	const scripts = kanji => {
-		console.log("scripts");
 		// inject details popup
 		if (settings["kanji_details_popup"]["activated"]) {
-			console.log("details-popup");
 			executeScripts(['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js', 'scripts/kana.js'], thisTabId);
 			insertStyles(['styles/subject-display.css'], thisTabId);
 		}
@@ -154,14 +149,11 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 tabs.onActivated.addListener(activeInfo => {
 	thisTabId = activeInfo["tabId"];
 	tabs.get(thisTabId, result => {
-		console.log(thisTabId);
 		if (result) {
 			if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(result["url"])) {
 				if (settings["extension_icon"]["kanji_counter"] && injectedHighlighter) {
 					tabs.sendMessage(thisTabId, {nmrKanjiHighlighted:"popup"}, response => {
-						console.log(chrome.runtime.lastError);
 						if (!chrome.runtime.lastError) {
-							console.log(response, response["nmrKanjiHighlighted"]);
 							if (response && response["nmrKanjiHighlighted"]) {
 								chrome.browserAction.setBadgeText({text:response["nmrKanjiHighlighted"].toString(), tabId:thisTabId});
 							}
@@ -186,11 +178,9 @@ tabs.onActivated.addListener(activeInfo => {
 chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 	thisTabId = details.tabId;
 	const url = details.url;
-	console.log(thisTabId, url);
 	if (thisTabId && url) {
 		chrome.tabs.get(thisTabId, tab => {
 			thisUrl = tab.url;
-			console.log(thisUrl, url);
 			if (url === thisUrl && !urlChecker.test(url)) {
 				if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {
 					chrome.storage.local.get(["wkhighlight_blacklist"], blacklist => {
@@ -206,34 +196,28 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 										chrome.browserAction.setBadgeText({text: "0", tabId:thisTabId});
 										chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 									}
-	
+					
+									// get all assignments if there are none in storage or if they were modified
 									// see if all kanji is already saved in storage
-									chrome.storage.local.get(['wkhighlight_allkanji', 'wkhighlight_allkanji_updated', 'wkhighlight_allradicals', 'wkhighlight_allradicals_updated', 'wkhighlight_allvocab', 'wkhighlight_allvocab_updated'], result => {
-										const now = formatDate(new Date());
-										const kanjiUpdated = result["wkhighlight_allkanji_updated"] ? result["wkhighlight_allkanji_updated"] : now;
-										const radicalsUpdated = result["wkhighlight_allradicals_updated"] ? result["wkhighlight_allradicals_updated"] : now;
-										const vocabUpdates = result["wkhighlight_allvocab_updated"] ? result["wkhighlight_allvocab_updated"] : now;
-										modifiedSince(apiToken, kanjiUpdated, "https://api.wanikani.com/v2/subjects?types=kanji")
-											.then(modified => {
-												if (!result['wkhighlight_allkanji'] || modified)
-													setupKanji(apiToken, kanji_dict => setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", kanji_dict));
-												else
-													setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", result["wkhighlight_allkanji"]);
-											});
-										
-										modifiedSince(apiToken, radicalsUpdated, "https://api.wanikani.com/v2/subjects?types=radical")
-											.then(modified => {
-												if (!result['wkhighlight_allradicals'] || modified)
-													setupRadicals(apiToken);
-											});
-	
-										modifiedSince(apiToken, vocabUpdates, "https://api.wanikani.com/v2/subjects?types=vocabulary")
-											.then(modified => {
-												if (!result['wkhighlight_allvocab'] || modified)
-													setupVocab(apiToken);
-											});
-									});
-	
+									setupAssignments(apiToken)
+										.then(() => {
+											setupRadicals(apiToken)
+												.then(radicals_dict => {
+													assignUponSubjects(radicals_dict);
+
+													setupVocab(apiToken)
+														.then(vocab_dict => {
+															assignUponSubjects(vocab_dict);
+
+															// setup kanji last to make sure scripts run with all subjects
+															setupKanji(apiToken)
+																.then(kanji_dict => {
+																	assignUponSubjects(kanji_dict);
+																	setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", kanji_dict);
+																});
+														});
+												});
+										});
 								}
 							});
 						}
@@ -272,7 +256,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		tabs.sendMessage(thisTabId, {popupDetails: request.popupDetails});
 
 	if (request.badge && settings["extension_icon"]["kanji_counter"] && sender.url === thisUrl) {
-		console.log(thisUrl, sender.url);
 		chrome.browserAction.setBadgeText({text: request.badge.toString(), tabId:thisTabId});
 		chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 	}

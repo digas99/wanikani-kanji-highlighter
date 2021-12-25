@@ -9,7 +9,6 @@
 
 		// youtube temporary fix
 		window.addEventListener('yt-page-data-updated', () => {
-			console.log(totalHighlighted);
 			if (totalHighlighted > 0)
 				window.location.reload();
 		});

@@ -370,8 +370,6 @@
 			infoSection.id = "sd-popupDetails_InfoSection";
 			infoSection.classList.add("sd-popupDetails_anchor");
 
-			console.log(kanjiInfo);
-
 			// srs stage container
 			const srsStageId = kanjiInfo["srs_stage"];
 			if (srsStageId != undefined) {
@@ -446,7 +444,7 @@
 					const title = document.createElement("strong");
 					titleWrapper.appendChild(title);
 					if (key === "data_updated_at")
-						title.appendChild(document.createTextNode("Last Lesson"));
+						title.appendChild(document.createTextNode("Last Session"));
 					else
 						title.appendChild(document.createTextNode(key.split("_")[0].charAt(0).toUpperCase()+key.split("_")[0].slice(1)));
 					title.style.setProperty("font-size", "22px", "important");
@@ -516,8 +514,6 @@
 			levelTitle.appendChild(document.createTextNode(`Level ${vocabInfo["level"]} vocabulary`));
 			level.appendChild(levelTitle);
 			details.appendChild(level);
-
-			console.log(vocabInfo);
 
 			// meaning container
 			const meaning = document.createElement("div");
@@ -591,7 +587,7 @@
 					const title = document.createElement("strong");
 					titleWrapper.appendChild(title);
 					if (key === "data_updated_at")
-						title.appendChild(document.createTextNode("Last Lesson"));
+						title.appendChild(document.createTextNode("Last Session"));
 					else
 						title.appendChild(document.createTextNode(key.split("_")[0].charAt(0).toUpperCase()+key.split("_")[0].slice(1)));
 					title.style.setProperty("font-size", "22px", "important");

@@ -31,7 +31,6 @@
 		const values = result["wkhighlight_allLearnableKanji"];
 		if (allVocab && values) {
 			allVocab = Object.keys(allVocab).map(key => allVocab[key]["characters"]);
-			console.log(allVocab, values);
 
 			const kanjiRegex = new RegExp(`[${values.join('')}]`, "g");;
 
@@ -53,7 +52,6 @@
 							const text = node.textContent;
 							const fragmet = document.createDocumentFragment();
 							if (text.match(kanjiRegex)) {
-								//console.log(text);
 								vocabularyParser(allVocab, text).forEach(vocab => {
 									const split = text.split(vocab);
 									const div1 = document.createElement("span");
