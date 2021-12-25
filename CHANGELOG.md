@@ -1,6 +1,10 @@
 # Changelog v0.6.2
 Not Released Yet
 
+## Content
+- Added navigation bar to details popup
+- Added SRS Stage information to details popup
+
 ## Bug Fix
 - Fixed issue where subject data wasn't being loaded the first time the extension run
 - Notifications now show subjects numbers updated (YET TO VERIFY IF WORKING)

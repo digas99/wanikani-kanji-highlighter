@@ -36,7 +36,7 @@ chrome.storage.local.get("wkhighlight_settings", result => {
 		documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
 		documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
 		documentStyle.setProperty('--vocab-tag-color', appearance["vocab_color"]);
-		documentStyle.setProperty('--lkd-color', appearance["lkd_color"]);
+		documentStyle.setProperty('--int-color', appearance["int_color"]);
 		documentStyle.setProperty('--ap1-color', appearance["ap1_color"]);
 		documentStyle.setProperty('--ap2-color', appearance["ap2_color"]);
 		documentStyle.setProperty('--ap3-color', appearance["ap3_color"]);

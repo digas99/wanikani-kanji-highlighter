@@ -58,13 +58,24 @@
 						img.classList.add("sd-detailsPopup_cardSideBar_icon");
 						img.src = src;
 					}
-					const li = document.createElement("li");
-					ul.appendChild(li);
-					li.style.setProperty("font-weight", "900", "important")
-					li.title = "Subject Level";
+
 					const list = type == "kanji" ? this.allKanji[id] : this.allVocab[id];
-					if (list)
-						li.appendChild(document.createTextNode(list["level"]));
+					if (list) {
+						if (list["srs_stage"] != undefined) {
+							const srsLi = document.createElement("li");
+							ul.appendChild(srsLi);
+							srsLi.style.setProperty("font-weight", "900", "important")
+							srsLi.title = "SRS Stage";
+							srsLi.appendChild(document.createTextNode(srsStages[list["srs_stage"]]["short"]));
+							srsLi.style.setProperty("color", `var(--${srsStages[list["srs_stage"]]["short"].toLowerCase()}-color)`)
+						}
+	
+						const levelLi = document.createElement("li");
+						ul.appendChild(levelLi);
+						levelLi.style.setProperty("font-weight", "900", "important")
+						levelLi.title = "Subject Level";
+						levelLi.appendChild(document.createTextNode(list["level"]));
+					}	
 				}
 			}
 			
@@ -218,6 +229,12 @@
 					this.detailsPopup.firstChild.remove();
 				this.detailsPopup.appendChild(this.charContainer(item["characters"], id, save));
 
+				// srs stage border
+				const srsStageId = item["srs_stage"];
+				if (srsStageId != undefined)
+					this.detailsPopup.style.setProperty("border-top", `5px solid var(--${srsStages[srsStageId]["short"].toLowerCase()}-color)`, "important");
+				else
+					this.detailsPopup.style.removeProperty("border-top");
 				
 				const detailedInfoWrapper = this.detailsPopup.getElementsByClassName("sd-popupDetails_detailedInfoWrapper");
 				if (detailedInfoWrapper)
@@ -271,8 +288,10 @@
 		// expand popup
 		expand : function () {
 			this.detailsPopup.classList.add("sd-focusPopup");
-			this.detailsPopup.style.setProperty("height", window.innerHeight+"px", "important")
+			this.detailsPopup.style.setProperty("height", window.innerHeight+"px", "important");
 			
+			setTimeout(() => this.detailsPopup.style.setProperty("top", "0", "important"), 400);
+
 			this.expanded = true;
 
 			// remove temp kanji info from small details popup
@@ -294,8 +313,8 @@
 					itemWrapper.classList.add("sd-focusPopup_kanji");
 					itemWrapper.style.setProperty("width", this.width+"px", "important")
 				}
-				this.detailsPopup.style.setProperty("overflow", "auto", "important")
-				this.detailsPopup.style.setProperty("max-height", window.innerHeight+"px", "important")
+				this.detailsPopup.style.setProperty("overflow", "auto", "important");
+				this.detailsPopup.style.setProperty("max-height", window.innerHeight+"px", "important");
 			}, 200);
 
 			if (itemWrapper) {
@@ -351,6 +370,19 @@
 			infoSection.id = "sd-popupDetails_InfoSection";
 			infoSection.classList.add("sd-popupDetails_anchor");
 
+			console.log(kanjiInfo);
+
+			// srs stage container
+			const srsStageId = kanjiInfo["srs_stage"];
+			if (srsStageId != undefined) {
+				const srsStage = document.createElement("div");
+				details.appendChild(srsStage);
+				const srsStageText = document.createElement("strong");
+				srsStage.appendChild(srsStageText);
+				srsStageText.appendChild(document.createTextNode(srsStages[srsStageId]["name"]));
+				srsStageText.style.setProperty("color", `var(--${srsStages[srsStageId]["short"].toLowerCase()}-color)`, "important");
+			}
+
 			// level container
 			const level = document.createElement("div");
 			const levelTitle = document.createElement("strong");
@@ -391,6 +423,43 @@
 			timestampsSection.id = "sd-popupDetails_TimestampsSection";
 			timestampsSection.classList.add("sd-popupDetails_anchor");
 
+			if (kanjiInfo["timestamps"]) {
+				const timestamps = infoTable("Timestamps", []);
+				details.appendChild(timestamps);
+				const timestampsWrapper = document.createElement("div");
+				timestamps.appendChild(timestampsWrapper);
+				timestampsWrapper.style.setProperty("margin-top", "10px", "important");
+				const images = ["https://i.imgur.com/fszQn7s.png", "https://i.imgur.com/Pi3fG6f.png", "https://i.imgur.com/bsZwaVy.png", "https://i.imgur.com/x7ialfz.png", "https://i.imgur.com/a0lyk8f.png", "https://i.imgur.com/VKoEfQD.png", "https://i.imgur.com/pXqcusW.png", "https://i.imgur.com/1EA2EWP.png"];
+				for (const key in kanjiInfo["timestamps"]) {
+					const wrapper = document.createElement("div");
+					timestampsWrapper.appendChild(wrapper);
+					wrapper.style.setProperty("maring-bottom", "5px", "important");
+					const titleWrapper = document.createElement("div");
+					wrapper.appendChild(titleWrapper);
+					const img = document.createElement("img");
+					titleWrapper.appendChild(img);
+					img.src = images[Object.keys(kanjiInfo["timestamps"]).indexOf(key)];
+					img.style.setProperty("width", "22px", "important");
+					img.style.setProperty("filter", "invert(1)", "important");
+					img.style.setProperty("margin-right", "10px", "important");
+					img.style.setProperty("margin-top", "-7px", "important");
+					const title = document.createElement("strong");
+					titleWrapper.appendChild(title);
+					if (key === "data_updated_at")
+						title.appendChild(document.createTextNode("Last Lesson"));
+					else
+						title.appendChild(document.createTextNode(key.split("_")[0].charAt(0).toUpperCase()+key.split("_")[0].slice(1)));
+					title.style.setProperty("font-size", "22px", "important");
+					const time = document.createElement("p");
+					wrapper.appendChild(time);
+					time.style.setProperty("padding", "5px 0px 10px 8px", "important");
+					if (!kanjiInfo["timestamps"][key])
+						time.appendChild(document.createTextNode("No Data"));
+					else
+						time.appendChild(document.createTextNode(kanjiInfo["timestamps"][key]?.split(".")[0].replace("T", " / ")));
+				}	
+			}
+
 			this.detailsPopup.scrollTo(0, 0);
 			return detailedInfoWrapper;
 		},
@@ -421,7 +490,8 @@
 
 			// details container
 			const details = document.createElement("div");
-			details.style.setProperty("padding", "15px", "important")
+			details.style.setProperty("padding", "15px", "important");
+			details.style.setProperty("padding-top", "40px", "important");
 			detailedInfoWrapper.appendChild(details);
 
 			const infoSection = document.createElement("div");
@@ -429,12 +499,25 @@
 			infoSection.id = "sd-popupDetails_InfoSection";
 			infoSection.classList.add("sd-popupDetails_anchor");
 
+			// srs stage container
+			const srsStageId = vocabInfo["srs_stage"];
+			if (srsStageId != undefined) {
+				const srsStage = document.createElement("div");
+				details.appendChild(srsStage);
+				const srsStageText = document.createElement("strong");
+				srsStage.appendChild(srsStageText);
+				srsStageText.appendChild(document.createTextNode(srsStages[srsStageId]["name"]));
+				srsStageText.style.setProperty("color", `var(--${srsStages[srsStageId]["short"].toLowerCase()}-color)`, "important");
+			}
+
 			// level container
 			const level = document.createElement("div");
 			const levelTitle = document.createElement("strong");
 			levelTitle.appendChild(document.createTextNode(`Level ${vocabInfo["level"]} vocabulary`));
 			level.appendChild(levelTitle);
 			details.appendChild(level);
+
+			console.log(vocabInfo);
 
 			// meaning container
 			const meaning = document.createElement("div");
@@ -484,6 +567,43 @@
 			details.appendChild(timestampsSection);
 			timestampsSection.id = "sd-popupDetails_TimestampsSection";
 			timestampsSection.classList.add("sd-popupDetails_anchor");
+
+			if (vocabInfo["timestamps"]) {
+				const timestamps = infoTable("Timestamps", []);
+				details.appendChild(timestamps);
+				const timestampsWrapper = document.createElement("div");
+				timestamps.appendChild(timestampsWrapper);
+				timestampsWrapper.style.setProperty("margin-top", "10px", "important");
+				const images = ["https://i.imgur.com/fszQn7s.png", "https://i.imgur.com/Pi3fG6f.png", "https://i.imgur.com/bsZwaVy.png", "https://i.imgur.com/x7ialfz.png", "https://i.imgur.com/a0lyk8f.png", "https://i.imgur.com/VKoEfQD.png", "https://i.imgur.com/pXqcusW.png", "https://i.imgur.com/1EA2EWP.png"];
+				for (const key in vocabInfo["timestamps"]) {
+					const wrapper = document.createElement("div");
+					timestampsWrapper.appendChild(wrapper);
+					wrapper.style.setProperty("maring-bottom", "5px", "important");
+					const titleWrapper = document.createElement("div");
+					wrapper.appendChild(titleWrapper);
+					const img = document.createElement("img");
+					titleWrapper.appendChild(img);
+					img.src = images[Object.keys(vocabInfo["timestamps"]).indexOf(key)];
+					img.style.setProperty("width", "22px", "important");
+					img.style.setProperty("filter", "invert(1)", "important");
+					img.style.setProperty("margin-right", "10px", "important");
+					img.style.setProperty("margin-top", "-7px", "important");
+					const title = document.createElement("strong");
+					titleWrapper.appendChild(title);
+					if (key === "data_updated_at")
+						title.appendChild(document.createTextNode("Last Lesson"));
+					else
+						title.appendChild(document.createTextNode(key.split("_")[0].charAt(0).toUpperCase()+key.split("_")[0].slice(1)));
+					title.style.setProperty("font-size", "22px", "important");
+					const time = document.createElement("p");
+					wrapper.appendChild(time);
+					time.style.setProperty("padding", "5px 0px 10px 8px", "important");
+					if (!vocabInfo["timestamps"][key])
+						time.appendChild(document.createTextNode("No Data"));
+					else
+						time.appendChild(document.createTextNode(vocabInfo["timestamps"][key]?.split(".")[0].replace("T", " / ")));
+				}
+			}
 
 			this.detailsPopup.scrollTo(0, 0);
 			return detailedInfoWrapper;

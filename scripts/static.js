@@ -1,5 +1,5 @@
 const srsStages = {
-	0: {name:"Locked", short: "Lkd", color: "#c0c0c0"},
+	0: {name:"Initiate", short: "Int", color: "#c0c0c0"},
 	1: {name:"Apprentice I", short: "Ap1", color: "#84bedb"},
 	2: {name:"Apprentice II", short: "Ap2", color: "#58afdb"},
 	3: {name:"Apprentice III", short: "Ap3", color: "#2ca2de"},
@@ -40,7 +40,7 @@ const defaultSettings = {
 		radical_color: "#65b6ae",
 		kanji_color: "#e7e485",
 		vocab_color: "#fc759b",
-		lkd_color: srsStages[0].color,
+		int_color: srsStages[0].color,
 		ap1_color: srsStages[1].color,
 		ap2_color: srsStages[2].color,
 		ap3_color: srsStages[3].color,
@@ -210,7 +210,7 @@ const wanikaniPattern = {
 	mst_color: "#294ddb",
 	enl_color: "#0093dd",
 	brn_color: "#434343",
-	lkd_color: "#c1c0c1"
+	int_color: "#c1c0c1"
 };
 
 const flamingDurtlesPattern = {
@@ -223,7 +223,7 @@ const flamingDurtlesPattern = {
 	mst_color: "#c9ce3b",
 	enl_color: "#f67400",
 	brn_color: "#d53b49",
-	lkd_color: "#c1c0c1"
+	int_color: "#c1c0c1"
 }
 
 const unwantedTags = ["html", "body", "head", "title", "style", "link", "meta", "script", "noscript", "img", "svg"];

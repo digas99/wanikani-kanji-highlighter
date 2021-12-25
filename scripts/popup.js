@@ -181,7 +181,7 @@ window.onload = () => {
 						documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
 						documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
 						documentStyle.setProperty('--vocab-tag-color', appearance["vocab_color"]);
-						documentStyle.setProperty('--lkd-color', appearance["lkd_color"]);
+						documentStyle.setProperty('--int-color', appearance["int_color"]);
 						documentStyle.setProperty('--ap1-color', appearance["ap1_color"]);
 						documentStyle.setProperty('--ap2-color', appearance["ap2_color"]);
 						documentStyle.setProperty('--ap3-color', appearance["ap3_color"]);
@@ -1145,8 +1145,8 @@ document.addEventListener("click", e => {
 					color:[settings["appearance"]["mst_color"], settings["appearance"]["enl_color"]]
 				},{
 					id:["settings-appearance-brn_color", "settings-appearance-lkd_color"],
-					label:"Burned/Locked",
-					color:[settings["appearance"]["brn_color"], settings["appearance"]["lkd_color"]]
+					label:"Burned/Initiate",
+					color:[settings["appearance"]["brn_color"], settings["appearance"]["int_color"]]
 				}].forEach(option => {
 					const colorInputWrapper = colorOption(option["id"], option["label"], option["color"]);
 					appearanceWrapper.appendChild(colorInputWrapper);
@@ -2666,7 +2666,7 @@ const loadItemsLists = callback => {
 									}
 								});
 
-								chrome.storage.local.set({"wkhighlight_allkanji":allKanji, "wkhighlight_allradicals":allRadicals, "wkhighlight_allkvocab":allVocab});
+								chrome.storage.local.set({"wkhighlight_allkanji":allKanji, "wkhighlight_allradicals":allRadicals, "wkhighlight_allvocab":allVocab});
 							}
 						});
 					}
