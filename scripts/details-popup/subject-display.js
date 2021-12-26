@@ -64,10 +64,11 @@
 						if (list["srs_stage"] != undefined) {
 							const srsLi = document.createElement("li");
 							ul.appendChild(srsLi);
-							srsLi.style.setProperty("font-weight", "900", "important")
+							srsLi.style.setProperty("font-weight", "900", "important");
 							srsLi.title = "SRS Stage";
 							srsLi.appendChild(document.createTextNode(srsStages[list["srs_stage"]]["short"]));
-							srsLi.style.setProperty("color", `var(--${srsStages[list["srs_stage"]]["short"].toLowerCase()}-color)`)
+							srsLi.style.setProperty("color", `var(--${srsStages[list["srs_stage"]]["short"].toLowerCase()}-color)`);
+							srsLi.style.setProperty("font-size", "13px", "important")
 						}
 	
 						const levelLi = document.createElement("li");
@@ -365,8 +366,11 @@
 			if (kanjiWrapper)
 				detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
 
+			const sections = [["Info", "https://i.imgur.com/E6Hrw7w.png"], ["Cards", "https://i.imgur.com/r991llA.png"]];
+			if (kanjiInfo["stats"]) sections.push(["Statistics", "https://i.imgur.com/Ufz4G1K.png"]);
+			if (kanjiInfo["timestamps"]) sections.push(["Timestamps", "https://i.imgur.com/dcT0L48.png"]);
 			// navbar
-			detailedInfoWrapper.appendChild(navbar(this.detailsPopup));
+			detailedInfoWrapper.appendChild(navbar(this.detailsPopup, sections));
 			
 			// details container
 			const details = document.createElement("div");
@@ -379,23 +383,27 @@
 			infoSection.id = "sd-popupDetails_InfoSection";
 			infoSection.classList.add("sd-popupDetails_anchor");
 
-			// srs stage container
-			const srsStageId = kanjiInfo["srs_stage"];
-			if (srsStageId != undefined) {
-				const srsStage = document.createElement("div");
-				details.appendChild(srsStage);
-				const srsStageText = document.createElement("strong");
-				srsStage.appendChild(srsStageText);
-				srsStageText.appendChild(document.createTextNode(srsStages[srsStageId]["name"]));
-				srsStageText.style.setProperty("color", `var(--${srsStages[srsStageId]["short"].toLowerCase()}-color)`, "important");
-			}
-
 			// level container
 			const level = document.createElement("div");
 			const levelTitle = document.createElement("strong");
 			levelTitle.appendChild(document.createTextNode(`Level ${kanjiInfo["level"]} kanji`));
 			level.appendChild(levelTitle);
 			details.appendChild(level);
+
+			// srs stage container
+			const srsStage = document.createElement("div");
+			details.appendChild(srsStage);
+			const srsStageText = document.createElement("strong");
+			srsStage.appendChild(srsStageText);
+			const srsStageId = kanjiInfo["srs_stage"];
+			if (srsStageId != undefined) {
+				srsStageText.appendChild(document.createTextNode(srsStages[srsStageId]["name"]));
+				srsStageText.style.setProperty("color", `var(--${srsStages[srsStageId]["short"].toLowerCase()}-color)`, "important");				
+			}
+			else {
+				srsStageText.appendChild(document.createTextNode("Locked"));
+				srsStageText.style.setProperty("color", `var(--${srsStages[0]["short"].toLowerCase()}-color)`, "important");				
+			}
 		
 			// meaning container
 			const meaning = document.createElement("div");
@@ -442,8 +450,9 @@
 			if (kanjiInfo["stats"]) {
 				// quick stats
 				const quickStats = document.createElement("div");
-				details.insertBefore(quickStats, details.children[0]);
+				details.insertBefore(quickStats, level);
 				quickStats.style.setProperty("text-align", "right", "important");
+				quickStats.style.setProperty("margin-bottom", "5px", "important");
 				const quickStatsUl = document.createElement("ul");
 				quickStats.appendChild(quickStatsUl);
 				quickStatsUl.style.setProperty("display", "inline-flex", "important");
@@ -453,13 +462,14 @@
 					quickStatsUl.appendChild(quickStatsLi);
 					quickStatsLi.title = title;
 					quickStatsLi.style.setProperty("margin-left", "5px", "important");
+					quickStatsLi.style.setProperty("display", "flex", "important");
+					quickStatsLi.style.setProperty("align-items", "center", "important");
 					const img = document.createElement("img");
 					quickStatsLi.appendChild(img);
 					img.src = statsImages[i];
 					img.style.setProperty("width", "17px", "important");
 					img.style.setProperty("filter", "invert(1)", "important");
 					img.style.setProperty("margin-right", "5px", "important");
-					img.style.setProperty("margin-top", "-3px", "important");
 					const valueElem = document.createElement("span");
 					quickStatsLi.appendChild(valueElem);
 				});
@@ -475,13 +485,14 @@
 				overallCorrect.style.setProperty("margin-bottom", "10px", "important");
 				const overallCorrectTitleWrapper = document.createElement("div");
 				overallCorrect.appendChild(overallCorrectTitleWrapper);
+				overallCorrectTitleWrapper.style.setProperty("display", "flex", "important");
+				overallCorrectTitleWrapper.style.setProperty("align-items", "center", "important");
 				const overallCorrectIcon = document.createElement("img");
 				overallCorrectTitleWrapper.appendChild(overallCorrectIcon);
 				overallCorrectIcon.src = statsImages[0];
 				overallCorrectIcon.style.setProperty("width", "22px", "important");
 				overallCorrectIcon.style.setProperty("filter", "invert(1)", "important");
 				overallCorrectIcon.style.setProperty("margin-right", "10px", "important");
-				overallCorrectIcon.style.setProperty("margin-top", "-7px", "important");
 				const overallCorrectTitle = document.createElement("strong");
 				overallCorrectTitleWrapper.appendChild(overallCorrectTitle);
 				overallCorrectTitle.appendChild(document.createTextNode("Overall"));
@@ -510,13 +521,14 @@
 					stat.style.setProperty("margin-bottom", "10px", "important");
 					const titleWrapper = document.createElement("div");
 					stat.appendChild(titleWrapper);
+					titleWrapper.style.setProperty("display", "flex", "important");
+					titleWrapper.style.setProperty("align-items", "center", "important");
 					const icon = document.createElement("img");
 					titleWrapper.appendChild(icon);
 					icon.src = statsImages[i+1];
 					icon.style.setProperty("width", "22px", "important");
 					icon.style.setProperty("filter", "invert(1)", "important");
 					icon.style.setProperty("margin-right", "10px", "important");
-					icon.style.setProperty("margin-top", "-7px", "important");
 					const title = document.createElement("strong");
 					titleWrapper.appendChild(title);
 					title.appendChild(document.createTextNode(type));
@@ -583,13 +595,14 @@
 					wrapper.style.setProperty("maring-bottom", "5px", "important");
 					const titleWrapper = document.createElement("div");
 					wrapper.appendChild(titleWrapper);
+					titleWrapper.style.setProperty("display", "flex", "important");
+					titleWrapper.style.setProperty("align-items", "center", "important");
 					const img = document.createElement("img");
 					titleWrapper.appendChild(img);
 					img.src = images[Object.keys(kanjiInfo["timestamps"]).indexOf(key)];
 					img.style.setProperty("width", "22px", "important");
 					img.style.setProperty("filter", "invert(1)", "important");
 					img.style.setProperty("margin-right", "10px", "important");
-					img.style.setProperty("margin-top", "-7px", "important");
 					const title = document.createElement("strong");
 					titleWrapper.appendChild(title);
 					if (key === "data_updated_at")
@@ -617,6 +630,18 @@
 						else if (parseInt(days) < 0) timePassed = "In "+(parseInt(days)*-1)+((parseInt(days)*-1) === 1 ? " day" : " days");
 						else timePassed = days+" days ago";
 						timePassedWrapper.appendChild(document.createTextNode(timePassed));
+
+						if (key === "passed_at" && srsStage) {
+							srsStage.style.setProperty("display", "flex", "important");
+							srsStage.style.setProperty("align-items", "center", "important");
+							const passed = document.createElement("img");
+							srsStage.appendChild(passed);
+							passed.src = img.src;
+							passed.style.setProperty("width", "13px", "important");
+							passed.style.setProperty("filter", "invert(1)", "important");
+							passed.style.setProperty("margin-left", "7px", "important");
+							srsStage.title = "Passed "+timePassed;
+						}
 					}
 				}	
 			}
@@ -646,8 +671,11 @@
 				}, 100);
 			}
 
+			const sections = [["Info", "https://i.imgur.com/E6Hrw7w.png"], ["Cards", "https://i.imgur.com/r991llA.png"]];
+			if (vocabInfo["stats"]) sections.push(["Statistics", "https://i.imgur.com/Ufz4G1K.png"]);
+			if (vocabInfo["timestamps"]) sections.push(["Timestamps", "https://i.imgur.com/dcT0L48.png"]);
 			// navbar
-			detailedInfoWrapper.appendChild(navbar(this.detailsPopup));
+			detailedInfoWrapper.appendChild(navbar(this.detailsPopup, sections));
 
 			// details container
 			const details = document.createElement("div");
@@ -660,23 +688,27 @@
 			infoSection.id = "sd-popupDetails_InfoSection";
 			infoSection.classList.add("sd-popupDetails_anchor");
 
-			// srs stage container
-			const srsStageId = vocabInfo["srs_stage"];
-			if (srsStageId != undefined) {
-				const srsStage = document.createElement("div");
-				details.appendChild(srsStage);
-				const srsStageText = document.createElement("strong");
-				srsStage.appendChild(srsStageText);
-				srsStageText.appendChild(document.createTextNode(srsStages[srsStageId]["name"]));
-				srsStageText.style.setProperty("color", `var(--${srsStages[srsStageId]["short"].toLowerCase()}-color)`, "important");
-			}
-
 			// level container
 			const level = document.createElement("div");
 			const levelTitle = document.createElement("strong");
 			levelTitle.appendChild(document.createTextNode(`Level ${vocabInfo["level"]} vocabulary`));
 			level.appendChild(levelTitle);
 			details.appendChild(level);
+
+			// srs stage container
+			const srsStage = document.createElement("div");
+			details.appendChild(srsStage);
+			const srsStageText = document.createElement("strong");
+			srsStage.appendChild(srsStageText);
+			const srsStageId = vocabInfo["srs_stage"];
+			if (srsStageId != undefined) {
+				srsStageText.appendChild(document.createTextNode(srsStages[srsStageId]["name"]));
+				srsStageText.style.setProperty("color", `var(--${srsStages[srsStageId]["short"].toLowerCase()}-color)`, "important");				
+			}
+			else {
+				srsStageText.appendChild(document.createTextNode("Locked"));
+				srsStageText.style.setProperty("color", `var(--${srsStages[0]["short"].toLowerCase()}-color)`, "important");				
+			}
 
 			// meaning container
 			const meaning = document.createElement("div");
@@ -687,10 +719,10 @@
 			details.appendChild(meaning);
 
 			// meaning mnemonic container
-			details.appendChild(infoTable("Meaning Mnemonic:", [parseTags(vocabInfo["meaning_mnemonic"])]));
+			details.appendChild(infoTable("Meaning Mnemonic", [parseTags(vocabInfo["meaning_mnemonic"])]));
 
 			// reading mnemonic container
-			details.appendChild(infoTable("Reading Mnemonic:", [parseTags(vocabInfo["reading_mnemonic"])]));
+			details.appendChild(infoTable("Reading Mnemonic", [parseTags(vocabInfo["reading_mnemonic"])]));
 
 			const cardsSection = document.createElement("div");
 			details.appendChild(cardsSection);
@@ -701,7 +733,7 @@
 			details.appendChild(itemCardsSection(vocabInfo, "component_subject_ids", "Used Kanji", "sd-detailsPopup_kanji_row", this.allKanji));
 
 			// sentences
-			const sentencesTable = infoTable("Example Sentences:", []); 
+			const sentencesTable = infoTable("Example Sentences", []); 
 			details.appendChild(sentencesTable);
 			vocabInfo["context_sentences"].forEach(sentence => {
 				const wrapper = document.createElement("ul");
@@ -739,8 +771,9 @@
 			if (vocabInfo["stats"]) {
 				// quick stats
 				const quickStats = document.createElement("div");
-				details.insertBefore(quickStats, details.children[0]);
+				details.insertBefore(quickStats, level);
 				quickStats.style.setProperty("text-align", "right", "important");
+				quickStats.style.setProperty("margin-bottom", "5px", "important");
 				const quickStatsUl = document.createElement("ul");
 				quickStats.appendChild(quickStatsUl);
 				quickStatsUl.style.setProperty("display", "inline-flex", "important");
@@ -750,13 +783,14 @@
 					quickStatsUl.appendChild(quickStatsLi);
 					quickStatsLi.title = title;
 					quickStatsLi.style.setProperty("margin-left", "5px", "important");
+					quickStatsLi.style.setProperty("display", "flex", "important");
+					quickStatsLi.style.setProperty("align-items", "center", "important");
 					const img = document.createElement("img");
 					quickStatsLi.appendChild(img);
 					img.src = statsImages[i];
 					img.style.setProperty("width", "17px", "important");
 					img.style.setProperty("filter", "invert(1)", "important");
 					img.style.setProperty("margin-right", "5px", "important");
-					img.style.setProperty("margin-top", "-3px", "important");
 					const valueElem = document.createElement("span");
 					quickStatsLi.appendChild(valueElem);
 				});
@@ -772,13 +806,14 @@
 				overallCorrect.style.setProperty("margin-bottom", "10px", "important");
 				const overallCorrectTitleWrapper = document.createElement("div");
 				overallCorrect.appendChild(overallCorrectTitleWrapper);
+				overallCorrectTitleWrapper.style.setProperty("display", "flex", "important");
+				overallCorrectTitleWrapper.style.setProperty("align-items", "center", "important");
 				const overallCorrectIcon = document.createElement("img");
 				overallCorrectTitleWrapper.appendChild(overallCorrectIcon);
 				overallCorrectIcon.src = "https://i.imgur.com/vsRTIFA.png";
 				overallCorrectIcon.style.setProperty("width", "22px", "important");
 				overallCorrectIcon.style.setProperty("filter", "invert(1)", "important");
 				overallCorrectIcon.style.setProperty("margin-right", "10px", "important");
-				overallCorrectIcon.style.setProperty("margin-top", "-7px", "important");
 				const overallCorrectTitle = document.createElement("strong");
 				overallCorrectTitleWrapper.appendChild(overallCorrectTitle);
 				overallCorrectTitle.appendChild(document.createTextNode("Overall"));
@@ -808,13 +843,14 @@
 					stat.style.setProperty("margin-bottom", "10px", "important");
 					const titleWrapper = document.createElement("div");
 					stat.appendChild(titleWrapper);
+					titleWrapper.style.setProperty("display", "flex", "important");
+					titleWrapper.style.setProperty("align-items", "center", "important");
 					const icon = document.createElement("img");
 					titleWrapper.appendChild(icon);
 					icon.src = images[i];
 					icon.style.setProperty("width", "22px", "important");
 					icon.style.setProperty("filter", "invert(1)", "important");
 					icon.style.setProperty("margin-right", "10px", "important");
-					icon.style.setProperty("margin-top", "-7px", "important");
 					const title = document.createElement("strong");
 					titleWrapper.appendChild(title);
 					title.appendChild(document.createTextNode(type));
@@ -881,13 +917,14 @@
 					wrapper.style.setProperty("maring-bottom", "5px", "important");
 					const titleWrapper = document.createElement("div");
 					wrapper.appendChild(titleWrapper);
+					titleWrapper.style.setProperty("display", "flex", "important");
+					titleWrapper.style.setProperty("align-items", "center", "important");
 					const img = document.createElement("img");
 					titleWrapper.appendChild(img);
 					img.src = images[Object.keys(vocabInfo["timestamps"]).indexOf(key)];
 					img.style.setProperty("width", "22px", "important");
 					img.style.setProperty("filter", "invert(1)", "important");
 					img.style.setProperty("margin-right", "10px", "important");
-					img.style.setProperty("margin-top", "-7px", "important");
 					const title = document.createElement("strong");
 					titleWrapper.appendChild(title);
 					if (key === "data_updated_at")
@@ -915,6 +952,19 @@
 						else if (parseInt(days) < 0) timePassed = "In "+(parseInt(days)*-1)+((parseInt(days)*-1) === 1 ? " day" : " days");
 						else timePassed = days+" days ago";
 						timePassedWrapper.appendChild(document.createTextNode(timePassed));
+
+
+						if (key === "passed_at" && srsStage) {
+							srsStage.style.setProperty("display", "flex", "important");
+							srsStage.style.setProperty("align-items", "center", "important");
+							const passed = document.createElement("img");
+							srsStage.appendChild(passed);
+							passed.src = img.src;
+							passed.style.setProperty("width", "13px", "important");
+							passed.style.setProperty("filter", "invert(1)", "important");
+							passed.style.setProperty("margin-left", "7px", "important");
+							srsStage.title = "Passed "+timePassed;
+						}
 					}
 				}
 			}
@@ -1021,7 +1071,7 @@
 					li.appendChild(span);
 					if (readingsString.length > 8) {
 						const overflowSpan = document.createElement("span");
-						overflowSpan.appendChild(document.createTextNode("..."));
+						if (!this.expanded) overflowSpan.appendChild(document.createTextNode("..."));
 						li.appendChild(overflowSpan);
 					}
 					ul.appendChild(li);
@@ -1369,13 +1419,13 @@
 		return wrapper;
 	}
 
-	const navbar = detailsPopup => {
+	const navbar = (detailsPopup, sections) => {
 		const navbar = document.createElement("div");
 		navbar.classList.add("sd-popupDetails_navbar");
 		const navbarUl = document.createElement("ul");
 		navbar.appendChild(navbarUl);
 
-		[["Info", "https://i.imgur.com/E6Hrw7w.png"], ["Cards", "https://i.imgur.com/r991llA.png"], ["Statistics", "https://i.imgur.com/Ufz4G1K.png"], ["Timestamps", "https://i.imgur.com/dcT0L48.png"]].forEach(info => {
+		sections.forEach(info => {
 			const navbarLi = document.createElement("li");
 			navbarUl.appendChild(navbarLi);
 			navbarLi.title = info[0];
