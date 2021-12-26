@@ -115,6 +115,32 @@
 								detailsPopup.detailsPopup.scrollTo(0, 0);
 							}
 						}
+
+						const navbar = document.getElementsByClassName("sd-popupDetails_navbar")[0];
+						if (navbar && navbar.getElementsByTagName("li").length > 0) {
+							const sectionClick = sectionName => {
+								const infoSection = Array.from(navbar.getElementsByTagName("li")).filter(section => section.title === sectionName)[0];
+								if (infoSection) {
+									infoSection.getElementsByTagName("a")[0].dispatchEvent(new MouseEvent("click", {
+										"view": window,
+										"bubbles": true,
+										"cancelable": false
+									}));
+								}
+							}
+
+							if (key == 'i' || key == 'I')
+								sectionClick("Info");
+
+							if (key == 'c' || key == 'C')
+								sectionClick("Cards");
+
+							if (key == 's' || key == 'S')
+								sectionClick("Statistics");
+
+							if (key == 't' || key == 'T')
+								sectionClick("Timestamps");
+						}
 					}
 					// if it is not expanded
 					else {
