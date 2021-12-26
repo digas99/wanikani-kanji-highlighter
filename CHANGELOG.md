@@ -9,6 +9,7 @@ Not Released Yet
 - Added navigation bar to details popup
 - Added SRS Stage information to details popup
 - Added Timestamp Stats to details popup
+- Added Reviews Statistics to details popup
 - Changed the overall style of details popup
 
 ## Bug Fix

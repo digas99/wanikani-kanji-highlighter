@@ -371,7 +371,7 @@
 			// details container
 			const details = document.createElement("div");
 			details.style.setProperty("padding", "15px", "important");
-			details.style.setProperty("padding-top", "40px", "important");
+			details.style.setProperty("padding-top", "45px", "important");
 			detailedInfoWrapper.appendChild(details);
 		
 			const infoSection = document.createElement("div");
@@ -440,6 +440,30 @@
 			}
 
 			if (kanjiInfo["stats"]) {
+				// quick stats
+				const quickStats = document.createElement("div");
+				details.insertBefore(quickStats, details.children[0]);
+				quickStats.style.setProperty("text-align", "right", "important");
+				const quickStatsUl = document.createElement("ul");
+				quickStats.appendChild(quickStatsUl);
+				quickStatsUl.style.setProperty("display", "inline-flex", "important");
+				const statsImages = ["https://i.imgur.com/vsRTIFA.png", "https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
+				["Overall", "Meaning", "Reading"].forEach((title, i) => {
+					const quickStatsLi = document.createElement("li");
+					quickStatsUl.appendChild(quickStatsLi);
+					quickStatsLi.title = title;
+					quickStatsLi.style.setProperty("margin-left", "5px", "important");
+					const img = document.createElement("img");
+					quickStatsLi.appendChild(img);
+					img.src = statsImages[i];
+					img.style.setProperty("width", "17px", "important");
+					img.style.setProperty("filter", "invert(1)", "important");
+					img.style.setProperty("margin-right", "5px", "important");
+					img.style.setProperty("margin-top", "-3px", "important");
+					const valueElem = document.createElement("span");
+					quickStatsLi.appendChild(valueElem);
+				});
+
 				const stats = infoTable("Statistics", []);
 				details.appendChild(stats);
 				const statsWrapper = document.createElement("div");
@@ -448,12 +472,12 @@
 
 				const overallCorrect = document.createElement("div");
 				statsWrapper.appendChild(overallCorrect);
-				overallCorrect.style.setProperty("margin-bottom", "5px", "important");
+				overallCorrect.style.setProperty("margin-bottom", "10px", "important");
 				const overallCorrectTitleWrapper = document.createElement("div");
 				overallCorrect.appendChild(overallCorrectTitleWrapper);
 				const overallCorrectIcon = document.createElement("img");
 				overallCorrectTitleWrapper.appendChild(overallCorrectIcon);
-				overallCorrectIcon.src = "https://i.imgur.com/vsRTIFA.png";
+				overallCorrectIcon.src = statsImages[0];
 				overallCorrectIcon.style.setProperty("width", "22px", "important");
 				overallCorrectIcon.style.setProperty("filter", "invert(1)", "important");
 				overallCorrectIcon.style.setProperty("margin-right", "10px", "important");
@@ -466,6 +490,7 @@
 				["Correct", "Frequency"].forEach((state, i) => {
 					const overallCorrectStateWrapper = document.createElement("div");
 					overallCorrect.appendChild(overallCorrectStateWrapper);
+					overallCorrectStateWrapper.style.setProperty("padding-left", "8px", "important");
 					const overallCorrectStateTitle = document.createElement("strong");
 					overallCorrectStateWrapper.appendChild(overallCorrectStateTitle);
 					overallCorrectStateTitle.appendChild(document.createTextNode(state+": "));
@@ -475,17 +500,19 @@
 					if (i === 0)
 						overallCorrectStateValue.style.setProperty("color", percentageColor(kanjiInfo["stats"]["percentage_correct"]), "important")
 				});
+				const quickStatsOverall = quickStatsUl.getElementsByTagName("li")[0].getElementsByTagName("span")[0];
+				quickStatsOverall.appendChild(document.createTextNode(kanjiInfo["stats"]["percentage_correct"].toFixed(0)+"%"));
+				quickStatsOverall.style.setProperty("color", percentageColor(kanjiInfo["stats"]["percentage_correct"]), "important");
 
-				const images = ["https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
 				["Meaning", "Reading"].forEach((type, i) => {
 					const stat = document.createElement("div");
 					statsWrapper.appendChild(stat);
-					stat.style.setProperty("margin-bottom", "5px", "important");
+					stat.style.setProperty("margin-bottom", "10px", "important");
 					const titleWrapper = document.createElement("div");
 					stat.appendChild(titleWrapper);
 					const icon = document.createElement("img");
 					titleWrapper.appendChild(icon);
-					icon.src = images[i];
+					icon.src = statsImages[i+1];
 					icon.style.setProperty("width", "22px", "important");
 					icon.style.setProperty("filter", "invert(1)", "important");
 					icon.style.setProperty("margin-right", "10px", "important");
@@ -498,6 +525,7 @@
 					["Correct", "Incorrect"].forEach(state => {
 						const stateWrapper = document.createElement("div");
 						stat.appendChild(stateWrapper);
+						stateWrapper.style.setProperty("padding-left", "8px", "important");
 						const stateTitle = document.createElement("strong");
 						stateWrapper.appendChild(stateTitle);
 						stateTitle.appendChild(document.createTextNode(state+": "));
@@ -506,12 +534,17 @@
 						const value = kanjiInfo["stats"][type.toLowerCase()+"_"+state.toLowerCase()];
 						const percentage = value/(kanjiInfo["stats"][type.toLowerCase()+"_correct"]+kanjiInfo["stats"][type.toLowerCase()+"_incorrect"])*100;
 						stateValue.appendChild(document.createTextNode(value+" ("+percentage.toFixed(0)+"%)"));
-						if (state === "Correct")
+						if (state === "Correct") {
 							stateValue.style.setProperty("color", percentageColor(percentage), "important");
+							const quickStatsVal = quickStatsUl.getElementsByTagName("li")[i+1].getElementsByTagName("span")[0];
+							quickStatsVal.appendChild(document.createTextNode(percentage.toFixed(0)+"%"));
+							quickStatsVal.style.setProperty("color", percentageColor(percentage), "important");
+						}
 					});		
 
 					const freqWrapper = document.createElement("div");
 					stat.appendChild(freqWrapper);
+					freqWrapper.style.setProperty("padding-left", "8px", "important");
 					const freqTitle = document.createElement("strong");
 					freqWrapper.appendChild(freqTitle);
 					freqTitle.appendChild(document.createTextNode("Frequency: "));
@@ -521,6 +554,7 @@
 
 					const streakWrapper = document.createElement("div");
 					stat.appendChild(streakWrapper);
+					streakWrapper.style.setProperty("padding-left", "8px", "important");
 					const streakTitle = document.createElement("strong");
 					streakWrapper.appendChild(streakTitle);
 					streakTitle.appendChild(document.createTextNode("Streak (max): "));
@@ -566,6 +600,7 @@
 					const time = document.createElement("p");
 					wrapper.appendChild(time);
 					time.style.setProperty("padding", "5px 0px 2px 8px", "important");
+					time.style.setProperty("color", "#c5c5c4", "important");
 					if (!kanjiInfo["timestamps"][key])
 						time.appendChild(document.createTextNode("No Data"));
 					else {
@@ -617,7 +652,7 @@
 			// details container
 			const details = document.createElement("div");
 			details.style.setProperty("padding", "15px", "important");
-			details.style.setProperty("padding-top", "40px", "important");
+			details.style.setProperty("padding-top", "45px", "important");
 			detailedInfoWrapper.appendChild(details);
 
 			const infoSection = document.createElement("div");
@@ -702,6 +737,30 @@
 			}
 
 			if (vocabInfo["stats"]) {
+				// quick stats
+				const quickStats = document.createElement("div");
+				details.insertBefore(quickStats, details.children[0]);
+				quickStats.style.setProperty("text-align", "right", "important");
+				const quickStatsUl = document.createElement("ul");
+				quickStats.appendChild(quickStatsUl);
+				quickStatsUl.style.setProperty("display", "inline-flex", "important");
+				const statsImages = ["https://i.imgur.com/vsRTIFA.png", "https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
+				["Overall", "Meaning", "Reading"].forEach((title, i) => {
+					const quickStatsLi = document.createElement("li");
+					quickStatsUl.appendChild(quickStatsLi);
+					quickStatsLi.title = title;
+					quickStatsLi.style.setProperty("margin-left", "5px", "important");
+					const img = document.createElement("img");
+					quickStatsLi.appendChild(img);
+					img.src = statsImages[i];
+					img.style.setProperty("width", "17px", "important");
+					img.style.setProperty("filter", "invert(1)", "important");
+					img.style.setProperty("margin-right", "5px", "important");
+					img.style.setProperty("margin-top", "-3px", "important");
+					const valueElem = document.createElement("span");
+					quickStatsLi.appendChild(valueElem);
+				});
+
 				const stats = infoTable("Statistics", []);
 				details.appendChild(stats);
 				const statsWrapper = document.createElement("div");
@@ -710,7 +769,7 @@
 
 				const overallCorrect = document.createElement("div");
 				statsWrapper.appendChild(overallCorrect);
-				overallCorrect.style.setProperty("margin-bottom", "5px", "important");
+				overallCorrect.style.setProperty("margin-bottom", "10px", "important");
 				const overallCorrectTitleWrapper = document.createElement("div");
 				overallCorrect.appendChild(overallCorrectTitleWrapper);
 				const overallCorrectIcon = document.createElement("img");
@@ -728,6 +787,7 @@
 				["Correct", "Frequency"].forEach((state, i) => {
 					const overallCorrectStateWrapper = document.createElement("div");
 					overallCorrect.appendChild(overallCorrectStateWrapper);
+					overallCorrectStateWrapper.style.setProperty("padding-left", "8px", "important");
 					const overallCorrectStateTitle = document.createElement("strong");
 					overallCorrectStateWrapper.appendChild(overallCorrectStateTitle);
 					overallCorrectStateTitle.appendChild(document.createTextNode(state+": "));
@@ -737,12 +797,15 @@
 					if (i === 0)
 						overallCorrectStateValue.style.setProperty("color", percentageColor(vocabInfo["stats"]["percentage_correct"]), "important")
 				});
+				const quickStatsOverall = quickStatsUl.getElementsByTagName("li")[0].getElementsByTagName("span")[0];
+				quickStatsOverall.appendChild(document.createTextNode(vocabInfo["stats"]["percentage_correct"].toFixed(0)+"%"));
+				quickStatsOverall.style.setProperty("color", percentageColor(vocabInfo["stats"]["percentage_correct"]), "important");
 
 				const images = ["https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
 				["Meaning", "Reading"].forEach((type, i) => {
 					const stat = document.createElement("div");
 					statsWrapper.appendChild(stat);
-					stat.style.setProperty("margin-bottom", "5px", "important");
+					stat.style.setProperty("margin-bottom", "10px", "important");
 					const titleWrapper = document.createElement("div");
 					stat.appendChild(titleWrapper);
 					const icon = document.createElement("img");
@@ -760,6 +823,7 @@
 					["Correct", "Incorrect"].forEach(state => {
 						const stateWrapper = document.createElement("div");
 						stat.appendChild(stateWrapper);
+						stateWrapper.style.setProperty("padding-left", "8px", "important");
 						const stateTitle = document.createElement("strong");
 						stateWrapper.appendChild(stateTitle);
 						stateTitle.appendChild(document.createTextNode(state+": "));
@@ -768,12 +832,17 @@
 						const value = vocabInfo["stats"][type.toLowerCase()+"_"+state.toLowerCase()];
 						const percentage = value/(vocabInfo["stats"][type.toLowerCase()+"_correct"]+vocabInfo["stats"][type.toLowerCase()+"_incorrect"])*100;
 						stateValue.appendChild(document.createTextNode(value+" ("+percentage.toFixed(0)+"%)"));
-						if (state === "Correct")
+						if (state === "Correct") {
 							stateValue.style.setProperty("color", percentageColor(percentage), "important");
+							const quickStatsVal = quickStatsUl.getElementsByTagName("li")[i+1].getElementsByTagName("span")[0];
+							quickStatsVal.appendChild(document.createTextNode(percentage.toFixed(0)+"%"));
+							quickStatsVal.style.setProperty("color", percentageColor(percentage), "important");
+						}
 					});		
 
 					const freqWrapper = document.createElement("div");
 					stat.appendChild(freqWrapper);
+					freqWrapper.style.setProperty("padding-left", "8px", "important");
 					const freqTitle = document.createElement("strong");
 					freqWrapper.appendChild(freqTitle);
 					freqTitle.appendChild(document.createTextNode("Frequency: "));
@@ -783,6 +852,7 @@
 
 					const streakWrapper = document.createElement("div");
 					stat.appendChild(streakWrapper);
+					streakWrapper.style.setProperty("padding-left", "8px", "important");
 					const streakTitle = document.createElement("strong");
 					streakWrapper.appendChild(streakTitle);
 					streakTitle.appendChild(document.createTextNode("Streak (max): "));
@@ -828,6 +898,7 @@
 					const time = document.createElement("p");
 					wrapper.appendChild(time);
 					time.style.setProperty("padding", "5px 0px 2px 8px", "important");
+					time.style.setProperty("color", "#c5c5c4", "important");
 					if (!vocabInfo["timestamps"][key])
 						time.appendChild(document.createTextNode("No Data"));
 					else {
