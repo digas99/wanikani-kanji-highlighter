@@ -13,7 +13,8 @@ const srsStages = {
 
 const defaultSettings = {
 	"kanji_details_popup": {
-		activated: true
+		activated: true,
+		random_subject: "Any"
 	},
 	"extension_icon": {
 		kanji_counter: true,
@@ -79,6 +80,12 @@ const settingsInterface = [
 				title:"Activated",
 				type: "checkbox",
 				id:"settings-kanji_details_popup-activated"
+			},
+			{
+				title: "Random Subject",
+				type: "select",
+				options: ["Any", "Kanji", "Vocabulary"],
+				id: "settings-kanji_details_popup-random_subject"
 			}
 		]
 	},

@@ -346,31 +346,64 @@ window.onload = () => {
 
 														const ul = document.createElement("ul");
 														container.appendChild(ul);
-														["../images/settings.png", "../images/search.png", "../images/blacklist.png", "../images/about.png", "../images/exit.png"].forEach(img => {
-															const li = document.createElement("li");
-															ul.appendChild(li);
-															const link = document.createElement("a");
-															li.appendChild(link); 
-															link.style.padding = "0 5px";
-															link.href = "#";
-															link.classList.add("navbar_icon");
-															link.addEventListener("click", () => {
-																const sidePanelLogo = document.getElementById("side-panel-logo");
-																if (sidePanelLogo && container.classList.contains("side-panel-focus")) {
-																	sidePanelLogo.dispatchEvent(new MouseEvent("click", {
-																		"view": window,
-																		"bubbles": true,
-																		"cancelable": false
-																	}));
+
+														chrome.storage.local.get(["wkhighlight_settings"], result => {
+															["../images/settings.png", "../images/search.png", "../images/blacklist.png", "../images/about.png", "../images/exit.png", "../images/random.png"].forEach(img => {
+																const li = document.createElement("li");
+																ul.appendChild(li);
+																li.style.position = "relative";
+																const link = document.createElement("a");
+																li.appendChild(link);
+																link.style.padding = "0 5px";
+																link.href = "#";
+																link.classList.add("navbar_icon");
+																link.addEventListener("click", () => {
+																	const sidePanelLogo = document.getElementById("side-panel-logo");
+																	if (sidePanelLogo && container.classList.contains("side-panel-focus")) {
+																		sidePanelLogo.dispatchEvent(new MouseEvent("click", {
+																			"view": window,
+																			"bubbles": true,
+																			"cancelable": false
+																		}));
+																	}
+																});
+																const icon_img = document.createElement("img");
+																icon_img.id = img.split("/")[2].split(".")[0];
+																icon_img.src = img;
+																icon_img.title = icon_img.id[0].toUpperCase()+icon_img.id.slice(1);
+																icon_img.style.width = "20px";
+																link.appendChild(icon_img);
+	
+																if (icon_img.title === "Random") {
+																	icon_img.setAttribute("data-item-id", "rand");
+																	icon_img.classList.add("kanjiDetails");
+																	
+																	const settings = result["wkhighlight_settings"];
+																	if (settings && settings["kanji_details_popup"] && settings["kanji_details_popup"]["random_subject"]) {
+																		const type = document.createElement("span");
+																		link.appendChild(type);
+																		type.id = "random-subject-type";
+																		type.appendChild(document.createTextNode(settings["kanji_details_popup"]["random_subject"].charAt(0)));
+
+																		if (settings["kanji_details_popup"]["random_subject"] == "Any") {
+																			type.style.removeProperty("background-color");
+																			type.style.removeProperty("filter");
+																		}
+																		else if (settings["kanji_details_popup"]["random_subject"] == "Kanji") {
+																			icon_img.setAttribute("data-item-id", "rand-kanji");
+																			type.style.backgroundColor = "var(--kanji-tag-color)";
+																			type.style.filter = "invert(1)";
+																		}
+																		else if (settings["kanji_details_popup"]["random_subject"] == "Vocabulary") {
+																			icon_img.setAttribute("data-item-id", "rand-vocab");
+																			type.style.backgroundColor = "var(--vocab-tag-color)";
+																			type.style.filter = "invert(1)";
+																		}
+																	}	
 																}
 															});
-															const icon_img = document.createElement("img");
-															icon_img.id = img.split("/")[2].split(".")[0];
-															icon_img.src = img;
-															icon_img.title = icon_img.id[0].toUpperCase()+icon_img.id.slice(1);
-															icon_img.style.width = "20px";
-															link.appendChild(icon_img);
 														});
+														
 
 														if (atWanikani) {
 															const searchIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Search")[0];
@@ -1028,7 +1061,8 @@ document.addEventListener("click", e => {
 							case "checkbox":
 								wrapper.appendChild(singleOptionCheck(option["id"], option["title"], settings[textJoiner(section["title"], " ", "_")][textJoiner(option["title"], " ", "_")]))
 								break;
-							case "chooser":
+							case "select":
+								wrapper.appendChild(selector(option["id"], option["title"], option["options"], settings[textJoiner(section["title"], " ", "_")][textJoiner(option["title"], " ", "_")]));
 								break;
 						}
 					});
@@ -1136,17 +1170,29 @@ document.addEventListener("click", e => {
 					appearanceWrapper.appendChild(colorInputWrapper);
 					Array.from(colorInputWrapper.getElementsByTagName("INPUT")).forEach(colorInput => {
 						colorInput.addEventListener("input", e => {
-							const color = e.target.value;
-							const id = colorInput.id.replace("settings-", "").split("-");
-							if (id[1] === "highlight_learned" || id[1] === "highlight_not_learned") {
-								const target = id[1] === "highlight_learned" ? "wkhighlighter_highlighted" : "wkhighlighter_highlightedNotLearned";
-								// change color of the three highlight styles
-								document.getElementsByClassName(target+" settings_highlight_style_option")[0].style.setProperty("background-color", color, "important");
-								document.getElementsByClassName(target+"_underlined settings_highlight_style_option")[0].style.setProperty("border-bottom", "3px solid "+color, "important");
-								document.getElementsByClassName(target+"_bold settings_highlight_style_option")[0].style.setProperty("color", color, "important");
-							}
-							settings[id[0]][id[1]] = color;
-							chrome.storage.local.set({"wkhighlight_settings":settings});
+							chrome.storage.local.get(["wkhighlight_settings"], data => {
+								settings = data["wkhighlight_settings"];
+								const color = e.target.value;
+								const id = colorInput.id.replace("settings-", "").split("-");
+								if (id[1] === "highlight_learned" || id[1] === "highlight_not_learned") {
+									const target = id[1] === "highlight_learned" ? "wkhighlighter_highlighted" : "wkhighlighter_highlightedNotLearned";
+									// change color of the three highlight styles
+									document.getElementsByClassName(target+" settings_highlight_style_option")[0].style.setProperty("background-color", color, "important");
+									document.getElementsByClassName(target+"_underlined settings_highlight_style_option")[0].style.setProperty("border-bottom", "3px solid "+color, "important");
+									document.getElementsByClassName(target+"_bold settings_highlight_style_option")[0].style.setProperty("color", color, "important");
+								}
+
+								if (id[1] === "kanji_color" || id[1] === "vocab_color") {
+									const randomSubjectType = document.getElementById("random-subject-type");
+									if (randomSubjectType) {
+										if (id[1].charAt(0) === randomSubjectType.innerText.toLowerCase())
+											randomSubjectType.style.backgroundColor = color;
+									}
+								}
+
+								settings[id[0]][id[1]] = color;
+								chrome.storage.local.set({"wkhighlight_settings":settings});
+							});
 						});
 					})
 				});
@@ -2204,16 +2250,68 @@ document.addEventListener("click", e => {
 	}
 });
 
+document.addEventListener("input", e => {
+	const target = e.target;
+
+	if (target.classList.contains("settingsItemSelect") && target.type === "select-one") {
+		console.log("here");
+		const value = target.value;
+		chrome.storage.local.get(["wkhighlight_settings"], data => {
+			let settings = data["wkhighlight_settings"];
+			if (!settings)
+				settings = {};
+			
+			const settingsID = target.id.replace("settings-", "").split("-");
+			const group = settingsID[0];
+			const setting = settingsID[1];
+
+			settings[group][setting] = value;
+			console.log("here2");
+
+			switch(group) {
+				case "kanji_details_popup":
+					switch (setting) {
+						case "random_subject":
+							const randomSubjectType = document.getElementById("random-subject-type");
+							if (randomSubjectType) {
+								randomSubjectType.innerText = value.charAt(0);
+
+								const img = randomSubjectType.parentElement.getElementsByTagName("img")[0];
+								if (value === "Any") {
+									img.setAttribute("data-item-id", "rand");
+									randomSubjectType.style.removeProperty("background-color");
+									randomSubjectType.style.removeProperty("filter");
+								}
+								else if (value === "Kanji") {
+									img.setAttribute("data-item-id", "rand-kanji");
+									randomSubjectType.style.backgroundColor = "var(--kanji-tag-color)";
+									randomSubjectType.style.filter = "invert(1)";
+								}
+								else if (value === "Vocabulary") {
+									img.setAttribute("data-item-id", "rand-vocab");
+									randomSubjectType.style.backgroundColor = "var(--vocab-tag-color)";
+									randomSubjectType.style.filter = "invert(1)";
+								}
+							}
+							break;
+					}
+					break;
+			}
+
+			chrome.storage.local.set({"wkhighlight_settings":settings});
+		});
+	}
+});
+
 const sidePanelIconTargeted = (target, id) => target.id === id || (target.parentElement?.childNodes[0] && target.parentElement.childNodes[0].id === id) || target.childNodes[0]?.id === id;
 
 const singleOptionCheck = (id, labelTitle, checked) => {
 	const div = document.createElement("div");
-	idValue = id;
 	const label = document.createElement("label");
 	div.appendChild(label);
 	label.classList.add("settingsItemLabel");
 	label.appendChild(document.createTextNode(labelTitle));
-	label.htmlFor = idValue;
+	label.htmlFor = id;
 
 	const inputDiv = document.createElement("div");
 	inputDiv.classList.add("checkbox_wrapper", "clickable");
@@ -2223,7 +2321,7 @@ const singleOptionCheck = (id, labelTitle, checked) => {
 	inputDiv.appendChild(checkbox);
 	checkbox.checked = checked;
 	checkbox.type = "checkbox";
-	checkbox.id = idValue;
+	checkbox.id = id;
 	checkbox.style.display = "none";
 	checkbox.classList.add("settingsItemInput");
 	const customCheckboxBall = document.createElement("div");
@@ -2232,6 +2330,30 @@ const singleOptionCheck = (id, labelTitle, checked) => {
 	const customCheckboxBack = document.createElement("div");
 	inputDiv.appendChild(customCheckboxBack);
 	customCheckboxBack.classList.add("custom-checkbox-back");
+
+	return div;
+}
+
+const selector = (id, labelTitle, options, defaultOption) => {
+	const div = document.createElement("div");
+	const label = document.createElement("label");
+	div.appendChild(label);
+	label.classList.add("settingsItemLabel");
+	label.appendChild(document.createTextNode(labelTitle));
+	label.htmlFor = id;
+
+	const select = document.createElement("select");
+	div.appendChild(select);
+	select.id = id;
+	select.classList.add("settingsItemSelect");
+	options.forEach(value => {
+		const option = document.createElement("option");
+		select.appendChild(option);
+		option.appendChild(document.createTextNode(value));
+
+		if (value === defaultOption)
+			option.selected = true;
+	});
 
 	return div;
 }

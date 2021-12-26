@@ -18,8 +18,18 @@
 			chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				// create kanji details popup coming from search
 				if (!detailsPopup.editing) {
-					if (request.infoPopupFromSearch) 
-						detailsPopup.update(request.infoPopupFromSearch, true);
+					if (request.infoPopupFromSearch)  {
+						let id = request.infoPopupFromSearch;
+						if (id.split("-")[0] === "rand") {
+							let allSubjectsKeys = [Object.keys(allKanji), Object.keys(allVocab)].flat(1);
+							if (id.split("-")[1] === "kanji") allSubjectsKeys = Object.keys(allKanji);
+							else if (id.split("-")[1] === "vocab") allSubjectsKeys = Object.keys(allVocab);
+
+							if (allSubjectsKeys)
+								id = allSubjectsKeys[rand(0, allSubjectsKeys.length-1)];
+						}
+						detailsPopup.update(id, true);
+					}
 
 					if (request.createSubjectFromPopup)
 						detailsPopup.edit("kanji");

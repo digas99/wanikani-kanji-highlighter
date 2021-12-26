@@ -464,6 +464,18 @@ transform: rotate(134deg);
 	border-radius: 30px;
 }
 
+#random-subject-type {
+	background-color: #bdbdbd;
+    color: black;
+    padding: 3px;
+    position: absolute;
+    top: -4px;
+    right: 1px;
+    font-size: 8px;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
 	/* USER INFO */
 
 #userInfoNavbar {

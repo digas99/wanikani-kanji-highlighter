@@ -323,7 +323,7 @@
 					itemWrapper.classList.add("sd-focusPopup_kanji");
 					itemWrapper.style.setProperty("width", this.width+"px", "important")
 				}
-				this.detailsPopup.style.setProperty("overflow", "auto", "important");
+				this.detailsPopup.style.setProperty("overflow", "hidden auto", "important");
 				this.detailsPopup.style.setProperty("max-height", window.innerHeight+"px", "important");
 			}, 200);
 
