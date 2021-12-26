@@ -28,6 +28,10 @@ const ordinalSuffix = number => {
 	}
 }
 
+const msToDays = ms => {
+	return ms / (1000 * 60 * 60 * 24);
+}
+
 // millisecond to readable format
 // stole from: https://stackoverflow.com/questions/19700283/how-to-convert-time-in-milliseconds-to-hours-min-sec-format-in-javascript/32180863#32180863
 function msToTime(ms) {
@@ -314,5 +318,49 @@ const assignUponSubjects = list => {
 					chrome.storage.local.set({[storageId]:list});
 			}
 		});
+	}
+}
+
+const revStatsUponSubjects = (apiToken, list) => {
+	const type = list[Object.keys(list)[0]]["subject_type"];
+	if (list && type) {
+		console.log(`Associating review statistics with ${type} ...`);
+		fetchAllPages(apiToken, "https://api.wanikani.com/v2/review_statistics")
+			.then(stats => {
+				stats.map(coll => coll["data"])
+					.flat(1)
+					.forEach(stat => {
+						const data = stat["data"];
+						const subjectId = data["subject_id"];
+						if (subjectId && list[subjectId]) {
+							const subject = list[subjectId];
+							subject["stats"] = {
+								meaning_correct: data["meaning_correct"],
+								meaning_current_streak: data["meaning_current_streak"],
+								meaning_incorrect: data["meaning_incorrect"],
+								meaning_max_streak: data["meaning_max_streak"],
+								percentage_correct: data["percentage_correct"],
+								reading_correct: data["reading_correct"],
+								reading_current_streak: data["reading_current_streak"],
+								reading_incorrect: data["reading_incorrect"],
+								reading_max_streak: data["reading_max_streak"]
+							}
+						}
+					});
+					let storageId;
+					switch(type) {
+						case "radical":
+							storageId = "wkhighlight_allradicals";
+							break;
+						case "kanji":
+							storageId = "wkhighlight_allkanji";
+							break;
+						case "vocabulary":
+							storageId = "wkhighlight_allvocab";
+							break;
+					}
+					if (storageId)
+						chrome.storage.local.set({[storageId]:list});
+			});
 	}
 }

@@ -204,15 +204,18 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 											setupRadicals(apiToken)
 												.then(radicals_dict => {
 													if (radicals_dict[1]) assignUponSubjects(radicals_dict[0]);
+													revStatsUponSubjects(apiToken, radicals_dict[0]);
 
 													setupVocab(apiToken)
 														.then(vocab_dict => {
 															if (vocab_dict[1]) assignUponSubjects(vocab_dict[0]);
+															revStatsUponSubjects(apiToken, vocab_dict[0]);
 
 															// setup kanji last to make sure scripts run with all subjects
 															setupKanji(apiToken)
 																.then(kanji_dict => {
 																	if (kanji_dict[1]) assignUponSubjects(kanji_dict[0]);
+																	revStatsUponSubjects(apiToken, kanji_dict[0]);
 																	setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", kanji_dict[0]);
 																});
 														});

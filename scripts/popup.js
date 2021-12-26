@@ -2626,13 +2626,13 @@ const loadItemsLists = callback => {
 					const allRadicals = values[1][0];
 					const allVocab = values[2][0];
 					
-					// associate assignments info to subjects
-					if (allKanji)
-						assignUponSubjects(allKanji);
-					if (allRadicals)
-						assignUponSubjects(allRadicals);
-					if (allVocab)
-						assignUponSubjects(allVocab);
+					// associate assignments and stats info to subjects
+					[allKanji, allRadicals, allVocab].forEach(list => {
+						if (list) {
+							assignUponSubjects(list);
+							revStatsUponSubjects(apiKey, list);
+						}
+					});
 				});
 		}
 		else

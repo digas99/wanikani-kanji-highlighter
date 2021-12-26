@@ -6,41 +6,41 @@ const setupKanji = (apiToken, callback) =>
 				.then(modified => {
 					if (!result['wkhighlight_allkanji'] || modified) {
 						fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=kanji")
-						.then(kanji_data => {
-							const kanji_dict = {};
-							const kanji_assoc = {};
-							kanji_data.map(content => content.data)
-								.flat(1)
-								.forEach(kanji => {
-									const data = kanji.data;
-									kanji_dict[kanji.id] = {
-										"amalgamation_subject_ids" : data.amalgamation_subject_ids,
-										"characters" : data.characters,
-										"component_subject_ids" : data.component_subject_ids,
-										"document_url" : data.document_url,
-										"level" : data.level,
-										"meaning_hint" : data.meaning_hint,
-										"meaning_mnemonic" : data.meaning_mnemonic,
-										"meanings" : data.meanings.map(data => data.meaning),
-										"reading_hint" : data.reading_hint,
-										"reading_mnemonic" : data.reading_mnemonic,
-										"readings" : data.readings,
-										"visually_similar_subject_ids" : data.visually_similar_subject_ids,
-										"slug": data.slug,
-										"id":kanji.id,
-										"subject_type":kanji.object
-									};
-									kanji_assoc[data.slug] = kanji.id;
+							.then(kanji_data => {
+								const kanji_dict = {};
+								const kanji_assoc = {};
+								kanji_data.map(content => content.data)
+									.flat(1)
+									.forEach(kanji => {
+										const data = kanji.data;
+										kanji_dict[kanji.id] = {
+											"amalgamation_subject_ids" : data.amalgamation_subject_ids,
+											"characters" : data.characters,
+											"component_subject_ids" : data.component_subject_ids,
+											"document_url" : data.document_url,
+											"level" : data.level,
+											"meaning_hint" : data.meaning_hint,
+											"meaning_mnemonic" : data.meaning_mnemonic,
+											"meanings" : data.meanings.map(data => data.meaning),
+											"reading_hint" : data.reading_hint,
+											"reading_mnemonic" : data.reading_mnemonic,
+											"readings" : data.readings,
+											"visually_similar_subject_ids" : data.visually_similar_subject_ids,
+											"slug": data.slug,
+											"id":kanji.id,
+											"subject_type":kanji.object
+										};
+										kanji_assoc[data.slug] = kanji.id;
+									});
+								// saving all kanji
+								chrome.storage.local.set({"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc, "wkhighlight_allkanji_updated": formatDate(new Date())}, () => {
+									console.log("Setup Kanji...");
+									resolve([kanji_dict, true]);
+									if (callback)
+										callback(kanji_dict, true);	
 								});
-							// saving all kanji
-							chrome.storage.local.set({"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc, "wkhighlight_allkanji_updated": formatDate(new Date())}, () => {
-								console.log("Setup Kanji...");
-								resolve([kanji_dict, true]);
-								if (callback)
-									callback(kanji_dict, true);	
-							});
-						})
-						.catch(reject);
+							})
+							.catch(reject);
 					}
 					else {
 						resolve([result['wkhighlight_allkanji'], false]);
@@ -59,31 +59,31 @@ const setupRadicals = (apiToken, callback) =>
 				.then(modified => {
 					if (!result['wkhighlight_allradicals'] || modified) {
 						fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=radical")
-						.then(radical_data => {
-							const radical_dict = {};
-							radical_data.map(content => content.data)
-								.flat(1)
-								.forEach(radical => {
-									const data = radical.data;
-									radical_dict[radical.id] = {
-										"characters" : data.characters,
-										"character_images" : data.character_images,
-										"document_url" : data.document_url,
-										"level" : data.level,
-										"id":radical.id,
-										"meanings": data.meanings.map(data => data.meaning),
-										"subject_type":radical.object
-									};
+							.then(radical_data => {
+								const radical_dict = {};
+								radical_data.map(content => content.data)
+									.flat(1)
+									.forEach(radical => {
+										const data = radical.data;
+										radical_dict[radical.id] = {
+											"characters" : data.characters,
+											"character_images" : data.character_images,
+											"document_url" : data.document_url,
+											"level" : data.level,
+											"id":radical.id,
+											"meanings": data.meanings.map(data => data.meaning),
+											"subject_type":radical.object
+										};
+									});
+								// saving all radical
+								chrome.storage.local.set({"wkhighlight_allradicals": radical_dict, "wkhighlight_allradicals_updated": formatDate(new Date())}, () => {
+									console.log("Setup Radicals...");
+									resolve([radical_dict, true]);
+									if (callback)
+										callback(radical_dict, true);
 								});
-							// saving all radical
-							chrome.storage.local.set({"wkhighlight_allradicals": radical_dict, "wkhighlight_allradicals_updated": formatDate(new Date())}, () => {
-								console.log("Setup Radicals...");
-								resolve([radical_dict, true]);
-								if (callback)
-									callback(radical_dict, true);
-							});
-						})
-						.catch(reject);
+							})
+							.catch(reject);
 					}
 					else {
 						resolve([result['wkhighlight_allradicals'], false]);
@@ -102,37 +102,37 @@ const setupVocab = (apiToken, callback) =>
 				.then(modified => {
 					if (!result['wkhighlight_allvocab'] || modified) {
 						fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=vocabulary")
-						.then(vocab => {
-							const vocab_dict = {};
-							vocab.map(content => content.data)
-								.flat(1)
-								.forEach(vocab => {
-									const data = vocab.data;
-									vocab_dict[vocab.id] = {
-										"characters" : data.characters,
-										"component_subject_ids" : data.component_subject_ids, 
-										"context_sentences" : data.context_sentences,
-										"document_url" : data.document_url,
-										"level" : data.level,
-										"meaning_mnemonic" : data.meaning_mnemonic,
-										"meanings" : data.meanings.map(data => data.meaning),
-										"parts_of_speech" : data.parts_of_speech,
-										"reading_mnemonic" : data.reading_mnemonic,
-										"readings" : data.readings.map(data => data.reading),
-										"pronunciation_audios" : data.pronunciation_audios,
-										"id":vocab.id,
-										"subject_type":vocab.object
-									};
+							.then(vocab => {
+								const vocab_dict = {};
+								vocab.map(content => content.data)
+									.flat(1)
+									.forEach(vocab => {
+										const data = vocab.data;
+										vocab_dict[vocab.id] = {
+											"characters" : data.characters,
+											"component_subject_ids" : data.component_subject_ids, 
+											"context_sentences" : data.context_sentences,
+											"document_url" : data.document_url,
+											"level" : data.level,
+											"meaning_mnemonic" : data.meaning_mnemonic,
+											"meanings" : data.meanings.map(data => data.meaning),
+											"parts_of_speech" : data.parts_of_speech,
+											"reading_mnemonic" : data.reading_mnemonic,
+											"readings" : data.readings.map(data => data.reading),
+											"pronunciation_audios" : data.pronunciation_audios,
+											"id":vocab.id,
+											"subject_type":vocab.object
+										};
+									});
+								// saving all vocabulary
+								chrome.storage.local.set({'wkhighlight_allvocab':vocab_dict, "wkhighlight_allvocab_updated": formatDate(new Date())}, () => {
+									console.log("Setup Vocabulary...");
+									resolve([vocab_dict, true]);
+									if (callback)
+										callback(vocab_dict, true);
 								});
-							// saving all vocabulary
-							chrome.storage.local.set({'wkhighlight_allvocab':vocab_dict, "wkhighlight_allvocab_updated": formatDate(new Date())}, () => {
-								console.log("Setup Vocabulary...");
-								resolve([vocab_dict, true]);
-								if (callback)
-									callback(vocab_dict, true);
-							});
-						})
-						.catch(reject);
+							})
+							.catch(reject);
 					}
 					else {
 						resolve([result['wkhighlight_allvocab'], false]);
