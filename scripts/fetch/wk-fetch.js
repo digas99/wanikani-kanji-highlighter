@@ -32,6 +32,16 @@ const setupKanji = (apiToken, callback) =>
 										};
 										kanji_assoc[data.slug] = kanji.id;
 									});
+
+								// add jlpt info to kanjis
+								for (const n in jlpt) {
+									jlpt[n].forEach(kanji => kanji_dict[kanji_assoc[kanji]]["jlpt"] = n.toUpperCase());
+								}
+
+								// add joyo info to kanjis
+								for (const n in joyo) {
+									joyo[n].forEach(kanji => kanji_dict[kanji_assoc[kanji]]["joyo"] = "Grade "+n.charAt(1));
+								}
 								// saving all kanji
 								chrome.storage.local.set({"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc, "wkhighlight_allkanji_updated": formatDate(new Date())}, () => {
 									console.log("Setup Kanji...");

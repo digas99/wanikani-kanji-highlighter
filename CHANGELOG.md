@@ -4,6 +4,7 @@ Not Released Yet
 ## Popup
 - Added SRS Stage to extension popup search results
 - Changed style of search result cards
+- Added button to side panel to get random subject (type of subject - kanji, vocabulary or any - can be specified in settings)
 
 ## Content
 - Added navigation bar to details popup
