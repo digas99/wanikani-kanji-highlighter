@@ -255,6 +255,15 @@
 	margin-bottom: 15px !important;
 }
 
+.sd-popupDetails_quickStats {
+	margin-bottom: 5px;
+	text-align: center;
+	background-color: #3a374a;
+	padding: 4px;
+	border-radius: 16px;
+	border: 2px solid white;
+}
+
 		/* 3.1 SECTIONS */
 
 .sd-detailsPopup_sectionContainer { 

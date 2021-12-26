@@ -7,11 +7,16 @@ Not Released Yet
 - Added button to side panel to get random subject (type of subject - kanji, vocabulary or any - can be specified in settings)
 
 ## Content
-- Added navigation bar to details popup
 - Added SRS Stage information to details popup
-- Added Timestamp Stats to details popup
+- Added Timestamp Statistics to details popup
 - Added Reviews Statistics to details popup
 - Changed the overall style of details popup
+- Added navigation bar to details popup
+- Added shortcut keys to interact with details popup navigation bar:
+  - **I:** Navigate to Info Section
+  - **C:** Navigate to Cards Section
+  - **S:** Navigate to Reviews Statistics Section
+  - **T:** Navigate to Timestamps Section
 
 ## Bug Fix
 - Fixed issue where subject data wasn't being loaded the first time the extension run

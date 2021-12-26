@@ -1374,6 +1374,10 @@ document.addEventListener("click", e => {
 		const myself = document.createElement("p");
 		footer.appendChild(myself);
 		myself.appendChild(document.createTextNode(`Hi, my name is Diogo. I'm from Portugal and I'm a student at Universidade de Aveiro. I am ${new Date().getFullYear() - new Date(1999, 5, 29).getFullYear()} years old.`));
+		myself.appendChild(document.createElement("br"));
+		const inspiration = document.createElement("span");
+		myself.appendChild(inspiration);
+		inspiration.innerHTML = "Building this project, I took huge inspiration from <a target='_blank' href='https://www.wanikani.com'>WaniKani</a> (obviously) and from <a target='_blank' href='https://play.google.com/store/apps/details?id=com.the_tinkering.wk'>Flaming Durtles</a>, an amazing app to use WaniKani on mobile.";
 		const links = document.createElement("div");
 		footer.appendChild(links);
 		links.style.paddingTop = "10px";

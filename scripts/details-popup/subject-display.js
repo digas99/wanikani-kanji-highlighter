@@ -451,8 +451,7 @@
 				// quick stats
 				const quickStats = document.createElement("div");
 				details.insertBefore(quickStats, level);
-				quickStats.style.setProperty("text-align", "right", "important");
-				quickStats.style.setProperty("margin-bottom", "5px", "important");
+				quickStats.classList.add("sd-popupDetails_quickStats");
 				const quickStatsUl = document.createElement("ul");
 				quickStats.appendChild(quickStatsUl);
 				quickStatsUl.style.setProperty("display", "inline-flex", "important");
@@ -718,6 +717,11 @@
 			meaning.appendChild(meaningTitle);
 			details.appendChild(meaning);
 
+			const partOfSpeech = document.createElement("div");
+			details.appendChild(partOfSpeech);
+			partOfSpeech.appendChild(document.createTextNode(vocabInfo["parts_of_speech"][0].charAt(0).toUpperCase()+vocabInfo["parts_of_speech"].join(", ").slice(1)));
+			partOfSpeech.style.setProperty("color", "#b8b8b8", "important");
+
 			// meaning mnemonic container
 			details.appendChild(infoTable("Meaning Mnemonic", [parseTags(vocabInfo["meaning_mnemonic"])]));
 
@@ -743,7 +747,7 @@
 				const en = document.createElement("li");
 				wrapper.appendChild(en);
 				en.classList.add("sd-popupDetails_p");
-				en.style.setProperty("background-color", "var(--detailsPopup-lightgray)", "important");
+				en.style.setProperty("background-color", "#3a374a", "important");
 				en.style.setProperty("padding", "5px", "important");
 				en.appendChild(document.createTextNode(sentence["en"]));
 
@@ -772,8 +776,7 @@
 				// quick stats
 				const quickStats = document.createElement("div");
 				details.insertBefore(quickStats, level);
-				quickStats.style.setProperty("text-align", "right", "important");
-				quickStats.style.setProperty("margin-bottom", "5px", "important");
+				quickStats.classList.add("sd-popupDetails_quickStats");
 				const quickStatsUl = document.createElement("ul");
 				quickStats.appendChild(quickStatsUl);
 				quickStatsUl.style.setProperty("display", "inline-flex", "important");
