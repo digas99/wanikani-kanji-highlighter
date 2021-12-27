@@ -4,6 +4,7 @@
 [![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/pdbjikelneighjgjojikkmhiehpcokjm.svg?style=flat-square&color=orange)](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm)
 [![Mozilla Addons](https://img.shields.io/amo/v/wanikani-kanji-highlighter.svg?style=flat-square&color=blue)](https://addons.mozilla.org/en-US/firefox/addon/wanikani-kanji-highlighter/)
 [![Mozilla Addons Users](https://img.shields.io/amo/users/wanikani-kanji-highlighter.svg?style=flat-square&color=blue)](https://addons.mozilla.org/en-US/firefox/addon/wanikani-kanji-highlighter/)
+[![License](https://shields.io/github/license/digas99/wanikani-kanji-highlighter.svg?style=flat-square)](https://github.com/digas99/wanikani-kanji-highlighter/blob/master/LICENSE)
 
 ### Unofficial Browser Extension
 
