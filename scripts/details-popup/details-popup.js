@@ -118,8 +118,8 @@
 
 						const navbar = document.getElementsByClassName("sd-popupDetails_navbar")[0];
 						if (navbar && navbar.getElementsByTagName("li").length > 0) {
-							const sectionClick = sectionName => {
-								const infoSection = Array.from(navbar.getElementsByTagName("li")).filter(section => section.title === sectionName)[0];
+							const sectionClick = sectionValue => {
+								const infoSection = (typeof sectionValue === "string") ? Array.from(navbar.getElementsByTagName("li")).filter(section => section.title === sectionValue)[0] : sectionValue;
 								if (infoSection) {
 									infoSection.getElementsByTagName("a")[0].dispatchEvent(new MouseEvent("click", {
 										"view": window,
@@ -140,6 +140,22 @@
 
 							if (key == 't' || key == 'T')
 								sectionClick("Timestamps");
+
+							const selected = Array.from(navbar.getElementsByTagName("li")).filter(section => section.style.getPropertyValue("background-color") !== '')[0];
+							if (selected) {
+								let sectionToClick;
+								if (key === "ArrowRight") {
+									e.preventDefault();
+									sectionToClick = selected.nextElementSibling ? selected.nextElementSibling : navbar.getElementsByTagName("li")[0];
+								}
+
+								if (key === "ArrowLeft") {
+									e.preventDefault();
+									sectionToClick = selected.previousElementSibling ? selected.previousElementSibling : navbar.getElementsByTagName("li")[navbar.getElementsByTagName("ul")[0].childElementCount-1];
+								}
+
+								if (sectionToClick) sectionClick(sectionToClick);
+							}
 						}
 					}
 					// if it is not expanded

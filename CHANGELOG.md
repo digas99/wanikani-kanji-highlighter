@@ -18,6 +18,8 @@ Not Released Yet
   - **C:** Navigate to Cards Section
   - **S:** Navigate to Reviews Statistics Section
   - **T:** Navigate to Timestamps Section
+  - **<-:** Navigate to Previous Section
+  - **->:** Navigate to Next Section
 
 ## Bug Fix
 - Fixed issue where subject data wasn't being loaded the first time the extension run
