@@ -194,6 +194,16 @@
 					}
 				}
 
+				if (node.id == "sd-detailsPopupKeyBindings") {
+					chrome.storage.local.get(["wkhighlight_settings"], result => {
+						const settings = result["wkhighlight_settings"];
+						if (settings) {
+							settings["detailsPopup_buttons"]["keyBindings"] = !settings["detailsPopup_buttons"]["keyBindings"];
+							chrome.storage.local.set({"wkhighlight_settings":settings});
+						}
+					});
+				}
+
 				if (node.id == "sd-detailsPopupGoBack") {
 					if (this.openedSubjects.length > 0)
 						this.openedSubjects.pop();
@@ -1010,10 +1020,12 @@
 				{id:"sd-detailsPopupCloseX", alt: "Close (X)", active:true, src:"https://i.imgur.com/KUjkFI9.png"},
 				{id:"sd-detailsPopupGoBack", alt: "Go back (B)", active:true, src:"https://i.imgur.com/e6j4jSV.png"},
 				{id:"sd-detailsPopupGoUp", alt: "Go up (U)", active:true, src:"https://i.imgur.com/fszQn7s.png"},
+				{id:"sd-detailsPopupKeyBindings", alt: "Key Bindings", active:defaultSettings["detailsPopup_buttons"]["keyBindings"], src:"https://i.imgur.com/qbI2bKH.png"},
 				{id:"sd-detailsPopupSubjectLock", alt: "Subject lock (L)", active:this.locked, src:"https://i.imgur.com/gaKRPen.png"},
 				{id:"sd-detailsPopupFix", alt: "Subject fix (F)", active:this.fixed, src:"https://i.imgur.com/vZqwGZr.png"},
 				// {id:"sd-detailsPopupEdit", alt: "Subject Edit", active:true, src:"https://i.imgur.com/0k9pNho.png"}
 			];
+			console.log(buttons);
 			for (let i in buttons) {
 				const button = buttons[i];
 
@@ -1034,6 +1046,18 @@
 				wrapper.title = img.alt;
 				wrapper.appendChild(img);
 			}
+
+			chrome.storage.local.get(["wkhighlight_settings"], result => {
+				const settings = result["wkhighlight_settings"];
+				const keyBindingsButton = document.getElementById("sd-detailsPopupKeyBindings");
+				if (settings && keyBindingsButton) {
+					const keyBindingsActive = settings["detailsPopup_buttons"] ? settings["detailsPopup_buttons"]["keyBindings"] : defaultSettings["detailsPopup_buttons"]["keyBindings"];
+					if (keyBindingsActive)
+						keyBindingsButton.classList.remove("faded");
+					else
+						keyBindingsButton.classList.add("faded");
+				}
+			});
 
 			const infoToSave = {"id":id, "char":characters, "type":type};
 			// only save if the last save wasn't this kanji already

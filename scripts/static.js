@@ -69,6 +69,9 @@ const defaultSettings = {
 	"miscellaneous": {
 		time_in_12h_format: true,
 		// show_scripts_status: true
+	},
+	"detailsPopup_buttons": {
+		keyBindings: true
 	}
 };
 

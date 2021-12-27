@@ -30,6 +30,10 @@ const setSettings = () => {
 			// check if all settings are stored
 			const notStored = [];
 			Object.keys(defaultSettings).forEach(key => {
+				// initialize group if it doesn't exist
+				if (typeof settings[key] === 'undefined')
+					settings[key] = {};	
+				
 				(Object.keys(defaultSettings[key]).forEach(innerKey => {
 					// if it doesn't exists in settings
 					if (typeof settings[key][innerKey] === 'undefined')

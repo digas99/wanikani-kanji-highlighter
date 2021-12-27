@@ -20,6 +20,7 @@ Not Released Yet
   - **T:** Navigate to Timestamps Section
   - **<-:** Navigate to Previous Section
   - **->:** Navigate to Next Section
+- Added button in details popup to deactivate key bindings
 
 ## Bug Fix
 - Fixed issue where subject data wasn't being loaded the first time the extension run

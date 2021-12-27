@@ -78,94 +78,97 @@
 				
 			document.addEventListener("keydown", e => {
 				const key = e.key;
-
-				if (detailsPopup.detailsPopup) {
-					if (key == 'x' || key == 'X') {
-						// CLOSE DETAILS POPUP
-						detailsPopup.close(200);
-					}
-
-					if (key == 'l' || key == 'L') {
-						// LOCK KANJI ON DETAILS POPUP
-						detailsPopup.locked = !detailsPopup.locked;
-						switchClass(document.getElementById("sd-detailsPopupSubjectLock"), "faded");
-					}
-
-					// if details popup is expanded
-					if (detailsPopup.expanded) {
-						if (key == 'f' || key == 'F') {
-							// FIX DETAILS POPUP
-							detailsPopup.fixed = !detailsPopup.fixed;
-							switchClass(document.getElementById("sd-detailsPopupFix"), "faded");
-						}	
-
-						if (key == 'b' || key == "B") {
-							// SHOW PREVIOUS KANJI INFO
-							if (detailsPopup.openedSubjects.length > 0)
-								detailsPopup.openedSubjects.pop();
-
-							const kanji = detailsPopup.openedSubjects[detailsPopup.openedSubjects.length-1];
-							if (kanji)
-								detailsPopup.update(kanji["id"], false);
+				chrome.storage.local.get(["wkhighlight_settings"], result => {
+					const settings = result["wkhighlight_settings"];
+					const keyBindingsActive = settings["detailsPopup_buttons"] ? settings["detailsPopup_buttons"]["keyBindings"] : defaultSettings["detailsPopup_buttons"]["keyBindings"];
+					if (detailsPopup.detailsPopup && keyBindingsActive) {
+						if (key == 'x' || key == 'X') {
+							// CLOSE DETAILS POPUP
+							detailsPopup.close(200);
 						}
-						
-						if (key == 'u' || key == 'U') {
-							// SCROLL UP
-							if (detailsPopup.detailsPopup) {
-								detailsPopup.detailsPopup.scrollTo(0, 0);
+	
+						if (key == 'l' || key == 'L') {
+							// LOCK KANJI ON DETAILS POPUP
+							detailsPopup.locked = !detailsPopup.locked;
+							switchClass(document.getElementById("sd-detailsPopupSubjectLock"), "faded");
+						}
+	
+						// if details popup is expanded
+						if (detailsPopup.expanded) {
+							if (key == 'f' || key == 'F') {
+								// FIX DETAILS POPUP
+								detailsPopup.fixed = !detailsPopup.fixed;
+								switchClass(document.getElementById("sd-detailsPopupFix"), "faded");
+							}	
+	
+							if (key == 'b' || key == "B") {
+								// SHOW PREVIOUS KANJI INFO
+								if (detailsPopup.openedSubjects.length > 0)
+									detailsPopup.openedSubjects.pop();
+	
+								const kanji = detailsPopup.openedSubjects[detailsPopup.openedSubjects.length-1];
+								if (kanji)
+									detailsPopup.update(kanji["id"], false);
 							}
-						}
-
-						const navbar = document.getElementsByClassName("sd-popupDetails_navbar")[0];
-						if (navbar && navbar.getElementsByTagName("li").length > 0) {
-							const sectionClick = sectionValue => {
-								const infoSection = (typeof sectionValue === "string") ? Array.from(navbar.getElementsByTagName("li")).filter(section => section.title === sectionValue)[0] : sectionValue;
-								if (infoSection) {
-									infoSection.getElementsByTagName("a")[0].dispatchEvent(new MouseEvent("click", {
-										"view": window,
-										"bubbles": true,
-										"cancelable": false
-									}));
+							
+							if (key == 'u' || key == 'U') {
+								// SCROLL UP
+								if (detailsPopup.detailsPopup) {
+									detailsPopup.detailsPopup.scrollTo(0, 0);
 								}
 							}
-
-							if (key == 'i' || key == 'I')
-								sectionClick("Info");
-
-							if (key == 'c' || key == 'C')
-								sectionClick("Cards");
-
-							if (key == 's' || key == 'S')
-								sectionClick("Statistics");
-
-							if (key == 't' || key == 'T')
-								sectionClick("Timestamps");
-
-							const selected = Array.from(navbar.getElementsByTagName("li")).filter(section => section.style.getPropertyValue("background-color") !== '')[0];
-							if (selected) {
-								let sectionToClick;
-								if (key === "ArrowRight") {
-									e.preventDefault();
-									sectionToClick = selected.nextElementSibling ? selected.nextElementSibling : navbar.getElementsByTagName("li")[0];
+	
+							const navbar = document.getElementsByClassName("sd-popupDetails_navbar")[0];
+							if (navbar && navbar.getElementsByTagName("li").length > 0) {
+								const sectionClick = sectionValue => {
+									const infoSection = (typeof sectionValue === "string") ? Array.from(navbar.getElementsByTagName("li")).filter(section => section.title === sectionValue)[0] : sectionValue;
+									if (infoSection) {
+										infoSection.getElementsByTagName("a")[0].dispatchEvent(new MouseEvent("click", {
+											"view": window,
+											"bubbles": true,
+											"cancelable": false
+										}));
+									}
 								}
-
-								if (key === "ArrowLeft") {
-									e.preventDefault();
-									sectionToClick = selected.previousElementSibling ? selected.previousElementSibling : navbar.getElementsByTagName("li")[navbar.getElementsByTagName("ul")[0].childElementCount-1];
+	
+								if (key == 'i' || key == 'I')
+									sectionClick("Info");
+	
+								if (key == 'c' || key == 'C')
+									sectionClick("Cards");
+	
+								if (key == 's' || key == 'S')
+									sectionClick("Statistics");
+	
+								if (key == 't' || key == 'T')
+									sectionClick("Timestamps");
+	
+								const selected = Array.from(navbar.getElementsByTagName("li")).filter(section => section.style.getPropertyValue("background-color") !== '')[0];
+								if (selected) {
+									let sectionToClick;
+									if (key === "ArrowRight") {
+										e.preventDefault();
+										sectionToClick = selected.nextElementSibling ? selected.nextElementSibling : navbar.getElementsByTagName("li")[0];
+									}
+	
+									if (key === "ArrowLeft") {
+										e.preventDefault();
+										sectionToClick = selected.previousElementSibling ? selected.previousElementSibling : navbar.getElementsByTagName("li")[navbar.getElementsByTagName("ul")[0].childElementCount-1];
+									}
+	
+									if (sectionToClick) sectionClick(sectionToClick);
 								}
-
-								if (sectionToClick) sectionClick(sectionToClick);
+							}
+						}
+						// if it is not expanded
+						else {
+							if (key == 'o' || key == 'O') {
+								// EXPAND SMALL KANJI DETAILS POPUP
+								detailsPopup.expand();
 							}
 						}
 					}
-					// if it is not expanded
-					else {
-						if (key == 'o' || key == 'O') {
-							// EXPAND SMALL KANJI DETAILS POPUP
-							detailsPopup.expand();
-						}
-					}
-				}
+				});
 			});
 		}
 	});
