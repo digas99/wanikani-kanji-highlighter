@@ -240,11 +240,9 @@
 				this.detailsPopup.appendChild(this.charContainer(item["characters"], id, save));
 
 				// srs stage border
-				const srsStageId = item["srs_stage"];
-				if (srsStageId != undefined)
-					this.detailsPopup.style.setProperty("border-top", `5px solid var(--${srsStages[srsStageId]["short"].toLowerCase()}-color)`, "important");
-				else
-					this.detailsPopup.style.removeProperty("border-top");
+				const srsId = item["srs_stage"];
+				this.detailsPopup.style.setProperty("border-top", "4px solid "+(srsId != undefined ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "black"), "important");
+
 				
 				const detailedInfoWrapper = this.detailsPopup.getElementsByClassName("sd-popupDetails_detailedInfoWrapper");
 				if (detailedInfoWrapper)
@@ -374,8 +372,7 @@
 			
 			// details container
 			const details = document.createElement("div");
-			details.style.setProperty("padding", "15px", "important");
-			details.style.setProperty("padding-top", "45px", "important");
+			details.style.setProperty("padding", "45px 15px", "important");
 			detailedInfoWrapper.appendChild(details);
 		
 			const infoSection = document.createElement("div");
@@ -412,6 +409,14 @@
 			meaningTitle.appendChild(document.createTextNode(kanjiInfo["meanings"].join(", ")));
 			meaning.appendChild(meaningTitle);
 			details.appendChild(meaning);
+
+			if (kanjiInfo["jlpt"] && kanjiInfo["joyo"]) {
+				const schoolLevel = document.createElement("div");
+				details.appendChild(schoolLevel);
+				schoolLevel.appendChild(document.createTextNode(kanjiInfo["joyo"]+", "+kanjiInfo["jlpt"]));
+				schoolLevel.title = "Joyo, JLPT";
+				schoolLevel.style.setProperty("color", "#b8b8b8", "important");
+			}
 			
 			// meaning mnemonic container
 			details.appendChild(infoTable("Meaning Mnemonic", [parseTags(kanjiInfo["meaning_mnemonic"]), parseTags(kanjiInfo["meaning_hint"])]));
@@ -450,7 +455,7 @@
 			if (kanjiInfo["stats"]) {
 				// quick stats
 				const quickStats = document.createElement("div");
-				details.insertBefore(quickStats, level);
+				detailedInfoWrapper.insertBefore(quickStats, details);
 				quickStats.classList.add("sd-popupDetails_quickStats");
 				const quickStatsUl = document.createElement("ul");
 				quickStats.appendChild(quickStatsUl);
@@ -639,7 +644,7 @@
 							passed.style.setProperty("width", "13px", "important");
 							passed.style.setProperty("filter", "invert(1)", "important");
 							passed.style.setProperty("margin-left", "7px", "important");
-							srsStage.title = "Passed "+timePassed;
+							srsStage.title = "Subject passed "+timePassed;
 						}
 					}
 				}	
@@ -678,8 +683,7 @@
 
 			// details container
 			const details = document.createElement("div");
-			details.style.setProperty("padding", "15px", "important");
-			details.style.setProperty("padding-top", "45px", "important");
+			details.style.setProperty("padding", "45px 15px", "important");
 			detailedInfoWrapper.appendChild(details);
 
 			const infoSection = document.createElement("div");
@@ -775,7 +779,7 @@
 			if (vocabInfo["stats"]) {
 				// quick stats
 				const quickStats = document.createElement("div");
-				details.insertBefore(quickStats, level);
+				detailedInfoWrapper.insertBefore(quickStats, details);
 				quickStats.classList.add("sd-popupDetails_quickStats");
 				const quickStatsUl = document.createElement("ul");
 				quickStats.appendChild(quickStatsUl);
@@ -966,7 +970,7 @@
 							passed.style.setProperty("width", "13px", "important");
 							passed.style.setProperty("filter", "invert(1)", "important");
 							passed.style.setProperty("margin-left", "7px", "important");
-							srsStage.title = "Passed "+timePassed;
+							srsStage.title = "Subject passed "+timePassed;
 						}
 					}
 				}
@@ -1362,9 +1366,7 @@
 	
 		}
 
-		if (srsId != undefined) {
-			li.style.setProperty("border-top", `4px solid var(--${srsStages[srsId]["short"].toLowerCase()}-color)`, "important");
-		}
+		li.style.setProperty("border-top", "4px solid "+(srsId != undefined ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "black"), "important");
 
 		if (level) {
 			const levelDiv = document.createElement("div");
@@ -1447,12 +1449,14 @@
 		});
 
 		const navbarHighlightChanger = li => {
-			Array.from(li.parentElement.children).forEach(child => {
-				child.style.removeProperty("background-color");
-				child.getElementsByTagName("img")[0].style.removeProperty("filter");
-			});
-			li.style.setProperty("background-color", "#d73267", "important");
-			li.getElementsByTagName("img")[0].style.setProperty("filter", "invert(1)", "important");
+			if (li && li.parentElement) {
+				Array.from(li.parentElement.children).forEach(child => {
+					child.style.removeProperty("background-color");
+					child.getElementsByTagName("img")[0].style.removeProperty("filter");
+				});
+				li.style.setProperty("background-color", "#d73267", "important");
+				li.getElementsByTagName("img")[0].style.setProperty("filter", "invert(1)", "important");
+			}	
 		}
 
 		// navbar changes on scroll

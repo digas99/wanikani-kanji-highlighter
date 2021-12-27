@@ -10,6 +10,7 @@ Not Released Yet
 - Added SRS Stage information to details popup
 - Added Timestamp Statistics to details popup
 - Added Reviews Statistics to details popup
+- Added Parts of Speech and JLPT and Joyo levels to details popup
 - Changed the overall style of details popup
 - Added navigation bar to details popup
 - Added shortcut keys to interact with details popup navigation bar:
