@@ -36,16 +36,8 @@ chrome.storage.local.get("wkhighlight_settings", result => {
 		documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
 		documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
 		documentStyle.setProperty('--vocab-tag-color', appearance["vocab_color"]);
-		documentStyle.setProperty('--int-color', appearance["int_color"]);
-		documentStyle.setProperty('--ap1-color', appearance["ap1_color"]);
-		documentStyle.setProperty('--ap2-color', appearance["ap2_color"]);
-		documentStyle.setProperty('--ap3-color', appearance["ap3_color"]);
-		documentStyle.setProperty('--ap4-color', appearance["ap4_color"]);
-		documentStyle.setProperty('--gr1-color', appearance["gr1_color"]);
-		documentStyle.setProperty('--gr2-color', appearance["gr2_color"]);
-		documentStyle.setProperty('--mst-color', appearance["mst_color"]);
-		documentStyle.setProperty('--enl-color', appearance["enl_color"]);
-		documentStyle.setProperty('--brn-color', appearance["brn_color"]);
+		Object.values(srsStages).map(srs => srs["short"].toLowerCase())
+			.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
 	}
 });
 

@@ -180,16 +180,8 @@ window.onload = () => {
 						documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
 						documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
 						documentStyle.setProperty('--vocab-tag-color', appearance["vocab_color"]);
-						documentStyle.setProperty('--int-color', appearance["int_color"]);
-						documentStyle.setProperty('--ap1-color', appearance["ap1_color"]);
-						documentStyle.setProperty('--ap2-color', appearance["ap2_color"]);
-						documentStyle.setProperty('--ap3-color', appearance["ap3_color"]);
-						documentStyle.setProperty('--ap4-color', appearance["ap4_color"]);
-						documentStyle.setProperty('--gr1-color', appearance["gr1_color"]);
-						documentStyle.setProperty('--gr2-color', appearance["gr2_color"]);
-						documentStyle.setProperty('--mst-color', appearance["mst_color"]);
-						documentStyle.setProperty('--enl-color', appearance["enl_color"]);
-						documentStyle.setProperty('--brn-color', appearance["brn_color"]);
+						Object.values(srsStages).map(srs => srs["short"].toLowerCase())
+							.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
 
 						document.body.style.cursor = "progress";
 						chrome.storage.local.get(["wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons"], response => {
@@ -1333,17 +1325,6 @@ document.addEventListener("click", e => {
 		appInfo.appendChild(description)
 		description.appendChild(document.createTextNode("Unofficial kanji highlighter, matching kanji learned with WaniKani."));
 
-		const apiKeyDisplayWrapper = document.createElement("div");
-		content.appendChild(apiKeyDisplayWrapper);
-		apiKeyDisplayWrapper.style.padding = "20px 10px";
-		apiKeyDisplayWrapper.style.borderBottom = "1px solid silver";
-		const apiKeyTitle = document.createElement("h3");
-		apiKeyDisplayWrapper.appendChild(apiKeyTitle);
-		apiKeyTitle.appendChild(document.createTextNode("API Key"));
-		const apiKeyValue = document.createElement("p");
-		apiKeyDisplayWrapper.appendChild(apiKeyValue);
-		chrome.storage.local.get(["wkhighlight_apiKey"], result => apiKeyValue.appendChild(document.createTextNode(result["wkhighlight_apiKey"])));
-
 		const readme = document.createElement("div");
 		content.appendChild(readme);
 		readme.style.padding = "20px 10px";
@@ -1368,6 +1349,17 @@ document.addEventListener("click", e => {
 					});
 			});
 		
+		const apiKeyDisplayWrapper = document.createElement("div");
+		content.appendChild(apiKeyDisplayWrapper);
+		apiKeyDisplayWrapper.style.padding = "20px 10px";
+		apiKeyDisplayWrapper.style.borderBottom = "1px solid silver";
+		const apiKeyTitle = document.createElement("h3");
+		apiKeyDisplayWrapper.appendChild(apiKeyTitle);
+		apiKeyTitle.appendChild(document.createTextNode("API Key"));
+		const apiKeyValue = document.createElement("p");
+		apiKeyDisplayWrapper.appendChild(apiKeyValue);
+		chrome.storage.local.get(["wkhighlight_apiKey"], result => apiKeyValue.appendChild(document.createTextNode(result["wkhighlight_apiKey"])));
+
 		const footer = document.createElement("div");
 		content.appendChild(footer);
 		footer.style.padding = "20px 10px";

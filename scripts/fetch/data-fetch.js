@@ -1,34 +1,5 @@
 // WANIKANI
 
-// const canCallApi = async () => {
-// 	return new Promise((resolve, reject) => {
-// 		chrome.storage.local.get(["wkhighlight_apiFetches", "wkhighlight_apiFetches_time"], result => {
-// 			let nmrFetches = result["wkhighlight_apiFetches"] ? result["wkhighlight_apiFetches"] : 0;
-// 			let firstFetch = result["wkhighlight_apiFetches_time"];
-// 			if (!firstFetch) {
-// 				firstFetch = new Date();
-// 				chrome.storage.local.set({"wkhighlight_apiFetches_time":formatDate(firstFetch)});
-// 			}
-// 			else
-// 				firstFetch = new Date(firstFetch);
-
-// 			if (nmrFetches < 60) {
-// 				chrome.storage.local.set({"wkhighlight_apiFetches":++nmrFetches});
-// 				resolve(true);
-// 			}
-// 			else {
-// 				// check if a minute has passed
-// 				const now = new Date();
-// 				if ((now - firstFetch)/(1000*60)%60 > 1) {
-// 					chrome.storage.local.set({"wkhighlight_apiFetches":0, "wkhighlight_apiFetches_time":formatDate(now)});
-// 					resolve(true);
-// 				}
-// 				else resolve(false);
-// 			}
-// 		});
-// 	});
-// }
-
 // fetch a single page from the WaniKani API
 const fetchPage = async (apiToken, page) => {				
 	const requestHeaders = new Headers({Authorization: `Bearer ${apiToken}`});

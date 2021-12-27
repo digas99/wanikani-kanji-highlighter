@@ -365,21 +365,19 @@ chrome.storage.local.get(["wkhighlight_settings"], result => {
 chrome.alarms.onAlarm.addListener(alarm => {
 	if (alarm.name === "next-reviews") {
 		chrome.storage.local.get(["wkhighlight_next-reviews-bundle", "wkhighlight_apiKey"], result => {
-			setupAvailableAssignments(result["wkhighlight_apiKey"], (reviews, lessons) => {
-				const reviews_bundle = result["wkhighlight_next-reviews-bundle"];
-				if (reviews_bundle && reviews && reviews["count"]) {
-					// notify user
-					chrome.notifications.create({
-						type: "basic",
-						title: `WaniKani: ${reviews_bundle.length} new Reviews`,
-						message: `You have now ${reviews_bundle.length} more Reviews, a total of ${reviews["count"]+reviews_bundle.length} Reviews.`,
-						iconUrl: "../logo/logo.png"
-					});
-				}
+			const reviews_bundle = result["wkhighlight_next-reviews-bundle"];
+			if (reviews_bundle && reviews && reviews["count"]) {
+				// notify user
+				chrome.notifications.create({
+					type: "basic",
+					title: `WaniKani: ${reviews_bundle.length} new Reviews`,
+					message: `You have now ${reviews_bundle.length} more Reviews, a total of ${reviews["count"]+reviews_bundle.length} Reviews.`,
+					iconUrl: "../logo/logo.png"
+				});
+			}
 
-				// setup new alarm
-				setupAvailableAssignments(result["wkhighlight_apiKey"], setupReviewsAlarm);
-			});
+			// setup new alarm
+			setupAvailableAssignments(result["wkhighlight_apiKey"], setupReviewsAlarm);
 		});	
 	}
 

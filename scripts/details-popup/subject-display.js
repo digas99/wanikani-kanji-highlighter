@@ -825,7 +825,7 @@
 		sections.forEach(info => {
 			const navbarLi = document.createElement("li");
 			navbarUl.appendChild(navbarLi);
-			navbarLi.title = info[0];
+			navbarLi.title = info[0]+` (${info[0].charAt(0)})`;
 			navbarLi.classList.add("clickable");
 			const link = document.createElement("a");
 			navbarLi.appendChild(link);

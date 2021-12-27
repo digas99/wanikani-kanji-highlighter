@@ -116,7 +116,7 @@
 							const navbar = document.getElementsByClassName("sd-popupDetails_navbar")[0];
 							if (navbar && navbar.getElementsByTagName("li").length > 0) {
 								const sectionClick = sectionValue => {
-									const infoSection = (typeof sectionValue === "string") ? Array.from(navbar.getElementsByTagName("li")).filter(section => section.title === sectionValue)[0] : sectionValue;
+									const infoSection = (typeof sectionValue === "string") ? Array.from(navbar.getElementsByTagName("li")).filter(section => section.title.split(" (")[0] === sectionValue)[0] : sectionValue;
 									if (infoSection) {
 										infoSection.getElementsByTagName("a")[0].dispatchEvent(new MouseEvent("click", {
 											"view": window,
