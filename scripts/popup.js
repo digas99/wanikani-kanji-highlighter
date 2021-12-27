@@ -2248,7 +2248,6 @@ document.addEventListener("input", e => {
 	const target = e.target;
 
 	if (target.classList.contains("settingsItemSelect") && target.type === "select-one") {
-		console.log("here");
 		const value = target.value;
 		chrome.storage.local.get(["wkhighlight_settings"], data => {
 			let settings = data["wkhighlight_settings"];
@@ -2260,7 +2259,6 @@ document.addEventListener("input", e => {
 			const setting = settingsID[1];
 
 			settings[group][setting] = value;
-			console.log("here2");
 
 			switch(group) {
 				case "kanji_details_popup":
