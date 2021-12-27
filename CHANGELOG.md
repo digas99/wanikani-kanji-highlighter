@@ -1,5 +1,4 @@
 # Changelog v0.6.2
-Not Released Yet
 
 ## Popup
 - Added SRS Stage to extension popup search results
@@ -25,6 +24,7 @@ Not Released Yet
 ## Bug Fix
 - Fixed issue where subject data wasn't being loaded the first time the extension run
 - Notifications now show subjects numbers updated
+- Adjusted extension popup interactions when at wanikani.com
 
 # [Changelog v0.6.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.1)
 Released on 15/12/2021

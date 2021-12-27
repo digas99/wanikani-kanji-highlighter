@@ -340,7 +340,8 @@ window.onload = () => {
 														container.appendChild(ul);
 
 														chrome.storage.local.get(["wkhighlight_settings"], result => {
-															["../images/settings.png", "../images/search.png", "../images/blacklist.png", "../images/about.png", "../images/exit.png", "../images/random.png"].forEach(img => {
+															const buttons = !atWanikani ? ["../images/settings.png", "../images/search.png", "../images/blacklist.png", "../images/about.png", "../images/exit.png", "../images/random.png"] : ["../images/settings.png", "../images/about.png", "../images/exit.png"];
+															buttons.forEach(img => {
 																const li = document.createElement("li");
 																ul.appendChild(li);
 																li.style.position = "relative";
@@ -397,15 +398,10 @@ window.onload = () => {
 														});
 														
 
-														if (atWanikani) {
-															const searchIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Search")[0];
-															if (searchIcon) searchIcon.remove();
-
-															if (notRunAtWK) {
-																notRunAtWK.style.textAlign = "right";
-																notRunAtWK.style.borderBottom = "0px";
-																notRunAtWK.style.borderLeft = "10px solid";
-															}
+														if (atWanikani && notRunAtWK) {
+															notRunAtWK.style.textAlign = "right";
+															notRunAtWK.style.borderBottom = "0px";
+															notRunAtWK.style.borderLeft = "10px solid";
 														}
 
 														const exitIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Exit")[0];
@@ -653,14 +649,16 @@ window.onload = () => {
 													userElementsList.appendChild(notRunAtWK);
 												}
 
-												const blacklistButtonWrapper = document.createElement("div");
-												document.getElementById("footer").insertBefore(blacklistButtonWrapper, document.getElementById("footer").children[0]);
-												blacklistButtonWrapper.id = "blacklistButtonWrapper";
-												const blacklistButton = document.createElement("div");
-												blacklistButton.id = "blacklistButton";
-												blacklistButtonWrapper.appendChild(blacklistButton);
-												blacklistButton.classList.add("button");
-												blacklistButton.appendChild(document.createTextNode("Don't Run On This Site"));
+												if (!atWanikani) {
+													const blacklistButtonWrapper = document.createElement("div");
+													document.getElementById("footer").insertBefore(blacklistButtonWrapper, document.getElementById("footer").children[0]);
+													blacklistButtonWrapper.id = "blacklistButtonWrapper";
+													const blacklistButton = document.createElement("div");
+													blacklistButton.id = "blacklistButton";
+													blacklistButtonWrapper.appendChild(blacklistButton);
+													blacklistButton.classList.add("button");
+													blacklistButton.appendChild(document.createTextNode("Don't Run On This Site"));
+												}
 
 												// get all assignments if there are none in storage or if they were modified
 												setupAssignments(apiKey, () => setupAvailableAssignments(apiKey, setupSummary));
