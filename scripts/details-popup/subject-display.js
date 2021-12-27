@@ -198,7 +198,7 @@
 					chrome.storage.local.get(["wkhighlight_settings"], result => {
 						const settings = result["wkhighlight_settings"];
 						if (settings) {
-							settings["detailsPopup_buttons"]["keyBindings"] = !settings["detailsPopup_buttons"]["keyBindings"];
+							settings["kanji_details_popup"]["key_bindings"] = !settings["kanji_details_popup"]["key_bindings"];
 							chrome.storage.local.set({"wkhighlight_settings":settings});
 						}
 					});
@@ -1020,12 +1020,12 @@
 				{id:"sd-detailsPopupCloseX", alt: "Close (X)", active:true, src:"https://i.imgur.com/KUjkFI9.png"},
 				{id:"sd-detailsPopupGoBack", alt: "Go back (B)", active:true, src:"https://i.imgur.com/e6j4jSV.png"},
 				{id:"sd-detailsPopupGoUp", alt: "Go up (U)", active:true, src:"https://i.imgur.com/fszQn7s.png"},
-				{id:"sd-detailsPopupKeyBindings", alt: "Key Bindings", active:defaultSettings["detailsPopup_buttons"]["keyBindings"], src:"https://i.imgur.com/qbI2bKH.png"},
+				{id:"sd-detailsPopupKeyBindings", alt: "Key Bindings", active:defaultSettings["kanji_details_popup"]["key_bindings"], src:"https://i.imgur.com/qbI2bKH.png"},
 				{id:"sd-detailsPopupSubjectLock", alt: "Subject lock (L)", active:this.locked, src:"https://i.imgur.com/gaKRPen.png"},
 				{id:"sd-detailsPopupFix", alt: "Subject fix (F)", active:this.fixed, src:"https://i.imgur.com/vZqwGZr.png"},
 				// {id:"sd-detailsPopupEdit", alt: "Subject Edit", active:true, src:"https://i.imgur.com/0k9pNho.png"}
 			];
-			console.log(buttons);
+
 			for (let i in buttons) {
 				const button = buttons[i];
 
@@ -1051,7 +1051,7 @@
 				const settings = result["wkhighlight_settings"];
 				const keyBindingsButton = document.getElementById("sd-detailsPopupKeyBindings");
 				if (settings && keyBindingsButton) {
-					const keyBindingsActive = settings["detailsPopup_buttons"] ? settings["detailsPopup_buttons"]["keyBindings"] : defaultSettings["detailsPopup_buttons"]["keyBindings"];
+					const keyBindingsActive = settings["kanji_details_popup"] ? settings["kanji_details_popup"]["key_bindings"] : defaultSettings["kanji_details_popup"]["key_bindings"];
 					if (keyBindingsActive)
 						keyBindingsButton.classList.remove("faded");
 					else

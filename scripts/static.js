@@ -14,7 +14,8 @@ const srsStages = {
 const defaultSettings = {
 	"kanji_details_popup": {
 		activated: true,
-		random_subject: "Any"
+		random_subject: "Any",
+		key_bindings: true
 	},
 	"extension_icon": {
 		kanji_counter: true,
@@ -69,9 +70,6 @@ const defaultSettings = {
 	"miscellaneous": {
 		time_in_12h_format: true,
 		// show_scripts_status: true
-	},
-	"detailsPopup_buttons": {
-		keyBindings: true
 	}
 };
 
@@ -89,6 +87,11 @@ const settingsInterface = [
 				type: "select",
 				options: ["Any", "Kanji", "Vocabulary"],
 				id: "settings-kanji_details_popup-random_subject"
+			},
+			{
+				title: "Key Bindings",
+				type: "checkbox",
+				id: "settings-kanji_details_popup-key_bindings"
 			}
 		]
 	},

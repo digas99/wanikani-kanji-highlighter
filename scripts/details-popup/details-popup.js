@@ -80,7 +80,7 @@
 				const key = e.key;
 				chrome.storage.local.get(["wkhighlight_settings"], result => {
 					const settings = result["wkhighlight_settings"];
-					const keyBindingsActive = settings["detailsPopup_buttons"] ? settings["detailsPopup_buttons"]["keyBindings"] : defaultSettings["detailsPopup_buttons"]["keyBindings"];
+					const keyBindingsActive = settings["detailsPopup_buttons"] ? settings["kanji_details_popup"]["key_bindings"] : defaultSettings["kanji_details_popup"]["key_bindings"];
 					if (detailsPopup.detailsPopup && keyBindingsActive) {
 						if (key == 'x' || key == 'X') {
 							// CLOSE DETAILS POPUP
