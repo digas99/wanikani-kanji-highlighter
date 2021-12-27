@@ -8,7 +8,6 @@
 		this.fixed = false;
 		this.locked = false;
 		this.expanded = false;
-		this.editing = false;
 		this.openedSubjects = [];
 		this.wrapper = wrapper;
 
@@ -143,51 +142,6 @@
 				if (node.id == "sd-detailsPopupSubjectLock")
 					this.locked = !this.locked;
 
-				if (node.id == "sd-detailsPopupEdit") {
-					let values = null;
-					let type = "kanji";
-					if (this.detailsPopup) {
-						values = {
-							characters: this.detailsPopup.getElementsByClassName("sd-detailsPopup_kanji")[0].innerText,
-							meanings: this.detailsPopup.getElementsByClassName("sd-popupDetails_kanjiTitle")[0].children[0].innerText,
-							meaning_mnemonic: this.detailsPopup.getElementsByClassName("sd-detailsPopup_sectionContainer")[0].getElementsByClassName("sd-popupDetails_p")[0].innerText,
-							reading_mnemonic: this.detailsPopup.getElementsByClassName("sd-detailsPopup_sectionContainer")[1].getElementsByClassName("sd-popupDetails_p")[0].innerText,
-						}
-
-						// setup readings
-						const readingsWrapper = this.detailsPopup.getElementsByClassName("sd-popupDetails_readings_row"); 
-						if (readingsWrapper.length === 1) {
-							type = "vocabulary";
-							values["readings"] = readingsWrapper.innerText;
-						}
-						else {
-							type = "kanji";
-							values["readings"] = {
-								on: readingsWrapper[0].getElementsByTagName("span")[0].innerText,
-								kun: readingsWrapper[1].getElementsByTagName("span")[0].innerText
-							};
-						}
-
-						// get cards
-						Array.from(["radicals", "kanji", "vocab"]).forEach(type => {
-							const rows = this.detailsPopup.getElementsByClassName(`sd-detailsPopup_${type}_row`);
-							if (rows) {
-								values[type] = [];
-								Array.from(rows).forEach(row => {
-									values[type].push({
-										characters: row.getElementsByClassName("sd-detailsPopup_cards")[0].innerText,
-										rows: Array.from(row.getElementsByTagName("DIV"))
-											.filter(child => child.className === "")
-											.map(child => child.innerText)
-									});
-								});
-							}
-						});						
-					}
-
-					this.edit(type, values);
-				}
-
 				if (node.id == "sd-detailsPopupGoUp") {
 					if (this.detailsPopup) {
 						this.detailsPopup.scrollTo(0, 0);
@@ -233,8 +187,12 @@
 		create: function() {
 			this.detailsPopup = document.createElement("div");
 			this.detailsPopup.className = "sd-rightOverFlowPopup sd-detailsPopup";
+			this.detailsPopup.style.setProperty("transition", "0.3s", "important");
 			this.wrapper.appendChild(this.detailsPopup);
-			setTimeout(() => this.detailsPopup.classList.remove("sd-rightOverFlowPopup"), 20);
+			setTimeout(() => {
+				this.detailsPopup.classList.remove("sd-rightOverFlowPopup");
+				setTimeout(() => this.detailsPopup.style.removeProperty("transition"), 300);
+			}, 20);
 		},
 
 		// update popup
@@ -269,48 +227,12 @@
 			}
 		},
 
-		// update popup
-		edit: function (type, values) {
-			// force values
-			this.locked = true;
-			this.editing = true;
-
-			if (!this.detailsPopup) this.create();
-
-			if (!this.expanded) this.expand();
-
-			if (this.detailsPopup.firstChild)
-				this.detailsPopup.firstChild.remove();
-			this.detailsPopup.appendChild(this.charContainerEdit(type, values));
-			
-			const detailedInfoWrapper = this.detailsPopup.getElementsByClassName("sd-popupDetails_detailedInfoWrapper");
-			if (detailedInfoWrapper)
-				Array.from(detailedInfoWrapper).forEach(wrapper => wrapper.remove());
-		
-			this.detailsPopup.appendChild(this.subjectDetailedInfoEdit(type, values));
-
-			// bottom buttons
-			const actionButtons = document.createElement("div");
-			this.detailsPopup.appendChild(actionButtons);
-			actionButtons.classList.add("action-buttons");
-			const buttonsUl = document.createElement("ul");
-			actionButtons.appendChild(buttonsUl);
-			["Create", "Save", "Delete"].forEach(button => {
-				const buttonsLi = document.createElement("li");
-				buttonsUl.appendChild(buttonsLi);
-				buttonsLi.classList.add("clickable");
-				buttonsLi.appendChild(document.createTextNode(button));
-			});
-		},
-
 		// expand popup
 		expand : function () {
 			this.detailsPopup.classList.add("sd-focusPopup");
 			this.detailsPopup.style.setProperty("height", window.innerHeight+"px", "important");
 			
 			setTimeout(() => this.detailsPopup.style.setProperty("top", "0", "important"), 400);
-
-			this.expanded = true;
 
 			// remove temp kanji info from small details popup
 			const tempKanjiTitle = this.detailsPopup.getElementsByClassName("sd-smallDetailsPopupKanjiTitle")[0];
@@ -345,15 +267,13 @@
 				if (buttons)
 					buttons.forEach(button => button.classList.remove("hidden"));
 			}
+
+			this.expanded = true;
 		},
 
 		// close popup
 		close: function (delay) {
-			if (this.editing && !confirm("Editing Subject, exit and discard all changes?"))
-				return false;
-
 			if (!this.fixed) {
-				this.editing = false;
 				this.locked = false;
 				this.detailsPopup.classList.add("sd-rightOverFlowPopup");
 
@@ -370,16 +290,29 @@
 			// detailed info section
 			const detailedInfoWrapper = document.createElement("div");
 			detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
-			const kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
-			if (kanjiWrapper)
-				detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
+			
+			const updateMarginTop = () => {
+				let kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
+				if (kanjiWrapper)
+					detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
+				return kanjiWrapper;
+			}
+
+			if (!updateMarginTop()) {
+				const updater = setInterval(() => {
+					if (updateMarginTop()) clearInterval(updater);
+				}, 200);
+			}
 
 			const sections = [["Info", "https://i.imgur.com/E6Hrw7w.png"], ["Cards", "https://i.imgur.com/r991llA.png"]];
 			if (kanjiInfo["stats"]) sections.push(["Statistics", "https://i.imgur.com/Ufz4G1K.png"]);
 			if (kanjiInfo["timestamps"]) sections.push(["Timestamps", "https://i.imgur.com/dcT0L48.png"]);
 			// navbar
-			detailedInfoWrapper.appendChild(navbar(this.detailsPopup, sections));
-			
+			if (this.expanded)
+				detailedInfoWrapper.appendChild(navbar(this.detailsPopup, sections));
+			else
+				setTimeout(() => detailedInfoWrapper.appendChild(navbar(this.detailsPopup, sections)), 200);
+
 			// details container
 			const details = document.createElement("div");
 			details.style.setProperty("padding", "45px 15px", "important");
@@ -453,141 +386,13 @@
 			statsSection.id = "sd-popupDetails_StatisticsSection";
 			statsSection.classList.add("sd-popupDetails_anchor");
 
-			const percentageColor = percentage => {
-				let color;
-				if (percentage < 25) color = "#ff0000";
-				else if (percentage >= 25 && percentage < 50) color = "#ff8d00";
-				else if (percentage >= 50 && percentage < 75) color = "#efff00";
-				else color = "#00ff00";
-				return color;
-			}
-
 			if (kanjiInfo["stats"]) {
-				// quick stats
-				const quickStats = document.createElement("div");
-				detailedInfoWrapper.insertBefore(quickStats, details);
-				quickStats.classList.add("sd-popupDetails_quickStats");
-				const quickStatsUl = document.createElement("ul");
-				quickStats.appendChild(quickStatsUl);
-				quickStatsUl.style.setProperty("display", "inline-flex", "important");
 				const statsImages = ["https://i.imgur.com/vsRTIFA.png", "https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
-				["Overall", "Meaning", "Reading"].forEach((title, i) => {
-					const quickStatsLi = document.createElement("li");
-					quickStatsUl.appendChild(quickStatsLi);
-					quickStatsLi.title = title;
-					quickStatsLi.style.setProperty("margin-left", "5px", "important");
-					quickStatsLi.style.setProperty("display", "flex", "important");
-					quickStatsLi.style.setProperty("align-items", "center", "important");
-					const img = document.createElement("img");
-					quickStatsLi.appendChild(img);
-					img.src = statsImages[i];
-					img.style.setProperty("width", "17px", "important");
-					img.style.setProperty("filter", "invert(1)", "important");
-					img.style.setProperty("margin-right", "5px", "important");
-					const valueElem = document.createElement("span");
-					quickStatsLi.appendChild(valueElem);
-				});
 
-				const stats = infoTable("Statistics", []);
-				details.appendChild(stats);
-				const statsWrapper = document.createElement("div");
-				stats.appendChild(statsWrapper);
-				statsWrapper.style.setProperty("margin-top", "10px", "important");
-
-				const overallCorrect = document.createElement("div");
-				statsWrapper.appendChild(overallCorrect);
-				overallCorrect.style.setProperty("margin-bottom", "10px", "important");
-				const overallCorrectTitleWrapper = document.createElement("div");
-				overallCorrect.appendChild(overallCorrectTitleWrapper);
-				overallCorrectTitleWrapper.style.setProperty("display", "flex", "important");
-				overallCorrectTitleWrapper.style.setProperty("align-items", "center", "important");
-				const overallCorrectIcon = document.createElement("img");
-				overallCorrectTitleWrapper.appendChild(overallCorrectIcon);
-				overallCorrectIcon.src = statsImages[0];
-				overallCorrectIcon.style.setProperty("width", "22px", "important");
-				overallCorrectIcon.style.setProperty("filter", "invert(1)", "important");
-				overallCorrectIcon.style.setProperty("margin-right", "10px", "important");
-				const overallCorrectTitle = document.createElement("strong");
-				overallCorrectTitleWrapper.appendChild(overallCorrectTitle);
-				overallCorrectTitle.appendChild(document.createTextNode("Overall"));
-				overallCorrectTitle.style.setProperty("font-size", "22px", "important");
-				const overallCorrectValues = [kanjiInfo["stats"]["percentage_correct"].toFixed(0)+"%", kanjiInfo["stats"]["meaning_correct"]+kanjiInfo["stats"]["meaning_incorrect"]+kanjiInfo["stats"]["reading_correct"]+kanjiInfo["stats"]["reading_incorrect"]];
-				["Correct", "Frequency"].forEach((state, i) => {
-					const overallCorrectStateWrapper = document.createElement("div");
-					overallCorrect.appendChild(overallCorrectStateWrapper);
-					overallCorrectStateWrapper.style.setProperty("padding-left", "8px", "important");
-					const overallCorrectStateTitle = document.createElement("strong");
-					overallCorrectStateWrapper.appendChild(overallCorrectStateTitle);
-					overallCorrectStateTitle.appendChild(document.createTextNode(state+": "));
-					const overallCorrectStateValue = document.createElement("span");
-					overallCorrectStateWrapper.appendChild(overallCorrectStateValue);
-					overallCorrectStateValue.appendChild(document.createTextNode(overallCorrectValues[i]));
-					if (i === 0)
-						overallCorrectStateValue.style.setProperty("color", percentageColor(kanjiInfo["stats"]["percentage_correct"]), "important")
-				});
-				const quickStatsOverall = quickStatsUl.getElementsByTagName("li")[0].getElementsByTagName("span")[0];
-				quickStatsOverall.appendChild(document.createTextNode(kanjiInfo["stats"]["percentage_correct"].toFixed(0)+"%"));
-				quickStatsOverall.style.setProperty("color", percentageColor(kanjiInfo["stats"]["percentage_correct"]), "important");
-
-				["Meaning", "Reading"].forEach((type, i) => {
-					const stat = document.createElement("div");
-					statsWrapper.appendChild(stat);
-					stat.style.setProperty("margin-bottom", "10px", "important");
-					const titleWrapper = document.createElement("div");
-					stat.appendChild(titleWrapper);
-					titleWrapper.style.setProperty("display", "flex", "important");
-					titleWrapper.style.setProperty("align-items", "center", "important");
-					const icon = document.createElement("img");
-					titleWrapper.appendChild(icon);
-					icon.src = statsImages[i+1];
-					icon.style.setProperty("width", "22px", "important");
-					icon.style.setProperty("filter", "invert(1)", "important");
-					icon.style.setProperty("margin-right", "10px", "important");
-					const title = document.createElement("strong");
-					titleWrapper.appendChild(title);
-					title.appendChild(document.createTextNode(type));
-					title.style.setProperty("font-size", "22px", "important");
-
-					["Correct", "Incorrect"].forEach(state => {
-						const stateWrapper = document.createElement("div");
-						stat.appendChild(stateWrapper);
-						stateWrapper.style.setProperty("padding-left", "8px", "important");
-						const stateTitle = document.createElement("strong");
-						stateWrapper.appendChild(stateTitle);
-						stateTitle.appendChild(document.createTextNode(state+": "));
-						const stateValue = document.createElement("span");
-						stateWrapper.appendChild(stateValue);
-						const value = kanjiInfo["stats"][type.toLowerCase()+"_"+state.toLowerCase()];
-						const percentage = value/(kanjiInfo["stats"][type.toLowerCase()+"_correct"]+kanjiInfo["stats"][type.toLowerCase()+"_incorrect"])*100;
-						stateValue.appendChild(document.createTextNode(value+" ("+percentage.toFixed(0)+"%)"));
-						if (state === "Correct") {
-							stateValue.style.setProperty("color", percentageColor(percentage), "important");
-							const quickStatsVal = quickStatsUl.getElementsByTagName("li")[i+1].getElementsByTagName("span")[0];
-							quickStatsVal.appendChild(document.createTextNode(percentage.toFixed(0)+"%"));
-							quickStatsVal.style.setProperty("color", percentageColor(percentage), "important");
-						}
-					});		
-
-					const freqWrapper = document.createElement("div");
-					stat.appendChild(freqWrapper);
-					freqWrapper.style.setProperty("padding-left", "8px", "important");
-					const freqTitle = document.createElement("strong");
-					freqWrapper.appendChild(freqTitle);
-					freqTitle.appendChild(document.createTextNode("Frequency: "));
-					const freqValue = document.createElement("span");
-					freqWrapper.appendChild(freqValue);
-					freqValue.appendChild(document.createTextNode(kanjiInfo["stats"][type.toLowerCase()+"_correct"]+kanjiInfo["stats"][type.toLowerCase()+"_incorrect"]));
-
-					const streakWrapper = document.createElement("div");
-					stat.appendChild(streakWrapper);
-					streakWrapper.style.setProperty("padding-left", "8px", "important");
-					const streakTitle = document.createElement("strong");
-					streakWrapper.appendChild(streakTitle);
-					streakTitle.appendChild(document.createTextNode("Streak (max): "));
-					const streakValue = document.createElement("span");
-					streakWrapper.appendChild(streakValue);
-					streakValue.appendChild(document.createTextNode(kanjiInfo["stats"][type.toLowerCase()+"_current_streak"]+" ("+kanjiInfo["stats"][type.toLowerCase()+"_max_streak"]+")"));
-				});
+				const quickStats = quickRevStats(["Overall", "Meaning", "Reading"], statsImages);
+				detailedInfoWrapper.insertBefore(quickStats, details);
+				
+				details.appendChild(revStats(kanjiInfo["stats"], quickStats.getElementsByTagName("ul")[0]));
 			}
 
 			const timestampsSection = document.createElement("div");
@@ -596,68 +401,10 @@
 			timestampsSection.classList.add("sd-popupDetails_anchor");
 
 			if (kanjiInfo["timestamps"]) {
-				const timestamps = infoTable("Timestamps", []);
-				details.appendChild(timestamps);
-				const timestampsWrapper = document.createElement("div");
-				timestamps.appendChild(timestampsWrapper);
-				timestampsWrapper.style.setProperty("margin-top", "10px", "important");
+				const timestampsWrapper = infoTable("Timestamps", []);
+				details.appendChild(timestampsWrapper);
 				const images = ["https://i.imgur.com/fszQn7s.png", "https://i.imgur.com/Pi3fG6f.png", "https://i.imgur.com/bsZwaVy.png", "https://i.imgur.com/x7ialfz.png", "https://i.imgur.com/a0lyk8f.png", "https://i.imgur.com/VKoEfQD.png", "https://i.imgur.com/pXqcusW.png", "https://i.imgur.com/1EA2EWP.png"];
-				for (const key in kanjiInfo["timestamps"]) {
-					const wrapper = document.createElement("div");
-					timestampsWrapper.appendChild(wrapper);
-					wrapper.style.setProperty("padding", "5px 0px", "important");
-					wrapper.style.setProperty("maring-bottom", "5px", "important");
-					const titleWrapper = document.createElement("div");
-					wrapper.appendChild(titleWrapper);
-					titleWrapper.style.setProperty("display", "flex", "important");
-					titleWrapper.style.setProperty("align-items", "center", "important");
-					const img = document.createElement("img");
-					titleWrapper.appendChild(img);
-					img.src = images[Object.keys(kanjiInfo["timestamps"]).indexOf(key)];
-					img.style.setProperty("width", "22px", "important");
-					img.style.setProperty("filter", "invert(1)", "important");
-					img.style.setProperty("margin-right", "10px", "important");
-					const title = document.createElement("strong");
-					titleWrapper.appendChild(title);
-					if (key === "data_updated_at")
-						title.appendChild(document.createTextNode("Last Session"));
-					else
-						title.appendChild(document.createTextNode(key.split("_")[0].charAt(0).toUpperCase()+key.split("_")[0].slice(1)));
-					title.style.setProperty("font-size", "22px", "important");
-					const time = document.createElement("p");
-					wrapper.appendChild(time);
-					time.style.setProperty("padding", "5px 0px 2px 8px", "important");
-					time.style.setProperty("color", "#c5c5c4", "important");
-					if (!kanjiInfo["timestamps"][key])
-						time.appendChild(document.createTextNode("No Data"));
-					else {
-						const timeValue = kanjiInfo["timestamps"][key].split(".")[0];
-						time.appendChild(document.createTextNode(timeValue.replace("T", " / ")));
-						const timePassedWrapper = document.createElement("p");
-						wrapper.appendChild(timePassedWrapper);
-						timePassedWrapper.style.setProperty("padding", "2px 0px 2px 8px", "important");
-						timePassedWrapper.style.setProperty("font-weight", "bold", "important");
-						const days = msToDays(new Date() - new Date(timeValue.split("T")[0])).toFixed(0);
-						let timePassed;
-						if (days === '0') timePassed = "Today";
-						else if (days === '1') timePassed = "Yesterday";
-						else if (parseInt(days) < 0) timePassed = "In "+(parseInt(days)*-1)+((parseInt(days)*-1) === 1 ? " day" : " days");
-						else timePassed = days+" days ago";
-						timePassedWrapper.appendChild(document.createTextNode(timePassed));
-
-						if (key === "passed_at" && srsStage) {
-							srsStage.style.setProperty("display", "flex", "important");
-							srsStage.style.setProperty("align-items", "center", "important");
-							const passed = document.createElement("img");
-							srsStage.appendChild(passed);
-							passed.src = img.src;
-							passed.style.setProperty("width", "13px", "important");
-							passed.style.setProperty("filter", "invert(1)", "important");
-							passed.style.setProperty("margin-left", "7px", "important");
-							srsStage.title = "Subject passed "+timePassed;
-						}
-					}
-				}	
+				timestampsWrapper.appendChild(timestamps(kanjiInfo["timestamps"], images, srsStage));
 			}
 
 			this.detailsPopup.scrollTo(0, 0);
@@ -668,28 +415,28 @@
 			// detailed info section
 			const detailedInfoWrapper = document.createElement("div");
 			detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
-			let kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
-			if (kanjiWrapper)
-				detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
-			else {
-				// guarantee that the kanjiWrapper exists and is full setup to get its correct size
-				const heightUpdaterInterval = setInterval(() => {
-					kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
-					if (kanjiWrapper && kanjiWrapper.childElementCount > 1) {
-						// wait for the elements to be all setup
-						setTimeout(() => {
-							detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
-							clearInterval(heightUpdaterInterval);
-						}, 200);
-					}
-				}, 100);
+			
+			const updateMarginTop = () => {
+				let kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
+				if (kanjiWrapper)
+					detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
+				return kanjiWrapper;
+			}
+
+			if (!updateMarginTop()) {
+				const updater = setInterval(() => {
+					if (updateMarginTop()) clearInterval(updater);
+				}, 200);
 			}
 
 			const sections = [["Info", "https://i.imgur.com/E6Hrw7w.png"], ["Cards", "https://i.imgur.com/r991llA.png"]];
 			if (vocabInfo["stats"]) sections.push(["Statistics", "https://i.imgur.com/Ufz4G1K.png"]);
-			if (vocabInfo["timestamps"]) sections.push(["Timestamps", "https://i.imgur.com/dcT0L48.png"]);
+			if (vocabInfo["timestamps"]) sections.push(["Timestamps", "https://i.imgur.com/dcT0L48.png"]);		
 			// navbar
-			detailedInfoWrapper.appendChild(navbar(this.detailsPopup, sections));
+			if (this.expanded)
+				detailedInfoWrapper.appendChild(navbar(this.detailsPopup, sections));
+			else
+				setTimeout(() => detailedInfoWrapper.appendChild(navbar(this.detailsPopup, sections)), 200);
 
 			// details container
 			const details = document.createElement("div");
@@ -777,142 +524,13 @@
 			statsSection.id = "sd-popupDetails_StatisticsSection";
 			statsSection.classList.add("sd-popupDetails_anchor");
 
-			const percentageColor = percentage => {
-				let color;
-				if (percentage < 25) color = "#ff0000";
-				else if (percentage >= 25 && percentage < 50) color = "#ff8d00";
-				else if (percentage >= 50 && percentage < 75) color = "#efff00";
-				else color = "#00ff00";
-				return color;
-			}
-
 			if (vocabInfo["stats"]) {
-				// quick stats
-				const quickStats = document.createElement("div");
-				detailedInfoWrapper.insertBefore(quickStats, details);
-				quickStats.classList.add("sd-popupDetails_quickStats");
-				const quickStatsUl = document.createElement("ul");
-				quickStats.appendChild(quickStatsUl);
-				quickStatsUl.style.setProperty("display", "inline-flex", "important");
 				const statsImages = ["https://i.imgur.com/vsRTIFA.png", "https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
-				["Overall", "Meaning", "Reading"].forEach((title, i) => {
-					const quickStatsLi = document.createElement("li");
-					quickStatsUl.appendChild(quickStatsLi);
-					quickStatsLi.title = title;
-					quickStatsLi.style.setProperty("margin-left", "5px", "important");
-					quickStatsLi.style.setProperty("display", "flex", "important");
-					quickStatsLi.style.setProperty("align-items", "center", "important");
-					const img = document.createElement("img");
-					quickStatsLi.appendChild(img);
-					img.src = statsImages[i];
-					img.style.setProperty("width", "17px", "important");
-					img.style.setProperty("filter", "invert(1)", "important");
-					img.style.setProperty("margin-right", "5px", "important");
-					const valueElem = document.createElement("span");
-					quickStatsLi.appendChild(valueElem);
-				});
 
-				const stats = infoTable("Statistics", []);
-				details.appendChild(stats);
-				const statsWrapper = document.createElement("div");
-				stats.appendChild(statsWrapper);
-				statsWrapper.style.setProperty("margin-top", "10px", "important");
-
-				const overallCorrect = document.createElement("div");
-				statsWrapper.appendChild(overallCorrect);
-				overallCorrect.style.setProperty("margin-bottom", "10px", "important");
-				const overallCorrectTitleWrapper = document.createElement("div");
-				overallCorrect.appendChild(overallCorrectTitleWrapper);
-				overallCorrectTitleWrapper.style.setProperty("display", "flex", "important");
-				overallCorrectTitleWrapper.style.setProperty("align-items", "center", "important");
-				const overallCorrectIcon = document.createElement("img");
-				overallCorrectTitleWrapper.appendChild(overallCorrectIcon);
-				overallCorrectIcon.src = "https://i.imgur.com/vsRTIFA.png";
-				overallCorrectIcon.style.setProperty("width", "22px", "important");
-				overallCorrectIcon.style.setProperty("filter", "invert(1)", "important");
-				overallCorrectIcon.style.setProperty("margin-right", "10px", "important");
-				const overallCorrectTitle = document.createElement("strong");
-				overallCorrectTitleWrapper.appendChild(overallCorrectTitle);
-				overallCorrectTitle.appendChild(document.createTextNode("Overall"));
-				overallCorrectTitle.style.setProperty("font-size", "22px", "important");
-				const overallCorrectValues = [vocabInfo["stats"]["percentage_correct"].toFixed(0)+"%", vocabInfo["stats"]["meaning_correct"]+vocabInfo["stats"]["meaning_incorrect"]+vocabInfo["stats"]["reading_correct"]+vocabInfo["stats"]["reading_incorrect"]];
-				["Correct", "Frequency"].forEach((state, i) => {
-					const overallCorrectStateWrapper = document.createElement("div");
-					overallCorrect.appendChild(overallCorrectStateWrapper);
-					overallCorrectStateWrapper.style.setProperty("padding-left", "8px", "important");
-					const overallCorrectStateTitle = document.createElement("strong");
-					overallCorrectStateWrapper.appendChild(overallCorrectStateTitle);
-					overallCorrectStateTitle.appendChild(document.createTextNode(state+": "));
-					const overallCorrectStateValue = document.createElement("span");
-					overallCorrectStateWrapper.appendChild(overallCorrectStateValue);
-					overallCorrectStateValue.appendChild(document.createTextNode(overallCorrectValues[i]));
-					if (i === 0)
-						overallCorrectStateValue.style.setProperty("color", percentageColor(vocabInfo["stats"]["percentage_correct"]), "important")
-				});
-				const quickStatsOverall = quickStatsUl.getElementsByTagName("li")[0].getElementsByTagName("span")[0];
-				quickStatsOverall.appendChild(document.createTextNode(vocabInfo["stats"]["percentage_correct"].toFixed(0)+"%"));
-				quickStatsOverall.style.setProperty("color", percentageColor(vocabInfo["stats"]["percentage_correct"]), "important");
-
-				const images = ["https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
-				["Meaning", "Reading"].forEach((type, i) => {
-					const stat = document.createElement("div");
-					statsWrapper.appendChild(stat);
-					stat.style.setProperty("margin-bottom", "10px", "important");
-					const titleWrapper = document.createElement("div");
-					stat.appendChild(titleWrapper);
-					titleWrapper.style.setProperty("display", "flex", "important");
-					titleWrapper.style.setProperty("align-items", "center", "important");
-					const icon = document.createElement("img");
-					titleWrapper.appendChild(icon);
-					icon.src = images[i];
-					icon.style.setProperty("width", "22px", "important");
-					icon.style.setProperty("filter", "invert(1)", "important");
-					icon.style.setProperty("margin-right", "10px", "important");
-					const title = document.createElement("strong");
-					titleWrapper.appendChild(title);
-					title.appendChild(document.createTextNode(type));
-					title.style.setProperty("font-size", "22px", "important");
-
-					["Correct", "Incorrect"].forEach(state => {
-						const stateWrapper = document.createElement("div");
-						stat.appendChild(stateWrapper);
-						stateWrapper.style.setProperty("padding-left", "8px", "important");
-						const stateTitle = document.createElement("strong");
-						stateWrapper.appendChild(stateTitle);
-						stateTitle.appendChild(document.createTextNode(state+": "));
-						const stateValue = document.createElement("span");
-						stateWrapper.appendChild(stateValue);
-						const value = vocabInfo["stats"][type.toLowerCase()+"_"+state.toLowerCase()];
-						const percentage = value/(vocabInfo["stats"][type.toLowerCase()+"_correct"]+vocabInfo["stats"][type.toLowerCase()+"_incorrect"])*100;
-						stateValue.appendChild(document.createTextNode(value+" ("+percentage.toFixed(0)+"%)"));
-						if (state === "Correct") {
-							stateValue.style.setProperty("color", percentageColor(percentage), "important");
-							const quickStatsVal = quickStatsUl.getElementsByTagName("li")[i+1].getElementsByTagName("span")[0];
-							quickStatsVal.appendChild(document.createTextNode(percentage.toFixed(0)+"%"));
-							quickStatsVal.style.setProperty("color", percentageColor(percentage), "important");
-						}
-					});		
-
-					const freqWrapper = document.createElement("div");
-					stat.appendChild(freqWrapper);
-					freqWrapper.style.setProperty("padding-left", "8px", "important");
-					const freqTitle = document.createElement("strong");
-					freqWrapper.appendChild(freqTitle);
-					freqTitle.appendChild(document.createTextNode("Frequency: "));
-					const freqValue = document.createElement("span");
-					freqWrapper.appendChild(freqValue);
-					freqValue.appendChild(document.createTextNode(vocabInfo["stats"][type.toLowerCase()+"_correct"]+vocabInfo["stats"][type.toLowerCase()+"_incorrect"]));
-
-					const streakWrapper = document.createElement("div");
-					stat.appendChild(streakWrapper);
-					streakWrapper.style.setProperty("padding-left", "8px", "important");
-					const streakTitle = document.createElement("strong");
-					streakWrapper.appendChild(streakTitle);
-					streakTitle.appendChild(document.createTextNode("Streak (max): "));
-					const streakValue = document.createElement("span");
-					streakWrapper.appendChild(streakValue);
-					streakValue.appendChild(document.createTextNode(vocabInfo["stats"][type.toLowerCase()+"_current_streak"]+" ("+vocabInfo["stats"][type.toLowerCase()+"_max_streak"]+")"));
-				});
+				const quickStats = quickRevStats(["Overall", "Meaning", "Reading"], statsImages);
+				detailedInfoWrapper.insertBefore(quickStats, details);
+				
+				details.appendChild(revStats(vocabInfo["stats"], quickStats.getElementsByTagName("ul")[0]));
 			}
 
 			const timestampsSection = document.createElement("div");
@@ -921,69 +539,10 @@
 			timestampsSection.classList.add("sd-popupDetails_anchor");
 
 			if (vocabInfo["timestamps"]) {
-				const timestamps = infoTable("Timestamps", []);
-				details.appendChild(timestamps);
-				const timestampsWrapper = document.createElement("div");
-				timestamps.appendChild(timestampsWrapper);
-				timestampsWrapper.style.setProperty("margin-top", "10px", "important");
+				const timestampsWrapper = infoTable("Timestamps", []);
+				details.appendChild(timestampsWrapper);
 				const images = ["https://i.imgur.com/fszQn7s.png", "https://i.imgur.com/Pi3fG6f.png", "https://i.imgur.com/bsZwaVy.png", "https://i.imgur.com/x7ialfz.png", "https://i.imgur.com/a0lyk8f.png", "https://i.imgur.com/VKoEfQD.png", "https://i.imgur.com/pXqcusW.png", "https://i.imgur.com/1EA2EWP.png"];
-				for (const key in vocabInfo["timestamps"]) {
-					const wrapper = document.createElement("div");
-					timestampsWrapper.appendChild(wrapper);
-					wrapper.style.setProperty("padding", "5px 0px", "important");
-					wrapper.style.setProperty("maring-bottom", "5px", "important");
-					const titleWrapper = document.createElement("div");
-					wrapper.appendChild(titleWrapper);
-					titleWrapper.style.setProperty("display", "flex", "important");
-					titleWrapper.style.setProperty("align-items", "center", "important");
-					const img = document.createElement("img");
-					titleWrapper.appendChild(img);
-					img.src = images[Object.keys(vocabInfo["timestamps"]).indexOf(key)];
-					img.style.setProperty("width", "22px", "important");
-					img.style.setProperty("filter", "invert(1)", "important");
-					img.style.setProperty("margin-right", "10px", "important");
-					const title = document.createElement("strong");
-					titleWrapper.appendChild(title);
-					if (key === "data_updated_at")
-						title.appendChild(document.createTextNode("Last Session"));
-					else
-						title.appendChild(document.createTextNode(key.split("_")[0].charAt(0).toUpperCase()+key.split("_")[0].slice(1)));
-					title.style.setProperty("font-size", "22px", "important");
-					const time = document.createElement("p");
-					wrapper.appendChild(time);
-					time.style.setProperty("padding", "5px 0px 2px 8px", "important");
-					time.style.setProperty("color", "#c5c5c4", "important");
-					if (!vocabInfo["timestamps"][key])
-						time.appendChild(document.createTextNode("No Data"));
-					else {
-						const timeValue = vocabInfo["timestamps"][key].split(".")[0];
-						time.appendChild(document.createTextNode(timeValue.replace("T", " / ")));
-						const timePassedWrapper = document.createElement("p");
-						wrapper.appendChild(timePassedWrapper);
-						timePassedWrapper.style.setProperty("padding", "2px 0px 2px 8px", "important");
-						timePassedWrapper.style.setProperty("font-weight", "bold", "important");
-						const days = msToDays(new Date() - new Date(timeValue.split("T")[0])).toFixed(0);
-						let timePassed;
-						if (days === '0') timePassed = "Today";
-						else if (days === '1') timePassed = "Yesterday";
-						else if (parseInt(days) < 0) timePassed = "In "+(parseInt(days)*-1)+((parseInt(days)*-1) === 1 ? " day" : " days");
-						else timePassed = days+" days ago";
-						timePassedWrapper.appendChild(document.createTextNode(timePassed));
-
-
-						if (key === "passed_at" && srsStage) {
-							srsStage.style.setProperty("display", "flex", "important");
-							srsStage.style.setProperty("align-items", "center", "important");
-							const passed = document.createElement("img");
-							srsStage.appendChild(passed);
-							passed.src = img.src;
-							passed.style.setProperty("width", "13px", "important");
-							passed.style.setProperty("filter", "invert(1)", "important");
-							passed.style.setProperty("margin-left", "7px", "important");
-							srsStage.title = "Subject passed "+timePassed;
-						}
-					}
-				}
+				timestampsWrapper.appendChild(timestamps(vocabInfo["timestamps"], images, srsStage));
 			}
 
 			this.detailsPopup.scrollTo(0, 0);
@@ -1013,6 +572,8 @@
 
 				if (characters.length >= 3)
 					this.detailsPopup.style.setProperty("width", this.width+"px", "important");
+				else
+					this.detailsPopup.style.removeProperty("width");
 			}
 			
 			// kanji container buttons
@@ -1022,8 +583,7 @@
 				{id:"sd-detailsPopupGoUp", alt: "Go up (U)", active:true, src:"https://i.imgur.com/fszQn7s.png"},
 				{id:"sd-detailsPopupKeyBindings", alt: "Key Bindings", active:defaultSettings["kanji_details_popup"]["key_bindings"], src:"https://i.imgur.com/qbI2bKH.png"},
 				{id:"sd-detailsPopupSubjectLock", alt: "Subject lock (L)", active:this.locked, src:"https://i.imgur.com/gaKRPen.png"},
-				{id:"sd-detailsPopupFix", alt: "Subject fix (F)", active:this.fixed, src:"https://i.imgur.com/vZqwGZr.png"},
-				// {id:"sd-detailsPopupEdit", alt: "Subject Edit", active:true, src:"https://i.imgur.com/0k9pNho.png"}
+				{id:"sd-detailsPopupFix", alt: "Subject fix (F)", active:this.fixed, src:"https://i.imgur.com/vZqwGZr.png"}
 			];
 
 			for (let i in buttons) {
@@ -1066,7 +626,6 @@
 			
 			const kanjiContainerWrapper = document.createElement("div");
 			itemWrapper.appendChild(kanjiContainerWrapper);
-			kanjiContainerWrapper.style.setProperty("margin", `${characters.length >= 4 ? 30 : 0}px 0`, "important");
 			kanjiContainerWrapper.style.setProperty("text-align", "center", "important");
 	
 			const link = document.createElement("a");
@@ -1116,144 +675,6 @@
 			}
 			kanjiContainerWrapper.appendChild(ul);
 		
-			return itemWrapper;
-		},
-
-		subjectDetailedInfoEdit: function (type, values) {
-			// detailed info section
-			const detailedInfoWrapper = document.createElement("div");
-			detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
-			const kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
-			if (kanjiWrapper)
-				detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
-
-			// details container
-			const details = document.createElement("div");
-			details.style.setProperty("padding", "15px", "important")
-			detailedInfoWrapper.appendChild(details);
-
-			const typeSelectorWrapper = document.createElement("div");
-			details.appendChild(typeSelectorWrapper);
-			typeSelectorWrapper.style.setProperty("margin-bottom", "10px", "important")
-			const selector = document.createElement("select");
-			typeSelectorWrapper.appendChild(selector);
-			selector.title = "Subject type";
-			selector.addEventListener("input", () => {
-				this.edit(selector.value.toLowerCase(), values);
-			});
-			["Kanji", "Vocabulary"].forEach(value => {
-				const option = document.createElement("option");
-				selector.appendChild(option);
-				option.appendChild(document.createTextNode(value));
-				if (value.toLowerCase() === type)
-					option.selected = true;
-			});
-
-			const meaning = document.createElement("div");
-			details.appendChild(meaning);
-			const meaningInput = document.createElement("input");
-			meaning.appendChild(meaningInput);
-			meaningInput.placeholder = "Meanings";
-			meaning.spellcheck = false;
-			meaning.style.setProperty("width", "100%", "important")
-			meaning.style.setProperty("font-size", "20px", "important")
-			if (values && values["meanings"]) meaningInput.value = values["meanings"];
-
-			if (values && values["meaning_mnemonic"] && values["reading_mnemonic"]) ["Meaning", "Reading"].forEach(type => details.appendChild(infoTableCreator(type+" Mnemonic", "Your mnemonic for the "+type.toLowerCase()+"s...", values[type.toLowerCase()+"_mnemonic"])));
-			else ["Meaning", "Reading"].forEach(type => details.appendChild(infoTableCreator(type+" Mnemonic", "Your mnemonic for the "+type.toLowerCase()+"s...")));
-
-			if (type === "kanji") {
-				if (values && values["radicals"]) details.appendChild(itemCardsCreator("Used Radicals", "Radical", "sd-detailsPopup_radicals_row", values["radicals"]));
-				else details.appendChild(itemCardsCreator("Used Radicals", "Radical", "sd-detailsPopup_radicals_row"));	
-			}
-
-			if (values && values["kanji"]) details.appendChild(itemCardsCreator(type === "kanji" ? "Similar Kanji" : "Used Kanji", "Kanji", "sd-detailsPopup_kanji_row", values["kanji"]));
-			else details.appendChild(itemCardsCreator("Similar Kanji", "Kanji", "sd-detailsPopup_kanji_row"));
-
-			if (type === "kanji") {
-				if (values && values["vocab"]) details.appendChild(itemCardsCreator("Vocabulary", "Vocabulary", "sd-detailsPopup_vocab_row", values["vocab"]));
-				else details.appendChild(itemCardsCreator("Vocabulary", "Vocabulary", "sd-detailsPopup_vocab_row"));
-			}
-
-			this.detailsPopup.scrollTo(0, 0);
-			return detailedInfoWrapper;
-		},
-
-		charContainerEdit: function (type, values) {
-			const itemWrapper = document.createElement("div");
-			itemWrapper.classList.add("sd-focusPopup_kanji");
-			itemWrapper.style.setProperty("width", this.width+"px", "important");
-			
-			// kanji container buttons
-			const buttons = [
-				{id:"sd-detailsPopupCloseX", alt: "Close", active:true, src:"https://i.imgur.com/KUjkFI9.png"},
-				{id:"sd-detailsPopupGoUp", alt: "Go up", active:true, src:"https://i.imgur.com/fszQn7s.png"}
-			];
-			for (let i in buttons) {
-				const button = buttons[i];
-
-				const wrapper = document.createElement("div");
-				itemWrapper.appendChild(wrapper);
-				wrapper.id = button["id"];
-				wrapper.classList.add("sd-detailsPopupButton", "clickable");
-				// add class faded to those buttons only
-				if (!button["active"])
-					wrapper.classList.add("faded");
-				const img = document.createElement("img");
-				img.src = button["src"];
-				img.alt = button["alt"];
-				wrapper.title = img.alt;
-				wrapper.appendChild(img);
-			}
-			
-			const container = document.createElement("div");
-			itemWrapper.appendChild(container);
-			container.style.setProperty("margin", "0px", "important");
-
-			const charsWrapper = document.createElement("div");
-			container.appendChild(charsWrapper);
-			const charsInput = document.createElement("input");
-			charsWrapper.appendChild(charsInput);
-			charsInput.spellcheck = false;
-			if (values && values["characters"]) charsInput.value = values["characters"];
-			charsInput.style.setProperty("font-size", "50px", "important");
-			charsInput.style.setProperty("width", "170px", "important");
-			charsInput.style.setProperty("text-align", "center", "important");
-			charsInput.style.setProperty("margin-bottom", "12px", "important");
-			charsInput.placeholder = "漢字";
-			charsInput.title ="Subject characters";
-		
-			const ul = document.createElement("ul");
-			container.appendChild(ul);
-			ul.classList.add("sd-popupDetails_readings");
-			
-			if (type === "kanji") {
-				([["Onyomi", "on"], ["Kunyomi", "kun"]]).forEach(readingType => {
-					const li = document.createElement("li");
-					ul.appendChild(li);
-					li.classList.add("sd-popupDetails_readings_row");
-					const input = document.createElement("input");
-					li.appendChild(input);
-					input.addEventListener("input", e => e.target.value = convertToKana(e.target.value));
-					input.spellcheck = false;
-					input.placeholder = readingType[0];
-					if (values && values["readings"] && values["readings"][readingType[1]]) input.value = values["readings"][readingType[1]];
-					input.style.setProperty("text-align", "center", "important");
-				});
-			}
-			else {
-				const li = document.createElement("li");
-				ul.appendChild(li);
-				li.classList.add("sd-popupDetails_readings_row");
-				const input = document.createElement("input");
-				li.appendChild(input);
-				input.addEventListener("input", e => e.target.value = convertToKana(e.target.value));
-				input.spellcheck = false;
-				input.placeholder = "Readings";
-				if (values && values["readings"] && values["readings"].length === 0) input.value = values["readings"];
-				input.style.setProperty("text-align", "center", "important");
-			}
-
 			return itemWrapper;
 		}
 	}
@@ -1334,34 +755,6 @@
 		return ids.length > 0 ? wrapper : document.createDocumentFragment();
 	}
 
-	const itemCardsCreator = (sectionTitle, type, className, cards) => {
-		const table = infoTable(`${sectionTitle} (${cards ? cards.length : 0})`, []);
-		table.classList.add("sd-detailsPopup_sectionContainer");
-		const wrapper = document.createElement("ul");
-		table.appendChild(wrapper);
-		const rows = [type];
-		if (type !== "Radical")
-			rows.push("かな");
-		const card = itemCard("+", rows);
-		wrapper.appendChild(card);
-		card.classList.add("sd-detailsPopup_cardRow", className);
-		card.title = `Add ${type}`;
-		card.getElementsByTagName("p")[0].classList.add("sd-detailsPopup_cards");
-		card.style.setProperty("background-color", "white", "important");
-		if (type !== "Vocabulary")
-			card.style.setProperty("width", "60px", "important");
-		card.getElementsByTagName("A")[0].style.setProperty("font-size", "40px", "important");
-		if (cards) {
-			cards.forEach(cardValues => {
-				const existingCard = itemCard(cardValues["characters"], cardValues["rows"]);
-				existingCard.classList.add("sd-detailsPopup_cardRow", className);
-				existingCard.getElementsByTagName("p")[0].classList.add("sd-detailsPopup_cards");
-				wrapper.appendChild(existingCard);
-			});
-		}
-		return table;
-	}
-
 	const itemCard = (characters, textRows, srsId, level) => {
 		const li = document.createElement("li");
 
@@ -1423,31 +816,6 @@
 		return wrapper;
 	}
 
-	const infoTableCreator = (titleText, placeholder, value) => {
-		const wrapper = document.createElement("div");
-		wrapper.classList.add("sd-detailsPopup_sectionContainer");
-		
-		if (titleText) {
-			const title = document.createElement("strong");
-			title.classList.add("sd-popupDetails_title");
-			title.appendChild(document.createTextNode(titleText));
-			wrapper.appendChild(title);
-		}
-	
-		const textArea = document.createElement("textarea");
-		wrapper.appendChild(textArea);
-		textArea.spellcheck = false;
-		textArea.style.setProperty("margin-top", "5px", "important");
-		textArea.rows = "7";
-		if (placeholder)
-			textArea.placeholder = placeholder;
-		
-		if (value)
-			textArea.value = value;
-		
-		return wrapper;
-	}
-
 	const navbar = (detailsPopup, sections) => {
 		const navbar = document.createElement("div");
 		navbar.classList.add("sd-popupDetails_navbar");
@@ -1498,6 +866,165 @@
 		});
 
 		return navbar;
+	}
+
+
+	const dataLabel = (image, title) => {
+		const wrapper = document.createElement("div");
+		wrapper.classList.add("sd-detailsPopup_img-label");
+		const icon = document.createElement("img");
+		wrapper.appendChild(icon);
+		icon.src = image;
+		icon.style.setProperty("width", "22px", "important");
+		const titleElem = document.createElement("strong");
+		wrapper.appendChild(titleElem);
+		titleElem.appendChild(document.createTextNode(title));
+		titleElem.style.setProperty("font-size", "22px", "important");
+		return wrapper;
+	}
+
+	const dataRow = (title, value) => {
+		const wrapper = document.createElement("div");
+		wrapper.style.setProperty("padding-left", "8px", "important");
+		const titleElem = document.createElement("strong");
+		wrapper.appendChild(titleElem);
+		titleElem.appendChild(document.createTextNode(title+": "));
+		const valueElem = document.createElement("span");
+		wrapper.appendChild(valueElem);
+		valueElem.appendChild(document.createTextNode(value));
+		return wrapper;
+	}
+
+	const timestamps = (values, images, srsStage) => {
+		const timestampsWrapper = document.createElement("div");
+		timestampsWrapper.style.setProperty("margin-top", "10px", "important");
+		for (const key in values) {
+			const wrapper = document.createElement("div");
+			timestampsWrapper.appendChild(wrapper);
+			wrapper.style.setProperty("padding", "5px 0px", "important");
+			wrapper.style.setProperty("maring-bottom", "5px", "important");
+
+			const titleValue = key !== "data_updated_at" ? key.split("_")[0].charAt(0).toUpperCase()+key.split("_")[0].slice(1) : "Last Session";
+			wrapper.appendChild(dataLabel(images[Object.keys(values).indexOf(key)], titleValue));
+			
+			const time = document.createElement("p");
+			wrapper.appendChild(time);
+			time.style.setProperty("padding", "5px 0px 2px 8px", "important");
+			time.style.setProperty("color", "#c5c5c4", "important");
+			if (!values[key])
+				time.appendChild(document.createTextNode("No Data"));
+			else {
+				const timeValue = values[key].split(".")[0];
+				time.appendChild(document.createTextNode(timeValue.replace("T", " / ")));
+				const timePassedWrapper = document.createElement("p");
+				wrapper.appendChild(timePassedWrapper);
+				timePassedWrapper.style.setProperty("padding", "2px 0px 2px 8px", "important");
+				timePassedWrapper.style.setProperty("font-weight", "bold", "important");
+				const days = msToDays(new Date() - new Date(timeValue.split("T")[0])).toFixed(0);
+				let timePassed;
+				if (days === '0') timePassed = "Today";
+				else if (days === '1') timePassed = "Yesterday";
+				else if (parseInt(days) < 0) timePassed = "In "+(parseInt(days)*-1)+((parseInt(days)*-1) === 1 ? " day" : " days");
+				else timePassed = days+" days ago";
+				timePassedWrapper.appendChild(document.createTextNode(timePassed));
+
+				if (key === "passed_at" && srsStage) {
+					srsStage.classList.add("sd-detailsPopup_label-img");
+					const passed = document.createElement("img");
+					srsStage.appendChild(passed);
+					passed.src = images[Object.keys(values).indexOf(key)];
+					passed.style.setProperty("width", "13px", "important");
+					srsStage.title = "Subject passed "+timePassed;
+				}
+			}
+		}
+		return timestampsWrapper;
+	}
+
+	const percentageColor = percentage => {
+		let color;
+		if (percentage < 25) color = "#ff0000";
+		else if (percentage >= 25 && percentage < 50) color = "#ff8d00";
+		else if (percentage >= 50 && percentage < 75) color = "#efff00";
+		else color = "#00ff00";
+		return color;
+	}
+
+	const quickRevStats = (titles, images) => {
+		const quickStats = document.createElement("div");
+		quickStats.classList.add("sd-popupDetails_quickStats");
+		const quickStatsUl = document.createElement("ul");
+		quickStats.appendChild(quickStatsUl);
+		quickStatsUl.style.setProperty("display", "inline-flex", "important");
+		titles.forEach((title, i) => {
+			const quickStatsLi = document.createElement("li");
+			quickStatsUl.appendChild(quickStatsLi);
+			quickStatsLi.title = title;
+			quickStatsLi.style.setProperty("margin-left", "5px", "important");
+			quickStatsLi.classList.add("sd-detailsPopup_img-label");
+			const img = document.createElement("img");
+			quickStatsLi.appendChild(img);
+			img.src = images[i];
+			img.style.setProperty("width", "17px", "important");
+			const valueElem = document.createElement("span");
+			quickStatsLi.appendChild(valueElem);
+		});
+		return quickStats;
+	}
+
+	const revStats = (values, quickStatsUl) => {
+		const stats = infoTable("Statistics", []);
+		const statsWrapper = document.createElement("div");
+		stats.appendChild(statsWrapper);
+		statsWrapper.style.setProperty("margin-top", "10px", "important");
+	
+		const overallWrapper = document.createElement("div");
+		overallWrapper.style.setProperty("margin-bottom", "10px", "important");
+		statsWrapper.appendChild(overallWrapper);
+		overallWrapper.appendChild(dataLabel("https://i.imgur.com/vsRTIFA.png", "Overall"));
+		const overallCorrectValues = [values["percentage_correct"].toFixed(0)+"%", values["meaning_correct"]+values["meaning_incorrect"]+values["reading_correct"]+values["reading_incorrect"]];
+		["Correct", "Frequency"].forEach((state, i) => {
+			const data = dataRow(state, overallCorrectValues[i]);
+			overallWrapper.appendChild(data);
+			if (i === 0)
+				data.getElementsByTagName("span")[0].style.setProperty("color", percentageColor(values["percentage_correct"]), "important")
+		});
+		const quickStatsOverall = quickStatsUl.getElementsByTagName("li")[0].getElementsByTagName("span")[0];
+		quickStatsOverall.appendChild(document.createTextNode(values["percentage_correct"].toFixed(0)+"%"));
+		quickStatsOverall.style.setProperty("color", percentageColor(values["percentage_correct"]), "important");
+
+		const images = ["https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
+		["Meaning", "Reading"].forEach((type, i) => {
+			const wrapper = document.createElement("div");
+			wrapper.style.setProperty("margin-bottom", "10px", "important");
+			statsWrapper.appendChild(wrapper);
+			wrapper.appendChild(dataLabel(images[i], type));
+
+			type = type.toLowerCase();
+			const valueCorrect = values[type+"_correct"];
+			const valueIncorrect = values[type+"_incorrect"];
+			const valueBoth = valueCorrect+valueIncorrect;
+			const thisValues = [
+				valueCorrect+" ("+((valueCorrect/valueBoth*100).toFixed(0))+"%)",
+				valueIncorrect+" ("+((valueIncorrect/valueBoth*100).toFixed(0))+"%)",
+				valueBoth, 
+				values[type+"_current_streak"]+" ("+values[type+"_max_streak"]+")"
+			];			
+			["Correct", "Incorrect", "Frequency", "Streak (max)"].forEach((title, j) => {
+				const row = dataRow(title, thisValues[j]);
+				wrapper.appendChild(row);
+				if (title === "Correct") {
+					const percentage = valueCorrect/valueBoth*100;
+					const stateValue = row.getElementsByTagName("span")[0];
+					stateValue.style.setProperty("color", percentageColor(percentage), "important");
+
+					const quickStatsVal = quickStatsUl.getElementsByTagName("li")[i+1].getElementsByTagName("span")[0];
+					quickStatsVal.appendChild(document.createTextNode(percentage.toFixed(0)+"%"));
+					quickStatsVal.style.setProperty("color", percentageColor(percentage), "important");
+				}
+			});
+		});
+		return stats;
 	}
 
 	window.SubjectDisplay = SubjectDisplay;

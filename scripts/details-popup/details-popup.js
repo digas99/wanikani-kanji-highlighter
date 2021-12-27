@@ -17,22 +17,17 @@
 
 			chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				// create kanji details popup coming from search
-				if (!detailsPopup.editing) {
-					if (request.infoPopupFromSearch)  {
-						let id = request.infoPopupFromSearch;
-						if (id.split("-")[0] === "rand") {
-							let allSubjectsKeys = [Object.keys(allKanji), Object.keys(allVocab)].flat(1);
-							if (id.split("-")[1] === "kanji") allSubjectsKeys = Object.keys(allKanji);
-							else if (id.split("-")[1] === "vocab") allSubjectsKeys = Object.keys(allVocab);
+				if (request.infoPopupFromSearch)  {
+					let id = request.infoPopupFromSearch;
+					if (id.split("-")[0] === "rand") {
+						let allSubjectsKeys = [Object.keys(allKanji), Object.keys(allVocab)].flat(1);
+						if (id.split("-")[1] === "kanji") allSubjectsKeys = Object.keys(allKanji);
+						else if (id.split("-")[1] === "vocab") allSubjectsKeys = Object.keys(allVocab);
 
-							if (allSubjectsKeys)
-								id = allSubjectsKeys[rand(0, allSubjectsKeys.length-1)];
-						}
-						detailsPopup.update(id, true);
+						if (allSubjectsKeys)
+							id = allSubjectsKeys[rand(0, allSubjectsKeys.length-1)];
 					}
-
-					if (request.createSubjectFromPopup)
-						detailsPopup.edit("kanji");
+					detailsPopup.update(id, true);
 				}
 
 				if (request.uptime === "Details Popup")
@@ -61,7 +56,7 @@
 								
 				if (detailsPopup.detailsPopup) {
 					// clicked outside details popup
-					if (node !== detailsPopup.detailsPopup && !detailsPopup.detailsPopup.contains(node) && !node.classList.contains("sd-detailsPopup_cardSideBarInfo") && !["sd-detailsPopupGoBack", "sd-detailsPopupEdit"].includes(node.id) && getComputedStyle(node).cursor !== "pointer")
+					if (node !== detailsPopup.detailsPopup && !detailsPopup.detailsPopup.contains(node) && !node.classList.contains("sd-detailsPopup_cardSideBarInfo") && !["sd-detailsPopupGoBack"].includes(node.id) && getComputedStyle(node).cursor !== "pointer")
 						detailsPopup.close(200);
 					
 					// clicked in a highlighted kanji (within the info popup)
@@ -80,7 +75,7 @@
 				const key = e.key;
 				chrome.storage.local.get(["wkhighlight_settings"], result => {
 					const settings = result["wkhighlight_settings"];
-					const keyBindingsActive = settings["detailsPopup_buttons"] ? settings["kanji_details_popup"]["key_bindings"] : defaultSettings["kanji_details_popup"]["key_bindings"];
+					const keyBindingsActive = settings["kanji_details_popup"] ? settings["kanji_details_popup"]["key_bindings"] : defaultSettings["kanji_details_popup"]["key_bindings"];
 					if (detailsPopup.detailsPopup && keyBindingsActive) {
 						if (key == 'x' || key == 'X') {
 							// CLOSE DETAILS POPUP

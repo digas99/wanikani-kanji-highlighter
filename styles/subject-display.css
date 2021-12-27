@@ -50,7 +50,6 @@
     opacity: var(--detailsPopup-opacity);
     width: 150px;
 	height: 170px;
-	transition: 0.3s;
 	overflow: hidden;
 	box-shadow: 0px 0px 5px 1px black;
 	font-family: Arial, Helvetica, sans-serif !important;
@@ -64,7 +63,6 @@
 
 .sd-detailsPopup > div {
 	text-align: center;
-    /* margin-top: 10px; */
 	pointer-events: none;
 }
 
@@ -120,14 +118,16 @@
 	/* 2 POPUP UPPER DIV */
 
 .sd-focusPopup_kanji {
-	margin-top: 0 !important;
-	padding: 10px 0 !important;
     position: fixed;
     background-color: var(--default-color);
-	border-bottom: 3px solid white;
 	transition: 0.5s;
-	text-align: center !important;
 	z-index: 2;
+	display: flex !important;
+    width: 275px !important;
+    min-height: 175px;
+    align-items: center;
+    flex-direction: row;
+    justify-content: center;
 }
 
 #sd-detailsPopupSubjectLock {
@@ -137,11 +137,6 @@
 
 #sd-detailsPopupFix {
     bottom: 42px;
-    left: 9px;
-}
-
-#sd-detailsPopupEdit {
-    bottom: 70px;
     left: 9px;
 }
 
@@ -219,6 +214,7 @@
     position: fixed;
 	text-align: center;
 	z-index: 2;
+	top: 176px;
 }
 
 .sd-popupDetails_navbar > ul {
@@ -243,7 +239,7 @@
 
 .sd-popupDetails_anchor {
 	position: relative;
-	top: -185px;
+	top: -215px;
 }
 
 .sd-popupDetails_separator {
@@ -430,75 +426,22 @@
 	cursor: pointer !important;
 }
 
-	/* 4. SUBJECT CREATION */
+	/* General */
 
-.sd-detailsPopup input, .sd-detailsPopup textarea, .sd-detailsPopup select, .sd-detailsPopup option {
-	all: unset !important;
+.sd-detailsPopup_img-label, .sd-detailsPopup_label-img {
+	display: flex !important;
+	align-items: center;
+	flex-direction: row;
 }
 
-.sd-detailsPopup input {
-	font-size: 18px !important;
+.sd-detailsPopup_img-label > img, .sd-detailsPopup_label-img > img {
+	filter: invert(1);
 }
 
-.sd-detailsPopup input::placeholder {
-	color: rgb(196, 196, 196) !important;
+.sd-detailsPopup_img-label > img {
+	margin-right: 7px;
 }
 
-.sd-detailsPopup select {
-	background-color: unset !important;
-	color: white !important;
-	border: 2px solid white !important;
-    appearance: auto !important;
-}
-
-.sd-detailsPopup option {
-	color: black !important;
-}
-
-.sd-detailsPopup textarea, .sd-detailsPopup input {
-	border: none !important;
-	outline: none !important;
-	background-color: unset !important;
-	color: #d2d2d2 !important;
-	border-bottom: 2px solid white !important;
-	padding: 5px !important;
-}
-
-.sd-detailsPopup textarea {
-	font-size: 17px !important;
-	width: 100% !important;
-}
-
-.sd-detailsPopup textarea:focus, .sd-detailsPopup input:focus {
-	color: white !important;
-	border: 2px solid white !important;
-}
-
-.sd-detailsPopup textarea::placeholder {
-	color: rgb(196, 196, 196) !important;
-}
-
-.sd-detailsPopup .action-buttons {
-	position: fixed;
-	bottom: 0;
-	width: var(--detailsPopup-width);
-	background-color: white;
-	height: 35px;
-	z-index: 1;
-	border: 2px solid white;
-}
-
-.sd-detailsPopup .action-buttons > ul {
-	display: inline-flex;
-	height: 100%;
-	width: 100%;
-	background-color: #383838;
-}
-
-.sd-detailsPopup .action-buttons > ul > li {
-	width: 100%;
-	border-left: 1px solid white;
-	border-right: 1px solid white;
-	padding-top: 5px;
-	color: white;
+.sd-detailsPopup_label-img > img {
+	margin-left: 7px;
 }
