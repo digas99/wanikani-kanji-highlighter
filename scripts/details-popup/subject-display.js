@@ -50,7 +50,7 @@
 					for (const [i, src] of icons.entries()) {
 						const li = document.createElement("li");
 						ul.appendChild(li);
-						li.classList.add("clickable" ,classes[i]);
+						li.classList.add("sd-detailsPopup_clickable" ,classes[i]);
 						const img = document.createElement("img");
 						li.appendChild(img);
 						li.title = "Subject "+classes[i].split("sd-detailsPopup_cardSideBar")[1];
@@ -130,10 +130,10 @@
 			if (node.classList.contains("sd-detailsPopupButton")) {
 				// don't switchClass in the nodes inside the array
 				if (!["sd-detailsPopupCloseX", "sd-detailsPopupGoBack", "sd-detailsPopupGoUp"].includes(node.id)) {
-					if (node.classList.contains("faded"))
-						node.classList.remove("faded");
+					if (node.classList.contains("sd-detailsPopup_faded"))
+						node.classList.remove("sd-detailsPopup_faded");
 					else
-						node.classList.add("faded");
+						node.classList.add("sd-detailsPopup_faded");
 				}
 
 				if (node.id == "sd-detailsPopupFix")
@@ -222,7 +222,7 @@
 					// show kanji container buttons
 					const buttons = Array.from(this.detailsPopup.getElementsByClassName("sd-detailsPopupButton"));
 					if (buttons)
-						buttons.forEach(button => button.classList.remove("hidden"));
+						buttons.forEach(button => button.classList.remove("sd-detailsPopup_hidden"));
 				}
 			}
 		},
@@ -265,7 +265,7 @@
 				// show kanji container buttons
 				const buttons = Array.from(document.getElementsByClassName("sd-detailsPopupButton"));
 				if (buttons)
-					buttons.forEach(button => button.classList.remove("hidden"));
+					buttons.forEach(button => button.classList.remove("sd-detailsPopup_hidden"));
 			}
 
 			this.expanded = true;
@@ -596,10 +596,10 @@
 				const wrapper = document.createElement("div");
 				itemWrapper.appendChild(wrapper);
 				wrapper.id = button["id"];
-				wrapper.classList.add("sd-detailsPopupButton", "clickable", "hidden");
+				wrapper.classList.add("sd-detailsPopupButton", "sd-detailsPopup_clickable", "sd-detailsPopup_hidden");
 				// add class faded to those buttons only
 				if (!button["active"])
-					wrapper.classList.add("faded");
+					wrapper.classList.add("sd-detailsPopup_faded");
 				const img = document.createElement("img");
 				img.src = button["src"];
 				img.alt = button["alt"];
@@ -613,9 +613,9 @@
 				if (settings && keyBindingsButton) {
 					const keyBindingsActive = settings["kanji_details_popup"] ? settings["kanji_details_popup"]["key_bindings"] : defaultSettings["kanji_details_popup"]["key_bindings"];
 					if (keyBindingsActive)
-						keyBindingsButton.classList.remove("faded");
+						keyBindingsButton.classList.remove("sd-detailsPopup_faded");
 					else
-						keyBindingsButton.classList.add("faded");
+						keyBindingsButton.classList.add("sd-detailsPopup_faded");
 				}
 			});
 
@@ -657,7 +657,7 @@
 					const span = document.createElement("span");
 					const readingsString = readings.filter(reading => reading.type===type[1]).map(reading => reading.reading).join(", ");
 					span.appendChild(document.createTextNode(readingsString));
-					if (readingsString === '') li.classList.add("faded");
+					if (readingsString === '') li.classList.add("sd-detailsPopup_faded");
 					li.appendChild(span);
 					if (readingsString.length > 8) {
 						const overflowSpan = document.createElement("span");
@@ -826,7 +826,7 @@
 			const navbarLi = document.createElement("li");
 			navbarUl.appendChild(navbarLi);
 			navbarLi.title = info[0]+` (${info[0].charAt(0)})`;
-			navbarLi.classList.add("clickable");
+			navbarLi.classList.add("sd-detailsPopup_clickable");
 			const link = document.createElement("a");
 			navbarLi.appendChild(link);
 			link.href = `#sd-popupDetails_${info[0]}Section`;

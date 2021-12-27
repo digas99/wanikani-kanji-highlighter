@@ -13,7 +13,7 @@
 				window.location.reload();
 		});
 
-		const otherClasses = ["clickable", "wkhighlighter_hoverable"];
+		const otherClasses = ["wkhighlighter_clickable", "wkhighlighter_hoverable"];
 		const tagFilter = tag => !(tag.closest(".sd-detailsPopup") && !tag.closest(".sd-detailsPopup_sentencesWrapper") && !tag.closest(".sd-popupDetails_p"));
 
 		const learned = new Highlight(result.learned, result.learnedClass, otherClasses, result.unwantedTags, tagFilter);

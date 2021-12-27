@@ -82,20 +82,20 @@
 	text-align: left;
 }
 
-.clickable { 
+.sd-detailsPopup_clickable { 
 	cursor: pointer;
 	transition: 0.2s;
 }
 
-.clickable:hover {
+.sd-detailsPopup_clickable:hover {
 	opacity: 0.5 !important;
 }
 
-.hidden {
+.sd-detailsPopup_hidden {
 	display: none !important;
 }
 
-.faded {
+.sd-detailsPopup_faded {
 	opacity: 0.3 !important;
 }
 

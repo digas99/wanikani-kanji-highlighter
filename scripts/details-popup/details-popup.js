@@ -87,7 +87,7 @@
 						if (key == 'l' || key == 'L') {
 							// LOCK KANJI ON DETAILS POPUP
 							detailsPopup.locked = !detailsPopup.locked;
-							switchClass(document.getElementById("sd-detailsPopupSubjectLock"), "faded");
+							switchClass(document.getElementById("sd-detailsPopupSubjectLock"), "sd-detailsPopup");
 						}
 	
 						// if details popup is expanded
@@ -95,7 +95,7 @@
 							if (key == 'f' || key == 'F') {
 								// FIX DETAILS POPUP
 								detailsPopup.fixed = !detailsPopup.fixed;
-								switchClass(document.getElementById("sd-detailsPopupFix"), "faded");
+								switchClass(document.getElementById("sd-detailsPopupFix"), "sd-detailsPopup");
 							}	
 	
 							if (key == 'b' || key == "B") {

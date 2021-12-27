@@ -59,7 +59,7 @@
 									const div2 = document.createElement("span");
 									div2.innerHTML = split[1];
 									const span = document.createElement("span");
-									span.classList.add("wkhighlighter_highlighted", "clickable");
+									span.classList.add("wkhighlighter_highlighted", "wkhighlighter_clickable");
 									span.appendChild(document.createTextNode(vocab));
 									fragmet.appendChild(div1);
 									fragmet.appendChild(span);

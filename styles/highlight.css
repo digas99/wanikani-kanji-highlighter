@@ -4,20 +4,20 @@
 	--notLearned-color: #a32727;
 }
 
-.clickable { 
+.wkhighlighter_clickable { 
 	cursor: pointer;
 	transition: 0.2s;
 }
 
-.clickable:hover {
+.wkhighlighter_clickable:hover {
 	opacity: 0.5 !important;
 }
 
-.hidden {
+.wkhighlighter_hidden {
 	display: none !important;
 }
 
-.faded {
+.wkhighlighter_faded {
 	opacity: 0.3 !important;
 }
 
