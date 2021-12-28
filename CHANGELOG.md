@@ -20,6 +20,8 @@
   - **<-:** Navigate to Previous Section
   - **->:** Navigate to Next Section
 - Added button in details popup to deactivate key bindings
+- Added slider to settings to set the opacity of the small details popup
+- Option to write with kana on webpage text inputs
 
 ## Bug Fix
 - Fixed issue where subject data wasn't being loaded the first time the extension run

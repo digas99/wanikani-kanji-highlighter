@@ -104,7 +104,7 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	const scripts = kanji => {
 		// inject details popup
 		if (settings["kanji_details_popup"]["activated"]) {
-			executeScripts(['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js', 'scripts/kana.js'], thisTabId);
+			executeScripts(['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js'], thisTabId);
 			insertStyles(['styles/subject-display.css'], thisTabId);
 		}
 
@@ -192,9 +192,14 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 						if (!blacklist["wkhighlight_blacklist"] || blacklist["wkhighlight_blacklist"].length === 0 || !blacklisted(blacklist["wkhighlight_blacklist"], url)) {
 							setSettings();
 	
-							chrome.storage.local.get(["wkhighlight_apiKey"], key => {
-								if (key["wkhighlight_apiKey"]) {
-									apiToken = key["wkhighlight_apiKey"];
+							chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings"], result => {
+								if (result["wkhighlight_apiKey"]) {
+									apiToken = result["wkhighlight_apiKey"];
+
+									tabs.executeScript(thisTabId, {file: 'scripts/kana.js'});
+									const settings = result["wkhighlight_settings"] ? result["wkhighlight_settings"] : defaultSettings;
+									if (settings && settings["miscellaneous"] && settings["miscellaneous"]["kana_writing"])
+										tabs.executeScript(thisTabId, {file: 'scripts/kana-inputs.js'});
 				
 									if (settings["extension_icon"]["kanji_counter"]) {
 										chrome.browserAction.setBadgeText({text: "0", tabId:thisTabId});

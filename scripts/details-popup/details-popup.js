@@ -2,6 +2,10 @@
 	chrome.storage.local.get(["wkhighlight_allkanji", "wkhighlight_allradicals", "wkhighlight_allvocab", "wkhighlight_settings"], result => {
 		chrome.runtime.sendMessage({uptime:"Details Popup"});
 
+		const settings = result["wkhighlight_settings"];
+		if (settings["kanji_details_popup"]["popup_opacity"])
+			document.documentElement.style.setProperty('--detailsPopup-opacity', settings["kanji_details_popup"]["popup_opacity"]/10);
+
 		const atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(window.location.origin);
 		
 		const allKanji = result["wkhighlight_allkanji"];
@@ -10,7 +14,7 @@
 		if (allKanji && allRadicals && allVocab) {
 			const detailsPopup = new SubjectDisplay(allRadicals, allKanji, allVocab, 275, document.documentElement);
 			
-			const highlightStyleSettings = result["wkhighlight_settings"]["highlight_style"];
+			const highlightStyleSettings = settings["highlight_style"];
 			let highlightingClass, notLearnedHighlightingClass;
 			if (highlightStyleSettings) {
 				highlightingClass = highlightStyleSettings["learned"];
@@ -34,6 +38,11 @@
 
 				if (request.uptime === "Details Popup")
 					sendResponse({uptime:true});
+
+				if (request.popupOpacity) {
+					console.log(request.popupOpacity);
+					document.documentElement.style.setProperty('--detailsPopup-opacity', request.popupOpacity/10);
+				}
 			});
 
 			document.addEventListener("mouseover", e => {
@@ -87,7 +96,7 @@
 						if (key == 'l' || key == 'L') {
 							// LOCK KANJI ON DETAILS POPUP
 							detailsPopup.locked = !detailsPopup.locked;
-							switchClass(document.getElementById("sd-detailsPopupSubjectLock"), "sd-detailsPopup");
+							switchClass(document.getElementById("sd-detailsPopupSubjectLock"), "sd-detailsPopup_faded");
 						}
 	
 						// if details popup is expanded
@@ -95,7 +104,7 @@
 							if (key == 'f' || key == 'F') {
 								// FIX DETAILS POPUP
 								detailsPopup.fixed = !detailsPopup.fixed;
-								switchClass(document.getElementById("sd-detailsPopupFix"), "sd-detailsPopup");
+								switchClass(document.getElementById("sd-detailsPopupFix"), "sd-detailsPopup_faded");
 							}	
 	
 							if (key == 'b' || key == "B") {

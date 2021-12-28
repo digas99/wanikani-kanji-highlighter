@@ -15,7 +15,8 @@ const defaultSettings = {
 	"kanji_details_popup": {
 		activated: true,
 		random_subject: "Any",
-		key_bindings: true
+		key_bindings: true,
+		popup_opacity: 8
 	},
 	"extension_icon": {
 		kanji_counter: true,
@@ -69,6 +70,7 @@ const defaultSettings = {
 	},
 	"miscellaneous": {
 		time_in_12h_format: true,
+		kana_writing: false
 		// show_scripts_status: true
 	}
 };
@@ -80,18 +82,32 @@ const settingsInterface = [
 			{
 				title:"Activated",
 				type: "checkbox",
-				id:"settings-kanji_details_popup-activated"
+				id:"settings-kanji_details_popup-activated",
+				description: "Activate Details Popup script (side panel with subject information)"
+			},
+			{
+				title: "Key Bindings",
+				type: "checkbox",
+				id: "settings-kanji_details_popup-key_bindings",
+				description: "Enable Hotkeys within Details Popup"
 			},
 			{
 				title: "Random Subject",
 				type: "select",
 				options: ["Any", "Kanji", "Vocabulary"],
-				id: "settings-kanji_details_popup-random_subject"
+				id: "settings-kanji_details_popup-random_subject",
+				description: "Type of subject that will appear upon clicking on the button Random on the Extension Popup side panel"
 			},
 			{
-				title: "Key Bindings",
-				type: "checkbox",
-				id: "settings-kanji_details_popup-key_bindings"
+				title: "Popup Opacity",
+				type: "slider",
+				range: {
+					min: 0,
+					max: 10,
+					value: 7
+				},
+				id: "settings-kanji_details_popup-popup_opacity",
+				description: "Opacity of the small Details Popup that shows up when hovering a kanji. \x0DTip: opacity changes in real time if small popup is open (hover a kanji or get a random subject)."
 			}
 		]
 	},
@@ -101,7 +117,8 @@ const settingsInterface = [
 			{
 				title:"Kanji Counter",
 				type: "checkbox",
-				id:"settings-extension_icon-kanji_counter"
+				id:"settings-extension_icon-kanji_counter",
+				description: "Show Kanji Counter on the Extension icon"
 			},
 			// {
 			// 	title:"Time Until Next Reviews",
@@ -126,17 +143,20 @@ const settingsInterface = [
 			{
 				title:"New Reviews",
 				type: "checkbox",
-				id:"settings-notifications-new_reviews"
+				id:"settings-notifications-new_reviews",
+				description: "Be notified whenever new reviews are available (browser needs to be open)"
 			},
 			{
 				title:"Practice Reminder",
 				type: "checkbox",
-				id:"settings-notifications-practice_reminder"
+				id:"settings-notifications-practice_reminder",
+				description: "Be notified at a specific time of the day to practice Japanese (browser needs to be open)"
 			},
 			{
 				title:"Searching a Webpage Word",
 				type: "checkbox",
-				id:"settings-notifications-searching_a_webpage_word"
+				id:"settings-notifications-searching_a_webpage_word",
+				description: "Get a notification when searching a word from a webpage on the extension"
 			}
 		]
 	},
@@ -146,8 +166,15 @@ const settingsInterface = [
 			{
 				title: "Time in 12h Format",
 				type: "checkbox",
-				id: "settings-miscellaneous-time_in_12h_format"
+				id: "settings-miscellaneous-time_in_12h_format",
+				description: "Set timestamps within the Extension Popup to be on 12h Format"
 			},
+			{
+				title: "Kana Writing",
+				type: "checkbox",
+				id: "settings-miscellaneous-kana_writing",
+				description: "Write Kana on text inputs on a webpage. Some inputs might not work. \x0DTip: Needs page reload to make changes."
+			}
 			// {
 			// 	title: "Show Scripts Status",
 			// 	type: "checkbox",

@@ -1036,7 +1036,9 @@ transform: rotate(134deg);
 }
 
 .settingsSection > div {
-    display: inline-flex;
+    display: flex;
+	align-items: center;
+	flex-direction: row;
     padding: 3px 5px;
 }
 
@@ -1152,6 +1154,52 @@ transform: rotate(134deg);
     border: 0;
     border-bottom: 1px solid black;
     font-size: 16px;
+}
+
+.slider > span {
+	margin-left: 5px;
+    background-color: #2a2d48;
+    color: white;
+    font-size: 12px;
+    padding: 4px;
+	width: 16px;
+    height: 14px;
+    text-align: center;
+}
+
+.slider > input[type="range"] {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 72px;
+	height: 13px;
+    background: #636375;
+    border-radius: 10px;
+}
+
+.slider > input[type="range"]::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 18px;
+    height: 18px;
+    background: #2a2d48;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.slider > input[type="range"]::-moz-range-thumb {
+	width: 18px;
+    height: 18px;
+    background: #2a2d48;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.select {
+	background: #2a2d48;
+	padding-left: 5px;
+	color: white;
+	width: 100px;
+	padding: 2px 6px;
 }
 
 	/* 10.3 DANGER ZONE */

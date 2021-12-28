@@ -340,7 +340,7 @@ window.onload = () => {
 														container.appendChild(ul);
 
 														chrome.storage.local.get(["wkhighlight_settings"], result => {
-															const buttons = !atWanikani ? ["../images/settings.png", "../images/search.png", "../images/blacklist.png", "../images/about.png", "../images/exit.png", "../images/random.png"] : ["../images/settings.png", "../images/about.png", "../images/exit.png"];
+															const buttons = !atWanikani ? ["../images/settings.png", "../images/search.png", "../images/blacklist.png", "../images/about.png", "../images/random.png", "../images/exit.png"] : ["../images/settings.png", "../images/about.png", "../images/exit.png"];
 															buttons.forEach(img => {
 																const li = document.createElement("li");
 																ul.appendChild(li);
@@ -606,8 +606,6 @@ window.onload = () => {
 
 																	const kanjiAssoc = result["wkhighlight_kanji_assoc"];
 																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${response["nmrKanjiHighlighted"]}</strong> (in the page)`;
-																	if (response["nmrKanjiHighlighted"] <= 10)
-																		kanjiFoundUl.style.textAlign = "center";
 			
 																	const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned"];
 																	[learned, notLearned].forEach((type, i) => {
@@ -1047,12 +1045,16 @@ document.addEventListener("click", e => {
 							return text.toLowerCase().split(separator).join(connector);
 						}
 
+						const valueFromStorage = settings[textJoiner(section["title"], " ", "_")][textJoiner(option["title"], " ", "_")];
 						switch(option["type"]) {
 							case "checkbox":
-								wrapper.appendChild(singleOptionCheck(option["id"], option["title"], settings[textJoiner(section["title"], " ", "_")][textJoiner(option["title"], " ", "_")]))
+								wrapper.appendChild(singleOptionCheck(option["id"], option["title"], valueFromStorage, option["description"]))
 								break;
 							case "select":
-								wrapper.appendChild(selector(option["id"], option["title"], option["options"], settings[textJoiner(section["title"], " ", "_")][textJoiner(option["title"], " ", "_")]));
+								wrapper.appendChild(selector(option["id"], option["title"], option["options"], valueFromStorage, option["description"]));
+								break;
+							case "slider":
+								wrapper.appendChild(slider(option["id"], option["title"], option["range"]["min"], option["range"]["max"], valueFromStorage, option["description"]));
 								break;
 						}
 					});
@@ -1064,6 +1066,7 @@ document.addEventListener("click", e => {
 					const practiceReminderLabel = Array.from(settingsLabels).filter(label => label.getAttribute("for") === "settings-notifications-practice_reminder")[0];
 					if (practiceReminderLabel) {
 						chrome.storage.local.get(["wkhighlight_practice_timestamp"], result => {
+							practiceReminderLabel.parentElement.style.setProperty("align-items", "unset", "important");
 							const input = document.createElement("input");
 							input.id = "practice-reminder-time";
 							input.type = "time";
@@ -1084,6 +1087,14 @@ document.addEventListener("click", e => {
 						const checkbox = practiceReminderLabel.parentElement?.getElementsByClassName("settingsItemInput")[0];
 						if (!checkbox?.checked && document.getElementById("practice-reminder-time"))
 							document.getElementById("practice-reminder-time").classList.add("disabled");
+					}
+					const popupOpacitySliderSpan = document.getElementById("settings-kanji_details_popup-popup_opacity").nextElementSibling;
+					if (popupOpacitySliderSpan) {
+						const parsedValue = parseInt(popupOpacitySliderSpan.innerText)/10;
+						popupOpacitySliderSpan.innerText = parsedValue;
+						chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+							chrome.tabs.sendMessage(tabs[0].id, {popupOpacity:value === 0 ? value : value/10}, () => window.chrome.runtime.lastError);
+						});
 					}
 				}
 
@@ -2247,58 +2258,93 @@ document.addEventListener("click", e => {
 document.addEventListener("input", e => {
 	const target = e.target;
 
-	if (target.classList.contains("settingsItemSelect") && target.type === "select-one") {
-		const value = target.value;
-		chrome.storage.local.get(["wkhighlight_settings"], data => {
-			let settings = data["wkhighlight_settings"];
-			if (!settings)
-				settings = {};
-			
-			const settingsID = target.id.replace("settings-", "").split("-");
-			const group = settingsID[0];
-			const setting = settingsID[1];
-
-			settings[group][setting] = value;
-
-			switch(group) {
-				case "kanji_details_popup":
-					switch (setting) {
-						case "random_subject":
-							const randomSubjectType = document.getElementById("random-subject-type");
-							if (randomSubjectType) {
-								randomSubjectType.innerText = value.charAt(0);
-
-								const img = randomSubjectType.parentElement.getElementsByTagName("img")[0];
-								if (value === "Any") {
-									img.setAttribute("data-item-id", "rand");
-									randomSubjectType.style.removeProperty("background-color");
-									randomSubjectType.style.removeProperty("filter");
+	if (target.classList.contains("settingsItemInput")) {
+		if (target.type === "select-one") {
+			const value = target.value;
+			chrome.storage.local.get(["wkhighlight_settings"], data => {
+				let settings = data["wkhighlight_settings"];
+				if (!settings)
+					settings = {};
+				
+				const settingsID = target.id.replace("settings-", "").split("-");
+				const group = settingsID[0];
+				const setting = settingsID[1];
+	
+				settings[group][setting] = value;
+	
+				switch(group) {
+					case "kanji_details_popup":
+						switch (setting) {
+							case "random_subject":
+								const randomSubjectType = document.getElementById("random-subject-type");
+								if (randomSubjectType) {
+									randomSubjectType.innerText = value.charAt(0);
+	
+									const img = randomSubjectType.parentElement.getElementsByTagName("img")[0];
+									if (value === "Any") {
+										img.setAttribute("data-item-id", "rand");
+										randomSubjectType.style.removeProperty("background-color");
+										randomSubjectType.style.removeProperty("filter");
+									}
+									else if (value === "Kanji") {
+										img.setAttribute("data-item-id", "rand-kanji");
+										randomSubjectType.style.backgroundColor = "var(--kanji-tag-color)";
+										randomSubjectType.style.filter = "invert(1)";
+									}
+									else if (value === "Vocabulary") {
+										img.setAttribute("data-item-id", "rand-vocab");
+										randomSubjectType.style.backgroundColor = "var(--vocab-tag-color)";
+										randomSubjectType.style.filter = "invert(1)";
+									}
 								}
-								else if (value === "Kanji") {
-									img.setAttribute("data-item-id", "rand-kanji");
-									randomSubjectType.style.backgroundColor = "var(--kanji-tag-color)";
-									randomSubjectType.style.filter = "invert(1)";
-								}
-								else if (value === "Vocabulary") {
-									img.setAttribute("data-item-id", "rand-vocab");
-									randomSubjectType.style.backgroundColor = "var(--vocab-tag-color)";
-									randomSubjectType.style.filter = "invert(1)";
-								}
-							}
-							break;
-					}
-					break;
-			}
+								break;
+						}
+						break;
+				}
+	
+				chrome.storage.local.set({"wkhighlight_settings":settings});
+			});
+		}
 
-			chrome.storage.local.set({"wkhighlight_settings":settings});
-		});
+		if (target.type === "range") {
+			const value = target.value;
+			chrome.storage.local.get(["wkhighlight_settings"], data => {
+				let settings = data["wkhighlight_settings"];
+				if (!settings)
+					settings = {};
+				
+				const settingsID = target.id.replace("settings-", "").split("-");
+				const group = settingsID[0];
+				const setting = settingsID[1];
+	
+				settings[group][setting] = value;
+
+				switch(group) {
+					case "kanji_details_popup":
+						switch (setting) {
+							case "popup_opacity":
+								if (target.nextElementSibling)
+									target.nextElementSibling.innerText = value/10;
+									chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+										chrome.tabs.sendMessage(tabs[0].id, {popupOpacity:value}, () => window.chrome.runtime.lastError);
+									});
+								break;
+						}
+						break;
+				}
+	
+				chrome.storage.local.set({"wkhighlight_settings":settings});
+			});
+		}
+
 	}
 });
 
 const sidePanelIconTargeted = (target, id) => target.id === id || (target.parentElement?.childNodes[0] && target.parentElement.childNodes[0].id === id) || target.childNodes[0]?.id === id;
 
-const singleOptionCheck = (id, labelTitle, checked) => {
+const singleOptionCheck = (id, labelTitle, checked, description) => {
 	const div = document.createElement("div");
+	div.title = description;
 	const label = document.createElement("label");
 	div.appendChild(label);
 	label.classList.add("settingsItemLabel");
@@ -2326,8 +2372,9 @@ const singleOptionCheck = (id, labelTitle, checked) => {
 	return div;
 }
 
-const selector = (id, labelTitle, options, defaultOption) => {
+const selector = (id, labelTitle, options, defaultOption, description) => {
 	const div = document.createElement("div");
+	div.title = description;
 	const label = document.createElement("label");
 	div.appendChild(label);
 	label.classList.add("settingsItemLabel");
@@ -2337,7 +2384,7 @@ const selector = (id, labelTitle, options, defaultOption) => {
 	const select = document.createElement("select");
 	div.appendChild(select);
 	select.id = id;
-	select.classList.add("settingsItemSelect");
+	select.classList.add("settingsItemInput", "select");
 	options.forEach(value => {
 		const option = document.createElement("option");
 		select.appendChild(option);
@@ -2346,6 +2393,35 @@ const selector = (id, labelTitle, options, defaultOption) => {
 		if (value === defaultOption)
 			option.selected = true;
 	});
+
+	return div;
+}
+
+const slider = (id, labelTitle, min, max, defaultOption, description) => {
+	const div = document.createElement("div");
+	div.title = description;
+	const label = document.createElement("label");
+	div.appendChild(label);
+	label.classList.add("settingsItemLabel");
+	label.appendChild(document.createTextNode(labelTitle));
+	label.htmlFor = id;
+
+	const sliderWrapper = document.createElement("div");
+	div.appendChild(sliderWrapper);
+	sliderWrapper.style.display = "flex";
+	sliderWrapper.style.alignItems = "center";
+	sliderWrapper.classList.add("slider");
+	const sliderElem = document.createElement("input");
+	sliderElem.classList.add("settingsItemInput");
+	sliderWrapper.appendChild(sliderElem);
+	sliderElem.type = "range";
+	sliderElem.min = min;
+	sliderElem.max = max;
+	sliderElem.value = defaultOption;
+	sliderElem.id = id;
+	const valueElem = document.createElement("span");
+	sliderWrapper.appendChild(valueElem);
+	valueElem.appendChild(document.createTextNode(defaultOption));
 
 	return div;
 }
@@ -2628,9 +2704,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				kanjiFoundList.childNodes[0].remove();
 				const kanjiFoundUl = document.createElement("ul");
 				kanjiFoundList.appendChild(kanjiFoundUl);
-				const allKanjiSize = kanjiHighlightedList["learned"].length + kanjiHighlightedList["notLearned"].length;
-				if (allKanjiSize <= 10)
-					kanjiFoundUl.style.textAlign = "center";
 				const learned = kanjiHighlightedList["learned"];
 				const notLearned = kanjiHighlightedList["notLearned"];
 				[learned, notLearned].forEach(type => {
