@@ -1345,9 +1345,7 @@ document.addEventListener("click", e => {
 		fetch('../CHANGELOG.md')
 			.then(response => response.text())
 			.then(text => {
-				text.split("\n").forEach(line => {
-					readmeContent.appendChild(mdToHTML(line));
-				});
+				text.split("\n").forEach(line => readmeContent.appendChild(mdToHTML(line)));
 				readmeContent.getElementsByTagName("h2")[0].style.removeProperty("margin-top");
 
 				Array.from(readmeContent.getElementsByTagName("h2"))

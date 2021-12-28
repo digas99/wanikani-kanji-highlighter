@@ -18,7 +18,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v061)
+1. [Latest Features](#changelog-v062)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -30,7 +30,38 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
-# Changelog v0.6.1
+# Changelog v0.6.2
+
+## Popup
+- Added SRS Stage to extension popup search results
+- Changed style of search result cards
+- Added button to side panel to get random subject (type of subject - kanji, vocabulary or any - can be specified in settings)
+
+## Content
+- Added SRS Stage information to details popup
+- Added Timestamp Statistics to details popup
+- Added Reviews Statistics to details popup
+- Added Parts of Speech and JLPT and Joyo levels to details popup
+- Changed the overall style of details popup
+- Added navigation bar to details popup
+- Added shortcut keys to interact with details popup navigation bar:
+  - **I:** Navigate to Info Section
+  - **C:** Navigate to Cards Section
+  - **S:** Navigate to Reviews Statistics Section
+  - **T:** Navigate to Timestamps Section
+  - **<-:** Navigate to Previous Section
+  - **->:** Navigate to Next Section
+- Added button in details popup to deactivate key bindings
+- Added slider to settings to set the opacity of the small details popup
+- Option to write with kana on webpage text inputs
+
+## Bug Fix
+- Fixed issue where subject data wasn't being loaded the first time the extension run
+- Notifications now show subjects numbers updated
+- Adjusted extension popup interactions when at wanikani.com
+- Fixed issue where the extension would hide, by mistake, some things on web pages
+
+## Changelog v0.6.1
 
 Released on 15/12/2021
 
@@ -160,8 +191,9 @@ By clicking in the gear icon in the main page of the extension popup, you will f
 
 - **Kanji Details Popup**
   - **Activated:** show the popup with the details of a highlighted kanji, when hover over it
-  - **Random Subject:** select the type of subject expected when getting a random subject (any, kanji or vocabulary)
   - **Key Bindings:** choose whether to activate or not the key bindings on details popup
+    - **Random Subject:** select the type of subject expected when getting a random subject (any, kanji or vocabulary)
+    - **Popup Opacity:** change the opacity of the small details popup
 - **Extension Icon**
   - **Kanji Counter:** show the number of highlighted Kanji in the page, on the icon of the extension
 - **Notifications**
@@ -170,6 +202,7 @@ By clicking in the gear icon in the main page of the extension popup, you will f
   - **Searching a Webpage Word** notification triggered whenever searching a word from within any webpage
 - **Miscellaneous**
   - **Time in 12h Format** timestamps within the chrome extension are in the 12h format (24h format if disabled)
+  - **Kana Writing:** write kana on text inputs on a webpage (some inputs might not work)
 - **Highlight Style:** choose how do you want the kanji to be highlighted
 - **Appearance:** customize the color of several features in the app (highlight, kanji cards, etc...)
 - **Danger Section**
@@ -178,5 +211,5 @@ By clicking in the gear icon in the main page of the extension popup, you will f
 
 ## Pictures
 
-![howto](images/picture1.jpg)
-![features1](images/picture2.jpg)
+![howto](images/picture1.png)
+![features1](images/picture2.png)

@@ -229,8 +229,10 @@ const rand = (min, max) => {
 	return Math.floor(Math.random() * (max - min) ) + min;
 }
 
-const mdToHTML = line => {
-	line = line.trim();
+const mdToHTML = lineText => {
+	// maintain the original value to add padding bellow, in needed
+	let line = lineText;
+
 	// start at 1 to ignore h1
 	let hCounter = 1;
 	// counter number of # in a row
@@ -269,6 +271,11 @@ const mdToHTML = line => {
 
 		if (line.charAt(i) == '[') insideLink = true;
 	}
+
+	if (lineText.charAt(0) === ' ')
+		elem.style.paddingLeft = "10px";
+
+		line.replaceAll('*', '');
 
 	elem.appendChild(document.createTextNode(line));
 

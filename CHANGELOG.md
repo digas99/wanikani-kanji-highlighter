@@ -38,6 +38,7 @@ Released on 15/12/2021
 # [Changelog v0.6.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.0)
 Released on 16/11/2021
 
+
 ## Content
 - Notifications to remind you to practice daily
 - Used Kanji in Details Popup is no longer sorted by level, but by its position in the vocabulary subject (as it was before)
@@ -46,6 +47,8 @@ Released on 16/11/2021
 ## Popup
 - New side panel that is more interactive and gives a refreshed look to the app (can be activated by clicking the hamburger menu, or switched back to the old interface)
 - New About page with information regarding the App, and more
+
+---
 
 # [Changelog v0.5.7](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.7)
 Released on 08/10/2021
