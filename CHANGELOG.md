@@ -1,4 +1,5 @@
-# Changelog v0.6.2
+# [Changelog v0.6.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.2)
+Released on 29/12/2021
 
 ## Popup
 - Added SRS Stage to extension popup search results
