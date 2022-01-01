@@ -11,6 +11,9 @@ let sidePanelOn = false;
 
 let atWanikani = false;
 
+let lastLessonsValue = 0;
+let lastReviewsValue = 0;
+
 const footer = () => {
 	const wrapper = document.createElement("div");
 	wrapper.id = "footer";
@@ -663,9 +666,18 @@ window.onload = () => {
 										
 												const setupSummary = (reviews, lessons) => {
 													if (reviews) {
-														const currentTime = new Date().getTime();			
-														document.getElementById("summaryReviews").innerText = reviews["count"] ? reviews["count"] : "...";
-
+														const currentTime = new Date().getTime();
+														
+														const currentValue = parseInt(document.getElementById("summaryReviews").innerText);
+														if (currentValue === 0)
+															document.getElementById("summaryReviews").innerText = reviews["count"] ? reviews["count"] : "...";
+														else {
+															if (reviews["count"] && typeof currentValue === "number" && reviews["count"] != lastReviewsValue) {
+																counterAnimation(currentValue, reviews["count"], document.getElementById("summaryReviews"), 5);
+																lastReviewsValue = reviews["count"];
+															}	
+														}												
+		
 														// get all the reviews for the next 14 days
 														const nextReviews = reviews["next_reviews"];
 														const hoursIn14Days = 24*14;
@@ -730,8 +742,18 @@ window.onload = () => {
 															}
 														}
 													}
-													if (lessons)
-														document.getElementById("summaryLessons").innerText = lessons["count"] ? lessons["count"] : "...";
+
+													if (lessons) {
+														const currentValue = parseInt(document.getElementById("summaryLessons").innerText);
+														if (currentValue === 0)
+															document.getElementById("summaryLessons").innerText = lessons["count"] ? lessons["count"] : "...";
+														else {
+															if (lessons["count"] && typeof currentValue === "number" && lessons["count"] != lastLessonsValue) {
+																counterAnimation(currentValue, lessons["count"], document.getElementById("summaryLessons"), 5);
+																lastLessonsValue = lessons["count"];
+															}	
+														}												
+													}
 													
 													reviewsLoadingElem.remove();
 													clearInterval(reviewsLoadingVal[1]);
@@ -1721,9 +1743,6 @@ document.addEventListener("click", e => {
 		}
 
 		input.value = "";
-		const searchResultWrapper = document.getElementById("searchResultItemWrapper");
-		if (searchResultWrapper)
-			searchResultWrapper.remove();
 	}
 
 	// clicked in the kanji on item search
@@ -1734,11 +1753,11 @@ document.addEventListener("click", e => {
 			document.body.style.cursor = "progress";
 			loadItemsLists(() => {
 				document.body.style.cursor = "inherit";
-				searchSubject(input)
+				searchSubject(input, "あ");
 			});
 		}
 		else
-			searchSubject(input);
+			searchSubject(input, "あ");
 	}
 
 	// clicked in a search result line, but not the character itself
@@ -2486,7 +2505,7 @@ document.addEventListener("keydown", e => {
 
 });
 
-const searchSubject = (event) => {
+const searchSubject = (event, searchType) => {
 	let wrapper = document.getElementById("searchResultItemWrapper");
 	if (wrapper)
 		wrapper.remove();
@@ -2501,8 +2520,13 @@ const searchSubject = (event) => {
 	}
 	document.getElementById("searchResultWrapper").appendChild(searchResultUL);
 
-	const type = document.getElementById("kanjiSearchType").innerText;
 	const input = event.tagName && event.tagName == "INPUT" ? event : event.target; 
+	let type;
+	if (searchType)
+		type = searchType;
+	else
+		type = document.getElementById("kanjiSearchType").innerText;
+	
 	const value = (type == "A" ? input.value : input.value.toLowerCase()).trim();
 
 	let filteredKanji = [];
@@ -2686,11 +2710,16 @@ const matchesReadings = (input, readings) => {
 	return false;
 }
 
+let lastValueForKanjiHighlighted = 0;
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.nmrKanjiHighlighted) {
-		const nmrKanjiHighlightedElem = document.getElementById("nmrKanjiHighlighted");
+		const nmrKanjiHighlightedElem = document.getElementById("nmrKanjiHighlighted")?.getElementsByTagName("strong")[0];
 		if (nmrKanjiHighlightedElem) {
-			nmrKanjiHighlightedElem.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${request.nmrKanjiHighlighted}</strong> (in the page)`;
+			const currentValue = parseInt(nmrKanjiHighlightedElem.innerText);
+			if (typeof currentValue === "number" && request.nmrKanjiHighlighted != lastValueForKanjiHighlighted) {
+				counterAnimation(currentValue, request.nmrKanjiHighlighted, nmrKanjiHighlightedElem, 50);
+				lastValueForKanjiHighlighted = request.nmrKanjiHighlighted;
+			}
 		}
 	}
 	if (request.kanjiHighlighted) {

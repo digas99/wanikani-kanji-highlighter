@@ -282,6 +282,30 @@ const mdToHTML = lineText => {
 	return elem;
 }
 
+const counterAnimation = (currentValue, newValue, targetElem, delay) => {
+	if (currentValue != newValue) {
+		let interval, i = currentValue;
+		if (currentValue < newValue) {
+			interval = setInterval(() => {
+				if (i >= newValue)
+					clearInterval(interval);
+
+				targetElem.innerHTML = i++;
+			} , delay);
+		}
+		else {
+			interval = setInterval(() => {
+				if (i <= newValue)
+					clearInterval(interval);
+
+				targetElem.innerHTML = i--;
+			} , delay);
+		}
+		return true;
+	}
+	return false;
+}
+
 const assignUponSubjects = list => {
 	const type = list[Object.keys(list)[0]]["subject_type"];
 	if (list && type) {
