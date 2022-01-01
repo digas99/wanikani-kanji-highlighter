@@ -285,4 +285,4 @@ const unwantedTags = ["html", "body", "head", "title", "style", "link", "meta", 
 
 const urlChecker = new RegExp("^(chrome|devtools)(-[a-zA-Z0-9]+)?:\/\/");
 
-const defaultWindowSize = "260px";
+const defaultWindowSize = 260;

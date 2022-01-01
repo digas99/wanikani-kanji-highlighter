@@ -306,6 +306,12 @@ const counterAnimation = (currentValue, newValue, targetElem, delay) => {
 	return false;
 }
 
+const manageBodyWidth = (width, bodyWidth) => {
+	if (typeof bodyWidth === "number" && typeof width === "number" && width <= bodyWidth)
+		width = bodyWidth;
+	return width;
+} 
+
 const assignUponSubjects = list => {
 	const type = list[Object.keys(list)[0]]["subject_type"];
 	if (list && type) {

@@ -106,6 +106,10 @@ window.onload = () => {
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, response => {
 				const url = response ? response["windowLocation"] : "";
 
+				let settings = result["wkhighlight_settings"];
+				if (settings && settings["miscellaneous"] && settings["miscellaneous"]["extension_popup_width"])
+					document.documentElement.style.setProperty('--body-base-width', settings["miscellaneous"]["extension_popup_width"]+"px");
+
 				atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url);
 
 				if (!result["wkhighlight_blacklist"] || result["wkhighlight_blacklist"].length === 0 || !blacklisted(result["wkhighlight_blacklist"], url)) {
@@ -149,8 +153,6 @@ window.onload = () => {
 						const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading account info...");
 						const loadingElem = loadingVal[0];
 						main.appendChild(loadingElem);
-
-						let settings = result["wkhighlight_settings"];
 		
 						// set settings
 						if (!settings)
@@ -861,10 +863,10 @@ const submitAction = () => {
 	});
 }
 
-const secundaryPage = (titleText, width) => {
-	document.documentElement.style.setProperty('--body-base-width', width+"px");
+const secondaryPage = (titleText, width) => {
+	document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(width, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
 
-	// remove any active secundary page
+	// remove any active secondary page
 	if (document.getElementById("secPageMain"))
 		document.getElementById("secPageMain").remove();
 
@@ -941,7 +943,7 @@ document.addEventListener("click", e => {
 	}
 
 	if (targetElem.id === "whatIsAPIKey") {
-		const content = secundaryPage("API Key", 250);
+		const content = secondaryPage("API Key", 250);
 
 		for (const text of ["A WaniKani API Key is a token that is meant to give you access to all the content provided by WaniKani through a third party application (like this one).", "You can create your API Key on <a href='https://www.wanikani.com/' target='_blank'>WaniKani official website</a> through the following steps:"]) {
 			const pWrapper = document.createElement("div");
@@ -976,7 +978,8 @@ document.addEventListener("click", e => {
 		document.getElementById("main").style.removeProperty("display");
 		if (!sidePanelOn)
 			document.getElementById("footer").style.removeProperty("display");
-		document.documentElement.style.setProperty('--body-base-width', defaultWindowSize);
+
+		document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(defaultWindowSize, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
 		
 		Array.from(document.getElementsByClassName("navbar_icon"))
 			.forEach(icon => icon.classList.remove("disabled"));
@@ -1039,7 +1042,7 @@ document.addEventListener("click", e => {
 			.filter(icon => icon.getElementsByTagName("IMG")[0].title === "Settings" && icon.closest(".side-panel"))[0];
 		targetIcon?.classList.add("disabled");
 
-		const content = secundaryPage("Settings", 300);
+		const content = secondaryPage("Settings", 300);
 		content.id = "settingsContent";
 		
 		const blacklistedDiv = document.createElement("div");
@@ -1351,7 +1354,7 @@ document.addEventListener("click", e => {
 			.filter(icon => icon.getElementsByTagName("IMG")[0].title === "About" && icon.closest(".side-panel"))[0];
 		targetIcon?.classList.add("disabled");
 
-		const content = secundaryPage("About", 300);
+		const content = secondaryPage("About", 300);
 
 		const appInfo = document.createElement("div");
 		content.appendChild(appInfo);
@@ -1639,7 +1642,7 @@ document.addEventListener("click", e => {
 			.filter(icon => icon.getElementsByTagName("IMG")[0].title === "Search" && icon.closest(".side-panel"))[0];
 		targetIcon?.classList.add("disabled");
 
-		document.documentElement.style.setProperty('--body-base-width', defaultWindowSize);
+		document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(defaultWindowSize, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
 
 		document.getElementById("userInfoNavbar").style.display = "none";
 		
@@ -1719,7 +1722,7 @@ document.addEventListener("click", e => {
 		if (wrapper)
 			wrapper.remove();
 		
-		document.documentElement.style.setProperty('--body-base-width', defaultWindowSize);
+		document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(defaultWindowSize, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
 
 		if (document.getElementById("kanjiSearchInput"))
 			document.getElementById("kanjiSearchInput").value = "";
@@ -1810,7 +1813,7 @@ document.addEventListener("click", e => {
 			// if there are results in the search
 			const resultsWrapper = document.getElementById("searchResultItemWrapper");
 			if (resultsWrapper && resultsWrapper.childNodes.length > 0)
-				document.documentElement.style.setProperty('--body-base-width', '630px');
+				document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(630, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
 			
 			const newClass = targetElem.id === "searchResultOptionmenu" ? "searchResultItemType-small" : "searchResultItemType-tiny"; 
 			Array.from(document.getElementsByClassName("searchResultItemType")).forEach(elem => elem.classList.replace(elem.classList[2], newClass));
@@ -1829,7 +1832,7 @@ document.addEventListener("click", e => {
 			elem.getElementsByClassName("searchResultItemInfo")[0].style.display = "grid";
 			removeSquareClasses(elem);
 		});
-		document.documentElement.style.setProperty('--body-base-width', defaultWindowSize);
+		document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(defaultWindowSize, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
 	}
 
 	// clicked in target icon
@@ -2014,7 +2017,7 @@ document.addEventListener("click", e => {
 
 	// clicked in the number of reviews
 	if (targetElem.id == "summaryReviews") {
-		const content = secundaryPage("Reviews", 470);
+		const content = secondaryPage("Reviews", 470);
 
 		chrome.storage.local.get(["wkhighlight_reviews"], result => {
 			reviews = result["wkhighlight_reviews"] ? result["wkhighlight_reviews"] : reviews;
@@ -2229,7 +2232,7 @@ document.addEventListener("click", e => {
 
 	// clicked in the number of lessons
 	if (targetElem.id == "summaryLessons") {
-		const content = secundaryPage("Lessons", 470);
+		const content = secondaryPage("Lessons", 470);
 
 		chrome.storage.local.get(["wkhighlight_lessons"], result => {
 			lessons = result["wkhighlight_lessons"] ? result["wkhighlight_lessons"] : lessons;
@@ -2692,7 +2695,8 @@ const searchSubject = (event, searchType) => {
 				}
 
 				if (settings["search"]["results_display"] != "searchResultOptionlist")
-					document.documentElement.style.setProperty('--body-base-width', '630px');
+					document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(630, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
+					
 			}
 
 		}
