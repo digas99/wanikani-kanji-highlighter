@@ -549,7 +549,7 @@ transform: rotate(134deg);
 
 #kanjiHighlightedList {
 	overflow-y: auto !important;
-	max-height: 100px;
+	height: 100%;
 }
 
 #kanjiHighlightedList ul {

@@ -494,6 +494,15 @@ window.onload = () => {
 
 												const kanjiFoundWrapper = document.createElement("li");
 												userElementsList.appendChild(kanjiFoundWrapper);
+												kanjiFoundWrapper.classList.add("resizable");
+												kanjiFoundWrapper.style.height = defaultSettings["sizes"]["highlighted_kanji_height"]+"px";
+												chrome.storage.local.get(["wkhighlight_settings"], result => {
+													if (result["wkhighlight_settings"] && result["wkhighlight_settings"]["sizes"])
+														kanjiFoundWrapper.style.height = result["wkhighlight_settings"]["sizes"]["highlighted_kanji_height"]+"px";
+												});
+												const resizableS = document.createElement("div");
+												kanjiFoundWrapper.appendChild(resizableS);
+												resizableS.classList.add("resizable-s");
 												const kanjiFound = document.createElement("div");
 												kanjiFoundWrapper.appendChild(kanjiFound);
 												const kanjiFoundBar = document.createElement("div");
@@ -1087,6 +1096,8 @@ document.addEventListener("click", e => {
 				if (settingsLabels) {
 					const practiceReminderLabel = Array.from(settingsLabels).filter(label => label.getAttribute("for") === "settings-notifications-practice_reminder")[0];
 					if (practiceReminderLabel) {
+						practiceReminderLabel.style.display = "flex";
+						practiceReminderLabel.style.flexDirection = "column";
 						chrome.storage.local.get(["wkhighlight_practice_timestamp"], result => {
 							practiceReminderLabel.parentElement.style.setProperty("align-items", "unset", "important");
 							const input = document.createElement("input");
@@ -1110,12 +1121,13 @@ document.addEventListener("click", e => {
 						if (!checkbox?.checked && document.getElementById("practice-reminder-time"))
 							document.getElementById("practice-reminder-time").classList.add("disabled");
 					}
+
 					const popupOpacitySliderSpan = document.getElementById("settings-kanji_details_popup-popup_opacity").nextElementSibling;
 					if (popupOpacitySliderSpan) {
 						const parsedValue = parseInt(popupOpacitySliderSpan.innerText)/10;
 						popupOpacitySliderSpan.innerText = parsedValue;
 						chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-							chrome.tabs.sendMessage(tabs[0].id, {popupOpacity:value === 0 ? value : value/10}, () => window.chrome.runtime.lastError);
+							chrome.tabs.sendMessage(tabs[0].id, {popupOpacity:parsedValue === 0 ? parsedValue : parsedValue/10}, () => window.chrome.runtime.lastError);
 						});
 					}
 				}
@@ -2342,12 +2354,20 @@ document.addEventListener("input", e => {
 							case "popup_opacity":
 								if (target.nextElementSibling)
 									target.nextElementSibling.innerText = value/10;
-									chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-										chrome.tabs.sendMessage(tabs[0].id, {popupOpacity:value}, () => window.chrome.runtime.lastError);
-									});
+								chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+									chrome.tabs.sendMessage(tabs[0].id, {popupOpacity:value}, () => window.chrome.runtime.lastError);
+								});
 								break;
 						}
 						break;
+					case "miscellaneous":
+						switch (setting) {
+							case "extension_popup_width":
+								if (target.nextElementSibling)
+									target.nextElementSibling.innerText = value;
+								document.documentElement.style.setProperty('--body-base-width', value+'px');
+								break;
+						}
 				}
 	
 				chrome.storage.local.set({"wkhighlight_settings":settings});

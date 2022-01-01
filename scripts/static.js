@@ -70,8 +70,12 @@ const defaultSettings = {
 	},
 	"miscellaneous": {
 		time_in_12h_format: true,
-		kana_writing: false
+		kana_writing: false,
+		extension_popup_width: 300
 		// show_scripts_status: true
+	},
+	"sizes": {
+		highlighted_kanji_height: 150
 	}
 };
 
@@ -174,6 +178,17 @@ const settingsInterface = [
 				type: "checkbox",
 				id: "settings-miscellaneous-kana_writing",
 				description: "Write Kana on text inputs on a webpage. Some inputs might not work. \x0DTip: Needs page reload to make changes."
+			},
+			{
+				title: "Extension Popup Width",
+				type: "slider",
+				range: {
+					min: 300,
+					max: 725,
+					value: 300
+				},
+				id: "settings-miscellaneous-extension_popup_width",
+				description: "Width of the Extension Popup window."
 			}
 			// {
 			// 	title: "Show Scripts Status",
