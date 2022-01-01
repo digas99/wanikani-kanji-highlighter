@@ -1872,7 +1872,7 @@ document.addEventListener("click", e => {
 						srsWrapper.appendChild(srsTitle);
 						srsTitle.classList.add("clickable");
 						srsId = parseInt(srsId);
-						if (srsId !== 0) {
+						if (srsId != 0) {
 							const srsTitleEgg = document.createElement("div");
 							srsTitle.appendChild(srsTitleEgg);
 							srsTitleEgg.classList.add("srsTitleEgg");
