@@ -284,13 +284,20 @@ const mdToHTML = lineText => {
 
 const counterAnimation = (currentValue, newValue, targetElem, delay) => {
 	if (currentValue != newValue) {
+		const modulus = newValue - currentValue > 0 ? newValue - currentValue : (newValue - currentValue)*-1;
+		let scale = 1;
+		if (modulus > 50) scale = parseInt((modulus/10).toFixed(0));
+
 		let interval, i = currentValue;
 		if (currentValue < newValue) {
 			interval = setInterval(() => {
 				if (i >= newValue)
 					clearInterval(interval);
 
-				targetElem.innerHTML = i++;
+				if (newValue - i < scale) scale = newValue - i;
+
+				targetElem.innerHTML = i+=scale;
+				i++;
 			} , delay);
 		}
 		else {
@@ -298,7 +305,10 @@ const counterAnimation = (currentValue, newValue, targetElem, delay) => {
 				if (i <= newValue)
 					clearInterval(interval);
 
-				targetElem.innerHTML = i--;
+				if (i - newValue < scale) scale = i - newValue;
+
+				targetElem.innerHTML = i-=scale;
+				i--;
 			} , delay);
 		}
 		return true;

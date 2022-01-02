@@ -596,7 +596,7 @@ window.onload = () => {
 																	const notLearned = response["notLearned"];
 
 																	kanjiFound.id = "nmrKanjiHighlighted";
-																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: (in the page)`;
+																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong></strong> (in the page)`;
 
 																	const barData = [
 																		{
@@ -683,7 +683,7 @@ window.onload = () => {
 														if (currentValue === 0)
 															document.getElementById("summaryReviews").innerText = reviews["count"] ? reviews["count"] : "...";
 														else {
-															if (reviews["count"] && typeof currentValue === "number" && reviews["count"] != lastReviewsValue) {
+															if (reviews["count"] && typeof currentValue === "number" && !isNaN(currentTime) && reviews["count"] != lastReviewsValue) {
 																counterAnimation(currentValue, reviews["count"], document.getElementById("summaryReviews"), 5);
 																lastReviewsValue = reviews["count"];
 															}	
@@ -759,7 +759,7 @@ window.onload = () => {
 														if (currentValue === 0)
 															document.getElementById("summaryLessons").innerText = lessons["count"] ? lessons["count"] : "...";
 														else {
-															if (lessons["count"] && typeof currentValue === "number" && lessons["count"] != lastLessonsValue) {
+															if (lessons["count"] && typeof currentValue === "number" && !isNaN(currentValue) && lessons["count"] != lastLessonsValue) {
 																counterAnimation(currentValue, lessons["count"], document.getElementById("summaryLessons"), 5);
 																lastLessonsValue = lessons["count"];
 															}	
@@ -2788,10 +2788,35 @@ const matchesReadings = (input, readings, precise) => {
 let lastValueForKanjiHighlighted = 0;
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.nmrKanjiHighlighted) {
-		const nmrKanjiHighlightedElem = document.getElementById("nmrKanjiHighlighted")?.getElementsByTagName("strong")[0];
-		if (nmrKanjiHighlightedElem) {
+		let nmrKanjiHighlightedElem = document.getElementById("nmrKanjiHighlighted")?.getElementsByTagName("strong")[0];
+		if (!nmrKanjiHighlightedElem) {
+			const kanjiFoundWrapper = document.createElement("li");
+			document.getElementById("userInfoNavbar")?.insertBefore(kanjiFoundWrapper, document.getElementById("userInfoNavbar").childNodes[0]);
+			kanjiFoundWrapper.classList.add("resizable");
+			kanjiFoundWrapper.style.maxHeight = defaultSettings["sizes"]["highlighted_kanji_height"]+"px";
+			chrome.storage.local.get(["wkhighlight_settings"], result => {
+				if (result["wkhighlight_settings"] && result["wkhighlight_settings"]["sizes"])
+					kanjiFoundWrapper.style.maxHeight = result["wkhighlight_settings"]["sizes"]["highlighted_kanji_height"]+"px";
+			});
+			const resizableS = document.createElement("div");
+			kanjiFoundWrapper.appendChild(resizableS);
+			resizableS.classList.add("resizable-s");
+			const kanjiFound = document.createElement("div");
+			kanjiFoundWrapper.appendChild(kanjiFound);
+			kanjiFound.id = "nmrKanjiHighlighted";
+			kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${request.nmrKanjiHighlighted}</strong> (in the page)`;
+			const kanjiFoundBar = document.createElement("div");
+			kanjiFoundWrapper.appendChild(kanjiFoundBar);
+			const kanjiFoundList = document.createElement("div");
+			kanjiFoundWrapper.appendChild(kanjiFoundList);
+			kanjiFoundList.id = "kanjiHighlightedList";
+			kanjiFoundList.classList.add("simple-grid");
+			const kanjiFoundUl = document.createElement("ul");
+			kanjiFoundList.appendChild(kanjiFoundUl);
+		}
+		else {
 			const currentValue = parseInt(nmrKanjiHighlightedElem.innerText);
-			if (typeof currentValue === "number" && request.nmrKanjiHighlighted != lastValueForKanjiHighlighted) {
+			if (typeof currentValue === "number" && !isNaN(currentValue) && request.nmrKanjiHighlighted != lastValueForKanjiHighlighted) {
 				counterAnimation(currentValue, request.nmrKanjiHighlighted, nmrKanjiHighlightedElem, 50);
 				lastValueForKanjiHighlighted = request.nmrKanjiHighlighted;
 			}
