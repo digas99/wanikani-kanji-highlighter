@@ -2570,7 +2570,7 @@ const searchSubject = (event, searchType) => {
 			
 				// if it is hiragana
 				if (input.value.match(/[\u3040-\u309f]/)) {
-					const filterByReadings = (itemList, value) => itemList.filter(item => matchesReadings(value, item["readings"]));
+					const filterByReadings = (itemList, value) => itemList.filter(item => matchesReadings(value, item["readings"], settings["search"]["targeted_search"]));
 					filteredKanji = filterByReadings(kanjiList, input.value);
 					filteredVocab = filterByReadings(vocabList, input.value);
 				}
@@ -2709,9 +2709,9 @@ const searchSubject = (event, searchType) => {
 	});
 }
 
-
-const matchesMeanings = (input, meanings, target) => {
-	if (input.length > 3 && !target) {
+const matchesMeanings = (input, meanings, precise) => {
+	let expr;
+	if (input.length > 3 && !precise) {
 		expr = new RegExp(input, "g");
 		for (const index in meanings) {
 			if (expr.test(meanings[index].toLowerCase())) {
@@ -2730,11 +2730,22 @@ const matchesMeanings = (input, meanings, target) => {
 	return false;
 }
 
-const matchesReadings = (input, readings) => {
-	for (const index in readings) {
-		const reads = readings[index];
-		if ((reads.reading ? reads.reading : reads)  == input) {
-			return true;
+const matchesReadings = (input, readings, precise) => {
+	if (!precise) {
+		const expr = new RegExp(input, "g");
+		for (const index in readings) {
+			const reads = readings[index];
+			if (expr.test(reads.reading ? reads.reading : reads)) {
+				return true;
+			}
+		}
+	}
+	else {
+		for (const index in readings) {
+			const reads = readings[index];
+			if ((reads.reading ? reads.reading : reads)  == input) {
+				return true;
+			}
 		}
 	}
 	return false;
