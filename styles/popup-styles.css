@@ -638,6 +638,7 @@ transform: rotate(134deg);
 
 #assignmentsMaterialList {
 	margin: 10px 0;
+	overflow: hidden;
 }
 
 #assignmentsMaterialList > p {
@@ -649,7 +650,6 @@ transform: rotate(134deg);
 
 #assignmentsMaterialList > ul {
 	font-size: 20px;
-    max-height: 187px;
     overflow: auto;
 	scroll-behavior: smooth;
 	padding: 5px;

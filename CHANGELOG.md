@@ -1,5 +1,8 @@
 # Changelog v0.6.3
 
+# Popup
+- Slider on settings to change width of extension popup
+
 ## Bug Fix
 - Clicking on a search result while on kana writing mode now searches for that result (before, it only worked while on romaji mode)
 

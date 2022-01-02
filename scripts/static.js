@@ -75,7 +75,8 @@ const defaultSettings = {
 		// show_scripts_status: true
 	},
 	"sizes": {
-		highlighted_kanji_height: 150
+		highlighted_kanji_height: 150,
+		reviews_list_height: 235
 	}
 };
 

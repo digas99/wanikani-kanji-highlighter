@@ -16,7 +16,7 @@ document.addEventListener("mousedown", e => {
 		elem = document.querySelector(".resizable");
 
 		const mouseMoveVertical = e => {
-			elem.style.height = e.clientY+"px";		
+			elem.style.height = (e.clientY-50)+"px";		
 		}
 
 		window.addEventListener("mousemove", mouseMoveVertical);

@@ -2027,6 +2027,11 @@ document.addEventListener("click", e => {
 			const reviewsList = document.createElement("div");
 			futureReviewsWrapper.appendChild(reviewsList);
 			reviewsList.id = "assignmentsMaterialList";
+			reviewsList.classList.add("resizable");
+			reviewsList.style.height = defaultSettings["sizes"]["reviews_list_height"]+"px";
+			const resizableS = document.createElement("div");
+			reviewsList.appendChild(resizableS);
+			resizableS.classList.add("resizable-s");
 			const reviewsListTitle = document.createElement("p");
 			reviewsList.appendChild(reviewsListTitle);
 			reviewsListTitle.innerHTML = `<b>${reviews && reviews["count"] ? reviews["count"] : 0}</b> Reviews available right now!`;
@@ -2036,6 +2041,7 @@ document.addEventListener("click", e => {
 			const reviewsListUl = document.createElement("ul");
 			reviewsList.appendChild(reviewsListUl);
 			reviewsListUl.classList.add("bellow-border");
+			reviewsListUl.style.height = "100%";
 			const futureReviewsChart = document.createElement("div");
 			futureReviewsWrapper.appendChild(futureReviewsChart);
 			const loadingChart = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading Reviews Chart...");
