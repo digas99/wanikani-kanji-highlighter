@@ -1525,7 +1525,9 @@ document.addEventListener("click", e => {
 				case "miscellaneous":
 					switch(setting) {
 						case "kana_writing":
-							chrome.tabs.query({currentWindow: true, active: true}, tabs => chrome.tabs.sendMessage(tabs[0].id, {kanaWriting: targetElem.checked}, () => console.log(targetElem.checked)));
+							// update both on web page and background
+							chrome.tabs.query({currentWindow: true, active: true}, tabs => chrome.tabs.sendMessage(tabs[0].id, {kanaWriting: targetElem.checked}));
+							chrome.runtime.sendMessage({kanaWriting: targetElem.checked});
 							break;
 					}
 					break;

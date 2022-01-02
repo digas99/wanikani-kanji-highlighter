@@ -169,6 +169,8 @@ tabs.onActivated.addListener(activeInfo => {
 							}
 				
 							chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
+
+							tabs.sendMessage(thisTabId, {kanaWriting:kanaWriting});
 						}
 						
 					});
@@ -293,8 +295,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.onDisconnect === "reload") {
 		if (externalPort)
 			externalPort.onDisconnect.addListener(() => chrome.runtime.reload());
-
 	}
+
+	if (request.kanaWriting)
+		kanaWriting = kanaWriting;
 });
 
 const contextMenuItem = {
