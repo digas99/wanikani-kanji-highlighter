@@ -1045,24 +1045,26 @@ document.addEventListener("click", e => {
 
 		const content = secondaryPage("Settings", 300);
 		content.id = "settingsContent";
-		
+
+		const settingsChecks = document.createElement("div");
+		content.appendChild(settingsChecks);
+		settingsChecks.id = "settingsOptionsWrapper";
+
 		const blacklistedDiv = document.createElement("div");
-		content.appendChild(blacklistedDiv);
-		const blackListedlink = document.createElement("a");
+		settingsChecks.appendChild(blacklistedDiv);
+		blacklistedDiv.classList.add("settingsSection");
+		const blackListedlink = document.createElement("p");
 		blacklistedDiv.appendChild(blackListedlink);
-		blackListedlink.href = "#";
 		blackListedlink.id = "blacklistedSitesList";
+		blackListedlink.classList.add("clickable");
 		blackListedlink.appendChild(document.createTextNode("Blacklisted sites"));
 		const arrow = document.createElement("i");
-		arrow.classList.add("right", "blacklisted_title_arrow");
+		arrow.classList.add("down", "blacklisted_title_arrow", "arrow");
 		chrome.storage.local.get(["wkhighlight_blacklist"], result => {
 			blackListedlink.innerText += result["wkhighlight_blacklist"] ? ` (${result["wkhighlight_blacklist"].length})` : " (0)";
 			blackListedlink.appendChild(arrow);
 		});
 
-		const settingsChecks = document.createElement("div");
-		content.appendChild(settingsChecks);
-		settingsChecks.id = "settingsOptionsWrapper";
 		chrome.storage.local.get(["wkhighlight_settings"], data => {
 			let settings = data["wkhighlight_settings"];
 			if (settings && settingsInterface) {
@@ -1557,6 +1559,8 @@ document.addEventListener("click", e => {
 		if (!wrapper) {
 			const parent = targetElem.parentElement;
 
+			flipArrow(targetElem.getElementsByClassName("blacklisted_title_arrow")[0], "down", "up");
+
 			const blacklistedSitesList = document.createElement("div");
 			parent.appendChild(blacklistedSitesList);
 			blacklistedSitesList.id = "blacklistedSitesWrapper";
@@ -1599,6 +1603,7 @@ document.addEventListener("click", e => {
 			});
 		}
 		else {
+			flipArrow(targetElem.getElementsByClassName("blacklisted_title_arrow")[0], "up", "down");
 			wrapper.remove();
 		}
 	}
@@ -1934,25 +1939,27 @@ document.addEventListener("click", e => {
 						srsTitle.style.padding = "5px";
 						srsTitle.style.backgroundColor= "var(--default-color)";
 						srsTitle.style.display = "-webkit-box";
+						const srsTitleArrow = document.createElement("i");
+						srsTitle.appendChild(srsTitleArrow);
+						srsTitleArrow.style.borderColor = settings["appearance"][srsStages[srsId]["short"][0].toLowerCase()+srsStages[srsId]["short"].slice(1)+"_color"];
+						srsTitleArrow.style.padding = "5px";
+						srsTitleArrow.style.pointerEvents = "none";
+						srsTitleArrow.style.marginLeft = "10px";
+						flipArrow(srsTitleArrow, "_", settings["assignments"]["srsMaterialsDisplay"][srsId] ? "up" : "down");
 						srsTitle.addEventListener("click", e => {
 							const materialsForThisSrs = e.target.parentElement.children[1];
 							if (materialsForThisSrs.classList.contains("hidden")) {
 								materialsForThisSrs.classList.remove("hidden");
 								settings["assignments"]["srsMaterialsDisplay"][srsId] = true;
+								flipArrow(srsTitleArrow, "down", "up");
 							}
 							else {
 								materialsForThisSrs.classList.add("hidden");
 								settings["assignments"]["srsMaterialsDisplay"][srsId] = false;
+								flipArrow(srsTitleArrow, "up", "down");
 							}
 							chrome.storage.local.set({"wkhighlight_settings":settings});
 						});
-						const srsTitleArrowRight = document.createElement("i");
-						srsTitle.appendChild(srsTitleArrowRight);
-						srsTitleArrowRight.classList.add("right");
-						srsTitleArrowRight.style.borderColor = settings["appearance"][srsStages[srsId]["short"][0].toLowerCase()+srsStages[srsId]["short"].slice(1)+"_color"];
-						srsTitleArrowRight.style.padding = "5px";
-						srsTitleArrowRight.style.pointerEvents = "none";
-						srsTitleArrowRight.style.marginLeft = "5px";
 						const itemsListWrapper = document.createElement("div");
 						srsWrapper.appendChild(itemsListWrapper);
 						itemsListWrapper.classList.add("simple-grid");

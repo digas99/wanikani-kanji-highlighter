@@ -322,6 +322,20 @@ const manageBodyWidth = (width, bodyWidth) => {
 	return width;
 } 
 
+const flipArrow = (arrow, sourceDir, destDir) => {
+	if (arrow) {
+		const padding = parseInt(window.getComputedStyle(arrow).padding.split("px")[0]);
+		if (typeof padding === "number" && !isNaN(padding)) {
+			arrow.classList.remove(sourceDir);
+			arrow.classList.add(destDir);
+			if (destDir === "up")
+				arrow.style.marginBottom = -2*padding+"px";
+			else if (destDir === "down")
+				arrow.style.marginBottom = -1*(padding-1)+"px";
+		}
+	}
+}
+
 const assignUponSubjects = list => {
 	const type = list[Object.keys(list)[0]]["subject_type"];
 	if (list && type) {

@@ -148,23 +148,23 @@ i {
 }
 
 .down {
-transform: rotate(45deg);
--webkit-transform: rotate(45deg);
+	transform: translateY(-50%) rotate(45deg);
+	-webkit-transform: translateY(-50%) rotate(45deg);
 }
 
 .up {
-transform: rotate(-135deg);
--webkit-transform: rotate(-135deg);
+	transform: translateY(-50%) rotate(-135deg);
+	-webkit-transform: translateY(-50%) rotate(-135deg);
 }
 
 .right {
-transform: rotate(-45deg);
--webkit-transform: rotate(-45deg);
+	transform: rotate(-45deg);
+	-webkit-transform: rotate(-45deg);
 }
 
 .left {
-transform: rotate(134deg);
--webkit-transform: rotate(134deg);
+	transform: rotate(134deg);
+	-webkit-transform: rotate(134deg);
 }
 
 /* GENERAL */
@@ -1044,10 +1044,10 @@ transform: rotate(134deg);
 
 .settingsSection > p {
 	text-align: center;
-    margin-bottom: 10px;
 	padding: 4px;
     background-color: var(--dark-back);
     color: white;
+	margin-bottom: 4px;
 }
 
 	/* 10.1 BLACKLISTED SITES */
@@ -1063,7 +1063,6 @@ transform: rotate(134deg);
 	max-height: 150px;
 	overflow: auto;
 	border-bottom-right-radius: 8px;
-	margin-top: 3px;
 }
 
 .blacklisted_site_wrapper {
@@ -1088,12 +1087,11 @@ transform: rotate(134deg);
 
 .blacklisted_title_arrow {
 	padding: 3px;
-    border-color: var(--default-color);
-    margin-bottom: 1px;
-	margin-left: 2px;
+    border-color: white;
+    margin-bottom: -2px;
+	margin-left: 9px;
 	pointer-events: none;
 }
-
 
 	/* 10.2 SETTINGS OPTIONS */
 
