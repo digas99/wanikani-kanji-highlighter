@@ -2579,7 +2579,7 @@ const searchSubject = (event, searchType) => {
 				// if it is a chinese character
 				if (value.match(/[\u3400-\u9FBF]/)) {
 					filteredKanji = filteredKanji.concat(kanjiList.filter(kanji => value == kanji["characters"]));
-					if (filteredKanji.length > 0) {
+					if (filteredKanji.length > 0 && !settings["search"]["targeted_search"]) {
 						const mainKanji = filteredKanji[0];
 						mainKanji["visually_similar_subject_ids"].forEach(id => filteredKanji.push(kanjiList.filter(kanji => kanji.id==id)[0]));
 						mainKanji["amalgamation_subject_ids"].forEach(id => filteredVocab.push(vocabList.filter(vocab => vocab.id == id)[0]));
