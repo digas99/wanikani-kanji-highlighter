@@ -1504,7 +1504,7 @@ document.addEventListener("click", e => {
 								chrome.runtime.connect();
 								chrome.runtime.sendMessage({onDisconnect:"reload"}, () => window.chrome.runtime.lastError);
 							}
-							break
+							break;
 						case "practice_reminder":
 							const timeInput = document.getElementById("practice-reminder-time");
 							if (targetElem.checked) {
@@ -1519,6 +1519,13 @@ document.addEventListener("click", e => {
 									timeInput.classList.add("disabled");
 								chrome.alarms.clear("practice");
 							}
+							break;
+					}
+					break;
+				case "miscellaneous":
+					switch(setting) {
+						case "kana_writing":
+							chrome.tabs.query({currentWindow: true, active: true}, tabs => chrome.tabs.sendMessage(tabs[0].id, {kanaWriting: targetElem.checked}, () => console.log(targetElem.checked)));
 							break;
 					}
 					break;
@@ -2462,7 +2469,7 @@ const slider = (id, labelTitle, min, max, defaultOption, description) => {
 	sliderWrapper.style.display = "flex";
 	sliderWrapper.style.alignItems = "center";
 	sliderWrapper.classList.add("slider");
-	sliderWrapper.title = "Mouse Wheel: +1\x0DShift + Mouse Wheel: +10";
+	sliderWrapper.title = "Mouse Wheel: +1\x0DShift + Mouse Wheel: +10\x0DCtrl + Mouse Wheel: +100";
 	const sliderElem = document.createElement("input");
 	sliderElem.classList.add("settingsItemInput");
 	sliderWrapper.appendChild(sliderElem);
@@ -2478,7 +2485,9 @@ const slider = (id, labelTitle, min, max, defaultOption, description) => {
 	sliderWrapper.addEventListener("wheel", e => {
 		e.preventDefault();
 		const up = e.deltaY < 0;
-		const scale = e.shiftKey ? 10 : 1;
+		let scale = 1;
+		if (e.shiftKey) scale = 10;
+		else if (e.ctrlKey) scale = 100;
 
 		// use a loop to make be able to use ++, which maintains the numerical magnitue
 		for (let i = 0; i < scale; i++) {

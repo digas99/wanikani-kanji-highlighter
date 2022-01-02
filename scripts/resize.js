@@ -14,7 +14,6 @@ document.addEventListener("mousedown", e => {
 
 	if (e.target.classList.contains("resizable-s")) {
 		elem = e.target.parentElement;
-		console.log("begin\nmaxheight",elem.style.maxHeight);
 		let run = false;
 		const hasMaxHeight = elem.style.maxHeight != '';
 
@@ -30,9 +29,7 @@ document.addEventListener("mousedown", e => {
 		window.addEventListener("mousemove", mouseMoveVertical);
 
 		window.addEventListener("mouseup", () => {
-			console.log(hasMaxHeight);
 			if (hasMaxHeight && !run) {
-				console.log("height", elem.style.height);
 				elem.style.maxHeight = elem.style.height;
 				elem.style.removeProperty("height");
 			}

@@ -3,20 +3,27 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.reloadPage)
 		window.location.reload();
 
-	if (request.windowHref === "href")
+	if (request.windowHref === "href") {
 		sendResponse({windowHref:window.location.href});
+		return true;
+	}
 
-	if (request.windowLocation === "host")
+	if (request.windowLocation === "host"){
 		sendResponse({windowLocation:window.location.host});
+		return true;
+	}
 
-	if (request.windowLocation === "origin")
+	if (request.windowLocation === "origin"){
 		sendResponse({windowLocation:window.location.origin});
+		return true;
+	}
 
 	// check if page was reloaded
 	if (request.reloaded) {
 		sendResponse({reloaded:sessionStorage.getItem("is_reloaded") ? true : false});
 		// store flag to indicate the page was reloaded
 		sessionStorage.setItem("is_reloaded", true);
+		return true;
 	}
 });
 

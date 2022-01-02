@@ -1163,7 +1163,8 @@ transform: rotate(134deg);
     color: white;
     font-size: 12px;
     padding: 4px;
-	width: 16px;
+	min-width: 16px;
+	width: fit-content;
     height: 14px;
     text-align: center;
 }

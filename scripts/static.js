@@ -179,7 +179,7 @@ const settingsInterface = [
 				title: "Kana Writing",
 				type: "checkbox",
 				id: "settings-miscellaneous-kana_writing",
-				description: "Write Kana on text inputs on a webpage. Some inputs might not work. \x0DTip: Needs page reload to make changes."
+				description: "Write Kana on text inputs on a webpage. Some inputs might not work."
 			},
 			{
 				title: "Extension Popup Width",

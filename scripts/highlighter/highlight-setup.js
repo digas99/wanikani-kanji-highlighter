@@ -68,8 +68,10 @@
 	
 		chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			// if extension pooup is asking for number of highlighted kanji
-			if (request.nmrKanjiHighlighted === "popup")
+			if (request.nmrKanjiHighlighted === "popup") {
 				sendResponse({...{nmrKanjiHighlighted: totalHighlighted}, ...contentHighlighted});
+				return true;
+			}
 
 			// change highlight class immediately of every kanji in the page
 			if (request.newHighlightClass) {
@@ -81,8 +83,10 @@
 					notLearned.highlightClass = request.newHighlightClass;
 			}
 
-			if (request.uptime === "Highlighter")
+			if (request.uptime === "Highlighter") {
 				sendResponse({uptime:true});
+				return true;
+			}
 
 		});
 

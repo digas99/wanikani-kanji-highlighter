@@ -36,8 +36,10 @@
 					detailsPopup.update(id, true);
 				}
 
-				if (request.uptime === "Details Popup")
+				if (request.uptime === "Details Popup") {
 					sendResponse({uptime:true});
+					return true;
+				}
 
 				if (request.popupOpacity) {
 					console.log(request.popupOpacity);

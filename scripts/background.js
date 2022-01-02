@@ -10,6 +10,8 @@ let externalPort;
 
 let thisUrl;
 
+let kanaWriting;
+
 chrome.runtime.onConnect.addListener(port => externalPort = port);
 
 chrome.runtime.onInstalled.addListener(details => {
@@ -53,6 +55,7 @@ const setSettings = () => {
 		// setup highlighting class value from settings
 		highlightingClass = settings["highlight_style"]["learned"];
 		notLearnedHighlightingClass = settings["highlight_style"]["not_learned"];
+		kanaWriting = settings["miscellaneous"]["kana_writing"];
 	});
 }
 setSettings();
@@ -196,7 +199,7 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 								if (result["wkhighlight_apiKey"]) {
 									apiToken = result["wkhighlight_apiKey"];
 
-									tabs.executeScript(thisTabId, {file: 'scripts/kana.js'});
+									tabs.executeScript(thisTabId, {file: 'scripts/kana.js'}, () => tabs.sendMessage(thisTabId, {kanaWriting:kanaWriting}));
 									const settings = result["wkhighlight_settings"] ? result["wkhighlight_settings"] : defaultSettings;
 									if (settings && settings["miscellaneous"] && settings["miscellaneous"]["kana_writing"])
 										tabs.executeScript(thisTabId, {file: 'scripts/kana-inputs.js'});
@@ -279,8 +282,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 	}
 
-	if (request.imgUrl)
+	if (request.imgUrl) {
 		sendResponse({imgUrl: imgUrlTest});
+		return true;
+	}
 
 	if (request.selectedText)
 		chrome.contextMenus.update("wkhighlighterSearchKanji", {title: `Search WaniKani for "${request.selectedText}"`});
