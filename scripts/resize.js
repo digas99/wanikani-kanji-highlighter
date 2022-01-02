@@ -13,29 +13,41 @@ document.addEventListener("mousedown", e => {
 	}
 
 	if (e.target.classList.contains("resizable-s")) {
-		elem = e.target.parentElement;
-		let run = false;
-		const hasMaxHeight = elem.style.maxHeight != '';
+		chrome.storage.local.get(["wkhighlight_settings"], result => {
+			elem = e.target.parentElement;
+			let run = false;
+			const hasMaxHeight = elem.style.maxHeight != '';
 
-		if (hasMaxHeight) {
-			elem.style.height = elem.style.maxHeight;
-			elem.style.removeProperty("max-height");
-		}
-
-		const mouseMoveVertical = e => {
-			elem.style.height = (e.clientY-50)+"px";		
-		}
-
-		window.addEventListener("mousemove", mouseMoveVertical);
-
-		window.addEventListener("mouseup", () => {
-			if (hasMaxHeight && !run) {
-				elem.style.maxHeight = elem.style.height;
-				elem.style.removeProperty("height");
+			if (hasMaxHeight) {
+				elem.style.height = elem.style.maxHeight;
+				elem.style.removeProperty("max-height");
 			}
 
-			window.removeEventListener("mousemove", mouseMoveVertical);
-			run = true;
+			const mouseMoveVertical = e => {
+				elem.style.height = (e.clientY-50)+"px";		
+			}
+
+			window.addEventListener("mousemove", mouseMoveVertical);
+
+			window.addEventListener("mouseup", () => {
+				if (hasMaxHeight && !run) {
+					elem.style.maxHeight = elem.style.height;
+					elem.style.removeProperty("height");
+
+					const settings = result["wkhighlight_settings"];
+					if (settings && elem.dataset.settings) {
+						const settingsPath = elem.dataset.settings.split("-");
+						if (settings[settingsPath[0]]) {
+							settings[settingsPath[0]][settingsPath[1]] = parseInt(elem.style.maxHeight);
+
+							chrome.storage.local.set({"wkhighlight_settings":settings});
+						}
+					}
+				}
+
+				window.removeEventListener("mousemove", mouseMoveVertical);
+				run = true;
+			});
 		});
 	}
 });

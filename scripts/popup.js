@@ -502,6 +502,7 @@ window.onload = () => {
 													if (result["wkhighlight_settings"] && result["wkhighlight_settings"]["sizes"])
 														kanjiFoundWrapper.style.maxHeight = result["wkhighlight_settings"]["sizes"]["highlighted_kanji_height"]+"px";
 												});
+												kanjiFoundWrapper.setAttribute("data-settings", "sizes-highlighted_kanji_height");
 												const resizableS = document.createElement("div");
 												kanjiFoundWrapper.appendChild(resizableS);
 												resizableS.classList.add("resizable-s");
@@ -2028,7 +2029,7 @@ document.addEventListener("click", e => {
 	if (targetElem.id == "summaryReviews") {
 		const content = secondaryPage("Reviews", 470);
 
-		chrome.storage.local.get(["wkhighlight_reviews"], result => {
+		chrome.storage.local.get(["wkhighlight_reviews", "wkhighlight_settings"], result => {
 			reviews = result["wkhighlight_reviews"] ? result["wkhighlight_reviews"] : reviews;
 
 			const futureReviewsWrapper = document.createElement("div");
@@ -2037,7 +2038,8 @@ document.addEventListener("click", e => {
 			futureReviewsWrapper.appendChild(reviewsList);
 			reviewsList.id = "assignmentsMaterialList";
 			reviewsList.classList.add("resizable");
-			reviewsList.style.maxHeight = defaultSettings["sizes"]["reviews_list_height"]+"px";
+			reviewsList.style.maxHeight = (result["wkhighlight_settings"] && result["wkhighlight_settings"]["sizes"] ? result["wkhighlight_settings"]["sizes"]["reviews_list_height"] : defaultSettings["sizes"]["reviews_list_height"])+"px";
+			reviewsList.setAttribute("data-settings", "sizes-reviews_list_height");
 			const resizableS = document.createElement("div");
 			reviewsList.appendChild(resizableS);
 			resizableS.classList.add("resizable-s");
@@ -2249,7 +2251,7 @@ document.addEventListener("click", e => {
 	if (targetElem.id == "summaryLessons") {
 		const content = secondaryPage("Lessons", 470);
 
-		chrome.storage.local.get(["wkhighlight_lessons"], result => {
+		chrome.storage.local.get(["wkhighlight_lessons", "wkhighlight_settings"], result => {
 			lessons = result["wkhighlight_lessons"] ? result["wkhighlight_lessons"] : lessons;
 			
 			const lessonsWrapper = document.createElement("div");
@@ -2257,7 +2259,8 @@ document.addEventListener("click", e => {
 			const lessonsList = document.createElement("div");
 			lessonsWrapper.appendChild(lessonsList);
 			lessonsList.classList.add("resizable");
-			lessonsList.style.maxHeight = defaultSettings["sizes"]["lessons_list_height"]+"px";
+			lessonsList.style.maxHeight = (result["wkhighlight_settings"] && result["wkhighlight_settings"]["sizes"] ? result["wkhighlight_settings"]["sizes"]["lessons_list_height"] : defaultSettings["sizes"]["lessons_list_height"])+"px";
+			lessonsList.setAttribute("data-settings", "sizes-lessons_list_height");
 			const resizableS = document.createElement("div");
 			lessonsList.appendChild(resizableS);
 			resizableS.classList.add("resizable-s");
@@ -2788,6 +2791,9 @@ const matchesReadings = (input, readings, precise) => {
 let lastValueForKanjiHighlighted = 0;
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.nmrKanjiHighlighted) {
+		chrome.browserAction.setBadgeText({text: request.nmrKanjiHighlighted.toString(), tabId:activeTab.id});
+		chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:activeTab.id});
+
 		let nmrKanjiHighlightedElem = document.getElementById("nmrKanjiHighlighted")?.getElementsByTagName("strong")[0];
 		if (!nmrKanjiHighlightedElem) {
 			const kanjiFoundWrapper = document.createElement("li");
@@ -2798,6 +2804,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				if (result["wkhighlight_settings"] && result["wkhighlight_settings"]["sizes"])
 					kanjiFoundWrapper.style.maxHeight = result["wkhighlight_settings"]["sizes"]["highlighted_kanji_height"]+"px";
 			});
+			kanjiFoundWrapper.setAttribute("data-settings", "sizes-highlighted_kanji_height");
 			const resizableS = document.createElement("div");
 			kanjiFoundWrapper.appendChild(resizableS);
 			resizableS.classList.add("resizable-s");

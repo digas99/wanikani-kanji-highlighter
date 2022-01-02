@@ -5,6 +5,7 @@
 - Precise search switch button now works on kana writing and kanji (before, it was always precise)
 - Sliders on settings now work with mouse wheel too (shift + wheel increases scale)
 - Activating kana writing on text inputs of a web page no longer requires page reload (activation and deactivation happens in real time now)
+- Some containers within the extension popup have been made resizable
 
 ## Bug Fix
 - Clicking on a search result while on kana writing mode now searches for that result (before, it only worked while on romaji mode)
