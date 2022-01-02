@@ -24,7 +24,8 @@ document.addEventListener("mousedown", e => {
 			}
 
 			const mouseMoveVertical = e => {
-				elem.style.height = (e.clientY-50)+"px";		
+				elem.style.height = (e.clientY-50)+"px";
+				document.body.style.setProperty("cursor", "ns-resize", "important");
 			}
 
 			window.addEventListener("mousemove", mouseMoveVertical);
@@ -45,6 +46,7 @@ document.addEventListener("mousedown", e => {
 					}
 				}
 
+				document.body.style.removeProperty("cursor");
 				window.removeEventListener("mousemove", mouseMoveVertical);
 				run = true;
 			});
