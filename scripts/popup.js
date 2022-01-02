@@ -497,10 +497,10 @@ window.onload = () => {
 												const kanjiFoundWrapper = document.createElement("li");
 												userElementsList.appendChild(kanjiFoundWrapper);
 												kanjiFoundWrapper.classList.add("resizable");
-												kanjiFoundWrapper.style.height = defaultSettings["sizes"]["highlighted_kanji_height"]+"px";
+												kanjiFoundWrapper.style.maxHeight = defaultSettings["sizes"]["highlighted_kanji_height"]+"px";
 												chrome.storage.local.get(["wkhighlight_settings"], result => {
 													if (result["wkhighlight_settings"] && result["wkhighlight_settings"]["sizes"])
-														kanjiFoundWrapper.style.height = result["wkhighlight_settings"]["sizes"]["highlighted_kanji_height"]+"px";
+														kanjiFoundWrapper.style.maxHeight = result["wkhighlight_settings"]["sizes"]["highlighted_kanji_height"]+"px";
 												});
 												const resizableS = document.createElement("div");
 												kanjiFoundWrapper.appendChild(resizableS);
@@ -2028,7 +2028,7 @@ document.addEventListener("click", e => {
 			futureReviewsWrapper.appendChild(reviewsList);
 			reviewsList.id = "assignmentsMaterialList";
 			reviewsList.classList.add("resizable");
-			reviewsList.style.height = defaultSettings["sizes"]["reviews_list_height"]+"px";
+			reviewsList.style.maxHeight = defaultSettings["sizes"]["reviews_list_height"]+"px";
 			const resizableS = document.createElement("div");
 			reviewsList.appendChild(resizableS);
 			resizableS.classList.add("resizable-s");
@@ -2041,7 +2041,7 @@ document.addEventListener("click", e => {
 			const reviewsListUl = document.createElement("ul");
 			reviewsList.appendChild(reviewsListUl);
 			reviewsListUl.classList.add("bellow-border");
-			reviewsListUl.style.height = "100%";
+			reviewsListUl.style.maxHeight = "inherit";
 			const futureReviewsChart = document.createElement("div");
 			futureReviewsWrapper.appendChild(futureReviewsChart);
 			const loadingChart = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading Reviews Chart...");
@@ -2247,6 +2247,11 @@ document.addEventListener("click", e => {
 			content.appendChild(lessonsWrapper);
 			const lessonsList = document.createElement("div");
 			lessonsWrapper.appendChild(lessonsList);
+			lessonsList.classList.add("resizable");
+			lessonsList.style.maxHeight = defaultSettings["sizes"]["lessons_list_height"]+"px";
+			const resizableS = document.createElement("div");
+			lessonsList.appendChild(resizableS);
+			resizableS.classList.add("resizable-s");
 			lessonsList.id = "assignmentsMaterialList";
 			const lessonsListTitle = document.createElement("p");
 			lessonsList.appendChild(lessonsListTitle);
@@ -2256,7 +2261,7 @@ document.addEventListener("click", e => {
 			lessonsList.appendChild(lessonsListBar);
 			const lessonsListUl = document.createElement("ul");
 			lessonsList.appendChild(lessonsListUl);
-			lessonsListUl.style.maxHeight = "485px";
+			lessonsListUl.style.maxHeight = "inherit";
 			lessonsListUl.classList.add("bellow-border");
 
 			if (lessons) {

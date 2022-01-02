@@ -2,10 +2,10 @@
 
 # Popup
 - Slider on settings to change width of extension popup
+- Precise search switch button now works on kana writing and kanji (before, it was always precise)
 
 ## Bug Fix
 - Clicking on a search result while on kana writing mode now searches for that result (before, it only worked while on romaji mode)
-- Precise search switch button now works on kana writing and kanji (before, it was always precise)
 
 # [Changelog v0.6.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.2)
 Released on 29/12/2021

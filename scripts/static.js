@@ -76,7 +76,8 @@ const defaultSettings = {
 	},
 	"sizes": {
 		highlighted_kanji_height: 150,
-		reviews_list_height: 235
+		reviews_list_height: 235,
+		lessons_list_height: 450
 	}
 };
 
