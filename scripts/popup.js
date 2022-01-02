@@ -1127,10 +1127,10 @@ document.addEventListener("click", e => {
 
 					const popupOpacitySliderSpan = document.getElementById("settings-kanji_details_popup-popup_opacity").nextElementSibling;
 					if (popupOpacitySliderSpan) {
-						const parsedValue = parseInt(popupOpacitySliderSpan.innerText)/10;
-						popupOpacitySliderSpan.innerText = parsedValue;
+						const parsedValue = parseInt(popupOpacitySliderSpan.innerText);
+						popupOpacitySliderSpan.innerText = parsedValue/10;
 						chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-							chrome.tabs.sendMessage(tabs[0].id, {popupOpacity:parsedValue === 0 ? parsedValue : parsedValue/10}, () => window.chrome.runtime.lastError);
+							chrome.tabs.sendMessage(tabs[0].id, {popupOpacity:parsedValue/10}, () => window.chrome.runtime.lastError);
 						});
 					}
 				}
@@ -2462,6 +2462,7 @@ const slider = (id, labelTitle, min, max, defaultOption, description) => {
 	sliderWrapper.style.display = "flex";
 	sliderWrapper.style.alignItems = "center";
 	sliderWrapper.classList.add("slider");
+	sliderWrapper.title = "Mouse Wheel: +1\x0DShift + Mouse Wheel: +10";
 	const sliderElem = document.createElement("input");
 	sliderElem.classList.add("settingsItemInput");
 	sliderWrapper.appendChild(sliderElem);
@@ -2473,6 +2474,23 @@ const slider = (id, labelTitle, min, max, defaultOption, description) => {
 	const valueElem = document.createElement("span");
 	sliderWrapper.appendChild(valueElem);
 	valueElem.appendChild(document.createTextNode(defaultOption));
+
+	sliderWrapper.addEventListener("wheel", e => {
+		e.preventDefault();
+		const up = e.deltaY < 0;
+		const scale = e.shiftKey ? 10 : 1;
+
+		// use a loop to make be able to use ++, which maintains the numerical magnitue
+		for (let i = 0; i < scale; i++) {
+			if (up) sliderElem.value++;
+			else sliderElem.value--;
+		}
+		
+		sliderElem.dispatchEvent(new Event('input', {
+			bubbles: true,
+			cancelable: true,
+		}));
+	});
 
 	return div;
 }
