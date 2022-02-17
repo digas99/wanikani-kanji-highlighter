@@ -7,9 +7,13 @@
 - Activating kana writing on text inputs of a web page no longer requires page reload (activation and deactivation happens in real time now)
 - Some containers within the extension popup have been made resizable
 
+## Content
+- Added button to play sound of reading to the details popup of any vocabulary
+
 ## Bug Fix
 - Clicking on a search result while on kana writing mode now searches for that result (before, it only worked while on romaji mode)
 - Fixed issue where list of highlighted kanji wouldn't show up if extension popup was opened too soon
+- Fixed issue where search on extension popup wouldn't load subjects when clicking to change type of input (from Romaji to Kana)
 
 # [Changelog v0.6.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.2)
 Released on 29/12/2021

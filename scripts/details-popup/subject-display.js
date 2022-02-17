@@ -108,15 +108,8 @@
 			}
 			
 			// clicked on sidebar audio
-			if (node.classList.contains("sd-detailsPopup_cardSideBarAudio")) {
-				const id = getItemIdFromSideBar(node.parentElement.parentElement.parentElement);
-				if (id) {
-					const audio = new Audio();
-					const audioList = this.allVocab[id]["pronunciation_audios"];
-					audio.src = audioList[Math.floor(Math.random() * audioList.length)].url;
-					audio.play();
-				}
-			}
+			if (node.classList.contains("sd-detailsPopup_cardSideBarAudio"))
+				playSubjectAudio(this.allVocab[getItemIdFromSideBar(node.parentElement.parentElement.parentElement)]["pronunciation_audios"]);
 	
 			// clicked on sidebar info
 			if (node.classList.contains("sd-detailsPopup_cardSideBarInfo")) {
@@ -441,7 +434,22 @@
 			// details container
 			const details = document.createElement("div");
 			details.style.setProperty("padding", "45px 15px", "important");
+			details.style.setProperty("position", "relative", "important");
 			detailedInfoWrapper.appendChild(details);
+
+			const audioButtonWrapper = document.createElement("div");
+			details.appendChild(audioButtonWrapper);
+			audioButtonWrapper.style.setProperty("position", "absolute", "important");
+			audioButtonWrapper.style.setProperty("top", "45px", "important");
+			audioButtonWrapper.style.setProperty("right", "10px", "important");
+			audioButtonWrapper.style.setProperty("filter", "invert(1)", "important");
+			audioButtonWrapper.classList.add("sd-detailsPopup_clickable")
+			audioButtonWrapper.title = "Subject Audio";
+			const audioButton = document.createElement("img");
+			audioButtonWrapper.appendChild(audioButton);
+			audioButton.src = "https://i.imgur.com/ETwuWqJ.png";
+			audioButton.style.setProperty("width", "18px", "important");
+			audioButton.addEventListener("click", () => playSubjectAudio(this.allVocab[document.getElementsByClassName("sd-detailsPopup_kanji")[0].getAttribute("data-item-id")]["pronunciation_audios"]));
 
 			const infoSection = document.createElement("div");
 			details.appendChild(infoSection);
@@ -1025,6 +1033,14 @@
 			});
 		});
 		return stats;
+	}
+
+	const playSubjectAudio = audioList => {
+		if (audioList && audioList.length > 0) {
+			const audio = new Audio();
+			audio.src = audioList[Math.floor(Math.random() * audioList.length)].url;
+			audio.play();
+		}
 	}
 
 	window.SubjectDisplay = SubjectDisplay;

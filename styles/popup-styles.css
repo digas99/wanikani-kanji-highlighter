@@ -638,7 +638,6 @@ i {
 
 #assignmentsMaterialList {
 	margin: 10px 0;
-	overflow: hidden;
 }
 
 #assignmentsMaterialList > p {
@@ -650,6 +649,7 @@ i {
 
 #assignmentsMaterialList > ul {
 	font-size: 20px;
+	max-height: 187px;
     overflow: auto;
 	scroll-behavior: smooth;
 	padding: 5px;
@@ -1171,7 +1171,7 @@ i {
 	-webkit-appearance: none;
 	appearance: none;
 	width: 72px;
-	height: 13px;
+	height: 9px;
     background: #636375;
     border-radius: 10px;
 }

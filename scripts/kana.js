@@ -22,12 +22,12 @@ const convertToKana = text => {
 	const split = separateRomaji(text);
 	for (const word of split) {
 		let kanaValue = kana[word];
-		// handle situations like 'kko' -> 'っこ'
-		if (!kanaValue && word.length === 3) {
-			if (word.charAt[0] === word.charAt[1] && vowels.includes(word.charAt(2))) {
-				kanaValue = kana[/[a-z]/.test(word.charAt(0)) ? 'll' : 'LL']+kana[word.slice(1)];
-			}
-		}
+		// handle situations like 'kanji' -> 'kannji'
+		if (!kanaValue && word.length == 3 && word.charAt(0) == "n")
+			kanaValue = kana[/[a-z]/.test(word.charAt(0)) ? 'nn' : 'NN']+kana[word.slice(1)];
+		// handle situations like 'kko' -> 'っこ' and 'shussha' -> 'しゅっしゃ'
+		else if (!kanaValue && word.length >=3 && word.charAt(0) === word.charAt(1) && vowels.includes(word.charAt(word.length-1)))
+			kanaValue = kana[/[a-z]/.test(word.charAt(0)) ? 'll' : 'LL']+kana[word.slice(1)];
 		finalValue += kanaValue ? kanaValue : word;
 	}
 	return finalValue;

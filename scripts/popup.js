@@ -14,6 +14,8 @@ let atWanikani = false;
 let lastLessonsValue = 0;
 let lastReviewsValue = 0;
 
+let blacklisted_site = false;
+
 const footer = () => {
 	const wrapper = document.createElement("div");
 	wrapper.id = "footer";
@@ -112,7 +114,10 @@ window.onload = () => {
 
 				atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url);
 
-				if (!result["wkhighlight_blacklist"] || result["wkhighlight_blacklist"].length === 0 || !blacklisted(result["wkhighlight_blacklist"], url)) {
+				blacklisted_site = blacklisted(result["wkhighlight_blacklist"], url);
+
+				if (true) {
+				//if (!result["wkhighlight_blacklist"] || result["wkhighlight_blacklist"].length === 0 || !blacklisted_site) {
 					apiKey = result["wkhighlight_apiKey"];
 					// if the user did not add a key yet
 					if (!apiKey) {
@@ -682,7 +687,7 @@ window.onload = () => {
 														
 														const currentValue = parseInt(document.getElementById("summaryReviews").innerText);
 														if (currentValue === 0)
-															document.getElementById("summaryReviews").innerText = reviews["count"] ? reviews["count"] : "...";
+															document.getElementById("summaryReviews").innerText = reviews["count"] ? reviews["count"] : 0;
 														else {
 															if (reviews["count"] && typeof currentValue === "number" && !isNaN(currentTime) && reviews["count"] != lastReviewsValue) {
 																counterAnimation(currentValue, reviews["count"], document.getElementById("summaryReviews"), 5);
@@ -758,7 +763,7 @@ window.onload = () => {
 													if (lessons) {
 														const currentValue = parseInt(document.getElementById("summaryLessons").innerText);
 														if (currentValue === 0)
-															document.getElementById("summaryLessons").innerText = lessons["count"] ? lessons["count"] : "...";
+															document.getElementById("summaryLessons").innerText = lessons["count"] ? lessons["count"] : 0;
 														else {
 															if (lessons["count"] && typeof currentValue === "number" && !isNaN(currentValue) && lessons["count"] != lastLessonsValue) {
 																counterAnimation(currentValue, lessons["count"], document.getElementById("summaryLessons"), 5);
@@ -1071,7 +1076,7 @@ document.addEventListener("click", e => {
 				settingsInterface.forEach(section => {
 					const wrapper = document.createElement("div");
 					settingsChecks.appendChild(wrapper);
-					wrapper.classList.add("settingsSection", "bellow-border");
+					wrapper.classList.add("settingsSection");
 
 					const title = document.createElement("p");
 					wrapper.appendChild(title);
@@ -1141,7 +1146,7 @@ document.addEventListener("click", e => {
 				// HIGHLIGHT STYLE SECTION
 				const highlightStyleWrapper = document.createElement("div");
 				settingsChecks.appendChild(highlightStyleWrapper);
-				highlightStyleWrapper.classList.add("settingsSection", "bellow-border");
+				highlightStyleWrapper.classList.add("settingsSection");
 				const highlightStyleTitle = document.createElement("p");
 				highlightStyleWrapper.appendChild(highlightStyleTitle);
 				highlightStyleTitle.appendChild(document.createTextNode("Highlight Style"));
@@ -1173,7 +1178,7 @@ document.addEventListener("click", e => {
 				// APPEARANCE
 				const appearanceWrapper = document.createElement("div");
 				settingsChecks.appendChild(appearanceWrapper);
-				appearanceWrapper.classList.add("settingsSection", "bellow-border");
+				appearanceWrapper.classList.add("settingsSection");
 				const appearanceTitle = document.createElement("p");
 				appearanceWrapper.appendChild(appearanceTitle);
 				appearanceTitle.appendChild(document.createTextNode("Appearance"));
@@ -1281,7 +1286,7 @@ document.addEventListener("click", e => {
 				// DANGER ZONE
 				const dangerZone = document.createElement("div");
 				settingsChecks.appendChild(dangerZone);
-				dangerZone.classList.add("settingsSection", "bellow-border");
+				dangerZone.classList.add("settingsSection");
 				const clearCacheTitle = document.createElement("p");
 				dangerZone.appendChild(clearCacheTitle);
 				clearCacheTitle.appendChild(document.createTextNode("Danger Section"));
@@ -1757,6 +1762,12 @@ document.addEventListener("click", e => {
 	if ((typeWrapper && typeWrapper.contains(targetElem)) || targetElem.classList.contains("kanjiSearchTypeWrapper")) {
 		const input = document.getElementById("kanjiSearchInput");
 		input?.select();
+		input?.dispatchEvent(new MouseEvent("click", {
+			"view": window,
+			"bubbles": true,
+			"cancelable": false
+		}));
+		
 		const target = targetElem.classList.contains("kanjiSearchTypeWrapper") ? targetElem.firstChild : targetElem;
 		
 		if (target?.innerText == "あ") {
@@ -2036,7 +2047,7 @@ document.addEventListener("click", e => {
 	if (targetElem.id == "summaryReviews") {
 		const content = secondaryPage("Reviews", 470);
 
-		chrome.storage.local.get(["wkhighlight_reviews", "wkhighlight_settings"], result => {
+		chrome.storage.local.get(["wkhighlight_reviews"], result => {
 			reviews = result["wkhighlight_reviews"] ? result["wkhighlight_reviews"] : reviews;
 
 			const futureReviewsWrapper = document.createElement("div");
@@ -2044,12 +2055,6 @@ document.addEventListener("click", e => {
 			const reviewsList = document.createElement("div");
 			futureReviewsWrapper.appendChild(reviewsList);
 			reviewsList.id = "assignmentsMaterialList";
-			reviewsList.classList.add("resizable");
-			reviewsList.style.maxHeight = (result["wkhighlight_settings"] && result["wkhighlight_settings"]["sizes"] ? result["wkhighlight_settings"]["sizes"]["reviews_list_height"] : defaultSettings["sizes"]["reviews_list_height"])+"px";
-			reviewsList.setAttribute("data-settings", "sizes-reviews_list_height");
-			const resizableS = document.createElement("div");
-			reviewsList.appendChild(resizableS);
-			resizableS.classList.add("resizable-s");
 			const reviewsListTitle = document.createElement("p");
 			reviewsList.appendChild(reviewsListTitle);
 			reviewsListTitle.innerHTML = `<b>${reviews && reviews["count"] ? reviews["count"] : 0}</b> Reviews available right now!`;
@@ -2258,19 +2263,13 @@ document.addEventListener("click", e => {
 	if (targetElem.id == "summaryLessons") {
 		const content = secondaryPage("Lessons", 470);
 
-		chrome.storage.local.get(["wkhighlight_lessons", "wkhighlight_settings"], result => {
+		chrome.storage.local.get(["wkhighlight_lessons"], result => {
 			lessons = result["wkhighlight_lessons"] ? result["wkhighlight_lessons"] : lessons;
 			
 			const lessonsWrapper = document.createElement("div");
 			content.appendChild(lessonsWrapper);
 			const lessonsList = document.createElement("div");
 			lessonsWrapper.appendChild(lessonsList);
-			lessonsList.classList.add("resizable");
-			lessonsList.style.maxHeight = (result["wkhighlight_settings"] && result["wkhighlight_settings"]["sizes"] ? result["wkhighlight_settings"]["sizes"]["lessons_list_height"] : defaultSettings["sizes"]["lessons_list_height"])+"px";
-			lessonsList.setAttribute("data-settings", "sizes-lessons_list_height");
-			const resizableS = document.createElement("div");
-			lessonsList.appendChild(resizableS);
-			resizableS.classList.add("resizable-s");
 			lessonsList.id = "assignmentsMaterialList";
 			const lessonsListTitle = document.createElement("p");
 			lessonsList.appendChild(lessonsListTitle);
