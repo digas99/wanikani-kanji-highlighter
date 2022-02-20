@@ -70,6 +70,7 @@ Table Of Contents
 body {
 	width: var(--body-base-width);
 	transition: 0.3s;
+	font-size: 13px;
 }
 
 a {
@@ -349,6 +350,7 @@ i {
 	text-align: right;
     margin-bottom: 7px;
 	display: flex;
+	align-items: center;
 }
 
 .burger-menu {
@@ -464,40 +466,41 @@ i {
 	border-radius: 30px;
 }
 
-#random-subject-type {
-	background-color: #bdbdbd;
-    color: black;
+.side-panel-info-alert {
     padding: 3px;
     position: absolute;
-    top: -4px;
-    right: 1px;
-    font-size: 8px;
+    top: -7px;
+    left: 26px;
+    font-size: 10px;
     font-weight: bold;
     border-radius: 4px;
 }
 
+#random-subject-type {
+	background-color: #bdbdbd;
+    color: black;
+}
+
 	/* USER INFO */
-
-#userInfoNavbar {
-	font-size: 15px;
-	margin-top: 10px;
-	width: 100%;
-}
-
-#userInfoNavbar > li {
-	margin-bottom: 3px;
-	overflow: hidden;
-}
 
 #userInfoWrapper {
 	margin: 0px 7px;
 	padding-top: 5px;
 	position: relative;
+}
 
+#userInfoWrapper > div {
+	margin-bottom: 10px;
+	overflow: hidden;
+}
+
+.highlightedKanjiContainer {
+	min-height: 150px;
+	border: 1px solid silver;
+	border-radius: 0px 0px 5px 5px;
 }
 
 #scriptsUptime {
-	margin-bottom: 15px;
     background-color: #2a2d48;
     color: white;
     padding: 6px;
@@ -537,7 +540,6 @@ i {
 
 #nmrKanjiHighlighted {
 	text-align: center;
-    margin-top: 8px;
     background-color: var(--default-color);
     color: white;
     padding: 4px;
@@ -549,7 +551,6 @@ i {
 
 #kanjiHighlightedList {
 	overflow-y: auto !important;
-	max-height: inherit;
 }
 
 #kanjiHighlightedList ul {
@@ -558,6 +559,20 @@ i {
 
 #kanjiHighlightedList li {
 	font-size: 25.2px;
+}
+
+.notFoundKanjiSlash {
+	top: -25px;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    margin: auto;
+    width: 65px;
+    height: 3px;
+    background-color: rgb(216, 216, 216);
+    position: absolute;
+    transform: rotate(149deg);
+    border: 3px solid white;
 }
 
 .kanjiHighlightedLearned {
@@ -638,6 +653,7 @@ i {
 
 #assignmentsMaterialList {
 	margin: 10px 0;
+	border: 1px solid silver;
 }
 
 #assignmentsMaterialList > p {
@@ -649,7 +665,7 @@ i {
 
 #assignmentsMaterialList > ul {
 	font-size: 20px;
-	max-height: 187px;
+	max-height: 186px;
     overflow: auto;
 	scroll-behavior: smooth;
 	padding: 5px;
@@ -701,7 +717,8 @@ i {
 /* SUMMARY */
 .summaryTitle {
 	background-color: var(--default-color);
-    padding: 1px;
+    padding: 5px;
+	font-size: 14px;
 }
 
 .summaryValue {
@@ -720,9 +737,11 @@ i {
 	display: flex;
     border: 1px solid silver;
     border-radius: 17px;
-    padding: 4px;
+    padding: 4px 6px;
 	position: relative;
 	background-color: white;
+	height: 23px;
+    align-items: center;
 }
 
 .textInputWrapper input {
@@ -733,6 +752,7 @@ i {
 #kanjiSearchInput {
 	width: 100%;
 	border: 0;
+	font-size: 15px;
 }
 
 .textInputIcon {
@@ -750,8 +770,8 @@ i {
     position: absolute;
     right: 0px;
     bottom: 0px;
-    border-top-right-radius: 11px;
-    border-bottom-right-radius: 11px;
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 16px;
     cursor: pointer;	
 	width: 26px;
 	text-align: center;
@@ -769,7 +789,13 @@ i {
 }
 
 #kanjiSearchType {
-    margin: 0 5px;
+	top: -3px;
+    bottom: 0;
+    position: absolute;
+    left: 0;
+    right: 2px;
+    margin: auto;
+    height: fit-content;
 }
 
 .search-loading {
@@ -918,6 +944,10 @@ i {
     height: 10px;
 }
 
+#searchResultWrapper {
+	margin-top: 10px;
+}
+
 #searchResultNavbar {
 	display: flex;
 	border-top: 1px solid silver;
@@ -964,10 +994,9 @@ i {
 	vertical-align: middle;
 }
 
-#notRunAtWK {
-	color: var(--wanikani);
+#enhancedMessage {
     font-size: 14px;
-    margin-top: 15px;
+	border-radius: 4px;
 	text-align: center;
 	border-bottom: 4px solid;
     background-color: var(--default-color);
@@ -1033,6 +1062,11 @@ i {
 	display: grid;
     margin-bottom: 5px;
     padding-bottom: 5px;
+	background-color: white;
+    border: 2px solid white;
+    border-radius: 5px;
+    color: black;
+	border: 1px solid silver;
 }
 
 .settingsSection > div {
@@ -1045,7 +1079,7 @@ i {
 .settingsSection > p {
 	text-align: center;
 	padding: 4px;
-    background-color: var(--dark-back);
+    background-color: var(--default-color);
     color: white;
 	margin-bottom: 4px;
 }
@@ -1057,12 +1091,11 @@ i {
 }
 
 #blacklistedSitesWrapper {
-	border: 1px solid silver;
 	padding: 5px;
 	display: grid;
 	max-height: 150px;
 	overflow: auto;
-	border-bottom-right-radius: 8px;
+	color: silver;
 }
 
 .blacklisted_site_wrapper {

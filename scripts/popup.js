@@ -7,8 +7,6 @@ let reviews, lessons, reviewsChart;
 
 let apiKey;
 
-let sidePanelOn = false;
-
 let atWanikani = false;
 
 let lastLessonsValue = 0;
@@ -80,8 +78,11 @@ const reloadPage = (message, color) => {
 }
 
 const blacklisted = (blacklist, url) => {
-	const regex = new RegExp(`^http(s)?:\/\/(www\.)?(${blacklist.join("|")})(\/)?([a-z]+.*)?`, "g");
-	return regex.test(url);
+	if (blacklist && blacklist.length > 0) {
+		const regex = new RegExp(`^http(s)?:\/\/(www\.)?(${blacklist.join("|")})(\/)?([a-z]+.*)?`, "g");
+		return regex.test(url);
+	}
+	return false;
 }
 
 window.onload = () => {
@@ -116,711 +117,606 @@ window.onload = () => {
 
 				blacklisted_site = blacklisted(result["wkhighlight_blacklist"], url);
 
-				if (true) {
-				//if (!result["wkhighlight_blacklist"] || result["wkhighlight_blacklist"].length === 0 || !blacklisted_site) {
-					apiKey = result["wkhighlight_apiKey"];
-					// if the user did not add a key yet
-					if (!apiKey) {
-						chrome.browserAction.setBadgeText({text: '', tabId:activeTab.id});
+				apiKey = result["wkhighlight_apiKey"];
+				// if the user did not add a key yet
+				if (!apiKey) {
+					chrome.browserAction.setBadgeText({text: '', tabId:activeTab.id});
 
-						// key input
-						const apiInputWrapper = document.createElement("div");
-						apiInputWrapper.classList.add("apiKey_wrapper");
-						main.appendChild(apiInputWrapper);
+					// key input
+					const apiInputWrapper = document.createElement("div");
+					apiInputWrapper.classList.add("apiKey_wrapper");
+					main.appendChild(apiInputWrapper);
 
-						const apiLabel = document.createElement("p");
-						apiLabel.style.marginBottom = "5px";
-						apiLabel.style.fontSize = "14px";
-						apiLabel.appendChild(document.createTextNode("API Key: "));
-						apiInputWrapper.appendChild(apiLabel);
-					
-						const apiInput = textInput("apiKey", "../images/key.png", "Input the key here...");
-						apiInputWrapper.appendChild(apiInput);
+					const apiLabel = document.createElement("p");
+					apiLabel.style.marginBottom = "5px";
+					apiLabel.style.fontSize = "14px";
+					apiLabel.appendChild(document.createTextNode("API Key: "));
+					apiInputWrapper.appendChild(apiLabel);
+				
+					const apiInput = textInput("apiKey", "../images/key.png", "Input the key here...");
+					apiInputWrapper.appendChild(apiInput);
 
-						// submit button
-						const button = document.createElement("div");
-						button.appendChild(document.createTextNode("Submit"));
-						button.classList.add("button");
-						button.id = "submit";
-						apiInputWrapper.appendChild(button);
+					// submit button
+					const button = document.createElement("div");
+					button.appendChild(document.createTextNode("Submit"));
+					button.classList.add("button");
+					button.id = "submit";
+					apiInputWrapper.appendChild(button);
 
-						// what is an api key
-						const whatIsAPIKey = document.createElement("div");
-						whatIsAPIKey.style.marginTop = "2px";
-						apiInputWrapper.appendChild(whatIsAPIKey);
-						const whatIsAPIKeyLink = document.createElement("a");
-						whatIsAPIKeyLink.href = "#";
-						whatIsAPIKeyLink.id = "whatIsAPIKey";
-						whatIsAPIKeyLink.appendChild(document.createTextNode("What is an API Key?"));
-						whatIsAPIKey.appendChild(whatIsAPIKeyLink);
-					}
+					// what is an api key
+					const whatIsAPIKey = document.createElement("div");
+					whatIsAPIKey.style.marginTop = "2px";
+					apiInputWrapper.appendChild(whatIsAPIKey);
+					const whatIsAPIKeyLink = document.createElement("a");
+					whatIsAPIKeyLink.href = "#";
+					whatIsAPIKeyLink.id = "whatIsAPIKey";
+					whatIsAPIKeyLink.appendChild(document.createTextNode("What is an API Key?"));
+					whatIsAPIKey.appendChild(whatIsAPIKeyLink);
+				}
+				else {
+					const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading account info...");
+					const loadingElem = loadingVal[0];
+					main.appendChild(loadingElem);
+	
+					// set settings
+					if (!settings)
+						settings = defaultSettings;
 					else {
-						const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading account info...");
-						const loadingElem = loadingVal[0];
-						main.appendChild(loadingElem);
-		
-						// set settings
-						if (!settings)
-							settings = defaultSettings;
-						else {
-							// check if all settings are stored
-							notStored = [];
-							Object.keys(defaultSettings).forEach(key => {
-								if (!Object.keys(settings).includes(key))
-									settings[key] = {};
+						// check if all settings are stored
+						notStored = [];
+						Object.keys(defaultSettings).forEach(key => {
+							if (!Object.keys(settings).includes(key))
+								settings[key] = {};
 
-								Object.keys(defaultSettings[key]).forEach(innerKey => {
-									// if it doesn't exists in settings
-									if (typeof settings[key][innerKey] === 'undefined')
-										notStored.push([key, innerKey]);
-								});
+							Object.keys(defaultSettings[key]).forEach(innerKey => {
+								// if it doesn't exists in settings
+								if (typeof settings[key][innerKey] === 'undefined')
+									notStored.push([key, innerKey]);
 							});
-				
-							// only store the missing values a preserve the others
-							notStored.forEach(id => settings[id[0]][id[1]] = defaultSettings[id[0]][id[1]]);
-						}
-				
-						chrome.storage.local.set({"wkhighlight_settings":settings});
+						});
 			
-						// setup css vars
-						const appearance = settings["appearance"];
-						const documentStyle = document.documentElement.style;
-						documentStyle.setProperty('--highlight-default-color', appearance["highlight_learned"]);
-						documentStyle.setProperty('--notLearned-color', appearance["highlight_not_learned"]);
-						documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
-						documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
-						documentStyle.setProperty('--vocab-tag-color', appearance["vocab_color"]);
-						Object.values(srsStages).map(srs => srs["short"].toLowerCase())
-							.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
+						// only store the missing values a preserve the others
+						notStored.forEach(id => settings[id[0]][id[1]] = defaultSettings[id[0]][id[1]]);
+					}
+			
+					chrome.storage.local.set({"wkhighlight_settings":settings});
+		
+					// setup css vars
+					const appearance = settings["appearance"];
+					const documentStyle = document.documentElement.style;
+					documentStyle.setProperty('--highlight-default-color', appearance["highlight_learned"]);
+					documentStyle.setProperty('--notLearned-color', appearance["highlight_not_learned"]);
+					documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
+					documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
+					documentStyle.setProperty('--vocab-tag-color', appearance["vocab_color"]);
+					Object.values(srsStages).map(srs => srs["short"].toLowerCase())
+						.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
 
-						document.body.style.cursor = "progress";
-						chrome.storage.local.get(["wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons"], response => {
-							const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatDate(new Date());
+					document.body.style.cursor = "progress";
+					chrome.storage.local.get(["wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons"], response => {
+						const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatDate(new Date());
 
-							modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
-								.then(modified => {
-									const userInfo = result["wkhighlight_userInfo"]["data"];
+						modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
+							.then(modified => {
+								const userInfo = result["wkhighlight_userInfo"]["data"];
 
-									// if user info has been updated in wanikani, then update cache
-									if (!userInfo || modified)
-										fetchUserInfo(apiKey)
-										
-									if (userInfo) {
-										// get user avatar
-										fetch("https://www.wanikani.com/users/"+userInfo["username"])
-											.then(result => result.text())
-											.then(content => {
-												const parser = new DOMParser();
-												const doc = parser.parseFromString(content, 'text/html');
-												const avatarElem = doc.getElementsByClassName("avatar user-avatar-default")[0];
-												
-												// remove loading animation
-												loadingElem.remove();
-												clearInterval(loadingVal[1]);	
+								// if user info has been updated in wanikani, then update cache
+								if (!userInfo || modified)
+									fetchUserInfo(apiKey)
+									
+								if (userInfo) {
+									// get user avatar
+									fetch("https://www.wanikani.com/users/"+userInfo["username"])
+										.then(result => result.text())
+										.then(content => {
+											const parser = new DOMParser();
+											const doc = parser.parseFromString(content, 'text/html');
+											const avatarElem = doc.getElementsByClassName("avatar user-avatar-default")[0];
+											
+											// remove loading animation
+											loadingElem.remove();
+											clearInterval(loadingVal[1]);	
 
-												const userInfoWrapper = document.createElement("div");
-												userInfoWrapper.id = "userInfoWrapper";
-												main.appendChild(userInfoWrapper);
-					
-												// scripts uptime
-												// const scriptsUptimeWrapper = document.createElement("div");
-												// userInfoWrapper.appendChild(scriptsUptimeWrapper);
-												// scriptsUptimeWrapper.title = "Scripts Uptime Status";
-												// scriptsUptimeWrapper.id = "scriptsUptime";
-												// const scriptsUptimeUl = document.createElement("ul");
-												// scriptsUptimeWrapper.appendChild(scriptsUptimeUl);
-												// chrome.tabs.query({currentWindow: true, active: true}, tabs => {
-												// 	["Highlighter", "Details Popup"].forEach(script => {
-												// 		const scriptsUptimeLi = document.createElement("li");
-												// 		scriptsUptimeUl.appendChild(scriptsUptimeLi);
-												// 		scriptsUptimeLi.appendChild(document.createTextNode(script));
-												// 		const scriptsUptimeSignal = document.createElement("div");
-												// 		scriptsUptimeLi.appendChild(scriptsUptimeSignal);
+											const userInfoWrapper = document.createElement("div");
+											userInfoWrapper.id = "userInfoWrapper";
+											main.appendChild(userInfoWrapper);
+				
+											// messages if at wanikani or site blacklisted
+											if (atWanikani) userInfoWrapper.appendChild(enhancedWarning("Limited features at wanikani, sorry!", "var(--wanikani)"));
+											else if (blacklisted_site) userInfoWrapper.appendChild(enhancedWarning("Site blacklisted by you!", "red"));
 
-												// 		chrome.tabs.sendMessage(tabs[0].id, {uptime: script}, response => {
-												// 			if (response) scriptsUptimeSignal.style.backgroundColor = "#80fd80";
-												// 		});
-												// 	});
-												// });
+											// scripts uptime
+											const scriptsUptimeWrapper = document.createElement("div");
+											userInfoWrapper.appendChild(scriptsUptimeWrapper);
+											scriptsUptimeWrapper.title = "Scripts Uptime Status";
+											scriptsUptimeWrapper.id = "scriptsUptime";
+											const scriptsUptimeUl = document.createElement("ul");
+											scriptsUptimeWrapper.appendChild(scriptsUptimeUl);
+											chrome.tabs.query({currentWindow: true, active: true}, tabs => {
+												["Highlighter", "Details Popup"].forEach(script => {
+													const scriptsUptimeLi = document.createElement("li");
+													scriptsUptimeUl.appendChild(scriptsUptimeLi);
+													scriptsUptimeLi.appendChild(document.createTextNode(script));
+													const scriptsUptimeSignal = document.createElement("div");
+													scriptsUptimeLi.appendChild(scriptsUptimeSignal);
 
-												const topRightNavbar = document.createElement("div");
-												userInfoWrapper.appendChild(topRightNavbar);
-												topRightNavbar.id = "topRightNavbar";
-												["../images/settings.png"].forEach(img => {
+													chrome.tabs.sendMessage(tabs[0].id, {uptime: script}, response => {
+														if (response) scriptsUptimeSignal.style.backgroundColor = "#80fd80";
+													});
+												});
+											});
+
+											document.body.style.minHeight = "365px";
+
+											// hide navbar icons and logo wrapper
+											Array.from(document.getElementsByClassName("navbar_icon"))
+												.forEach(icon => icon.style.display = "none");
+											const logoWrapper = document.getElementById("logoWrapper");
+											if (logoWrapper) logoWrapper.style.display = "none";
+
+											// side panel
+											const container = document.createElement("div");
+											document.body.appendChild(container);
+											document.body.style.paddingRight = "40px";
+											container.classList.add("side-panel");
+											const avatarWrapper = document.createElement("div");
+											container.appendChild(avatarWrapper);
+											avatarWrapper.style.marginTop = "10px";
+											const avatarLink = document.createElement("a");
+											avatarWrapper.appendChild(avatarLink);
+											avatarLink.href = userInfo["profile_url"];
+											avatarLink.title = userInfo["username"];
+											avatarLink.target = "_blank";
+											const avatar = document.createElement("img");
+											avatarLink.appendChild(avatar);
+											avatar.src = avatarElem ? "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0] : "/images/wanikani-default.png";
+											const level = document.createElement("p");
+											container.appendChild(level);
+											level.style.fontWeight = "bold";
+											level.style.color = "#ccc";
+											level.title = "Level";
+											level.appendChild(document.createTextNode(userInfo["level"]));
+
+											const ul = document.createElement("ul");
+											container.appendChild(ul);
+
+											chrome.storage.local.get(["wkhighlight_settings"], result => {
+												let buttons = ["../images/settings.png", "../images/search.png", "../images/blacklist.png", "../images/about.png", "../images/random.png", "../images/exit.png"];
+												if (blacklisted_site)
+													buttons = ["../images/settings.png", "../images/search.png", "../images/run.png", "../images/about.png", "../images/random.png", "../images/exit.png"];
+												if (atWanikani)
+													buttons = ["../images/settings.png", "../images/about.png", "../images/exit.png"];
+												buttons.forEach(img => {
+													const li = document.createElement("li");
+													ul.appendChild(li);
+													li.style.position = "relative";
 													const link = document.createElement("a");
+													li.appendChild(link);
 													link.style.padding = "0 5px";
 													link.href = "#";
 													link.classList.add("navbar_icon");
+													link.addEventListener("click", () => {
+														const sidePanelLogo = document.getElementById("side-panel-logo");
+														if (sidePanelLogo && container.classList.contains("side-panel-focus")) {
+															sidePanelLogo.dispatchEvent(new MouseEvent("click", {
+																"view": window,
+																"bubbles": true,
+																"cancelable": false
+															}));
+														}
+													});
 													const icon_img = document.createElement("img");
 													icon_img.id = img.split("/")[2].split(".")[0];
 													icon_img.src = img;
 													icon_img.title = icon_img.id[0].toUpperCase()+icon_img.id.slice(1);
+													icon_img.style.width = "20px";
 													link.appendChild(icon_img);
-													topRightNavbar.appendChild(link);
-												});
 
-												const userElementsList = document.createElement("ul");
-												userElementsList.id = "userInfoNavbar";
-												userInfoWrapper.appendChild(userElementsList);
-					
-												const accInfoWrapper = document.createElement("li");
-												userElementsList.appendChild(accInfoWrapper);
-												accInfoWrapper.style.display = "flex";
-
-												const avatarWrapper = document.createElement("div");
-												accInfoWrapper.appendChild(avatarWrapper);
-												avatarWrapper.style.paddingRight = "5px";
-												avatarWrapper.style.margin = "auto";
-												const avatar = document.createElement("img");
-												avatarWrapper.appendChild(avatar);
-												avatar.src = avatarElem ? "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0] : "/images/wanikani-default.png";
-												avatar.style.width = "30px";
-												avatar.style.borderRadius = "15px";
-
-												const accInfo = document.createElement("ul");
-												accInfoWrapper.appendChild(accInfo);
-												accInfo.style.width = "100%";
-												const profile = document.createElement("li");
-												profile.innerHTML = `<a href="${userInfo["profile_url"]}" target="_blank">${userInfo["username"]}</a>`;
-												profile.title = "Go to WaniKani Profile";
-												accInfo.appendChild(profile);												
-												const level = document.createElement("li");
-												level.style.display = "flex";
-												const div1 = document.createElement("div");
-												level.appendChild(div1);
-												div1.style.width = "100%";
-												div1.innerHTML = `Level: <strong>${userInfo["level"]}</strong> / ${userInfo["subscription"]["max_level_granted"]}`;
-												const div2 = document.createElement("div");
-												level.appendChild(div2);
-												div2.id = "levelBarWrapper";
-												const levelBar = document.createElement("div");
-												div2.appendChild(levelBar);
-												setTimeout(() => levelBar.style.width = (userInfo["level"]/userInfo["subscription"]["max_level_granted"])*100+"%", 100);
-												levelBar.id = "levelBar";
-												accInfo.appendChild(level);
-
-												// burger menu
-												const burgerWrapper = document.createElement("div");
-												topRightNavbar.appendChild(burgerWrapper);
-												burgerWrapper.title = "Menu";
-												burgerWrapper.classList.add("clickable", "burger-menu");
-												for (let i = 0; i < 3; i++) {
-													burgerWrapper.appendChild(document.createElement("div"));
-												}
-												
-												burgerWrapper.addEventListener("click", () => {
-													if (!burgerWrapper.classList.contains("burger-menu-clicked")) {
-														burgerWrapper.classList.add("burger-menu-clicked");
-														sidePanelOn = true;
-
-														chrome.storage.local.set({"wkhighlight_burger_menu":true});
-
-														document.body.style.minHeight = "365px";
-
-														// hide navbar icons and logo wrapper
-														Array.from(document.getElementsByClassName("navbar_icon"))
-															.forEach(icon => icon.style.display = "none");
-														const logoWrapper = document.getElementById("logoWrapper");
-														if (logoWrapper) logoWrapper.style.display = "none";
-
-														// side panel
-														const container = document.createElement("div");
-														document.body.appendChild(container);
-														document.body.style.paddingRight = "40px";
-														container.classList.add("side-panel");
-														const avatarWrapper = document.createElement("div");
-														container.appendChild(avatarWrapper);
-														avatarWrapper.style.marginTop = "10px";
-														const avatarLink = document.createElement("a");
-														avatarWrapper.appendChild(avatarLink);
-														avatarLink.href = userInfo["profile_url"];
-														avatarLink.title = userInfo["username"];
-														avatarLink.target = "_blank";
-														const avatar = document.createElement("img");
-														avatarLink.appendChild(avatar);
-														avatar.src = avatarElem ? "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0] : "/images/wanikani-default.png";
-														const level = document.createElement("p");
-														container.appendChild(level);
-														level.style.fontWeight = "bold";
-														level.style.color = "#ccc";
-														level.title = "Level";
-														level.appendChild(document.createTextNode(userInfo["level"]));
-
-														const ul = document.createElement("ul");
-														container.appendChild(ul);
-
-														chrome.storage.local.get(["wkhighlight_settings"], result => {
-															const buttons = !atWanikani ? ["../images/settings.png", "../images/search.png", "../images/blacklist.png", "../images/about.png", "../images/random.png", "../images/exit.png"] : ["../images/settings.png", "../images/about.png", "../images/exit.png"];
-															buttons.forEach(img => {
-																const li = document.createElement("li");
-																ul.appendChild(li);
-																li.style.position = "relative";
-																const link = document.createElement("a");
-																li.appendChild(link);
-																link.style.padding = "0 5px";
-																link.href = "#";
-																link.classList.add("navbar_icon");
-																link.addEventListener("click", () => {
-																	const sidePanelLogo = document.getElementById("side-panel-logo");
-																	if (sidePanelLogo && container.classList.contains("side-panel-focus")) {
-																		sidePanelLogo.dispatchEvent(new MouseEvent("click", {
-																			"view": window,
-																			"bubbles": true,
-																			"cancelable": false
-																		}));
-																	}
-																});
-																const icon_img = document.createElement("img");
-																icon_img.id = img.split("/")[2].split(".")[0];
-																icon_img.src = img;
-																icon_img.title = icon_img.id[0].toUpperCase()+icon_img.id.slice(1);
-																icon_img.style.width = "20px";
-																link.appendChild(icon_img);
-	
-																if (icon_img.title === "Random") {
-																	icon_img.setAttribute("data-item-id", "rand");
-																	icon_img.classList.add("kanjiDetails");
-																	
-																	const settings = result["wkhighlight_settings"];
-																	if (settings && settings["kanji_details_popup"] && settings["kanji_details_popup"]["random_subject"]) {
-																		const type = document.createElement("span");
-																		link.appendChild(type);
-																		type.id = "random-subject-type";
-																		type.appendChild(document.createTextNode(settings["kanji_details_popup"]["random_subject"].charAt(0)));
-
-																		if (settings["kanji_details_popup"]["random_subject"] == "Any") {
-																			type.style.removeProperty("background-color");
-																			type.style.removeProperty("filter");
-																		}
-																		else if (settings["kanji_details_popup"]["random_subject"] == "Kanji") {
-																			icon_img.setAttribute("data-item-id", "rand-kanji");
-																			type.style.backgroundColor = "var(--kanji-tag-color)";
-																			type.style.filter = "invert(1)";
-																		}
-																		else if (settings["kanji_details_popup"]["random_subject"] == "Vocabulary") {
-																			icon_img.setAttribute("data-item-id", "rand-vocab");
-																			type.style.backgroundColor = "var(--vocab-tag-color)";
-																			type.style.filter = "invert(1)";
-																		}
-																	}	
-																}
-															});
+													if (icon_img.title === "Blacklist") {
+														chrome.storage.local.get(["wkhighlight_blacklist"], data => {
+															let blacklisted = data["wkhighlight_blacklist"];
+															if (blacklisted) {
+																const nmrBlacklisted = document.createElement("span");
+																link.appendChild(nmrBlacklisted);
+																nmrBlacklisted.classList.add("side-panel-info-alert");
+																nmrBlacklisted.style.backgroundColor = "red";
+																nmrBlacklisted.style.color = "white";
+																nmrBlacklisted.style.filter = "invert(1)";
+																nmrBlacklisted.appendChild(document.createTextNode(blacklisted.length));
+															}
 														});
+													}
+
+													if (icon_img.title === "Random") {
+														icon_img.setAttribute("data-item-id", "rand");
+														icon_img.classList.add("kanjiDetails");
 														
+														const settings = result["wkhighlight_settings"];
+														if (settings && settings["kanji_details_popup"] && settings["kanji_details_popup"]["random_subject"]) {
+															const type = document.createElement("span");
+															link.appendChild(type);
+															type.id = "random-subject-type";
+															type.classList.add("side-panel-info-alert");
+															type.appendChild(document.createTextNode(settings["kanji_details_popup"]["random_subject"].charAt(0)));
 
-														if (atWanikani && notRunAtWK) {
-															notRunAtWK.style.textAlign = "right";
-															notRunAtWK.style.borderBottom = "0px";
-															notRunAtWK.style.borderLeft = "10px solid";
-														}
-
-														const exitIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Exit")[0];
-														if (exitIcon) exitIcon.style.paddingLeft = "3px";
-
-														const blacklistIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Blacklist")[0];
-														if (blacklistIcon) blacklistIcon.style.paddingRight = "3px";
-
-														const logoDiv = document.createElement("div");
-														container.appendChild(logoDiv);
-														logoDiv.id = "side-panel-logo";
-														logoDiv.classList.add("clickable");
-														logoDiv.addEventListener("click", () => {
-															if (!container.classList.contains("side-panel-focus")) {
-																container.classList.add("side-panel-focus");
-																
-																Array.from(document.getElementsByClassName("navbar_icon"))
-																	.filter(icon => icon.style.display !== "none")
-																	.forEach(icon => {
-																		const label = document.createElement("p");
-																		icon.appendChild(label);
-																		label.style.pointerEvents = "none";
-																		label.appendChild(document.createTextNode(icon.getElementsByTagName("img")[0].title));
-																	});
+															if (settings["kanji_details_popup"]["random_subject"] == "Any") {
+																type.style.removeProperty("background-color");
+																type.style.removeProperty("filter");
 															}
-															else {
-																container.classList.remove("side-panel-focus");
-																Array.from(document.getElementsByClassName("navbar_icon"))
-																	.filter(icon => icon.style.display !== "none")
-																	.forEach(icon => {
-																		icon.getElementsByTagName("p")[0].remove();
-																	});
+															else if (settings["kanji_details_popup"]["random_subject"] == "Kanji") {
+																icon_img.setAttribute("data-item-id", "rand-kanji");
+																type.style.backgroundColor = "var(--kanji-tag-color)";
+																type.style.filter = "invert(1)";
 															}
+															else if (settings["kanji_details_popup"]["random_subject"] == "Vocabulary") {
+																icon_img.setAttribute("data-item-id", "rand-vocab");
+																type.style.backgroundColor = "var(--vocab-tag-color)";
+																type.style.filter = "invert(1)";
+															}
+														}	
+													}
+												});
+											});
+
+											const exitIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Exit")[0];
+											if (exitIcon) exitIcon.style.paddingLeft = "3px";
+
+											const blacklistIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Blacklist")[0];
+											if (blacklistIcon) blacklistIcon.style.paddingRight = "3px";
+
+											const logoDiv = document.createElement("div");
+											container.appendChild(logoDiv);
+											logoDiv.id = "side-panel-logo";
+											logoDiv.classList.add("clickable");
+											logoDiv.addEventListener("click", () => {
+												if (!container.classList.contains("side-panel-focus")) {
+													container.classList.add("side-panel-focus");
+													
+													Array.from(document.getElementsByClassName("navbar_icon"))
+														.filter(icon => icon.style.display !== "none")
+														.forEach(icon => {
+															const label = document.createElement("p");
+															icon.appendChild(label);
+															label.style.pointerEvents = "none";
+															label.appendChild(document.createTextNode(icon.getElementsByTagName("img")[0].title));
 														});
-														const logo = document.createElement("img");
-														logo.src="logo/logo.png";
-														logo.style.pointerEvents = "none";
-														logoDiv.appendChild(logo);
-
-														burgerWrapper.title = "Close Menu";
-														accInfoWrapper.style.display = "none";
-
-														document.getElementById("footer").style.display = "none";
-													}
-													else {
-														burgerWrapper.classList.remove("burger-menu-clicked");
-														sidePanelOn = false;
-
-														chrome.storage.local.set({"wkhighlight_burger_menu":false});
-
-														document.body.style.removeProperty("min-height");
-
-														document.body.style.removeProperty("padding-right");
-														document.getElementsByClassName("side-panel")[0]?.remove();
-
-														// show navbar icons and logo wrapper
-														Array.from(document.getElementsByClassName("navbar_icon"))
-															.forEach(icon => icon.style.removeProperty("display"));
-														const logoWrapper = document.getElementById("logoWrapper");
-														if (logoWrapper) logoWrapper.style.removeProperty("display");
-
-														if (atWanikani) {
-															if (notRunAtWK) {
-																notRunAtWK.style.removeProperty("text-align");
-																notRunAtWK.style.removeProperty("border-bottom");
-																notRunAtWK.style.removeProperty("border-left");
-															}
-														}
-
-														burgerWrapper.title = "Menu";
-														accInfoWrapper.style.display = "flex";
-
-														document.getElementById("footer").style.removeProperty("display");
-													}
-												});
-
-												chrome.storage.local.get(["wkhighlight_burger_menu"], result => {
-													if (result["wkhighlight_burger_menu"]) {
-														burgerWrapper.dispatchEvent(new MouseEvent("click", {
-															"view": window,
-															"bubbles": true,
-															"cancelable": false
-														}));
-														accInfoWrapper.style.display = "none";
-													}
-												});
-
-												const kanjiFoundWrapper = document.createElement("li");
-												userElementsList.appendChild(kanjiFoundWrapper);
-												kanjiFoundWrapper.classList.add("resizable");
-												kanjiFoundWrapper.style.maxHeight = defaultSettings["sizes"]["highlighted_kanji_height"]+"px";
-												chrome.storage.local.get(["wkhighlight_settings"], result => {
-													if (result["wkhighlight_settings"] && result["wkhighlight_settings"]["sizes"])
-														kanjiFoundWrapper.style.maxHeight = result["wkhighlight_settings"]["sizes"]["highlighted_kanji_height"]+"px";
-												});
-												kanjiFoundWrapper.setAttribute("data-settings", "sizes-highlighted_kanji_height");
-												const resizableS = document.createElement("div");
-												kanjiFoundWrapper.appendChild(resizableS);
-												resizableS.classList.add("resizable-s");
-												const kanjiFound = document.createElement("div");
-												kanjiFoundWrapper.appendChild(kanjiFound);
-												const kanjiFoundBar = document.createElement("div");
-												kanjiFoundWrapper.appendChild(kanjiFoundBar);
-												const kanjiFoundList = document.createElement("div");
-												kanjiFoundWrapper.appendChild(kanjiFoundList);
-
-												const summaryWrapper = document.createElement("li");
-												userElementsList.appendChild(summaryWrapper);
-												summaryWrapper.style.textAlign = "center";
-												const summaryUl = document.createElement("ul");
-												summaryWrapper.appendChild(summaryUl);
-												summaryUl.style.display = "inline-flex";
-												summaryUl.style.width = "100%";
-												["Lessons", "Reviews"].forEach(topic => {
-													const summaryLi = document.createElement("li");
-													summaryUl.appendChild(summaryLi);
-													summaryLi.style.width = "100%";
-													summaryLi.style.color = "white";
-
-													const titleWrapper = document.createElement("div");
-													summaryLi.appendChild(titleWrapper);
-													titleWrapper.classList.add("summaryTitle");
-													titleWrapper.title = topic+" in WaniKani";
-													const title = document.createElement("a");
-													titleWrapper.appendChild(title);
-													title.appendChild(document.createTextNode(topic));
-													title.href = "https://www.wanikani.com/"+topic[0].toLowerCase()+topic.slice(1, -1);
-													title.target = "_blank";
-													title.style.color = "white";
-
-													const value = document.createElement("div");
-													summaryLi.appendChild(value);
-													value.appendChild(document.createTextNode("0"));
-													value.classList.add("summaryValue", "clickable");
-													value.style.backgroundColor = topic == "Lessons" ? "#4f7b61" : "#2c7080";
-													value.id = "summary"+topic;
-												});
-
-												const reviewsLoadingVal = loading([], [], 25);
-												const reviewsLoadingElem = reviewsLoadingVal[0];
-												summaryWrapper.appendChild(reviewsLoadingElem);
-
-												const moreReviews = document.createElement("p");
-												summaryWrapper.appendChild(moreReviews);
-												moreReviews.style.padding = "3px 0";
-												moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
-												const moreReviewsDate  = document.createElement("p");
-												summaryWrapper.appendChild(moreReviewsDate);
-												moreReviewsDate.style.padding = "3px 0";
-
-												if (!atWanikani) {	
-													atWanikani = false;				
-													const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchSubject);
-													searchArea.title = "Search subjects";
-													chrome.storage.local.get(["wkhighlight_contextMenuSelectedText"], result => {
-														const selectedText = result["wkhighlight_contextMenuSelectedText"];
-														if (selectedText) {
-															const input = [...searchArea.firstChild.childNodes].filter(child => child.tagName == "INPUT")[0];
-															input.value = selectedText;
-															const userInfoNav = document.getElementById("userInfoNavbar");
-															if (userInfoNav)
-																userInfoNav.style.display = "none";
-
-															document.getElementById("kanjiSearchInput").click();
-															if (kanjiList.length == 0 || vocabList.length == 0) {
-																document.body.style.setProperty("cursor", "progress", "important");
-																loadItemsLists(() => {
-																	document.body.style.cursor = "inherit";
-																	searchSubject(input)
-																});
-															}
-															else
-																searchSubject(input);
-																
-															chrome.storage.local.remove(["wkhighlight_contextMenuSelectedText"]);
-															chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
-																chrome.browserAction.setBadgeText({text: result["wkhighlight_nmrHighLightedKanji"].toString(), tabId:activeTab.id});
-																chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:activeTab.id});
-															});
-														}
-													});
-
-													chrome.tabs.query({currentWindow: true, active: true}, tabs => {
-														chrome.tabs.sendMessage(tabs[0].id, {nmrKanjiHighlighted:"popup"}, response => {
-															if (response) {
-																chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
-																	const learned = response["learned"];
-																	const notLearned = response["notLearned"];
-
-																	kanjiFound.id = "nmrKanjiHighlighted";
-																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong></strong> (in the page)`;
-
-																	const barData = [
-																		{
-																			link: "learnedKanji",
-																			color: "var(--highlight-default-color)",
-																			value: learned.length
-																		},
-																		{
-																			link: "notLearnedKanji",
-																			color: "var(--notLearned-color)",
-																			value: notLearned.length
-																		}
-																	];
-
-																	kanjiFoundBar.parentElement.replaceChild(itemsListBar(barData), kanjiFoundBar);
-
-																	kanjiFoundList.id = "kanjiHighlightedList";
-																	kanjiFoundList.classList.add("simple-grid");
-																	const kanjiFoundUl = document.createElement("ul");
-																	kanjiFoundList.appendChild(kanjiFoundUl);
-
-																	const kanjiAssoc = result["wkhighlight_kanji_assoc"];
-																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${response["nmrKanjiHighlighted"]}</strong> (in the page)`;
-			
-																	const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned"];
-																	[learned, notLearned].forEach((type, i) => {
-																		type.forEach(kanji => {
-																			const kanjiFoundLi = document.createElement("li");
-																			kanjiFoundUl.appendChild(kanjiFoundLi);
-																			kanjiFoundLi.classList.add("clickable", "kanjiDetails", classes[i]);
-																			kanjiFoundLi.appendChild(document.createTextNode(kanji));
-																			if (kanjiAssoc && kanjiAssoc[kanji]) kanjiFoundLi.setAttribute("data-item-id", kanjiAssoc[kanji]);
-																		});
-																	});
-																});
-															}
-														});
-													});
-
-													topRightNavbar.insertBefore(searchArea, topRightNavbar.firstChild);
-													const searchWrapper = searchArea.firstChild;
-													const searchTypeWrapper = document.createElement("div");
-													searchWrapper.appendChild(searchTypeWrapper);
-													searchTypeWrapper.classList.add("kanjiSearchTypeWrapper");
-													searchTypeWrapper.title = "Kana";
-													searchTypeWrapper.id = "kanjiSearchTypeKana";
-													const searchType = document.createElement("span");
-													searchTypeWrapper.appendChild(searchType);
-													searchType.id = "kanjiSearchType";
-													searchType.appendChild(document.createTextNode("あ"));
+													
+													Array.from(document.getElementsByClassName("side-panel-info-alert"))
+														.forEach(div => div.style.left = "19px");
 												}
 												else {
-													atWanikani = true;
+													container.classList.remove("side-panel-focus");
+													Array.from(document.getElementsByClassName("navbar_icon"))
+														.filter(icon => icon.style.display !== "none")
+														.forEach(icon => {
+															icon.getElementsByTagName("p")[0].remove();
+														});
 
-													topRightNavbar.style.position = "absolute";
-													topRightNavbar.style.right = "0";
-													topRightNavbar.style.top = "7px";
-
-													const notRunAtWK = document.createElement("li");
-													notRunAtWK.appendChild(document.createTextNode("Limited features @wanikani, sorry!"));
-													notRunAtWK.id = "notRunAtWK";
-													userElementsList.appendChild(notRunAtWK);
+													Array.from(document.getElementsByClassName("side-panel-info-alert"))
+														.forEach(div => {
+															div.style.removeProperty("left");
+															div.style.display = "none";
+															setTimeout(() => div.style.removeProperty("display"), 300);
+														});
+													
 												}
+											});
+											const logo = document.createElement("img");
+											logo.src="logo/logo.png";
+											logo.style.pointerEvents = "none";
+											logoDiv.appendChild(logo);
 
-												if (!atWanikani) {
-													const blacklistButtonWrapper = document.createElement("div");
-													document.getElementById("footer").insertBefore(blacklistButtonWrapper, document.getElementById("footer").children[0]);
-													blacklistButtonWrapper.id = "blacklistButtonWrapper";
-													const blacklistButton = document.createElement("div");
-													blacklistButton.id = "blacklistButton";
-													blacklistButtonWrapper.appendChild(blacklistButton);
-													blacklistButton.classList.add("button");
-													blacklistButton.appendChild(document.createTextNode("Don't Run On This Site"));
-												}
-
-												// get all assignments if there are none in storage or if they were modified
-												setupAssignments(apiKey, () => setupAvailableAssignments(apiKey, setupSummary));
-										
-												const setupSummary = (reviews, lessons) => {
-													if (reviews) {
-														const currentTime = new Date().getTime();
+											if (!atWanikani) {
+												if (!blacklisted_site) {
+													const kanjiFoundWrapper = document.createElement("div");
+													userInfoWrapper.appendChild(kanjiFoundWrapper);
+													kanjiFoundWrapper.classList.add("resizable", "highlightedKanjiContainer");
+													kanjiFoundWrapper.style.maxHeight = defaultSettings["sizes"]["highlighted_kanji_height"]+"px";
+													chrome.storage.local.get(["wkhighlight_settings"], result => {
+														if (result["wkhighlight_settings"] && result["wkhighlight_settings"]["sizes"])
+															kanjiFoundWrapper.style.maxHeight = result["wkhighlight_settings"]["sizes"]["highlighted_kanji_height"]+"px";
+													});
+													kanjiFoundWrapper.setAttribute("data-settings", "sizes-highlighted_kanji_height");
+													const resizableS = document.createElement("div");
+													kanjiFoundWrapper.appendChild(resizableS);
+													resizableS.classList.add("resizable-s");
+													const kanjiFound = document.createElement("div");
+													kanjiFoundWrapper.appendChild(kanjiFound);
+													const kanjiFoundBar = document.createElement("div");
+													kanjiFoundWrapper.appendChild(kanjiFoundBar);
+													const kanjiFoundList = document.createElement("div");
+													kanjiFoundWrapper.appendChild(kanjiFoundList);
+	
+													chrome.tabs.query({currentWindow: true, active: true}, tabs => {
+														chrome.tabs.sendMessage(tabs[0].id, {nmrKanjiHighlighted:"popup"}, response => {
+															chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
+																let learned = [], notLearned = [];
+																if (response) {
+																	learned = response["learned"];
+																	notLearned = response["notLearned"];
+																}
+	
+																kanjiFound.id = "nmrKanjiHighlighted";
+																kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong></strong> (in the page)`;
 														
-														const currentValue = parseInt(document.getElementById("summaryReviews").innerText);
-														if (currentValue === 0)
-															document.getElementById("summaryReviews").innerText = reviews["count"] ? reviews["count"] : 0;
-														else {
-															if (reviews["count"] && typeof currentValue === "number" && !isNaN(currentTime) && reviews["count"] != lastReviewsValue) {
-																counterAnimation(currentValue, reviews["count"], document.getElementById("summaryReviews"), 5);
-																lastReviewsValue = reviews["count"];
-															}	
-														}												
+																const barData = [
+																	{
+																		link: "learnedKanji",
+																		color: "var(--highlight-default-color)",
+																		value: learned.length
+																	},
+																	{
+																		link: "notLearnedKanji",
+																		color: "var(--notLearned-color)",
+																		value: notLearned.length
+																	}
+																];
+	
+																kanjiFoundBar.parentElement.replaceChild(itemsListBar(barData), kanjiFoundBar);
+	
+																kanjiFoundList.id = "kanjiHighlightedList";
+																const parentMaxHeight = kanjiFoundList.parentElement.style.maxHeight;
+																kanjiFoundList.style.maxHeight = (Number(parentMaxHeight.substring(0, parentMaxHeight.length-2))-40)+"px";
+																kanjiFoundList.classList.add("simple-grid");
+																const kanjiFoundUl = document.createElement("ul");
+																kanjiFoundList.appendChild(kanjiFoundUl);
+	
+																const kanjiAssoc = result["wkhighlight_kanji_assoc"];
+																kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${response ? response["nmrKanjiHighlighted"] : 0}</strong> (in the page)`;
 		
-														// get all the reviews for the next 14 days
-														const nextReviews = reviews["next_reviews"];
-														const hoursIn14Days = 24*14;
-														// check reviews for the next hours, for every exact hour
-														for (let i = 1; i < hoursIn14Days; i++) {
-															const thisDate = nextExactHour(new Date(), i);
-															const reviewsForNextHour = filterAssignmentsByTime(nextReviews, new Date(), thisDate);
-															if (reviewsForNextHour.length > 0) {
-																const remainingTime = msToTime(thisDate - currentTime);
-																moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
-																chrome.storage.local.get(["wkhighlight_settings"], result => {
-																	const settings = result["wkhighlight_settings"];
-																	let time = `${thisDate.getHours() < 10 ? "0"+thisDate.getHours() : thisDate.getHours()}:${thisDate.getMinutes() < 10 ? "0"+thisDate.getMinutes() : thisDate.getMinutes()}`;
-																	if (settings && settings["miscellaneous"]["time_in_12h_format"])
-																		time = time12h(time);
-																	moreReviewsDate.innerText = `${thisDate.getMonthName().slice(0, 3)} ${thisDate.getDate() < 10 ? "0"+thisDate.getDate() : thisDate.getDate()}, ${time}`;
+																const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned"];
+																[learned, notLearned].forEach((type, i) => {
+																	type.forEach(kanji => {
+																		const kanjiFoundLi = document.createElement("li");
+																		kanjiFoundUl.appendChild(kanjiFoundLi);
+																		kanjiFoundLi.classList.add("clickable", "kanjiDetails", classes[i]);
+																		kanjiFoundLi.appendChild(document.createTextNode(kanji));
+																		if (kanjiAssoc && kanjiAssoc[kanji]) kanjiFoundLi.setAttribute("data-item-id", kanjiAssoc[kanji]);
+																	});
 																});
-																// create interval delay
-																// 10% of a day are 8640000 milliseconds
-																// 10% of an hour are 360000 milliseconds
-																// 10% of a minute are 6000 milliseconds
-																// 10% of a second are 100 milliseconds
-																const delays = {
-																	"Days":8640000,
-																	"Hrs":360000,
-																	"Min":6000,
-																	"Sec":100
+															
+																if (learned.length == 0 && notLearned.length == 0) {
+																	kanjiFoundUl.style.position = "relative";
+																	const kanjiModel = document.createElement("p");
+																	kanjiFoundUl.appendChild(kanjiModel);
+																	const randHex = rand(parseInt("4e00", 16), parseInt("9faf", 16)).toString(16);
+																	kanjiModel.appendChild(document.createTextNode(String.fromCharCode(`0x${randHex}`)));
+																	kanjiModel.style.textAlign = "center";
+																	kanjiModel.style.paddingBottom = "12px";
+																	kanjiModel.style.color = "#d8d8d8";
+																	kanjiModel.style.fontSize = "52px";
+																	kanjiModel.style.marginTop = "-10px";
+																	const noKanjiFound = document.createElement("p");
+																	kanjiFoundUl.appendChild(noKanjiFound);
+																	noKanjiFound.appendChild(document.createTextNode("No Kanji from Wanikani found in the current page."));
+																	noKanjiFound.style.textAlign = "center";
+																	noKanjiFound.style.padding = "0 5px";
+																	noKanjiFound.style.color = "silver";
+																	noKanjiFound.style.fontSize = "13px";
+																	const notFoundSlash = document.createElement("div");
+																	kanjiFoundUl.appendChild(notFoundSlash);
+																	notFoundSlash.classList.add("notFoundKanjiSlash");
 																}
+															});
+														});
+													});
+												}
 
-																// timeUnit = "Days, Hrs, etc..."
-																let timeUnit = remainingTime.split(" ")[1];
+												const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchSubject);
+												searchArea.title = "Search subjects";
+												chrome.storage.local.get(["wkhighlight_contextMenuSelectedText"], result => {
+													const selectedText = result["wkhighlight_contextMenuSelectedText"];
+													if (selectedText) {
+														const input = [...searchArea.firstChild.childNodes].filter(child => child.tagName == "INPUT")[0];
+														input.value = selectedText;
+														const userInfoNav = document.getElementById("userInfoNavbar");
+														if (userInfoNav)
+															userInfoNav.style.display = "none";
 
-																const timeStampRefresher = () => {
-																	const newCurrentDate = new Date().getTime();
-																	const newTimeStamp = msToTime(thisDate - newCurrentDate);
-																	const newTimeUnit = newTimeStamp.split(" ")[1];
-																	// check if has changed the unit of time
-																	if (newTimeUnit != timeUnit) {
-																		timeUnit = newTimeUnit;
-																		// if so then clear the current interval
-																		clearInterval(timeStampInterval);
-																		// and start a new one with a new interval delay
-																		timeStampInterval = setInterval(timeStampRefresher, delays[newTimeUnit]);
-																	}
+														document.getElementById("kanjiSearchInput").click();
+														if (kanjiList.length == 0 || vocabList.length == 0) {
+															document.body.style.setProperty("cursor", "progress", "important");
+															loadItemsLists(() => {
+																document.body.style.cursor = "inherit";
+																searchSubject(input)
+															});
+														}
+														else
+															searchSubject(input);
+															
+														chrome.storage.local.remove(["wkhighlight_contextMenuSelectedText"]);
+														chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
+															chrome.browserAction.setBadgeText({text: result["wkhighlight_nmrHighLightedKanji"].toString(), tabId:activeTab.id});
+															chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:activeTab.id});
+														});
+													}
+												});
 
-																	// if time stamp reached 0
-																	if (thisDate <= newCurrentDate) {
-																		moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> <b class="refresh clickable">now</b>`;
-																		// refresh popup automatically
-																		setTimeout(() => window.location.reload(), 1000);
-																		clearInterval(timeStampInterval);
-																		return;
-																	}
+												userInfoWrapper.insertBefore(searchArea, userInfoWrapper.children[!blacklisted_site ? 1 : 2]);
+												const searchWrapper = searchArea.firstChild;
+												const searchTypeWrapper = document.createElement("div");
+												searchWrapper.appendChild(searchTypeWrapper);
+												searchTypeWrapper.classList.add("kanjiSearchTypeWrapper");
+												searchTypeWrapper.title = "Kana";
+												searchTypeWrapper.id = "kanjiSearchTypeKana";
+												const searchType = document.createElement("span");
+												searchTypeWrapper.appendChild(searchType);
+												searchType.id = "kanjiSearchType";
+												searchType.appendChild(document.createTextNode("あ"));
+											}
 
-																	// refresh time stamp
-																	moreReviews.getElementsByTagName("B")[1].innerText = newTimeStamp;
-																}
+											const summaryWrapper = document.createElement("div");
+											userInfoWrapper.appendChild(summaryWrapper);
+											summaryWrapper.style.textAlign = "center";
+											const summaryUl = document.createElement("ul");
+											summaryWrapper.appendChild(summaryUl);
+											summaryUl.style.display = "inline-flex";
+											summaryUl.style.width = "100%";
+											["Lessons", "Reviews"].forEach(topic => {
+												const summaryLi = document.createElement("li");
+												summaryUl.appendChild(summaryLi);
+												summaryLi.style.width = "100%";
+												summaryLi.style.color = "white";
 
-																let timeStampInterval = setInterval(timeStampRefresher, delays[timeUnit]);
-																// 10% of a minute are 6000 milliseconds
-																break;
+												const titleWrapper = document.createElement("div");
+												summaryLi.appendChild(titleWrapper);
+												titleWrapper.classList.add("summaryTitle");
+												titleWrapper.title = topic+" in WaniKani";
+												const title = document.createElement("a");
+												titleWrapper.appendChild(title);
+												title.appendChild(document.createTextNode(topic));
+												title.href = "https://www.wanikani.com/"+topic[0].toLowerCase()+topic.slice(1, -1);
+												title.target = "_blank";
+												title.style.color = "white";
+
+												const value = document.createElement("div");
+												summaryLi.appendChild(value);
+												value.appendChild(document.createTextNode("0"));
+												value.classList.add("summaryValue", "clickable");
+												value.style.backgroundColor = topic == "Lessons" ? "#4f7b61" : "#2c7080";
+												value.id = "summary"+topic;
+											});
+
+											const reviewsLoadingVal = loading([], [], 25);
+											const reviewsLoadingElem = reviewsLoadingVal[0];
+											summaryWrapper.appendChild(reviewsLoadingElem);
+
+											const moreReviews = document.createElement("p");
+											summaryWrapper.appendChild(moreReviews);
+											moreReviews.style.padding = "3px 0";
+											moreReviews.style.color = "black";
+											moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
+											const moreReviewsDate  = document.createElement("p");
+											summaryWrapper.appendChild(moreReviewsDate);
+											moreReviewsDate.style.padding = "3px 0";
+											moreReviewsDate.style.color = "black";
+
+											// get all assignments if there are none in storage or if they were modified
+											setupAssignments(apiKey, () => setupAvailableAssignments(apiKey, setupSummary));
+									
+											const setupSummary = (reviews, lessons) => {
+												if (reviews) {
+													const currentTime = new Date().getTime();
+													
+													const currentValue = parseInt(document.getElementById("summaryReviews").innerText);
+													if (currentValue === 0)
+														document.getElementById("summaryReviews").innerText = reviews["count"] ? reviews["count"] : 0;
+													else {
+														if (reviews["count"] && typeof currentValue === "number" && !isNaN(currentTime) && reviews["count"] != lastReviewsValue) {
+															counterAnimation(currentValue, reviews["count"], document.getElementById("summaryReviews"), 5);
+															lastReviewsValue = reviews["count"];
+														}	
+													}												
+	
+													// get all the reviews for the next 14 days
+													const nextReviews = reviews["next_reviews"];
+													const hoursIn14Days = 24*14;
+													// check reviews for the next hours, for every exact hour
+													for (let i = 1; i < hoursIn14Days; i++) {
+														const thisDate = nextExactHour(new Date(), i);
+														const reviewsForNextHour = filterAssignmentsByTime(nextReviews, new Date(), thisDate);
+														if (reviewsForNextHour.length > 0) {
+															const remainingTime = msToTime(thisDate - currentTime);
+															moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
+															chrome.storage.local.get(["wkhighlight_settings"], result => {
+																const settings = result["wkhighlight_settings"];
+																let time = `${thisDate.getHours() < 10 ? "0"+thisDate.getHours() : thisDate.getHours()}:${thisDate.getMinutes() < 10 ? "0"+thisDate.getMinutes() : thisDate.getMinutes()}`;
+																if (settings && settings["miscellaneous"]["time_in_12h_format"])
+																	time = time12h(time);
+																moreReviewsDate.innerText = `${thisDate.getMonthName().slice(0, 3)} ${thisDate.getDate() < 10 ? "0"+thisDate.getDate() : thisDate.getDate()}, ${time}`;
+															});
+															// create interval delay
+															// 10% of a day are 8640000 milliseconds
+															// 10% of an hour are 360000 milliseconds
+															// 10% of a minute are 6000 milliseconds
+															// 10% of a second are 100 milliseconds
+															const delays = {
+																"Days":8640000,
+																"Hrs":360000,
+																"Min":6000,
+																"Sec":100
 															}
+
+															// timeUnit = "Days, Hrs, etc..."
+															let timeUnit = remainingTime.split(" ")[1];
+
+															const timeStampRefresher = () => {
+																const newCurrentDate = new Date().getTime();
+																const newTimeStamp = msToTime(thisDate - newCurrentDate);
+																const newTimeUnit = newTimeStamp.split(" ")[1];
+																// check if has changed the unit of time
+																if (newTimeUnit != timeUnit) {
+																	timeUnit = newTimeUnit;
+																	// if so then clear the current interval
+																	clearInterval(timeStampInterval);
+																	// and start a new one with a new interval delay
+																	timeStampInterval = setInterval(timeStampRefresher, delays[newTimeUnit]);
+																}
+
+																// if time stamp reached 0
+																if (thisDate <= newCurrentDate) {
+																	moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> <b class="refresh clickable">now</b>`;
+																	// refresh popup automatically
+																	setTimeout(() => window.location.reload(), 1000);
+																	clearInterval(timeStampInterval);
+																	return;
+																}
+
+																// refresh time stamp
+																moreReviews.getElementsByTagName("B")[1].innerText = newTimeStamp;
+															}
+
+															let timeStampInterval = setInterval(timeStampRefresher, delays[timeUnit]);
+															// 10% of a minute are 6000 milliseconds
+															break;
 														}
 													}
-
-													if (lessons) {
-														const currentValue = parseInt(document.getElementById("summaryLessons").innerText);
-														if (currentValue === 0)
-															document.getElementById("summaryLessons").innerText = lessons["count"] ? lessons["count"] : 0;
-														else {
-															if (lessons["count"] && typeof currentValue === "number" && !isNaN(currentValue) && lessons["count"] != lastLessonsValue) {
-																counterAnimation(currentValue, lessons["count"], document.getElementById("summaryLessons"), 5);
-																lastLessonsValue = lessons["count"];
-															}	
-														}												
-													}
-													
-													reviewsLoadingElem.remove();
-													clearInterval(reviewsLoadingVal[1]);
 												}
 
-												reviews = response["wkhighlight_reviews"];
-												lessons = response["wkhighlight_lessons"];
+												if (lessons) {
+													const currentValue = parseInt(document.getElementById("summaryLessons").innerText);
+													if (currentValue === 0)
+														document.getElementById("summaryLessons").innerText = lessons["count"] ? lessons["count"] : 0;
+													else {
+														if (lessons["count"] && typeof currentValue === "number" && !isNaN(currentValue) && lessons["count"] != lastLessonsValue) {
+															counterAnimation(currentValue, lessons["count"], document.getElementById("summaryLessons"), 5);
+															lastLessonsValue = lessons["count"];
+														}	
+													}												
+												}
 												
-												setupAvailableAssignments(apiKey, setupSummary);
+												reviewsLoadingElem.remove();
+												clearInterval(reviewsLoadingVal[1]);
+											}
 
-												setupSummary(reviews, lessons);
-												
-											});
-									}
-								});
-						});
-						document.body.style.cursor = "inherit";
-				
-					}
-				}
-				else {
-					const blacklistWrapper = document.createElement("div");
-					main.appendChild(blacklistWrapper);
+											reviews = response["wkhighlight_reviews"];
+											lessons = response["wkhighlight_lessons"];
+											
+											setupAvailableAssignments(apiKey, setupSummary);
 
-					const warningWrapper = document.createElement("div");
-					blacklistWrapper.appendChild(warningWrapper);
-					warningWrapper.id = "warningWrapper";
-					const exclamationMark = document.createElement("span");
-					warningWrapper.appendChild(exclamationMark);
-					exclamationMark.appendChild(document.createTextNode("!"));
-					exclamationMark.style.color = "#dc6560";
-					exclamationMark.style.fontSize = "40px";
-					const warningMessage = document.createElement("p");
-					warningWrapper.appendChild(warningMessage);
-					warningMessage.appendChild(document.createTextNode("This page was blacklisted by you."));
-					warningMessage.style.fontSize = "18px";
-
-					const warningButton = document.createElement("div");
-					
-					warningButton.classList.add("button");
-					blacklistWrapper.appendChild(warningButton);
-					warningButton.appendChild(document.createTextNode("Run Highlighter On This Page"));
-					warningButton.id = "runHighlighterButton";
+											setupSummary(reviews, lessons);
+											
+										});
+								}
+							});
+					});
+					document.body.style.cursor = "inherit";
+			
 				}
 			});
 		});
-		
-		document.body.appendChild(footer());
 	});
 
+}
+
+const enhancedWarning = (text, color) => {
+	const wrapper = document.createElement("div");
+	wrapper.appendChild(document.createTextNode(text));
+	wrapper.id = "enhancedMessage";
+	wrapper.style.borderBottom = "0px";
+	wrapper.style.borderLeft = "10px solid";
+	wrapper.style.color = color;
+	return wrapper;
 }
 
 const submitAction = () => {
@@ -877,7 +773,6 @@ const secondaryPage = (titleText, width) => {
 		document.getElementById("secPageMain").remove();
 
 	document.getElementById("main").style.display = "none";
-	document.getElementById("footer").style.display = "none";
 
 	const main = document.createElement("div");
 	main.id = "secPageMain";
@@ -982,9 +877,7 @@ document.addEventListener("click", e => {
 	if (targetElem.id === "goBack") {
 		document.getElementById("secPageMain").remove();
 		document.getElementById("main").style.removeProperty("display");
-		if (!sidePanelOn)
-			document.getElementById("footer").style.removeProperty("display");
-
+		
 		document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(defaultWindowSize, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
 		
 		Array.from(document.getElementsByClassName("navbar_icon"))
@@ -999,26 +892,7 @@ document.addEventListener("click", e => {
 		}
 	}
 
-	if (targetElem.id === "blacklistButton") {
-		chrome.storage.local.get(["wkhighlight_blacklist"], blacklist => {
-			let blacklistedUrls = blacklist["wkhighlight_blacklist"] ? blacklist["wkhighlight_blacklist"] : [];
-			chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-				activeTab = tabs[0];
-				chrome.tabs.sendMessage(activeTab.id, {windowLocation: "host"}, response => {
-					if (!window.chrome.runtime.lastError && response["windowLocation"]) {
-						blacklistedUrls.push(response["windowLocation"].replace("www.", "").replace(".", "\\."));
-						chrome.storage.local.set({"wkhighlight_blacklist":blacklistedUrls});
-						const main = document.getElementById("main");
-						if (main) {
-							main.replaceChild(reloadPage(`Extension DEACTIVATED on: <div class="locationDiv"><span>${response["windowLocation"]}</span></div>`, "green"), main.childNodes[1]);
-						}
-					}
-				});
-			});
-		}); 
-	}
-
-	if (targetElem.id === "runHighlighterButton") {
+	if (sidePanelIconTargeted(targetElem, "run")) {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			var activeTab = tabs[0];
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "host"}, response => {
@@ -1345,13 +1219,22 @@ document.addEventListener("click", e => {
 	}
 
 	if (sidePanelIconTargeted(targetElem, "blacklist")) {
-		if (document.getElementById("blacklistButton")) {
-			document.getElementById("blacklistButton").dispatchEvent(new MouseEvent("click", {
-				"view": window,
-				"bubbles": true,
-				"cancelable": false
-			}));
-		}
+		chrome.storage.local.get(["wkhighlight_blacklist"], blacklist => {
+			let blacklistedUrls = blacklist["wkhighlight_blacklist"] ? blacklist["wkhighlight_blacklist"] : [];
+			chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+				activeTab = tabs[0];
+				chrome.tabs.sendMessage(activeTab.id, {windowLocation: "host"}, response => {
+					if (!window.chrome.runtime.lastError && response["windowLocation"]) {
+						blacklistedUrls.push(response["windowLocation"].replace("www.", "").replace(".", "\\."));
+						chrome.storage.local.set({"wkhighlight_blacklist":blacklistedUrls});
+						const main = document.getElementById("main");
+						if (main) {
+							main.replaceChild(reloadPage(`Extension DEACTIVATED on: <div class="locationDiv"><span>${response["windowLocation"]}</span></div>`, "green"), main.childNodes[1]);
+						}
+					}
+				});
+			});
+		}); 
 	}
 
 	if (sidePanelIconTargeted(targetElem, "about")) {
@@ -1587,7 +1470,7 @@ document.addEventListener("click", e => {
 
 						const binWrapper = document.createElement("div");
 						binWrapper.classList.add("bin_container");
-						binWrapper.title = "Remove "+site;
+						binWrapper.title = "Run on "+site;
 						div.appendChild(binWrapper);
 						const span = document.createElement("span");
 						span.id = site.replace(".", "_");
@@ -1654,6 +1537,11 @@ document.addEventListener("click", e => {
 					break;
 				}
 			}
+
+			const sidePanelBlackList = document.getElementById("blacklist");
+			if (sidePanelBlackList) {
+				sidePanelBlackList.nextSibling.innerText = Number(sidePanelBlackList.nextSibling.innerText)-1;
+			}
 		});
 	}
 
@@ -1664,13 +1552,15 @@ document.addEventListener("click", e => {
 
 		document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(defaultWindowSize, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
 
-		document.getElementById("userInfoNavbar").style.display = "none";
+		Array.from(document.getElementById("userInfoWrapper").children).forEach(div => {
+			if (!div.classList.contains("searchArea")) div.style.display = "none";	
+		});
 		
 		let searchResultWrapper = document.getElementById("searchResultWrapper");
 		if (!searchResultWrapper) {
 			searchResultWrapper = document.createElement("div");
 			searchResultWrapper.id = "searchResultWrapper";
-			document.getElementById("userInfoWrapper").appendChild(searchResultWrapper);
+			document.getElementsByClassName("searchArea")[0].appendChild(searchResultWrapper);
 		}
 
 		if (!document.getElementById("searchResultNavbar")) {
@@ -1747,10 +1637,7 @@ document.addEventListener("click", e => {
 		if (document.getElementById("kanjiSearchInput"))
 			document.getElementById("kanjiSearchInput").value = "";
 
-		if (document.getElementById("userInfoNavbar")) {
-			document.getElementById("userInfoNavbar").style.removeProperty("display");
-			document.getElementById("userInfoNavbar").classList.remove("hidden");	
-		}
+		Array.from(document.getElementById("userInfoWrapper").children).forEach(div => div.style.removeProperty("display"));
 
 		const searchResultNavbar = document.getElementById("searchResultNavbar");
 		if (searchResultNavbar) {
@@ -2063,8 +1950,6 @@ document.addEventListener("click", e => {
 			reviewsList.appendChild(reviewsListBar);
 			const reviewsListUl = document.createElement("ul");
 			reviewsList.appendChild(reviewsListUl);
-			reviewsListUl.classList.add("bellow-border");
-			reviewsListUl.style.maxHeight = "inherit";
 			const futureReviewsChart = document.createElement("div");
 			futureReviewsWrapper.appendChild(futureReviewsChart);
 			const loadingChart = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading Reviews Chart...");
@@ -2279,8 +2164,6 @@ document.addEventListener("click", e => {
 			lessonsList.appendChild(lessonsListBar);
 			const lessonsListUl = document.createElement("ul");
 			lessonsList.appendChild(lessonsListUl);
-			lessonsListUl.style.maxHeight = "inherit";
-			lessonsListUl.classList.add("bellow-border");
 
 			if (lessons) {
 				//setup list of material for current reviews
@@ -2304,7 +2187,7 @@ document.addEventListener("click", e => {
 
 	// clicked outside side panel
 	const sidePanel = document.getElementsByClassName("side-panel")[0];
-	if (sidePanel && sidePanel.classList.contains("side-panel-focus") && (targetElem.closest("#main") || targetElem.closest("#footer") || targetElem.closest("#secPageMain") || (targetElem.closest("body") && !targetElem.closest(".side-panel")))) {
+	if (sidePanel && sidePanel.classList.contains("side-panel-focus") && (targetElem.closest("#main") || targetElem.closest("#secPageMain") || (targetElem.closest("body") && !targetElem.closest(".side-panel")))) {
 		const sidePanelLogo = document.getElementById("side-panel-logo");
 		if (sidePanelLogo) {
 			sidePanelLogo.dispatchEvent(new MouseEvent("click", {
@@ -2588,7 +2471,7 @@ const searchSubject = (event, searchType) => {
 	if (!document.getElementById("searchResultWrapper")) {
 		const searchResultWrapper = document.createElement("div");
 		searchResultWrapper.id = "searchResultWrapper";
-		document.getElementById("userInfoWrapper").appendChild(searchResultWrapper);
+		document.getElementsByClassName("searchArea")[0].appendChild(searchResultWrapper);
 	}
 	document.getElementById("searchResultWrapper").appendChild(searchResultUL);
 
@@ -2674,9 +2557,11 @@ const searchSubject = (event, searchType) => {
 					li.classList.add("searchResultItemLine"); 
 					searchResultUL.appendChild(li);
 					li.setAttribute('data-item-id', data["id"]);
-					if (data["srs_stage"])
+					if (data["srs_stage"]) {
 						li.style.borderLeft = `4px solid var(--${srsStages[data["srs_stage"]]["short"].toLowerCase()}-color)`;
-					
+						//li.style.backgroundColor = `var(--${srsStages[data["srs_stage"]]["short"].toLowerCase()}-color)`;
+					}
+
 					const itemSpan = document.createElement("span");
 					itemSpan.classList.add("searchResultItem");
 		
@@ -2802,7 +2687,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 		let nmrKanjiHighlightedElem = document.getElementById("nmrKanjiHighlighted")?.getElementsByTagName("strong")[0];
 		if (!nmrKanjiHighlightedElem) {
-			const kanjiFoundWrapper = document.createElement("li");
+			const kanjiFoundWrapper = document.createElement("div");
+			kanjiFoundWrapper.classList.add("highlightedKanjiContainer");
 			document.getElementById("userInfoNavbar")?.insertBefore(kanjiFoundWrapper, document.getElementById("userInfoNavbar").childNodes[0]);
 			kanjiFoundWrapper.classList.add("resizable");
 			kanjiFoundWrapper.style.maxHeight = defaultSettings["sizes"]["highlighted_kanji_height"]+"px";
@@ -2835,11 +2721,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			}
 		}
 	}
+	
 	if (request.kanjiHighlighted) {
 		chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
 			const kanjiAssoc = result["wkhighlight_kanji_assoc"];
 			const kanjiHighlightedList = request.kanjiHighlighted;
 			const kanjiFoundList = document.getElementById("kanjiHighlightedList");
+			const parentMaxHeight = kanjiFoundList.parentElement.style.maxHeight;
+			kanjiFoundList.style.maxHeight = (Number(parentMaxHeight.substring(0, parentMaxHeight.length-2))-40)+"px";
 			if (kanjiFoundList) {
 				kanjiFoundList.childNodes[0].remove();
 				const kanjiFoundUl = document.createElement("ul");
@@ -2855,22 +2744,45 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 						if (kanjiAssoc) kanjiFoundLi.setAttribute("data-item-id", kanjiAssoc[kanji]);
 					});
 				});
+				
+				updateItemsListBar(document.getElementsByClassName("items-list-bar")[0], [learned.length, notLearned.length]);
+
+				if (learned.length == 0 && notLearned.length == 0) {
+					kanjiFoundUl.style.position = "relative";
+					const kanjiModel = document.createElement("p");
+					kanjiFoundUl.appendChild(kanjiModel);
+					const randHex = rand(parseInt("4e00", 16), parseInt("9faf", 16)).toString(16);
+					kanjiModel.appendChild(document.createTextNode(String.fromCharCode(`0x${randHex}`)));
+					kanjiModel.style.textAlign = "center";
+					kanjiModel.style.paddingBottom = "12px";
+					kanjiModel.style.color = "#d8d8d8";
+					kanjiModel.style.fontSize = "52px";
+					kanjiModel.style.marginTop = "-10px";
+					const noKanjiFound = document.createElement("p");
+					kanjiFoundUl.appendChild(noKanjiFound);
+					noKanjiFound.appendChild(document.createTextNode("No Kanji from Wanikani found in the current page."));
+					noKanjiFound.style.textAlign = "center";
+					noKanjiFound.style.padding = "0 5px";
+					noKanjiFound.style.color = "silver";
+					noKanjiFound.style.fontSize = "13px";
+					const notFoundSlash = document.createElement("div");
+					kanjiFoundUl.appendChild(notFoundSlash);
+					notFoundSlash.classList.add("notFoundKanjiSlash");
+				}
 			}
 		});
 	}
 
-	// if (request.uptime) {
-	// 	const wrapper = document.getElementById("scriptsUptime");
-	// 	switch(request.uptime) {
-	// 		case "Highlight":
-	// 			wrapper.getElementsByTagName("DIV")[0].style.backgroundColor = "#80fd80";
-	// 			break;
+	if (request.uptimeDetailsPopup || request.uptimeHighlight) {
+		const wrapper = document.getElementById("scriptsUptime");
+		if (request.uptimeHighlight) 
+			wrapper.getElementsByTagName("DIV")[0].style.backgroundColor = "#80fd80";
 
-	// 		case "Details Popup":
-	// 			wrapper.getElementsByTagName("DIV")[1].style.backgroundColor = "#80fd80";
-	// 			break;
-	// 	}
-	// }
+
+		if (request.uptimeDetailsPopup) 
+			wrapper.getElementsByTagName("DIV")[1].style.backgroundColor = "#80fd80";
+		
+	}
 });
 
 const setupSubjectsLists = (callback) => {

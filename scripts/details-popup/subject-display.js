@@ -1039,7 +1039,11 @@
 		if (audioList && audioList.length > 0) {
 			const audio = new Audio();
 			audio.src = audioList[Math.floor(Math.random() * audioList.length)].url;
-			audio.play();
+			const play = audio.play();
+			if (play !== undefined) {
+				play.then(() => console.log("Audio played"))
+				.catch(e => console.log("Could not play audio!"));
+			}
 		}
 	}
 

@@ -1,6 +1,6 @@
 (() => {
 	chrome.storage.local.get(["wkhighlight_allkanji", "wkhighlight_allradicals", "wkhighlight_allvocab", "wkhighlight_settings"], result => {
-		chrome.runtime.sendMessage({uptime:"Details Popup"});
+		chrome.runtime.sendMessage({uptimeDetailsPopup:true});
 
 		const settings = result["wkhighlight_settings"];
 		if (settings["kanji_details_popup"]["popup_opacity"])

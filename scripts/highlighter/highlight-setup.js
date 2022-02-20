@@ -5,7 +5,7 @@
 	chrome.storage.local.get("wkhighlight_highlight_setup", result => {
 		result = result["wkhighlight_highlight_setup"];
 
-		chrome.runtime.sendMessage({uptime:"Highlighter"});
+		chrome.runtime.sendMessage({uptimeHighlight:true});
 
 		// youtube temporary fix
 		window.addEventListener('yt-page-data-updated', () => {
