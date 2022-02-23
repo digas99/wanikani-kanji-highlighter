@@ -14,8 +14,8 @@ const setupKanji = (apiToken, callback) =>
 									.flat(1)
 									.forEach(kanji => {
 										const data = kanji.data;
-										if (!levels["wkhighlight_kanjilevel"+data.level])
-											levels["wkhighlight_kanjilevel"+data.level] = {};
+										if (!levels["wkhighlight_kanji_level"+data.level])
+											levels["wkhighlight_kanji_level"+data.level] = {};
 
 										kanji_dict[kanji.id] = {
 											"amalgamation_subject_ids" : data.amalgamation_subject_ids,
@@ -36,7 +36,7 @@ const setupKanji = (apiToken, callback) =>
 										};
 
 										kanji_assoc[data.slug] = kanji.id;
-										levels["wkhighlight_kanjilevel"+data.level][kanji.id] = {
+										levels["wkhighlight_kanji_level"+data.level][kanji.id] = {
 											"characters" : data.characters,
 											"id":kanji.id,
 											"meanings" : data.meanings.map(data => data.meaning),
@@ -87,8 +87,8 @@ const setupRadicals = (apiToken, callback) =>
 									.flat(1)
 									.forEach(radical => {
 										const data = radical.data;
-										if (!levels["wkhighlight_radicallevel"+data.level])
-											levels["wkhighlight_radicallevel"+data.level] = {};
+										if (!levels["wkhighlight_radical_level"+data.level])
+											levels["wkhighlight_radical_level"+data.level] = {};
 
 										radical_dict[radical.id] = {
 											"characters" : data.characters,
@@ -100,7 +100,7 @@ const setupRadicals = (apiToken, callback) =>
 											"subject_type":radical.object
 										};
 
-										levels["wkhighlight_radicallevel"+data.level][radical.id] = {
+										levels["wkhighlight_radical_level"+data.level][radical.id] = {
 											"characters" : data.characters,
 											"character_images" : data.character_images,
 											"id":radical.id,
@@ -142,8 +142,8 @@ const setupVocab = (apiToken, callback) =>
 									.flat(1)
 									.forEach(vocab => {
 										const data = vocab.data;
-										if (!levels["wkhighlight_vocablevel"+data.level])
-											levels["wkhighlight_vocablevel"+data.level] = {};
+										if (!levels["wkhighlight_vocabulary_level"+data.level])
+											levels["wkhighlight_vocabulary_level"+data.level] = {};
 
 										vocab_dict[vocab.id] = {
 											"characters" : data.characters,
@@ -162,7 +162,7 @@ const setupVocab = (apiToken, callback) =>
 										};
 										
 										vocab_assoc[data.characters] = vocab.id;
-										levels["wkhighlight_vocablevel"+data.level][vocab.id] = {
+										levels["wkhighlight_vocabulary_level"+data.level][vocab.id] = {
 											"characters" : data.characters,
 											"id":vocab.id,
 											"meanings": data.meanings.map(data => data.meaning),

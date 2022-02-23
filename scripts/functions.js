@@ -339,8 +339,13 @@ const flipArrow = (arrow, sourceDir, destDir) => {
 const assignUponSubjects = list => {
 	const type = list[Object.keys(list)[0]]["subject_type"];
 	if (list && type) {
-		chrome.storage.local.get(["wkhighlight_assignments"], result => {
+		const keys = Array(60).fill(0).map((_, i) => "wkhighlight_"+type+"_level"+(i+1));
+		keys.push("wkhighlight_assignments");
+		chrome.storage.local.get(keys, result => {
 			const allAssignments = result["wkhighlight_assignments"]["all"];
+			const levels = {};
+			const progress = Object.fromEntries(Object.keys(srsStages).map(stage => [stage, 0]));
+			const levelsInProgress = [];
 			if (allAssignments) {
 				console.log(`Associating assignments with ${type} ...`);
 				allAssignments.forEach(assignment => {
@@ -348,6 +353,9 @@ const assignUponSubjects = list => {
 					const subjectId = data["subject_id"];
 					if (subjectId && list[subjectId]) {
 						const subject = list[subjectId];
+						if (!levels["wkhighlight_"+type+"level"+subject["level"]])
+							levels["wkhighlight_"+type+"level"+subject["level"]] = result["wkhighlight_"+type+"_level"+subject["level"]];
+
 						const timestamps = {
 							data_updated_at: assignment["data_updated_at"],
 							available_at: data["available_at"],
@@ -361,8 +369,20 @@ const assignUponSubjects = list => {
 						subject["timestamps"] = timestamps;
 						subject["srs_stage"] = data["srs_stage"];
 						subject["hidden"] = data["hidden"];
+						progress[data["srs_stage"]]++;
+
+						if (levels["wkhighlight_"+type+"_level"+subject["level"]] && levels["wkhighlight_"+type+"_level"+subject["level"]][subjectId]) {
+							const currentSubjectLevelStats = levels["wkhighlight_"+type+"_level"+subject["level"]][subjectId];
+							currentSubjectLevelStats["passed_at"] = data["passed_at"];
+							currentSubjectLevelStats["srs_stage"] = data["srs_stage"];
+							currentSubjectLevelStats["hidden"] = data["hidden"];
+						}
+
+						if (!data["passed_at"] && !levelsInProgress.includes(subject["level"]))
+							levelsInProgress.push(subject["level"]);
 					}
 				});
+
 				let storageId;
 				switch(type) {
 					case "radical":
@@ -376,7 +396,7 @@ const assignUponSubjects = list => {
 						break;
 				}
 				if (storageId)
-					chrome.storage.local.set({[storageId]:list});
+					chrome.storage.local.set({...{[storageId]:list, ["wkhighlight_"+type+"_progress"]: progress, ["wkhighlight_"+type+"_levelsInProgress"]: levelsInProgress}, ...levels});
 			}
 		});
 	}

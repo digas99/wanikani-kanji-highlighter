@@ -672,8 +672,10 @@ window.onload = () => {
 											setupAvailableAssignments(apiKey, setupSummary);
 
 											setupSummary(reviews, lessons);
-											
-										});
+
+											const progress = document.createElement("div");
+											userInfoWrapper.appendChild(progress);
+									});
 								}
 							});
 					});

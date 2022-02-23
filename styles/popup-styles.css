@@ -294,7 +294,8 @@ i {
 
 .topNav {
 	position: fixed;
-    background-color: var(--dark-back);
+    background-color: var(--default-color);
+	border-top: 5px solid var(--wanikani);
     top: 0;
     width: 100%;
     padding: 10px;
