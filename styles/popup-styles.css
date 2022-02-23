@@ -619,6 +619,7 @@ i {
 .overall-progress {
 	display: flex;
 	flex-direction: row;
+	margin-bottom: 2px;
 }
 
 .overall-progress > li {
@@ -627,6 +628,36 @@ i {
     width: -webkit-fill-available;
     text-align: center;
     font-size: 25px;
+	margin: 0 1px;
+	position: relative;
+}
+
+.overall-progress > li div {
+	position: absolute;
+    background-color: var(--default-color);
+    font-size: 13px;
+    border: 2px solid white;
+    border-radius: 10px;
+	top: -75px;
+    left: -50px;
+    margin: auto;
+    width: max-content;
+	display: none;
+	pointer-events: none;
+	z-index: 1;
+}
+
+.overall-progress > li div > p{
+	background-color: white;
+    padding: 3px;
+    font-weight: bold;
+}
+
+.overall-progress > li div > ul {
+	display: flex;
+    flex-direction: column;
+    text-align: left;
+	padding: 7px;
 }
 
 /* REVIEWS PAGE */

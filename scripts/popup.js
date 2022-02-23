@@ -693,12 +693,38 @@ window.onload = () => {
 														progress.appendChild(wrapper);
 														wrapper.classList.add("overall-progress");
 													}
+
 													const stageSquare = document.createElement("li");
 													stageSquare.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
 													wrapper.appendChild(stageSquare);
 													stageSquare.appendChild(document.createTextNode((radicalProgress && radicalProgress[stage] ? radicalProgress[stage] : 0) + (kanjiProgress && kanjiProgress[stage] ? kanjiProgress[stage] : 0) + (vocabularyProgress && vocabularyProgress[stage] ? vocabularyProgress[stage] : 0)));
 													stageSquare.title = srsStages[stage]["name"];
-													stageSquare.classList.add("clickable");
+													const infoMenu = document.createElement("div");
+													stageSquare.appendChild(infoMenu);
+													if (stage < 5)
+														infoMenu.style.top = "35px";
+
+													if (stage%5 == 0)
+														infoMenu.style.left = "20px";
+
+													const infoMenuTitle = document.createElement("p");
+													infoMenu.appendChild(infoMenuTitle);
+													infoMenuTitle.appendChild(document.createTextNode(srsStages[stage]["name"]));
+													infoMenuTitle.style.color = stageSquare.style.backgroundColor;
+													infoMenuListing = document.createElement("ul");
+													infoMenu.appendChild(infoMenuListing);
+													["Radicals", "Kanji", "Vocabulary"].forEach(type => {
+														const infoMenuType = document.createElement("li");
+														infoMenuListing.appendChild(infoMenuType);
+														const typeTitle = document.createElement("b");
+														infoMenuType.appendChild(typeTitle);
+														typeTitle.appendChild(document.createTextNode(type+": "));
+														let typeProgress = type == "Radicals" ? radicalProgress : type == "Kanji" ? kanjiProgress : vocabularyProgress;
+														infoMenuType.appendChild(document.createTextNode(typeProgress[stage] ? typeProgress[stage] : 0));
+													});
+
+													stageSquare.addEventListener("mouseover", () => infoMenu.style.display = "inherit");
+													stageSquare.addEventListener("mouseout", () => infoMenu.style.removeProperty("display"));
 												});
 											}
 									});
