@@ -205,25 +205,27 @@ window.onload = () => {
 											else if (blacklisted_site) userInfoWrapper.appendChild(enhancedWarning("Site blacklisted by you!", "red"));
 
 											// scripts uptime
-											const scriptsUptimeWrapper = document.createElement("div");
-											userInfoWrapper.appendChild(scriptsUptimeWrapper);
-											scriptsUptimeWrapper.title = "Scripts Uptime Status";
-											scriptsUptimeWrapper.id = "scriptsUptime";
-											const scriptsUptimeUl = document.createElement("ul");
-											scriptsUptimeWrapper.appendChild(scriptsUptimeUl);
-											chrome.tabs.query({currentWindow: true, active: true}, tabs => {
-												["Highlighter", "Details Popup"].forEach(script => {
-													const scriptsUptimeLi = document.createElement("li");
-													scriptsUptimeUl.appendChild(scriptsUptimeLi);
-													scriptsUptimeLi.appendChild(document.createTextNode(script));
-													const scriptsUptimeSignal = document.createElement("div");
-													scriptsUptimeLi.appendChild(scriptsUptimeSignal);
-
-													chrome.tabs.sendMessage(tabs[0].id, {uptime: script}, response => {
-														if (response) scriptsUptimeSignal.style.backgroundColor = "#80fd80";
+											if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["miscellaneous"]["show_scripts_status"] : settingsInterface["miscellaneous"]["show_scripts_status"]) {
+												const scriptsUptimeWrapper = document.createElement("div");
+												userInfoWrapper.appendChild(scriptsUptimeWrapper);
+												scriptsUptimeWrapper.title = "Scripts Uptime Status";
+												scriptsUptimeWrapper.id = "scriptsUptime";
+												const scriptsUptimeUl = document.createElement("ul");
+												scriptsUptimeWrapper.appendChild(scriptsUptimeUl);
+												chrome.tabs.query({currentWindow: true, active: true}, tabs => {
+													["Highlighter", "Details Popup"].forEach(script => {
+														const scriptsUptimeLi = document.createElement("li");
+														scriptsUptimeUl.appendChild(scriptsUptimeLi);
+														scriptsUptimeLi.appendChild(document.createTextNode(script));
+														const scriptsUptimeSignal = document.createElement("div");
+														scriptsUptimeLi.appendChild(scriptsUptimeSignal);
+	
+														chrome.tabs.sendMessage(tabs[0].id, {uptime: script}, response => {
+															if (response) scriptsUptimeSignal.style.backgroundColor = "#80fd80";
+														});
 													});
 												});
-											});
+											}
 
 											document.body.style.minHeight = "365px";
 
@@ -675,6 +677,7 @@ window.onload = () => {
 
 											setupSummary(reviews, lessons);
 
+											// overall progress
 											const radicalProgress = response["wkhighlight_radical_progress"];
 											const kanjiProgress = response["wkhighlight_kanji_progress"];
 											const vocabularyProgress = response["wkhighlight_vocabulary_progress"];
@@ -711,15 +714,24 @@ window.onload = () => {
 													infoMenu.appendChild(infoMenuTitle);
 													infoMenuTitle.appendChild(document.createTextNode(srsStages[stage]["name"]));
 													infoMenuTitle.style.color = stageSquare.style.backgroundColor;
-													infoMenuListing = document.createElement("ul");
+													const infoMenuBar = document.createElement("div");
+													infoMenu.appendChild(infoMenuBar);
+													const infoMenuListing = document.createElement("ul");
 													infoMenu.appendChild(infoMenuListing);
 													["Radicals", "Kanji", "Vocabulary"].forEach(type => {
+														let typeProgress = type == "Radicals" ? radicalProgress : type == "Kanji" ? kanjiProgress : vocabularyProgress;
+
+														const bar = document.createElement("div");
+														infoMenuBar.appendChild(bar);
+														bar.style.width = (typeProgress[stage] ? typeProgress[stage] / Number(stageSquare.innerText) *100 : 0)+"%";
+														const colorId = (type == "Radicals" ? "radical" : type == "Kanji" ? "kanji" : "vocab")+"_color";
+														bar.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][colorId] : defaultSettings["miscellaneous"][colorId];
+
 														const infoMenuType = document.createElement("li");
 														infoMenuListing.appendChild(infoMenuType);
 														const typeTitle = document.createElement("b");
 														infoMenuType.appendChild(typeTitle);
 														typeTitle.appendChild(document.createTextNode(type+": "));
-														let typeProgress = type == "Radicals" ? radicalProgress : type == "Kanji" ? kanjiProgress : vocabularyProgress;
 														infoMenuType.appendChild(document.createTextNode(typeProgress[stage] ? typeProgress[stage] : 0));
 													});
 

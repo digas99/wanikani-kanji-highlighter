@@ -71,8 +71,8 @@ const defaultSettings = {
 	"miscellaneous": {
 		time_in_12h_format: true,
 		kana_writing: false,
-		extension_popup_width: 300
-		// show_scripts_status: true
+		extension_popup_width: 400,
+		show_scripts_status: true
 	},
 	"sizes": {
 		highlighted_kanji_height: 150,
@@ -191,12 +191,13 @@ const settingsInterface = [
 				},
 				id: "settings-miscellaneous-extension_popup_width",
 				description: "Width of the Extension Popup window."
+			},
+			{
+				title: "Show Scripts Status",
+				type: "checkbox",
+				id: "settings-miscellaneous-show_scripts_status",
+				description: "Show scripts status in the front page."
 			}
-			// {
-			// 	title: "Show Scripts Status",
-			// 	type: "checkbox",
-			// 	id: "show_scripts_status"
-			// }
 		]
 	}
 	// {
