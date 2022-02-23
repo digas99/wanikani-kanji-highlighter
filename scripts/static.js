@@ -185,9 +185,9 @@ const settingsInterface = [
 				title: "Extension Popup Width",
 				type: "slider",
 				range: {
-					min: 300,
+					min: 400,
 					max: 725,
-					value: 300
+					value: 400
 				},
 				id: "settings-miscellaneous-extension_popup_width",
 				description: "Width of the Extension Popup window."
@@ -287,4 +287,4 @@ const unwantedTags = ["html", "body", "head", "title", "style", "link", "meta", 
 
 const urlChecker = new RegExp("^(chrome|devtools)(-[a-zA-Z0-9]+)?:\/\/");
 
-const defaultWindowSize = 260;
+const defaultWindowSize = 400;

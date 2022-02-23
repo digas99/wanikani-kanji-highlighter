@@ -28,7 +28,7 @@ Table Of Contents
 /* VARIABLES */
 
 :root {
-	--body-base-width: 260px;
+	--body-base-width: 400px;
 	--default-color: #2a2d48;
 	--radical-tag-color: #65b6ae;
 	--radical-tag-color-font: #000000;
@@ -495,10 +495,21 @@ i {
 	overflow: hidden;
 }
 
+.userInfoWrapper-title {
+	text-align: center;
+    background-color: var(--default-color);
+    color: white;
+    padding: 7px;
+    font-size: 14px;
+}
+
+.userInfoWrapper-wrapper {
+	border: 1px solid silver;
+    border-radius: 0px 0px 5px 5px;
+}
+
 .highlightedKanjiContainer {
 	min-height: 150px;
-	border: 1px solid silver;
-	border-radius: 0px 0px 5px 5px;
 }
 
 #scriptsUptime {
@@ -537,13 +548,6 @@ i {
     background-color: var(--default-color);
     height: 100%;
     transition: 0.5s;
-}
-
-#nmrKanjiHighlighted {
-	text-align: center;
-    background-color: var(--default-color);
-    color: white;
-    padding: 4px;
 }
 
 #nmrKanjiIndicator {
@@ -610,6 +614,19 @@ i {
 
 ::-webkit-scrollbar-thumb, #reviewsMaterialList > ul::-webkit-scrollbar-thumb {
 	background-color: var(--default-color);        
+}
+
+.overall-progress {
+	display: flex;
+	flex-direction: row;
+}
+
+.overall-progress > li {
+	padding: 16px;
+    color: white;
+    width: -webkit-fill-available;
+    text-align: center;
+    font-size: 25px;
 }
 
 /* REVIEWS PAGE */
@@ -718,12 +735,6 @@ i {
 /* LESSONS PAGE */
 
 /* SUMMARY */
-.summaryTitle {
-	background-color: var(--default-color);
-    padding: 5px;
-	font-size: 14px;
-}
-
 .summaryValue {
 	font-size: 35px;
     padding: 7px 17px;

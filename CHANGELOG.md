@@ -9,6 +9,7 @@
 - Bar with status of Highlighting and Details Popup (if those features are active or not)
 - Removed old interface (not accessibable through the X button on the top right anymore)
 - Small changes on buttons to blacklist a site to fit most recent interface
+- Added overall progress (number of subjects) on each SRS Stage 
 
 ## Content
 - Added button to play sound of reading to the details popup of any vocabulary

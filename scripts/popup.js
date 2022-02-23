@@ -172,7 +172,7 @@ window.onload = () => {
 						.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
 
 					document.body.style.cursor = "progress";
-					chrome.storage.local.get(["wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons"], response => {
+					chrome.storage.local.get(["wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons", "wkhighlight_kanji_progress", "wkhighlight_kanji_levelsInProgress", "wkhighlight_radical_progress", "wkhighlight_radical_levelsInProgress", "wkhighlight_vocabulary_progress", "wkhighlight_vocabulary_levelsInProgress", "wkhighlight_settings"], response => {
 						const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatDate(new Date());
 
 						modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
@@ -387,7 +387,7 @@ window.onload = () => {
 												if (!blacklisted_site) {
 													const kanjiFoundWrapper = document.createElement("div");
 													userInfoWrapper.appendChild(kanjiFoundWrapper);
-													kanjiFoundWrapper.classList.add("resizable", "highlightedKanjiContainer");
+													kanjiFoundWrapper.classList.add("resizable", "highlightedKanjiContainer", "userInfoWrapper-wrapper");
 													kanjiFoundWrapper.style.maxHeight = defaultSettings["sizes"]["highlighted_kanji_height"]+"px";
 													chrome.storage.local.get(["wkhighlight_settings"], result => {
 														if (result["wkhighlight_settings"] && result["wkhighlight_settings"]["sizes"])
@@ -414,6 +414,7 @@ window.onload = () => {
 																}
 	
 																kanjiFound.id = "nmrKanjiHighlighted";
+																kanjiFound.classList.add("userInfoWrapper-title");
 																kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong></strong> (in the page)`;
 														
 																const barData = [
@@ -525,6 +526,7 @@ window.onload = () => {
 											const summaryWrapper = document.createElement("div");
 											userInfoWrapper.appendChild(summaryWrapper);
 											summaryWrapper.style.textAlign = "center";
+											summaryWrapper.classList.add("userInfoWrapper-wrapper");
 											const summaryUl = document.createElement("ul");
 											summaryWrapper.appendChild(summaryUl);
 											summaryUl.style.display = "inline-flex";
@@ -537,7 +539,7 @@ window.onload = () => {
 
 												const titleWrapper = document.createElement("div");
 												summaryLi.appendChild(titleWrapper);
-												titleWrapper.classList.add("summaryTitle");
+												titleWrapper.classList.add("summaryTitle", "userInfoWrapper-title");
 												titleWrapper.title = topic+" in WaniKani";
 												const title = document.createElement("a");
 												titleWrapper.appendChild(title);
@@ -673,8 +675,32 @@ window.onload = () => {
 
 											setupSummary(reviews, lessons);
 
-											const progress = document.createElement("div");
-											userInfoWrapper.appendChild(progress);
+											const radicalProgress = response["wkhighlight_radical_progress"];
+											const kanjiProgress = response["wkhighlight_kanji_progress"];
+											const vocabularyProgress = response["wkhighlight_vocabulary_progress"];
+											if (radicalProgress || kanjiProgress || vocabularyProgress) {
+												const progress = document.createElement("div");
+												userInfoWrapper.appendChild(progress);
+												const progressTitle = document.createElement("p");
+												progress.appendChild(progressTitle);
+												progressTitle.appendChild(document.createTextNode("Overall Progression"));
+												progressTitle.classList.add("userInfoWrapper-title");
+
+												let wrapper;
+												Object.keys(srsStages).forEach(stage => {
+													if (stage%5 == 0) {
+														wrapper = document.createElement("ul");
+														progress.appendChild(wrapper);
+														wrapper.classList.add("overall-progress");
+													}
+													const stageSquare = document.createElement("li");
+													stageSquare.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
+													wrapper.appendChild(stageSquare);
+													stageSquare.appendChild(document.createTextNode((radicalProgress && radicalProgress[stage] ? radicalProgress[stage] : 0) + (kanjiProgress && kanjiProgress[stage] ? kanjiProgress[stage] : 0) + (vocabularyProgress && vocabularyProgress[stage] ? vocabularyProgress[stage] : 0)));
+													stageSquare.title = srsStages[stage]["name"];
+													stageSquare.classList.add("clickable");
+												});
+											}
 									});
 								}
 							});
@@ -2677,7 +2703,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		let nmrKanjiHighlightedElem = document.getElementById("nmrKanjiHighlighted")?.getElementsByTagName("strong")[0];
 		if (!nmrKanjiHighlightedElem) {
 			const kanjiFoundWrapper = document.createElement("div");
-			kanjiFoundWrapper.classList.add("highlightedKanjiContainer");
+			kanjiFoundWrapper.classList.add("highlightedKanjiContainer", "userInfoWrapper-wrapper");
 			document.getElementById("userInfoNavbar")?.insertBefore(kanjiFoundWrapper, document.getElementById("userInfoNavbar").childNodes[0]);
 			kanjiFoundWrapper.classList.add("resizable");
 			kanjiFoundWrapper.style.maxHeight = defaultSettings["sizes"]["highlighted_kanji_height"]+"px";
@@ -2692,6 +2718,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			const kanjiFound = document.createElement("div");
 			kanjiFoundWrapper.appendChild(kanjiFound);
 			kanjiFound.id = "nmrKanjiHighlighted";
+			kanjiFound.classList.add("userInfoWrapper-title");
 			kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${request.nmrKanjiHighlighted}</strong> (in the page)`;
 			const kanjiFoundBar = document.createElement("div");
 			kanjiFoundWrapper.appendChild(kanjiFoundBar);
