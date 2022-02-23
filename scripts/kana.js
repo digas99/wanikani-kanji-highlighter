@@ -23,7 +23,7 @@ const convertToKana = text => {
 	for (const word of split) {
 		let kanaValue = kana[word];
 		// handle situations like 'kanji' -> 'kannji'
-		if (!kanaValue && word.length > 1 && word.charAt(0) == "n" && !vowels.includes(word.charAt(1)))
+		if (!kanaValue && word.length > 1 && word.charAt(0) == "n" && !vowels.includes(word.charAt(1)) && word.charAt(1) !== 'y')
 			kanaValue = kana[/[a-z]/.test(word.charAt(0)) ? 'nn' : 'NN']+word.charAt(1);
 		// handle situations like 'kko' -> 'っこ' and 'shussha' -> 'しゅっしゃ'
 		else if (!kanaValue && word.length >=3 && word.charAt(0) === word.charAt(1) && vowels.includes(word.charAt(word.length-1)))

@@ -12,6 +12,8 @@ let thisUrl;
 
 let kanaWriting;
 
+let allKanjiList;
+
 chrome.runtime.onConnect.addListener(port => externalPort = port);
 
 chrome.runtime.onInstalled.addListener(details => {
@@ -60,11 +62,6 @@ const setSettings = () => {
 }
 setSettings();
 
-const blacklisted = (blacklist, url) => {
-	const regex = new RegExp(`^http(s)?:\/\/(www\.)?(${blacklist.join("|")})(\/)?([a-z]+.*)?`, "g");
-	return regex.test(url);
-}
-
 const fetchReviewedKanjiID = async (apiToken, page) => {
 	//fetch all reviewed kanji
 	return await fetchAllPages(apiToken, page)
@@ -91,6 +88,8 @@ const executeScripts = (scripts, tabId) => scripts.forEach(script => tabs.execut
 const insertStyles = (styles, tabId) => styles.forEach(style => tabs.insertCSS(tabId, {file: style}));
 
 const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
+	console.log("Setting up content scripts...");
+
 	// setup all learnable kanji if not yet
 	chrome.storage.local.get(["wkhighlight_allLearnableKanji"], result => {
 		let allLearnableKanji = result["wkhighlight_allLearnableKanji"];
@@ -160,18 +159,27 @@ tabs.onActivated.addListener(activeInfo => {
 			if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(result["url"])) {
 				if (settings["extension_icon"]["kanji_counter"] && injectedHighlighter) {
 					tabs.sendMessage(thisTabId, {nmrKanjiHighlighted:"popup"}, response => {
-						if (!chrome.runtime.lastError) {
-							if (response && response["nmrKanjiHighlighted"]) {
-								chrome.browserAction.setBadgeText({text:response["nmrKanjiHighlighted"].toString(), tabId:thisTabId});
-							}
-							else {
-								chrome.browserAction.setBadgeText({text: "0", tabId:thisTabId});
-							}
-				
-							chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
-
-							tabs.sendMessage(thisTabId, {kanaWriting:kanaWriting});
+						if (response && response["nmrKanjiHighlighted"])
+							chrome.browserAction.setBadgeText({text:response["nmrKanjiHighlighted"].toString(), tabId:thisTabId});
+						else
+							chrome.browserAction.setBadgeText({text: "0", tabId:thisTabId});
+						
+						if (!response) {
+							// highlighter not injected because of some error
+							chrome.storage.local.get(["wkhighlight_blacklist"], blacklist => {
+								// check if the site is blacklisted
+								if (!blacklist["wkhighlight_blacklist"] || blacklist["wkhighlight_blacklist"].length === 0 || !blacklisted(blacklist["wkhighlight_blacklist"], thisUrl))
+									setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", allKanjiList);
+								else {
+									chrome.browserAction.setBadgeText({text: '!', tabId:thisTabId});
+									chrome.browserAction.setBadgeBackgroundColor({color: "#dc6560", tabId:thisTabId});
+								}
+							});
 						}
+			
+						chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
+
+						tabs.sendMessage(thisTabId, {kanaWriting:kanaWriting});
 						
 					});
 				}
@@ -236,7 +244,7 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 																		assignUponSubjects(kanji_dict[0]);
 																		revStatsUponSubjects(apiToken, kanji_dict[0]);
 																	}
-																	
+																	allKanjiList = kanji_dict[0];
 																	setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", kanji_dict[0]);
 																});
 														});
@@ -254,11 +262,8 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 				else {
 					chrome.browserAction.setBadgeText({text: "W", tabId:thisTabId});
 					chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1", tabId:thisTabId});
-					// inject details popup to allow subjects creation
-					if (settings["kanji_details_popup"]["activated"]) {
-						executeScripts(['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js', 'scripts/kana.js'], thisTabId);
-						insertStyles(['styles/subject-display.css'], thisTabId);
-					}
+
+					tabs.executeScript(thisTabId, {file: 'scripts/wanikani.js'});
 				}
 			}
 		});

@@ -425,3 +425,11 @@ const revStatsUponSubjects = (apiToken, list) => {
 			});
 	}
 }
+
+const blacklisted = (blacklist, url) => {
+	if (blacklist && blacklist.length > 0) {
+		const regex = new RegExp(`^http(s)?:\/\/(www\.)?(${blacklist.join("|")})(\/)?([a-z]+.*)?`, "g");
+		return regex.test(url);
+	}
+	return false;
+}

@@ -9,10 +9,14 @@ const setupKanji = (apiToken, callback) =>
 							.then(kanji_data => {
 								const kanji_dict = {};
 								const kanji_assoc = {};
+								const levels = {};
 								kanji_data.map(content => content.data)
 									.flat(1)
 									.forEach(kanji => {
 										const data = kanji.data;
+										if (!levels["wkhighlight_kanjilevel"+data.level])
+											levels["wkhighlight_kanjilevel"+data.level] = {};
+
 										kanji_dict[kanji.id] = {
 											"amalgamation_subject_ids" : data.amalgamation_subject_ids,
 											"characters" : data.characters,
@@ -30,7 +34,14 @@ const setupKanji = (apiToken, callback) =>
 											"id":kanji.id,
 											"subject_type":kanji.object
 										};
+
 										kanji_assoc[data.slug] = kanji.id;
+										levels["wkhighlight_kanjilevel"+data.level][kanji.id] = {
+											"characters" : data.characters,
+											"id":kanji.id,
+											"meanings" : data.meanings.map(data => data.meaning),
+											"readings" : data.readings
+										};
 									});
 
 								// add jlpt info to kanjis
@@ -43,7 +54,7 @@ const setupKanji = (apiToken, callback) =>
 									joyo[n].forEach(kanji => kanji_dict[kanji_assoc[kanji]]["joyo"] = "Grade "+n.charAt(1));
 								}
 								// saving all kanji
-								chrome.storage.local.set({"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc, "wkhighlight_allkanji_updated": formatDate(new Date())}, () => {
+								chrome.storage.local.set({...{"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc, "wkhighlight_allkanji_updated": formatDate(new Date())}, ...levels}, () => {
 									console.log("Setup Kanji...");
 									resolve([kanji_dict, true]);
 									if (callback)
@@ -71,10 +82,14 @@ const setupRadicals = (apiToken, callback) =>
 						fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=radical")
 							.then(radical_data => {
 								const radical_dict = {};
+								const levels = {};
 								radical_data.map(content => content.data)
 									.flat(1)
 									.forEach(radical => {
 										const data = radical.data;
+										if (!levels["wkhighlight_radicallevel"+data.level])
+											levels["wkhighlight_radicallevel"+data.level] = {};
+
 										radical_dict[radical.id] = {
 											"characters" : data.characters,
 											"character_images" : data.character_images,
@@ -84,9 +99,16 @@ const setupRadicals = (apiToken, callback) =>
 											"meanings": data.meanings.map(data => data.meaning),
 											"subject_type":radical.object
 										};
+
+										levels["wkhighlight_radicallevel"+data.level][radical.id] = {
+											"characters" : data.characters,
+											"character_images" : data.character_images,
+											"id":radical.id,
+											"meanings": data.meanings.map(data => data.meaning)
+										};
 									});
 								// saving all radical
-								chrome.storage.local.set({"wkhighlight_allradicals": radical_dict, "wkhighlight_allradicals_updated": formatDate(new Date())}, () => {
+								chrome.storage.local.set({...{"wkhighlight_allradicals": radical_dict, "wkhighlight_allradicals_updated": formatDate(new Date())}, ...levels}, () => {
 									console.log("Setup Radicals...");
 									resolve([radical_dict, true]);
 									if (callback)
@@ -114,10 +136,15 @@ const setupVocab = (apiToken, callback) =>
 						fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=vocabulary")
 							.then(vocab => {
 								const vocab_dict = {};
+								const vocab_assoc = {};
+								const levels = {};
 								vocab.map(content => content.data)
 									.flat(1)
 									.forEach(vocab => {
 										const data = vocab.data;
+										if (!levels["wkhighlight_vocablevel"+data.level])
+											levels["wkhighlight_vocablevel"+data.level] = {};
+
 										vocab_dict[vocab.id] = {
 											"characters" : data.characters,
 											"component_subject_ids" : data.component_subject_ids, 
@@ -133,9 +160,18 @@ const setupVocab = (apiToken, callback) =>
 											"id":vocab.id,
 											"subject_type":vocab.object
 										};
+										
+										vocab_assoc[data.characters] = vocab.id;
+										levels["wkhighlight_vocablevel"+data.level][vocab.id] = {
+											"characters" : data.characters,
+											"id":vocab.id,
+											"meanings": data.meanings.map(data => data.meaning),
+											"readings" : data.readings.map(data => data.reading),
+											"pronunciation_audios" : data.pronunciation_audios
+										};
 									});
 								// saving all vocabulary
-								chrome.storage.local.set({'wkhighlight_allvocab':vocab_dict, "wkhighlight_allvocab_updated": formatDate(new Date())}, () => {
+								chrome.storage.local.set({...{'wkhighlight_allvocab':vocab_dict, "wkhighlight_vocab_assoc": vocab_assoc, "wkhighlight_allvocab_updated": formatDate(new Date())}, ...levels}, () => {
 									console.log("Setup Vocabulary...");
 									resolve([vocab_dict, true]);
 									if (callback)

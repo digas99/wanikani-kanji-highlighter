@@ -77,31 +77,10 @@ const reloadPage = (message, color) => {
 	return wrapper;
 }
 
-const blacklisted = (blacklist, url) => {
-	if (blacklist && blacklist.length > 0) {
-		const regex = new RegExp(`^http(s)?:\/\/(www\.)?(${blacklist.join("|")})(\/)?([a-z]+.*)?`, "g");
-		return regex.test(url);
-	}
-	return false;
-}
-
 window.onload = () => {
 	const main = document.createElement("div");
 	main.id = "main";
 	document.body.appendChild(main);
-
-	// logo
-	const logoDiv = document.createElement("div");
-	main.appendChild(logoDiv);
-	logoDiv.id = "logoWrapper";
-	const logo = document.createElement("img");
-	logo.src="logo/logo.png";
-	logoDiv.appendChild(logo);
-
-	// extension title
-	const title = document.createElement("h2");
-	title.textContent = "WaniKani Kanji Highlighter";
-	logoDiv.appendChild(title);
 
 	chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_blacklist", "wkhighlight_settings"], result => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
@@ -315,15 +294,13 @@ window.onload = () => {
 													if (icon_img.title === "Blacklist") {
 														chrome.storage.local.get(["wkhighlight_blacklist"], data => {
 															let blacklisted = data["wkhighlight_blacklist"];
-															if (blacklisted) {
-																const nmrBlacklisted = document.createElement("span");
-																link.appendChild(nmrBlacklisted);
-																nmrBlacklisted.classList.add("side-panel-info-alert");
-																nmrBlacklisted.style.backgroundColor = "red";
-																nmrBlacklisted.style.color = "white";
-																nmrBlacklisted.style.filter = "invert(1)";
-																nmrBlacklisted.appendChild(document.createTextNode(blacklisted.length));
-															}
+															const nmrBlacklisted = document.createElement("span");
+															link.appendChild(nmrBlacklisted);
+															nmrBlacklisted.classList.add("side-panel-info-alert");
+															nmrBlacklisted.style.backgroundColor = "red";
+															nmrBlacklisted.style.color = "white";
+															nmrBlacklisted.style.filter = "invert(1)";
+															nmrBlacklisted.appendChild(document.createTextNode(blacklisted ? blacklisted.length : "0"));
 														});
 													}
 
@@ -584,12 +561,12 @@ window.onload = () => {
 											const moreReviews = document.createElement("p");
 											summaryWrapper.appendChild(moreReviews);
 											moreReviews.style.padding = "3px 0";
-											moreReviews.style.color = "black";
+											moreReviews.style.color = "#747474";
 											moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
 											const moreReviewsDate  = document.createElement("p");
 											summaryWrapper.appendChild(moreReviewsDate);
 											moreReviewsDate.style.padding = "3px 0";
-											moreReviewsDate.style.color = "black";
+											moreReviewsDate.style.color = "#747474";
 
 											// get all assignments if there are none in storage or if they were modified
 											setupAssignments(apiKey, () => setupAvailableAssignments(apiKey, setupSummary));
@@ -905,7 +882,7 @@ document.addEventListener("click", e => {
 						chrome.storage.local.set({"wkhighlight_blacklist": blacklisted});
 						const main = document.getElementById("main");
 						if (main) {
-							main.replaceChild(reloadPage(`Extension ACTIVATED on <div class="locationDiv"><span>${location}</span></div>`, "green"), main.childNodes[1]);
+							main.replaceChild(reloadPage(`Extension ACTIVATED on <div class="locationDiv"><span>${location}</span></div>`, "green"), main.firstChild);
 						}
 						chrome.browserAction.setBadgeText({text: '', tabId:activeTab.id});
 					});
@@ -1094,6 +1071,8 @@ document.addEventListener("click", e => {
 								settings = data["wkhighlight_settings"];
 								const color = e.target.value;
 								const id = colorInput.id.replace("settings-", "").split("-");
+
+								// clicked color for highlighted learned and not learned
 								if (id[1] === "highlight_learned" || id[1] === "highlight_not_learned") {
 									const target = id[1] === "highlight_learned" ? "wkhighlighter_highlighted" : "wkhighlighter_highlightedNotLearned";
 									// change color of the three highlight styles
@@ -1102,12 +1081,20 @@ document.addEventListener("click", e => {
 									document.getElementsByClassName(target+"_bold settings_highlight_style_option")[0].style.setProperty("color", color, "important");
 								}
 
+								// clicked color for kanji and vocab colors
 								if (id[1] === "kanji_color" || id[1] === "vocab_color") {
 									const randomSubjectType = document.getElementById("random-subject-type");
 									if (randomSubjectType) {
 										if (id[1].charAt(0) === randomSubjectType.innerText.toLowerCase())
 											randomSubjectType.style.backgroundColor = color;
 									}
+								}
+
+								// clicked color for details popup
+								if (id[1] === "details_popup") {
+									chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+										chrome.tabs.sendMessage(tabs[0].id, {detailsPopupColor:color}, () => window.chrome.runtime.lastError);
+									});
 								}
 
 								settings[id[0]][id[1]] = color;
@@ -1229,7 +1216,7 @@ document.addEventListener("click", e => {
 						chrome.storage.local.set({"wkhighlight_blacklist":blacklistedUrls});
 						const main = document.getElementById("main");
 						if (main) {
-							main.replaceChild(reloadPage(`Extension DEACTIVATED on: <div class="locationDiv"><span>${response["windowLocation"]}</span></div>`, "green"), main.childNodes[1]);
+							main.replaceChild(reloadPage(`Extension DEACTIVATED on: <div class="locationDiv"><span>${response["windowLocation"]}</span></div>`, "green"), main.firstChild);
 						}
 					}
 				});
@@ -2775,13 +2762,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 	if (request.uptimeDetailsPopup || request.uptimeHighlight) {
 		const wrapper = document.getElementById("scriptsUptime");
-		if (request.uptimeHighlight) 
-			wrapper.getElementsByTagName("DIV")[0].style.backgroundColor = "#80fd80";
+		if (wrapper) {
+			if (request.uptimeHighlight) 
+				wrapper.getElementsByTagName("DIV")[0].style.backgroundColor = "#80fd80";
 
-
-		if (request.uptimeDetailsPopup) 
-			wrapper.getElementsByTagName("DIV")[1].style.backgroundColor = "#80fd80";
-		
+			if (request.uptimeDetailsPopup) 
+				wrapper.getElementsByTagName("DIV")[1].style.backgroundColor = "#80fd80";
+		}
 	}
 });
 

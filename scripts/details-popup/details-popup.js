@@ -41,10 +41,11 @@
 					return true;
 				}
 
-				if (request.popupOpacity) {
-					console.log(request.popupOpacity);
+				if (request.popupOpacity)
 					document.documentElement.style.setProperty('--detailsPopup-opacity', request.popupOpacity > 1 ? request.popupOpacity/10 : request.popupOpacity);
-				}
+				
+				if (request.detailsPopupColor)
+					document.documentElement.style.setProperty('--default-color', request.detailsPopupColor);
 			});
 
 			document.addEventListener("mouseover", e => {

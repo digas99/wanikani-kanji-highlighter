@@ -354,6 +354,10 @@
     margin: auto !important;
 }
 
+.sd-detailsPopup_cardRow > div:not(:last-child) {
+	pointer-events: none;
+}
+
 .sd-detailsPopup_carRow p {
 	padding: 0 7px !important;
 }

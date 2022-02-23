@@ -266,7 +266,7 @@ const wanikaniPattern = {
 	gr2_color: "#882d9e",
 	mst_color: "#294ddb",
 	enl_color: "#0093dd",
-	brn_color: "#0f0f0f",
+	brn_color: "#e20000",
 	int_color: "#c1c0c1"
 };
 
