@@ -172,7 +172,7 @@ window.onload = () => {
 						.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
 
 					document.body.style.cursor = "progress";
-					chrome.storage.local.get(["wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons", "wkhighlight_kanji_progress", "wkhighlight_kanji_levelsInProgress", "wkhighlight_radical_progress", "wkhighlight_radical_levelsInProgress", "wkhighlight_vocabulary_progress", "wkhighlight_vocabulary_levelsInProgress", "wkhighlight_settings"], response => {
+					chrome.storage.local.get(["wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons", "wkhighlight_kanji_progress", "wkhighlight_kanji_levelsInProgress", "wkhighlight_radical_progress", "wkhighlight_radical_levelsInProgress", "wkhighlight_vocabulary_progress", "wkhighlight_vocabulary_levelsInProgress", "wkhighlight_settings", "wkhighlight_allkanji_size", "wkhighlight_allradicals_size", "wkhighlight_allvocab_size"], response => {
 						const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatDate(new Date());
 
 						modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
@@ -347,6 +347,7 @@ window.onload = () => {
 											container.appendChild(logoDiv);
 											logoDiv.id = "side-panel-logo";
 											logoDiv.classList.add("clickable");
+											logoDiv.title = "Wanikani Kanji Highlighter";
 											logoDiv.addEventListener("click", () => {
 												if (!container.classList.contains("side-panel-focus")) {
 													container.classList.add("side-panel-focus");
@@ -682,15 +683,64 @@ window.onload = () => {
 											const kanjiProgress = response["wkhighlight_kanji_progress"];
 											const vocabularyProgress = response["wkhighlight_vocabulary_progress"];
 											if (radicalProgress || kanjiProgress || vocabularyProgress) {
+												// progress bar
+												const radicalsSize = response["wkhighlight_allradicals_size"];
+												const kanjiSize = response["wkhighlight_allkanji_size"];
+												const vocabularySize = response["wkhighlight_allvocab_size"];
+												let progressBarWrapper, allSize, unlockedSize = 0;
+												if (radicalsSize || kanjiSize || vocabSize) {
+													allSize = (radicalsSize ? radicalsSize : 0) + (kanjiSize ? kanjiSize : 0) + (vocabularySize ? vocabularySize : 0);
+													
+													const progressBar = document.createElement("div");
+													userInfoWrapper.appendChild(progressBar);
+													progressBar.classList.add("userInfoWrapper-wrapper");
+													const progressBarTitle = document.createElement("p");
+													progressBar.appendChild(progressBarTitle);
+													progressBarTitle.appendChild(document.createTextNode("Overall Progression Bar"));
+													progressBarTitle.classList.add("userInfoWrapper-title");
+
+													progressBarWrapper = document.createElement("ul");
+													progressBar.appendChild(progressBarWrapper);
+													progressBarWrapper.style.height = "25px";
+													progressBarWrapper.style.display = "flex";
+													progressBarWrapper.style.flexDirection = "row";
+												}
+
 												const progress = document.createElement("div");
 												userInfoWrapper.appendChild(progress);
 												const progressTitle = document.createElement("p");
 												progress.appendChild(progressTitle);
-												progressTitle.appendChild(document.createTextNode("Overall Progression"));
+												progressTitle.appendChild(document.createTextNode("Overall Progression Stats"));
 												progressTitle.classList.add("userInfoWrapper-title");
 
 												let wrapper;
 												Object.keys(srsStages).forEach(stage => {
+													const stageValue = (radicalProgress && radicalProgress[stage] ? radicalProgress[stage] : 0) + (kanjiProgress && kanjiProgress[stage] ? kanjiProgress[stage] : 0) + (vocabularyProgress && vocabularyProgress[stage] ? vocabularyProgress[stage] : 0);
+													const stageColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
+													unlockedSize+=stageValue;
+
+													// add bar to progress bar
+													if (progressBarWrapper && allSize) {
+														const progressBarBar = document.createElement("li");
+														progressBarWrapper.appendChild(progressBarBar);
+														progressBarBar.classList.add("clickable");
+														progressBarBar.style.height = "100%";
+														const percentageValue = stageValue/allSize*100;
+														progressBarBar.style.width = percentageValue+"%";
+														progressBarBar.style.backgroundColor = stageColor;
+														progressBarBar.style.overflow = "hidden";
+														progressBarBar.style.color = "white";
+														progressBarBar.title = srsStages[stage]["name"]+": "+stageValue+" / "+percentageValue.toFixed(1)+"%";
+														if (percentageValue > 8.1) {
+															const percentage = document.createElement("div");
+															progressBarBar.appendChild(percentage);
+															percentage.appendChild(document.createTextNode(percentageValue.toFixed(1)+"%"));
+															percentage.style.textAlign = "center";
+															percentage.style.marginTop = "5px";
+														}
+													}
+
+													// add square to progression stats
 													if (stage%5 == 0) {
 														wrapper = document.createElement("ul");
 														progress.appendChild(wrapper);
@@ -698,9 +748,9 @@ window.onload = () => {
 													}
 
 													const stageSquare = document.createElement("li");
-													stageSquare.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
+													stageSquare.style.backgroundColor = stageColor;
 													wrapper.appendChild(stageSquare);
-													stageSquare.appendChild(document.createTextNode((radicalProgress && radicalProgress[stage] ? radicalProgress[stage] : 0) + (kanjiProgress && kanjiProgress[stage] ? kanjiProgress[stage] : 0) + (vocabularyProgress && vocabularyProgress[stage] ? vocabularyProgress[stage] : 0)));
+													stageSquare.appendChild(document.createTextNode(stageValue));
 													stageSquare.title = srsStages[stage]["name"];
 													const infoMenu = document.createElement("div");
 													stageSquare.appendChild(infoMenu);
@@ -713,7 +763,7 @@ window.onload = () => {
 													const infoMenuTitle = document.createElement("p");
 													infoMenu.appendChild(infoMenuTitle);
 													infoMenuTitle.appendChild(document.createTextNode(srsStages[stage]["name"]));
-													infoMenuTitle.style.color = stageSquare.style.backgroundColor;
+													infoMenuTitle.style.color = stageColor;
 													const infoMenuBar = document.createElement("div");
 													infoMenu.appendChild(infoMenuBar);
 													const infoMenuListing = document.createElement("ul");
@@ -738,6 +788,24 @@ window.onload = () => {
 													stageSquare.addEventListener("mouseover", () => infoMenu.style.display = "inherit");
 													stageSquare.addEventListener("mouseout", () => infoMenu.style.removeProperty("display"));
 												});
+
+												if (progressBarWrapper && allSize) {
+													const lockedSubjectsBar = document.createElement("li");
+													progressBarWrapper.appendChild(lockedSubjectsBar);
+													const percentageValue = (allSize-unlockedSize)/allSize*100
+													lockedSubjectsBar.style.width = percentageValue+"%";
+													lockedSubjectsBar.style.overflow = "hidden";
+													lockedSubjectsBar.style.height = "100%";
+													lockedSubjectsBar.classList.add("clickable");
+													lockedSubjectsBar.title = "Locked: "+(allSize-unlockedSize)+" / "+percentageValue.toFixed(1)+"%";
+													if (percentageValue > 8.1) {
+														const percentage = document.createElement("div");
+														lockedSubjectsBar.appendChild(percentage);
+														percentage.appendChild(document.createTextNode(percentageValue.toFixed(1)+"%"));
+														percentage.style.textAlign = "center";
+														percentage.style.marginTop = "5px";
+													}
+												}
 											}
 									});
 								}

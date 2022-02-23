@@ -54,7 +54,7 @@ const setupKanji = (apiToken, callback) =>
 									joyo[n].forEach(kanji => kanji_dict[kanji_assoc[kanji]]["joyo"] = "Grade "+n.charAt(1));
 								}
 								// saving all kanji
-								chrome.storage.local.set({...{"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc, "wkhighlight_allkanji_updated": formatDate(new Date())}, ...levels}, () => {
+								chrome.storage.local.set({...{"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc, "wkhighlight_allkanji_updated": formatDate(new Date()), "wkhighlight_allkanji_size":kanji_data[0]["total_count"]}, ...levels}, () => {
 									console.log("Setup Kanji...");
 									resolve([kanji_dict, true]);
 									if (callback)
@@ -108,7 +108,7 @@ const setupRadicals = (apiToken, callback) =>
 										};
 									});
 								// saving all radical
-								chrome.storage.local.set({...{"wkhighlight_allradicals": radical_dict, "wkhighlight_allradicals_updated": formatDate(new Date())}, ...levels}, () => {
+								chrome.storage.local.set({...{"wkhighlight_allradicals": radical_dict, "wkhighlight_allradicals_updated": formatDate(new Date()), "wkhighlight_allradicals_size":radical_data[0]["total_count"]}, ...levels}, () => {
 									console.log("Setup Radicals...");
 									resolve([radical_dict, true]);
 									if (callback)
@@ -134,11 +134,11 @@ const setupVocab = (apiToken, callback) =>
 				.then(modified => {
 					if (!result['wkhighlight_allvocab'] || modified) {
 						fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=vocabulary")
-							.then(vocab => {
+							.then(vocab_data => {
 								const vocab_dict = {};
 								const vocab_assoc = {};
 								const levels = {};
-								vocab.map(content => content.data)
+								vocab_data.map(content => content.data)
 									.flat(1)
 									.forEach(vocab => {
 										const data = vocab.data;
@@ -171,7 +171,7 @@ const setupVocab = (apiToken, callback) =>
 										};
 									});
 								// saving all vocabulary
-								chrome.storage.local.set({...{'wkhighlight_allvocab':vocab_dict, "wkhighlight_vocab_assoc": vocab_assoc, "wkhighlight_allvocab_updated": formatDate(new Date())}, ...levels}, () => {
+								chrome.storage.local.set({...{'wkhighlight_allvocab':vocab_dict, "wkhighlight_vocab_assoc": vocab_assoc, "wkhighlight_allvocab_updated": formatDate(new Date()), "wkhighlight_allvocab_size":vocab_data[0]["total_count"]}, ...levels}, () => {
 									console.log("Setup Vocabulary...");
 									resolve([vocab_dict, true]);
 									if (callback)
