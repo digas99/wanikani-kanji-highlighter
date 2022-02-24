@@ -807,6 +807,83 @@ window.onload = () => {
 													}
 												}
 											}
+
+											// Levels in progress
+											const radicalsLevelInProgress = response["wkhighlight_radical_levelsInProgress"];
+											const kanjiLevelInProgress = response["wkhighlight_kanji_levelsInProgress"];
+											const vocabularyLevelInProgress = response["wkhighlight_vocabulary_levelsInProgress"];
+											if (radicalsLevelInProgress || kanjiLevelInProgress || vocabularyLevelInProgress) {
+												const levelsInProgress = document.createElement("div");
+												userInfoWrapper.appendChild(levelsInProgress);
+												levelsInProgress.classList.add("userInfoWrapper-wrapper");
+												levelsInProgress.style.width = "88%";
+												const levelsInProgressTitle = document.createElement("p");
+												levelsInProgress.appendChild(levelsInProgressTitle);
+												levelsInProgressTitle.appendChild(document.createTextNode("Levels In Progress"));
+												levelsInProgressTitle.classList.add("userInfoWrapper-title");
+												const types = ["radical", "kanji", "vocabulary"];
+												let progressBarWrappers = [];
+												[radicalsLevelInProgress ? radicalsLevelInProgress : [],
+												kanjiLevelInProgress ? kanjiLevelInProgress : [],
+												vocabularyLevelInProgress ? vocabularyLevelInProgress : []]
+													.forEach((type, i) => {
+														chrome.storage.local.get(type.map(level => "wkhighlight_"+types[i]+"_level"+level), levels => {
+															const levelsId = Object.keys(levels);
+															Object.values(levels).forEach((info, j) => {
+																const values = Object.values(info);
+																const all = values.length;
+																const passed = values.filter(subject => subject["passed_at"]).length;
+																const notPassed = values.filter(subject => !subject["passed_at"]);
+
+																const progressBarWrapper = document.createElement("ul");
+																progressBarWrappers.push(progressBarWrapper);
+																progressBarWrapper.style.display = "flex";
+																progressBarWrapper.style.margin = "1px 0";
+
+																// set order value
+																const level = Number(levelsId[j].split("level")[1]);
+																progressBarWrapper.setAttribute("data-order", level*10+i);
+
+																const progressBarBar = document.createElement("li");
+																progressBarWrapper.appendChild(progressBarBar);
+																progressBarBar.classList.add("clickable");
+																progressBarBar.style.height = "25px";
+																const percentageValue = passed/all*100;
+																progressBarBar.style.width = percentageValue.toFixed(0)+"%";
+																progressBarBar.style.backgroundColor = "black";
+																progressBarBar.style.overflow = "hidden";
+																progressBarBar.style.color = "white";
+																progressBarBar.title = "Passed: "+passed;
+
+																// traverse from initiate until apprentice IV
+																for (let i = 5; i >= 0; i--) {
+																	const stageSubjects = notPassed.filter(subject => subject["srs_stage"] == i).length;
+																	const progressBarBar = document.createElement("li");
+																	progressBarWrapper.appendChild(progressBarBar);
+																	progressBarBar.classList.add("clickable");
+																	progressBarBar.style.height = "25px";
+																	const percentageValue = stageSubjects/all*100;
+																	progressBarBar.style.width = percentageValue.toFixed(0)+"%";
+																	progressBarBar.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][srsStages[i]["short"].toLowerCase()+"_color"] : srsStages[i]["color"];
+																	progressBarBar.style.overflow = "hidden";
+																	progressBarBar.style.color = "white";
+																	progressBarBar.title = srsStages[i]["name"]+": "+stageSubjects;
+																}
+
+																const barTitle = document.createElement("span");
+																progressBarWrapper.appendChild(barTitle);
+																barTitle.style.position = "absolute";
+																barTitle.style.right = "0px";
+																barTitle.style.marginTop = "3px";
+																barTitle.appendChild(document.createTextNode(level+" "+types[i].charAt(0).toUpperCase()+types[i].substring(1, 3)));
+															});
+														});
+													});
+
+												// giving it some delay to let everything load (FIX THIS LATER)
+												setTimeout(() => progressBarWrappers.sort((a,b) => Number(a.dataset.order) - Number(b.dataset.order))
+																	.forEach(bar => levelsInProgress.appendChild(bar)), 200);
+											}
 									});
 								}
 							});
@@ -1514,7 +1591,7 @@ document.addEventListener("click", e => {
 								chrome.alarms.clear("next-reviews");
 							else {
 								chrome.runtime.connect();
-								chrome.runtime.sendMessage({onDisconnect:"reload"}, () => window.chrome.runtime.lastError);
+								//chrome.runtime.sendMessage({onDisconnect:"reload"}, () => window.chrome.runtime.lastError);
 							}
 							break;
 						case "practice_reminder":
@@ -1524,7 +1601,7 @@ document.addEventListener("click", e => {
 									timeInput.classList.remove("disabled");
 								chrome.alarms.clear("practice");
 								chrome.runtime.connect();
-								chrome.runtime.sendMessage({onDisconnect:"reload"}, () => window.chrome.runtime.lastError);
+								//chrome.runtime.sendMessage({onDisconnect:"reload"}, () => window.chrome.runtime.lastError);
 							}
 							else {
 								if (!timeInput.classList.contains("disabled"))
@@ -2293,6 +2370,8 @@ document.addEventListener("click", e => {
 						const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading Subjects...");
 						const loadingElem = loadingVal[0];
 						lessonsListUl.appendChild(loadingElem);
+						lessonsListUl.style.maxHeight = "unset";
+
 	
 						loadItemsLists(() => {
 							displayAssignmentMaterials(lessons["data"], lessonsListUl, loadingElem);

@@ -353,8 +353,8 @@ const assignUponSubjects = list => {
 					const subjectId = data["subject_id"];
 					if (subjectId && list[subjectId]) {
 						const subject = list[subjectId];
-						if (!levels["wkhighlight_"+type+"level"+subject["level"]])
-							levels["wkhighlight_"+type+"level"+subject["level"]] = result["wkhighlight_"+type+"_level"+subject["level"]];
+						if (!levels["wkhighlight_"+type+"_level"+subject["level"]])
+							levels["wkhighlight_"+type+"_level"+subject["level"]] = result["wkhighlight_"+type+"_level"+subject["level"]];
 
 						const timestamps = {
 							data_updated_at: assignment["data_updated_at"],

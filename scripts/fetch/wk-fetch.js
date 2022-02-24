@@ -40,7 +40,8 @@ const setupKanji = (apiToken, callback) =>
 											"characters" : data.characters,
 											"id":kanji.id,
 											"meanings" : data.meanings.map(data => data.meaning),
-											"readings" : data.readings
+											"readings" : data.readings,
+											"subject_type":kanji.object
 										};
 									});
 
@@ -104,7 +105,8 @@ const setupRadicals = (apiToken, callback) =>
 											"characters" : data.characters,
 											"character_images" : data.character_images,
 											"id":radical.id,
-											"meanings": data.meanings.map(data => data.meaning)
+											"meanings": data.meanings.map(data => data.meaning),
+											"subject_type":radical.object
 										};
 									});
 								// saving all radical
@@ -167,7 +169,8 @@ const setupVocab = (apiToken, callback) =>
 											"id":vocab.id,
 											"meanings": data.meanings.map(data => data.meaning),
 											"readings" : data.readings.map(data => data.reading),
-											"pronunciation_audios" : data.pronunciation_audios
+											"pronunciation_audios" : data.pronunciation_audios,
+											"subject_type":vocab.object
 										};
 									});
 								// saving all vocabulary
