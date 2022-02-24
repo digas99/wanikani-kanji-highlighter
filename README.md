@@ -147,6 +147,8 @@ If it is a Kanji, then it will be on yellow, if it is a vocabulary, it will be o
 
 The search results can be more or less broaden, by clikcing the targeted search icon within the search area. If activated, then only material with the exact same text as what was typed will show up. Otherwise, material with similar text will also appear (i.e.: if you search for gold, if targeted search is not activated, then goldfish will be one of the search results because it contains the word gold).
 
+Writing the word "legacy" in the seach bar will show all subjects that no longer show up in lessons or reviews.
+
 ### Writing Kana:
 
 Within the search bar, if you change the writing type from Romaji to Kana, by clicking on the button with the character 'あ', everything you type with your keyboard on that search bar will be automatically converted to Kana. If you write in **Lower Case** then **Hiragana** will show up. If you write in **Uper Case** then **Katakana** will show up.

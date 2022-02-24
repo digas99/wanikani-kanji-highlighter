@@ -2795,6 +2795,10 @@ const searchSubject = (event, searchType) => {
 					filteredKanji = filterByLevel(kanjiList, value);
 					filteredVocab = filterByLevel(vocabList, value);
 				}
+				else if (value == "legacy") {
+					filteredKanji = kanjiList.filter(item => item["hidden_at"]);
+					filteredVocab = vocabList.filter(item => item["hidden_at"]);
+				}
 				else {
 					const filterByMeanings = (itemList, value) => itemList.filter(item => matchesMeanings(value, item["meanings"], settings["search"]["targeted_search"]));
 					const cleanInput = input.value.toLowerCase().trim();
