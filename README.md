@@ -192,17 +192,25 @@ By clicking in the gear icon in the main page of the extension popup, you will f
 - **Kanji Details Popup**
   - **Activated:** show the popup with the details of a highlighted kanji, when hover over it
   - **Key Bindings:** choose whether to activate or not the key bindings on details popup
-    - **Random Subject:** select the type of subject expected when getting a random subject (any, kanji or vocabulary)
-    - **Popup Opacity:** change the opacity of the small details popup
+  - **Random Subject:** select the type of subject expected when getting a random subject (any, kanji or vocabulary)
+  - **Popup Opacity:** change the opacity of the small details popup
+- **Notifications**
+  - **New Reviews:** notification triggered whenever there are new Reviews in the queue
+  - **Practice Reminder:** notification reminding the ammount of assignments that are available at a specific time of the day chosen by the user
+  - **Searching a Webpage Word:** notification triggered whenever searching a word from within any webpage
+- **Extension Popup Interface**
+  - **Scripts Status:** show scripts status in the extension popup home
+  - **Highlighted Kanji:** show kanji highlighted in the current page in the extension popup home
+  - **Lessons and Reviews:** show number of lessons and reviews in the extension popup home
+  - **Overall Progression Bar:** show progression bar for each SRS Stage in the extension popup home
+  - **Overall Progression Stats:** show numbers for each SRS Stage in the extension popup home
+  - **Levels In Progress:** show which levels still have subjects in progress in the extension popup home
+- **Miscellaneous**
+  - **Time in 12h Format:** timestamps within the chrome extension are in the 12h format (24h format if disabled)
+  - **Kana Writing:** write kana on text inputs on a webpage (some inputs might not work)
+  - **Extension Popup Width:** change the width of the extension popup window
 - **Extension Icon**
   - **Kanji Counter:** show the number of highlighted Kanji in the page, on the icon of the extension
-- **Notifications**
-  - **New Reviews** notification triggered whenever there are new Reviews in the queue
-  - **Practice Reminder** notification reminding the ammount of assignments that are available at a specific time of the day chosen by the user
-  - **Searching a Webpage Word** notification triggered whenever searching a word from within any webpage
-- **Miscellaneous**
-  - **Time in 12h Format** timestamps within the chrome extension are in the 12h format (24h format if disabled)
-  - **Kana Writing:** write kana on text inputs on a webpage (some inputs might not work)
 - **Highlight Style:** choose how do you want the kanji to be highlighted
 - **Appearance:** customize the color of several features in the app (highlight, kanji cards, etc...)
 - **Danger Section**

@@ -205,7 +205,7 @@ window.onload = () => {
 											else if (blacklisted_site) userInfoWrapper.appendChild(enhancedWarning("Site blacklisted by you!", "red"));
 
 											// scripts uptime
-											if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["miscellaneous"]["show_scripts_status"] : settingsInterface["miscellaneous"]["show_scripts_status"]) {
+											if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["scripts_status"] : settingsInterface["extension_popup_interface"]["scripts_status"]) {
 												const scriptsUptimeWrapper = document.createElement("div");
 												userInfoWrapper.appendChild(scriptsUptimeWrapper);
 												scriptsUptimeWrapper.title = "Scripts Uptime Status";
@@ -388,99 +388,104 @@ window.onload = () => {
 
 											if (!atWanikani) {
 												if (!blacklisted_site) {
-													const kanjiFoundWrapper = document.createElement("div");
-													userInfoWrapper.appendChild(kanjiFoundWrapper);
-													kanjiFoundWrapper.classList.add("resizable", "highlightedKanjiContainer", "userInfoWrapper-wrapper");
-													kanjiFoundWrapper.style.maxHeight = defaultSettings["sizes"]["highlighted_kanji_height"]+"px";
-													chrome.storage.local.get(["wkhighlight_settings"], result => {
-														if (result["wkhighlight_settings"] && result["wkhighlight_settings"]["sizes"])
-															kanjiFoundWrapper.style.maxHeight = result["wkhighlight_settings"]["sizes"]["highlighted_kanji_height"]+"px";
-													});
-													kanjiFoundWrapper.setAttribute("data-settings", "sizes-highlighted_kanji_height");
-													const resizableS = document.createElement("div");
-													kanjiFoundWrapper.appendChild(resizableS);
-													resizableS.classList.add("resizable-s");
-													const kanjiFound = document.createElement("div");
-													kanjiFoundWrapper.appendChild(kanjiFound);
-													const kanjiFoundBar = document.createElement("div");
-													kanjiFoundWrapper.appendChild(kanjiFoundBar);
-													const kanjiFoundList = document.createElement("div");
-													kanjiFoundWrapper.appendChild(kanjiFoundList);
-	
-													chrome.tabs.query({currentWindow: true, active: true}, tabs => {
-														chrome.tabs.sendMessage(tabs[0].id, {nmrKanjiHighlighted:"popup"}, response => {
-															chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
-																let learned = [], notLearned = [];
-																if (response) {
-																	learned = response["learned"];
-																	notLearned = response["notLearned"];
-																}
-	
-																kanjiFound.id = "nmrKanjiHighlighted";
-																kanjiFound.classList.add("userInfoWrapper-title");
-																kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong></strong> (in the page)`;
-														
-																const barData = [
-																	{
-																		link: "learnedKanji",
-																		color: "var(--highlight-default-color)",
-																		value: learned.length
-																	},
-																	{
-																		link: "notLearnedKanji",
-																		color: "var(--notLearned-color)",
-																		value: notLearned.length
-																	}
-																];
-	
-																kanjiFoundBar.parentElement.replaceChild(itemsListBar(barData), kanjiFoundBar);
-	
-																kanjiFoundList.id = "kanjiHighlightedList";
-																const parentMaxHeight = kanjiFoundList.parentElement.style.maxHeight;
-																kanjiFoundList.style.maxHeight = (Number(parentMaxHeight.substring(0, parentMaxHeight.length-2))-40)+"px";
-																kanjiFoundList.classList.add("simple-grid");
-																const kanjiFoundUl = document.createElement("ul");
-																kanjiFoundList.appendChild(kanjiFoundUl);
-	
-																const kanjiAssoc = result["wkhighlight_kanji_assoc"];
-																kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${response ? response["nmrKanjiHighlighted"] : 0}</strong> (in the page)`;
+
+													// highlighted kanji
+													if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["highlighted_kanji"] : settingsInterface["extension_popup_interface"]["highlighted_kanji"]) {
+														const kanjiFoundWrapper = document.createElement("div");
+														userInfoWrapper.appendChild(kanjiFoundWrapper);
+														kanjiFoundWrapper.classList.add("resizable", "highlightedKanjiContainer", "userInfoWrapper-wrapper");
+														kanjiFoundWrapper.style.maxHeight = defaultSettings["sizes"]["highlighted_kanji_height"]+"px";
+														chrome.storage.local.get(["wkhighlight_settings"], result => {
+															if (result["wkhighlight_settings"] && result["wkhighlight_settings"]["sizes"])
+																kanjiFoundWrapper.style.maxHeight = result["wkhighlight_settings"]["sizes"]["highlighted_kanji_height"]+"px";
+														});
+
+														kanjiFoundWrapper.setAttribute("data-settings", "sizes-highlighted_kanji_height");
+														const resizableS = document.createElement("div");
+														kanjiFoundWrapper.appendChild(resizableS);
+														resizableS.classList.add("resizable-s");
+														const kanjiFound = document.createElement("div");
+														kanjiFoundWrapper.appendChild(kanjiFound);
+														const kanjiFoundBar = document.createElement("div");
+														kanjiFoundWrapper.appendChild(kanjiFoundBar);
+														const kanjiFoundList = document.createElement("div");
+														kanjiFoundWrapper.appendChild(kanjiFoundList);
 		
-																const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned"];
-																[learned, notLearned].forEach((type, i) => {
-																	type.forEach(kanji => {
-																		const kanjiFoundLi = document.createElement("li");
-																		kanjiFoundUl.appendChild(kanjiFoundLi);
-																		kanjiFoundLi.classList.add("clickable", "kanjiDetails", classes[i]);
-																		kanjiFoundLi.appendChild(document.createTextNode(kanji));
-																		if (kanjiAssoc && kanjiAssoc[kanji]) kanjiFoundLi.setAttribute("data-item-id", kanjiAssoc[kanji]);
-																	});
-																});
+														chrome.tabs.query({currentWindow: true, active: true}, tabs => {
+															chrome.tabs.sendMessage(tabs[0].id, {nmrKanjiHighlighted:"popup"}, response => {
+																chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
+																	let learned = [], notLearned = [];
+																	if (response) {
+																		learned = response["learned"];
+																		notLearned = response["notLearned"];
+																	}
+		
+																	kanjiFound.id = "nmrKanjiHighlighted";
+																	kanjiFound.classList.add("userInfoWrapper-title");
+																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong></strong> (in the page)`;
 															
-																if (learned.length == 0 && notLearned.length == 0) {
-																	kanjiFoundUl.style.position = "relative";
-																	const kanjiModel = document.createElement("p");
-																	kanjiFoundUl.appendChild(kanjiModel);
-																	const randHex = rand(parseInt("4e00", 16), parseInt("9faf", 16)).toString(16);
-																	kanjiModel.appendChild(document.createTextNode(String.fromCharCode(`0x${randHex}`)));
-																	kanjiModel.style.textAlign = "center";
-																	kanjiModel.style.paddingBottom = "12px";
-																	kanjiModel.style.color = "#d8d8d8";
-																	kanjiModel.style.fontSize = "52px";
-																	kanjiModel.style.marginTop = "-10px";
-																	const noKanjiFound = document.createElement("p");
-																	kanjiFoundUl.appendChild(noKanjiFound);
-																	noKanjiFound.appendChild(document.createTextNode("No Kanji from Wanikani found in the current page."));
-																	noKanjiFound.style.textAlign = "center";
-																	noKanjiFound.style.padding = "0 5px";
-																	noKanjiFound.style.color = "silver";
-																	noKanjiFound.style.fontSize = "13px";
-																	const notFoundSlash = document.createElement("div");
-																	kanjiFoundUl.appendChild(notFoundSlash);
-																	notFoundSlash.classList.add("notFoundKanjiSlash");
-																}
+																	const barData = [
+																		{
+																			link: "learnedKanji",
+																			color: "var(--highlight-default-color)",
+																			value: learned.length
+																		},
+																		{
+																			link: "notLearnedKanji",
+																			color: "var(--notLearned-color)",
+																			value: notLearned.length
+																		}
+																	];
+		
+																	kanjiFoundBar.parentElement.replaceChild(itemsListBar(barData), kanjiFoundBar);
+		
+																	kanjiFoundList.id = "kanjiHighlightedList";
+																	const parentMaxHeight = kanjiFoundList.parentElement.style.maxHeight;
+																	kanjiFoundList.style.maxHeight = (Number(parentMaxHeight.substring(0, parentMaxHeight.length-2))-40)+"px";
+																	kanjiFoundList.classList.add("simple-grid");
+																	const kanjiFoundUl = document.createElement("ul");
+																	kanjiFoundList.appendChild(kanjiFoundUl);
+		
+																	const kanjiAssoc = result["wkhighlight_kanji_assoc"];
+																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${response ? response["nmrKanjiHighlighted"] : 0}</strong> (in the page)`;
+			
+																	const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned"];
+																	[learned, notLearned].forEach((type, i) => {
+																		type.forEach(kanji => {
+																			const kanjiFoundLi = document.createElement("li");
+																			kanjiFoundUl.appendChild(kanjiFoundLi);
+																			kanjiFoundLi.classList.add("clickable", "kanjiDetails", classes[i]);
+																			kanjiFoundLi.appendChild(document.createTextNode(kanji));
+																			if (kanjiAssoc && kanjiAssoc[kanji]) kanjiFoundLi.setAttribute("data-item-id", kanjiAssoc[kanji]);
+																		});
+																	});
+																
+																	if (learned.length == 0 && notLearned.length == 0) {
+																		kanjiFoundUl.style.position = "relative";
+																		const kanjiModel = document.createElement("p");
+																		kanjiFoundUl.appendChild(kanjiModel);
+																		const randHex = rand(parseInt("4e00", 16), parseInt("9faf", 16)).toString(16);
+																		kanjiModel.appendChild(document.createTextNode(String.fromCharCode(`0x${randHex}`)));
+																		kanjiModel.style.textAlign = "center";
+																		kanjiModel.style.paddingBottom = "12px";
+																		kanjiModel.style.color = "#d8d8d8";
+																		kanjiModel.style.fontSize = "52px";
+																		kanjiModel.style.marginTop = "-10px";
+																		const noKanjiFound = document.createElement("p");
+																		kanjiFoundUl.appendChild(noKanjiFound);
+																		noKanjiFound.appendChild(document.createTextNode("No Kanji from Wanikani found in the current page."));
+																		noKanjiFound.style.textAlign = "center";
+																		noKanjiFound.style.padding = "0 5px";
+																		noKanjiFound.style.color = "silver";
+																		noKanjiFound.style.fontSize = "13px";
+																		const notFoundSlash = document.createElement("div");
+																		kanjiFoundUl.appendChild(notFoundSlash);
+																		notFoundSlash.classList.add("notFoundKanjiSlash");
+																	}
+																});
 															});
 														});
-													});
+													}	
 												}
 
 												const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchSubject);
@@ -526,192 +531,202 @@ window.onload = () => {
 												searchType.appendChild(document.createTextNode("あ"));
 											}
 
-											const summaryWrapper = document.createElement("div");
-											userInfoWrapper.appendChild(summaryWrapper);
-											summaryWrapper.style.textAlign = "center";
-											summaryWrapper.classList.add("userInfoWrapper-wrapper");
-											const summaryUl = document.createElement("ul");
-											summaryWrapper.appendChild(summaryUl);
-											summaryUl.style.display = "inline-flex";
-											summaryUl.style.width = "100%";
-											["Lessons", "Reviews"].forEach(topic => {
-												const summaryLi = document.createElement("li");
-												summaryUl.appendChild(summaryLi);
-												summaryLi.style.width = "100%";
-												summaryLi.style.color = "white";
-
-												const titleWrapper = document.createElement("div");
-												summaryLi.appendChild(titleWrapper);
-												titleWrapper.classList.add("summaryTitle", "userInfoWrapper-title");
-												titleWrapper.title = topic+" in WaniKani";
-												const title = document.createElement("a");
-												titleWrapper.appendChild(title);
-												title.appendChild(document.createTextNode(topic));
-												title.href = "https://www.wanikani.com/"+topic[0].toLowerCase()+topic.slice(1, -1);
-												title.target = "_blank";
-												title.style.color = "white";
-
-												const value = document.createElement("div");
-												summaryLi.appendChild(value);
-												value.appendChild(document.createTextNode("0"));
-												value.classList.add("summaryValue", "clickable");
-												value.style.backgroundColor = topic == "Lessons" ? "#4f7b61" : "#2c7080";
-												value.id = "summary"+topic;
-											});
-
-											const reviewsLoadingVal = loading([], [], 25);
-											const reviewsLoadingElem = reviewsLoadingVal[0];
-											summaryWrapper.appendChild(reviewsLoadingElem);
-
-											const moreReviews = document.createElement("p");
-											summaryWrapper.appendChild(moreReviews);
-											moreReviews.style.padding = "3px 0";
-											moreReviews.style.color = "#747474";
-											moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
-											const moreReviewsDate  = document.createElement("p");
-											summaryWrapper.appendChild(moreReviewsDate);
-											moreReviewsDate.style.padding = "3px 0";
-											moreReviewsDate.style.color = "#747474";
-
-											// get all assignments if there are none in storage or if they were modified
-											setupAssignments(apiKey, () => setupAvailableAssignments(apiKey, setupSummary));
-									
-											const setupSummary = (reviews, lessons) => {
-												if (reviews) {
-													const currentTime = new Date().getTime();
-													
-													const currentValue = parseInt(document.getElementById("summaryReviews").innerText);
-													if (currentValue === 0)
-														document.getElementById("summaryReviews").innerText = reviews["count"] ? reviews["count"] : 0;
-													else {
-														if (reviews["count"] && typeof currentValue === "number" && !isNaN(currentTime) && reviews["count"] != lastReviewsValue) {
-															counterAnimation(currentValue, reviews["count"], document.getElementById("summaryReviews"), 5);
-															lastReviewsValue = reviews["count"];
-														}	
-													}												
+											// lessons and reviews
+											if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["lessons_and_reviews"] : settingsInterface["extension_popup_interface"]["lessons_and_reviews"]) {
+												const summaryWrapper = document.createElement("div");
+												userInfoWrapper.appendChild(summaryWrapper);
+												summaryWrapper.style.textAlign = "center";
+												summaryWrapper.classList.add("userInfoWrapper-wrapper");
+												const summaryUl = document.createElement("ul");
+												summaryWrapper.appendChild(summaryUl);
+												summaryUl.style.display = "inline-flex";
+												summaryUl.style.width = "100%";
+												["Lessons", "Reviews"].forEach(topic => {
+													const summaryLi = document.createElement("li");
+													summaryUl.appendChild(summaryLi);
+													summaryLi.style.width = "100%";
+													summaryLi.style.color = "white";
 	
-													// get all the reviews for the next 14 days
-													const nextReviews = reviews["next_reviews"];
-													const hoursIn14Days = 24*14;
-													// check reviews for the next hours, for every exact hour
-													for (let i = 1; i < hoursIn14Days; i++) {
-														const thisDate = nextExactHour(new Date(), i);
-														const reviewsForNextHour = filterAssignmentsByTime(nextReviews, new Date(), thisDate);
-														if (reviewsForNextHour.length > 0) {
-															const remainingTime = msToTime(thisDate - currentTime);
-															moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
-															chrome.storage.local.get(["wkhighlight_settings"], result => {
-																const settings = result["wkhighlight_settings"];
-																let time = `${thisDate.getHours() < 10 ? "0"+thisDate.getHours() : thisDate.getHours()}:${thisDate.getMinutes() < 10 ? "0"+thisDate.getMinutes() : thisDate.getMinutes()}`;
-																if (settings && settings["miscellaneous"]["time_in_12h_format"])
-																	time = time12h(time);
-																moreReviewsDate.innerText = `${thisDate.getMonthName().slice(0, 3)} ${thisDate.getDate() < 10 ? "0"+thisDate.getDate() : thisDate.getDate()}, ${time}`;
-															});
-															// create interval delay
-															// 10% of a day are 8640000 milliseconds
-															// 10% of an hour are 360000 milliseconds
-															// 10% of a minute are 6000 milliseconds
-															// 10% of a second are 100 milliseconds
-															const delays = {
-																"Days":8640000,
-																"Hrs":360000,
-																"Min":6000,
-																"Sec":100
-															}
-
-															// timeUnit = "Days, Hrs, etc..."
-															let timeUnit = remainingTime.split(" ")[1];
-
-															const timeStampRefresher = () => {
-																const newCurrentDate = new Date().getTime();
-																const newTimeStamp = msToTime(thisDate - newCurrentDate);
-																const newTimeUnit = newTimeStamp.split(" ")[1];
-																// check if has changed the unit of time
-																if (newTimeUnit != timeUnit) {
-																	timeUnit = newTimeUnit;
-																	// if so then clear the current interval
-																	clearInterval(timeStampInterval);
-																	// and start a new one with a new interval delay
-																	timeStampInterval = setInterval(timeStampRefresher, delays[newTimeUnit]);
+													const titleWrapper = document.createElement("div");
+													summaryLi.appendChild(titleWrapper);
+													titleWrapper.classList.add("summaryTitle", "userInfoWrapper-title");
+													titleWrapper.title = topic+" in WaniKani";
+													const title = document.createElement("a");
+													titleWrapper.appendChild(title);
+													title.appendChild(document.createTextNode(topic));
+													title.href = "https://www.wanikani.com/"+topic[0].toLowerCase()+topic.slice(1, -1);
+													title.target = "_blank";
+													title.style.color = "white";
+	
+													const value = document.createElement("div");
+													summaryLi.appendChild(value);
+													value.appendChild(document.createTextNode("0"));
+													value.classList.add("summaryValue", "clickable");
+													value.style.backgroundColor = topic == "Lessons" ? "#4f7b61" : "#2c7080";
+													value.id = "summary"+topic;
+												});
+	
+												const reviewsLoadingVal = loading([], [], 25);
+												const reviewsLoadingElem = reviewsLoadingVal[0];
+												summaryWrapper.appendChild(reviewsLoadingElem);
+	
+												const moreReviews = document.createElement("p");
+												summaryWrapper.appendChild(moreReviews);
+												moreReviews.style.padding = "3px 0";
+												moreReviews.style.color = "#747474";
+												moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
+												const moreReviewsDate  = document.createElement("p");
+												summaryWrapper.appendChild(moreReviewsDate);
+												moreReviewsDate.style.padding = "3px 0";
+												moreReviewsDate.style.color = "#747474";
+											
+												// get all assignments if there are none in storage or if they were modified
+												setupAssignments(apiKey, () => setupAvailableAssignments(apiKey, setupSummary));
+										
+												const setupSummary = (reviews, lessons) => {
+													if (reviews) {
+														const currentTime = new Date().getTime();
+														
+														const currentValue = parseInt(document.getElementById("summaryReviews").innerText);
+														if (currentValue === 0)
+															document.getElementById("summaryReviews").innerText = reviews["count"] ? reviews["count"] : 0;
+														else {
+															if (reviews["count"] && typeof currentValue === "number" && !isNaN(currentTime) && reviews["count"] != lastReviewsValue) {
+																counterAnimation(currentValue, reviews["count"], document.getElementById("summaryReviews"), 5);
+																lastReviewsValue = reviews["count"];
+															}	
+														}												
+		
+														// get all the reviews for the next 14 days
+														const nextReviews = reviews["next_reviews"];
+														const hoursIn14Days = 24*14;
+														// check reviews for the next hours, for every exact hour
+														for (let i = 1; i < hoursIn14Days; i++) {
+															const thisDate = nextExactHour(new Date(), i);
+															const reviewsForNextHour = filterAssignmentsByTime(nextReviews, new Date(), thisDate);
+															if (reviewsForNextHour.length > 0) {
+																const remainingTime = msToTime(thisDate - currentTime);
+																moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
+																chrome.storage.local.get(["wkhighlight_settings"], result => {
+																	const settings = result["wkhighlight_settings"];
+																	let time = `${thisDate.getHours() < 10 ? "0"+thisDate.getHours() : thisDate.getHours()}:${thisDate.getMinutes() < 10 ? "0"+thisDate.getMinutes() : thisDate.getMinutes()}`;
+																	if (settings && settings["miscellaneous"]["time_in_12h_format"])
+																		time = time12h(time);
+																	moreReviewsDate.innerText = `${thisDate.getMonthName().slice(0, 3)} ${thisDate.getDate() < 10 ? "0"+thisDate.getDate() : thisDate.getDate()}, ${time}`;
+																});
+																// create interval delay
+																// 10% of a day are 8640000 milliseconds
+																// 10% of an hour are 360000 milliseconds
+																// 10% of a minute are 6000 milliseconds
+																// 10% of a second are 100 milliseconds
+																const delays = {
+																	"Days":8640000,
+																	"Hrs":360000,
+																	"Min":6000,
+																	"Sec":100
 																}
 
-																// if time stamp reached 0
-																if (thisDate <= newCurrentDate) {
-																	moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> <b class="refresh clickable">now</b>`;
-																	// refresh popup automatically
-																	setTimeout(() => window.location.reload(), 1000);
-																	clearInterval(timeStampInterval);
-																	return;
+																// timeUnit = "Days, Hrs, etc..."
+																let timeUnit = remainingTime.split(" ")[1];
+
+																const timeStampRefresher = () => {
+																	const newCurrentDate = new Date().getTime();
+																	const newTimeStamp = msToTime(thisDate - newCurrentDate);
+																	const newTimeUnit = newTimeStamp.split(" ")[1];
+																	// check if has changed the unit of time
+																	if (newTimeUnit != timeUnit) {
+																		timeUnit = newTimeUnit;
+																		// if so then clear the current interval
+																		clearInterval(timeStampInterval);
+																		// and start a new one with a new interval delay
+																		timeStampInterval = setInterval(timeStampRefresher, delays[newTimeUnit]);
+																	}
+
+																	// if time stamp reached 0
+																	if (thisDate <= newCurrentDate) {
+																		moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> <b class="refresh clickable">now</b>`;
+																		// refresh popup automatically
+																		setTimeout(() => window.location.reload(), 1000);
+																		clearInterval(timeStampInterval);
+																		return;
+																	}
+
+																	// refresh time stamp
+																	moreReviews.getElementsByTagName("B")[1].innerText = newTimeStamp;
 																}
 
-																// refresh time stamp
-																moreReviews.getElementsByTagName("B")[1].innerText = newTimeStamp;
+																let timeStampInterval = setInterval(timeStampRefresher, delays[timeUnit]);
+																// 10% of a minute are 6000 milliseconds
+																break;
 															}
-
-															let timeStampInterval = setInterval(timeStampRefresher, delays[timeUnit]);
-															// 10% of a minute are 6000 milliseconds
-															break;
 														}
 													}
+
+													if (lessons) {
+														const currentValue = parseInt(document.getElementById("summaryLessons").innerText);
+														if (currentValue === 0)
+															document.getElementById("summaryLessons").innerText = lessons["count"] ? lessons["count"] : 0;
+														else {
+															if (lessons["count"] && typeof currentValue === "number" && !isNaN(currentValue) && lessons["count"] != lastLessonsValue) {
+																counterAnimation(currentValue, lessons["count"], document.getElementById("summaryLessons"), 5);
+																lastLessonsValue = lessons["count"];
+															}	
+														}												
+													}
+													
+													reviewsLoadingElem.remove();
+													clearInterval(reviewsLoadingVal[1]);
 												}
 
-												if (lessons) {
-													const currentValue = parseInt(document.getElementById("summaryLessons").innerText);
-													if (currentValue === 0)
-														document.getElementById("summaryLessons").innerText = lessons["count"] ? lessons["count"] : 0;
-													else {
-														if (lessons["count"] && typeof currentValue === "number" && !isNaN(currentValue) && lessons["count"] != lastLessonsValue) {
-															counterAnimation(currentValue, lessons["count"], document.getElementById("summaryLessons"), 5);
-															lastLessonsValue = lessons["count"];
-														}	
-													}												
-												}
+
+												reviews = response["wkhighlight_reviews"];
+												lessons = response["wkhighlight_lessons"];
 												
-												reviewsLoadingElem.remove();
-												clearInterval(reviewsLoadingVal[1]);
+												setupAvailableAssignments(apiKey, setupSummary);
+
+												setupSummary(reviews, lessons);
 											}
-
-											reviews = response["wkhighlight_reviews"];
-											lessons = response["wkhighlight_lessons"];
-											
-											setupAvailableAssignments(apiKey, setupSummary);
-
-											setupSummary(reviews, lessons);
 
 											// overall progress
 											const radicalProgress = response["wkhighlight_radical_progress"];
 											const kanjiProgress = response["wkhighlight_kanji_progress"];
 											const vocabularyProgress = response["wkhighlight_vocabulary_progress"];
+											let progressBarWrapper, allSize, progress, unlockedSize=0;
 											if (radicalProgress || kanjiProgress || vocabularyProgress) {
 												// progress bar
-												const radicalsSize = response["wkhighlight_allradicals_size"];
-												const kanjiSize = response["wkhighlight_allkanji_size"];
-												const vocabularySize = response["wkhighlight_allvocab_size"];
-												let progressBarWrapper, allSize, unlockedSize = 0;
-												if (radicalsSize || kanjiSize || vocabSize) {
-													allSize = (radicalsSize ? radicalsSize : 0) + (kanjiSize ? kanjiSize : 0) + (vocabularySize ? vocabularySize : 0);
-													
-													const progressBar = document.createElement("div");
-													userInfoWrapper.appendChild(progressBar);
-													progressBar.classList.add("userInfoWrapper-wrapper");
-													const progressBarTitle = document.createElement("p");
-													progressBar.appendChild(progressBarTitle);
-													progressBarTitle.appendChild(document.createTextNode("Overall Progression Bar"));
-													progressBarTitle.classList.add("userInfoWrapper-title");
-
-													progressBarWrapper = document.createElement("ul");
-													progressBar.appendChild(progressBarWrapper);
-													progressBarWrapper.style.height = "25px";
-													progressBarWrapper.style.display = "flex";
-													progressBarWrapper.style.flexDirection = "row";
+												if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["overall_progression_bar"] : settingsInterface["extension_popup_interface"]["overall_progression_bar"]) {
+													const radicalsSize = response["wkhighlight_allradicals_size"];
+													const kanjiSize = response["wkhighlight_allkanji_size"];
+													const vocabularySize = response["wkhighlight_allvocab_size"];
+													if (radicalsSize || kanjiSize || vocabularySize) {
+														allSize = (radicalsSize ? radicalsSize : 0) + (kanjiSize ? kanjiSize : 0) + (vocabularySize ? vocabularySize : 0);
+														
+														const progressBar = document.createElement("div");
+														userInfoWrapper.appendChild(progressBar);
+														progressBar.classList.add("userInfoWrapper-wrapper");
+														const progressBarTitle = document.createElement("p");
+														progressBar.appendChild(progressBarTitle);
+														progressBarTitle.appendChild(document.createTextNode("Overall Progression Bar"));
+														progressBarTitle.classList.add("userInfoWrapper-title");
+	
+														progressBarWrapper = document.createElement("ul");
+														progressBar.appendChild(progressBarWrapper);
+														progressBarWrapper.style.height = "25px";
+														progressBarWrapper.style.display = "flex";
+														progressBarWrapper.style.flexDirection = "row";
+													}
+	
 												}
-
-												const progress = document.createElement("div");
-												userInfoWrapper.appendChild(progress);
-												const progressTitle = document.createElement("p");
-												progress.appendChild(progressTitle);
-												progressTitle.appendChild(document.createTextNode("Overall Progression Stats"));
-												progressTitle.classList.add("userInfoWrapper-title");
+												
+												// progress stats
+												if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["overall_progression_stats"] : settingsInterface["extension_popup_interface"]["overall_progression_stats"]) {
+													progress = document.createElement("div");
+													userInfoWrapper.appendChild(progress);
+													const progressTitle = document.createElement("p");
+													progress.appendChild(progressTitle);
+													progressTitle.appendChild(document.createTextNode("Overall Progression Stats"));
+													progressTitle.classList.add("userInfoWrapper-title");
+												}
 
 												let wrapper;
 												Object.keys(srsStages).forEach(stage => {
@@ -734,59 +749,61 @@ window.onload = () => {
 														if (percentageValue > 8.1) {
 															const percentage = document.createElement("div");
 															progressBarBar.appendChild(percentage);
-															percentage.appendChild(document.createTextNode(percentageValue.toFixed(1)+"%"));
+															percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
 															percentage.style.textAlign = "center";
 															percentage.style.marginTop = "5px";
 														}
 													}
 
-													// add square to progression stats
-													if (stage%5 == 0) {
-														wrapper = document.createElement("ul");
-														progress.appendChild(wrapper);
-														wrapper.classList.add("overall-progress");
+													if (progress) {
+														// add square to progression stats
+														if (stage%5 == 0) {
+															wrapper = document.createElement("ul");
+															progress.appendChild(wrapper);
+															wrapper.classList.add("overall-progress");
+														}
+
+														const stageSquare = document.createElement("li");
+														stageSquare.style.backgroundColor = stageColor;
+														wrapper.appendChild(stageSquare);
+														stageSquare.appendChild(document.createTextNode(stageValue));
+														stageSquare.title = srsStages[stage]["name"];
+														const infoMenu = document.createElement("div");
+														stageSquare.appendChild(infoMenu);
+														if (stage < 5)
+															infoMenu.style.top = "35px";
+
+														if (stage%5 == 0)
+															infoMenu.style.left = "20px";
+
+														const infoMenuTitle = document.createElement("p");
+														infoMenu.appendChild(infoMenuTitle);
+														infoMenuTitle.appendChild(document.createTextNode(srsStages[stage]["name"]));
+														infoMenuTitle.style.color = stageColor;
+														const infoMenuBar = document.createElement("div");
+														infoMenu.appendChild(infoMenuBar);
+														const infoMenuListing = document.createElement("ul");
+														infoMenu.appendChild(infoMenuListing);
+														["Radicals", "Kanji", "Vocabulary"].forEach(type => {
+															let typeProgress = type == "Radicals" ? radicalProgress : type == "Kanji" ? kanjiProgress : vocabularyProgress;
+
+															const bar = document.createElement("div");
+															infoMenuBar.appendChild(bar);
+															bar.style.width = (typeProgress[stage] ? typeProgress[stage] / Number(stageSquare.innerText) *100 : 0)+"%";
+															const colorId = (type == "Radicals" ? "radical" : type == "Kanji" ? "kanji" : "vocab")+"_color";
+															bar.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][colorId] : defaultSettings["miscellaneous"][colorId];
+
+															const infoMenuType = document.createElement("li");
+															infoMenuListing.appendChild(infoMenuType);
+															const typeTitle = document.createElement("b");
+															infoMenuType.appendChild(typeTitle);
+															typeTitle.appendChild(document.createTextNode(type+": "));
+															infoMenuType.appendChild(document.createTextNode(typeProgress[stage] ? typeProgress[stage] : 0));
+														});
+
+														stageSquare.addEventListener("mouseover", () => infoMenu.style.display = "inherit");
+														stageSquare.addEventListener("mouseout", () => infoMenu.style.removeProperty("display"));
 													}
-
-													const stageSquare = document.createElement("li");
-													stageSquare.style.backgroundColor = stageColor;
-													wrapper.appendChild(stageSquare);
-													stageSquare.appendChild(document.createTextNode(stageValue));
-													stageSquare.title = srsStages[stage]["name"];
-													const infoMenu = document.createElement("div");
-													stageSquare.appendChild(infoMenu);
-													if (stage < 5)
-														infoMenu.style.top = "35px";
-
-													if (stage%5 == 0)
-														infoMenu.style.left = "20px";
-
-													const infoMenuTitle = document.createElement("p");
-													infoMenu.appendChild(infoMenuTitle);
-													infoMenuTitle.appendChild(document.createTextNode(srsStages[stage]["name"]));
-													infoMenuTitle.style.color = stageColor;
-													const infoMenuBar = document.createElement("div");
-													infoMenu.appendChild(infoMenuBar);
-													const infoMenuListing = document.createElement("ul");
-													infoMenu.appendChild(infoMenuListing);
-													["Radicals", "Kanji", "Vocabulary"].forEach(type => {
-														let typeProgress = type == "Radicals" ? radicalProgress : type == "Kanji" ? kanjiProgress : vocabularyProgress;
-
-														const bar = document.createElement("div");
-														infoMenuBar.appendChild(bar);
-														bar.style.width = (typeProgress[stage] ? typeProgress[stage] / Number(stageSquare.innerText) *100 : 0)+"%";
-														const colorId = (type == "Radicals" ? "radical" : type == "Kanji" ? "kanji" : "vocab")+"_color";
-														bar.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][colorId] : defaultSettings["miscellaneous"][colorId];
-
-														const infoMenuType = document.createElement("li");
-														infoMenuListing.appendChild(infoMenuType);
-														const typeTitle = document.createElement("b");
-														infoMenuType.appendChild(typeTitle);
-														typeTitle.appendChild(document.createTextNode(type+": "));
-														infoMenuType.appendChild(document.createTextNode(typeProgress[stage] ? typeProgress[stage] : 0));
-													});
-
-													stageSquare.addEventListener("mouseover", () => infoMenu.style.display = "inherit");
-													stageSquare.addEventListener("mouseout", () => infoMenu.style.removeProperty("display"));
 												});
 
 												if (progressBarWrapper && allSize) {
@@ -801,7 +818,7 @@ window.onload = () => {
 													if (percentageValue > 8.1) {
 														const percentage = document.createElement("div");
 														lockedSubjectsBar.appendChild(percentage);
-														percentage.appendChild(document.createTextNode(percentageValue.toFixed(1)+"%"));
+														percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
 														percentage.style.textAlign = "center";
 														percentage.style.marginTop = "5px";
 													}
@@ -809,80 +826,137 @@ window.onload = () => {
 											}
 
 											// Levels in progress
-											const radicalsLevelInProgress = response["wkhighlight_radical_levelsInProgress"];
-											const kanjiLevelInProgress = response["wkhighlight_kanji_levelsInProgress"];
-											const vocabularyLevelInProgress = response["wkhighlight_vocabulary_levelsInProgress"];
-											if (radicalsLevelInProgress || kanjiLevelInProgress || vocabularyLevelInProgress) {
-												const levelsInProgress = document.createElement("div");
-												userInfoWrapper.appendChild(levelsInProgress);
-												levelsInProgress.classList.add("userInfoWrapper-wrapper");
-												levelsInProgress.style.width = "88%";
-												const levelsInProgressTitle = document.createElement("p");
-												levelsInProgress.appendChild(levelsInProgressTitle);
-												levelsInProgressTitle.appendChild(document.createTextNode("Levels In Progress"));
-												levelsInProgressTitle.classList.add("userInfoWrapper-title");
-												const types = ["radical", "kanji", "vocabulary"];
-												let progressBarWrappers = [];
-												[radicalsLevelInProgress ? radicalsLevelInProgress : [],
-												kanjiLevelInProgress ? kanjiLevelInProgress : [],
-												vocabularyLevelInProgress ? vocabularyLevelInProgress : []]
-													.forEach((type, i) => {
-														chrome.storage.local.get(type.map(level => "wkhighlight_"+types[i]+"_level"+level), levels => {
-															const levelsId = Object.keys(levels);
-															Object.values(levels).forEach((info, j) => {
-																const values = Object.values(info);
-																const all = values.length;
-																const passed = values.filter(subject => subject["passed_at"]).length;
-																const notPassed = values.filter(subject => !subject["passed_at"]);
-
-																const progressBarWrapper = document.createElement("ul");
-																progressBarWrappers.push(progressBarWrapper);
-																progressBarWrapper.style.display = "flex";
-																progressBarWrapper.style.margin = "1px 0";
-
-																// set order value
-																const level = Number(levelsId[j].split("level")[1]);
-																progressBarWrapper.setAttribute("data-order", level*10+i);
-
-																const progressBarBar = document.createElement("li");
-																progressBarWrapper.appendChild(progressBarBar);
-																progressBarBar.classList.add("clickable");
-																progressBarBar.style.height = "25px";
-																const percentageValue = passed/all*100;
-																progressBarBar.style.width = percentageValue.toFixed(0)+"%";
-																progressBarBar.style.backgroundColor = "black";
-																progressBarBar.style.overflow = "hidden";
-																progressBarBar.style.color = "white";
-																progressBarBar.title = "Passed: "+passed;
-
-																// traverse from initiate until apprentice IV
-																for (let i = 5; i >= 0; i--) {
-																	const stageSubjects = notPassed.filter(subject => subject["srs_stage"] == i).length;
+											if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["levels_in_progress"] : settingsInterface["extension_popup_interface"]["levels_in_progress"]) {
+												const radicalsLevelInProgress = response["wkhighlight_radical_levelsInProgress"];
+												const kanjiLevelInProgress = response["wkhighlight_kanji_levelsInProgress"];
+												const vocabularyLevelInProgress = response["wkhighlight_vocabulary_levelsInProgress"];
+												if (radicalsLevelInProgress || kanjiLevelInProgress || vocabularyLevelInProgress) {
+													const levelsInProgress = document.createElement("div");
+													userInfoWrapper.appendChild(levelsInProgress);
+													levelsInProgress.classList.add("userInfoWrapper-wrapper");
+													levelsInProgress.style.width = "88%";
+													const levelsInProgressTitle = document.createElement("p");
+													levelsInProgress.appendChild(levelsInProgressTitle);
+													levelsInProgressTitle.appendChild(document.createTextNode("Levels In Progress"));
+													levelsInProgressTitle.classList.add("userInfoWrapper-title");
+													const types = ["radical", "kanji", "vocabulary"];
+													let progressBarWrappers = [];
+													[radicalsLevelInProgress ? radicalsLevelInProgress : [],
+													kanjiLevelInProgress ? kanjiLevelInProgress : [],
+													vocabularyLevelInProgress ? vocabularyLevelInProgress : []]
+														.forEach((type, i) => {
+															chrome.storage.local.get(type.map(level => "wkhighlight_"+types[i]+"_level"+level), levels => {
+																const levelsId = Object.keys(levels);
+																Object.values(levels).forEach((info, j) => {
+																	const values = Object.values(info).filter(subject => !subject["hidden_at"]);
+																	console.log(values);
+																	const all = values.length;
+																	const passed = values.filter(subject => subject["passed_at"]).length;
+																	const notPassed = values.filter(subject => !subject["passed_at"]);
+																	const locked = notPassed.filter(subject => subject["srs_stage"] == null).length;
+	
+																	const progressBarWrapper = document.createElement("ul");
+																	progressBarWrappers.push(progressBarWrapper);
+																	progressBarWrapper.style.display = "flex";
+																	progressBarWrapper.style.margin = "1px 0";
+	
+																	// set order value
+																	const level = Number(levelsId[j].split("level")[1]);
+																	progressBarWrapper.setAttribute("data-order", level*10+i);
+	
+																	// bar for passed
 																	const progressBarBar = document.createElement("li");
 																	progressBarWrapper.appendChild(progressBarBar);
 																	progressBarBar.classList.add("clickable");
 																	progressBarBar.style.height = "25px";
-																	const percentageValue = stageSubjects/all*100;
-																	progressBarBar.style.width = percentageValue.toFixed(0)+"%";
-																	progressBarBar.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][srsStages[i]["short"].toLowerCase()+"_color"] : srsStages[i]["color"];
+																	const percentageValue = passed/all*100;
+																	progressBarBar.style.width = percentageValue+"%";
+																	progressBarBar.style.backgroundColor = "black";
 																	progressBarBar.style.overflow = "hidden";
 																	progressBarBar.style.color = "white";
-																	progressBarBar.title = srsStages[i]["name"]+": "+stageSubjects;
-																}
+																	progressBarBar.title = "Passed: "+passed;
+																	if (percentageValue > 8.1) {
+																		const percentage = document.createElement("div");
+																		progressBarBar.appendChild(percentage);
+																		percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
+																		percentage.style.textAlign = "center";
+																		percentage.style.marginTop = "5px";
+																	}
+	
+																	// traverse from initiate until apprentice IV
+																	for (let i = 5; i >= 0; i--) {
+																		const stageSubjects = notPassed.filter(subject => subject["srs_stage"] == i).length;
+																		const progressBarBar = document.createElement("li");
+																		progressBarWrapper.appendChild(progressBarBar);
+																		progressBarBar.classList.add("clickable");
+																		progressBarBar.style.height = "25px";
+																		const percentageValue = stageSubjects/all*100;
+																		progressBarBar.style.width = percentageValue+"%";
+																		progressBarBar.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][srsStages[i]["short"].toLowerCase()+"_color"] : srsStages[i]["color"];
+																		progressBarBar.style.overflow = "hidden";
+																		progressBarBar.style.color = "white";
+																		progressBarBar.title = srsStages[i]["name"]+": "+stageSubjects;
+																		if (percentageValue > 8.1) {
+																			const percentage = document.createElement("div");
+																			progressBarBar.appendChild(percentage);
+																			percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
+																			percentage.style.textAlign = "center";
+																			percentage.style.marginTop = "5px";
+																		}
+																	}
 
-																const barTitle = document.createElement("span");
-																progressBarWrapper.appendChild(barTitle);
-																barTitle.style.position = "absolute";
-																barTitle.style.right = "0px";
-																barTitle.style.marginTop = "3px";
-																barTitle.appendChild(document.createTextNode(level+" "+types[i].charAt(0).toUpperCase()+types[i].substring(1, 3)));
+																	// bar for locked
+																	const progressBarLocked = document.createElement("li");
+																	progressBarWrapper.appendChild(progressBarLocked);
+																	progressBarLocked.classList.add("clickable");
+																	progressBarLocked.style.height = "25px";
+																	const percentageValueLocked = locked/all*100;
+																	progressBarLocked.style.width = percentageValueLocked+"%";
+																	progressBarLocked.style.backgroundColor = "white";
+																	progressBarLocked.style.overflow = "hidden";
+																	progressBarLocked.style.color = "black";
+																	progressBarLocked.title = "Locked: "+locked;
+																	if (percentageValueLocked > 8.1) {
+																		const percentage = document.createElement("div");
+																		progressBarLocked.appendChild(percentage);
+																		percentage.appendChild(document.createTextNode(percentageValueLocked.toFixed(percentageValueLocked > 11 ? 1 : 0)+"%"));
+																		percentage.style.textAlign = "center";
+																		percentage.style.marginTop = "5px";
+																	}
+	
+																	// bar id
+																	const barTitle = document.createElement("span");
+																	progressBarWrapper.appendChild(barTitle);
+																	barTitle.style.position = "absolute";
+																	barTitle.style.right = "0px";
+																	barTitle.style.marginTop = "3px";
+																	barTitle.appendChild(document.createTextNode(level+" "+types[i].charAt(0).toUpperCase()+types[i].substring(1, 3)));
+
+																	// levelup marker
+																	if (types[i] == "kanji" && level == userInfo["level"]) {
+																		const levelupMarkerWrapper = document.createElement("div");
+																		progressBarWrapper.appendChild(levelupMarkerWrapper);
+																		levelupMarkerWrapper.classList.add("levelup-marker");
+																		levelupMarkerWrapper.style.width = "88%";
+																		const levelupMarker = document.createElement("div");
+																		levelupMarkerWrapper.appendChild(levelupMarker);
+																		
+																		// calculate number of kanji to get atleast 90%
+																		let final = all;
+																		for (let k = all; k > 0; k--) {
+																			if (k/all*100 < 90) break;
+																			final = k;
+																		}
+																		levelupMarker.style.width = final/all*100+"%";
+																	}
+																});
 															});
 														});
-													});
-
-												// giving it some delay to let everything load (FIX THIS LATER)
-												setTimeout(() => progressBarWrappers.sort((a,b) => Number(a.dataset.order) - Number(b.dataset.order))
-																	.forEach(bar => levelsInProgress.appendChild(bar)), 200);
+	
+													// giving it some delay to let everything load (FIX THIS LATER)
+													setTimeout(() => progressBarWrappers.sort((a,b) => Number(a.dataset.order) - Number(b.dataset.order))
+																		.forEach(bar => levelsInProgress.appendChild(bar)), 200);
+												}
 											}
 									});
 								}
@@ -2757,9 +2831,15 @@ const searchSubject = (event, searchType) => {
 					li.classList.add("searchResultItemLine"); 
 					searchResultUL.appendChild(li);
 					li.setAttribute('data-item-id', data["id"]);
-					if (data["srs_stage"]) {
+					console.log(data);
+					if (data["hidden_at"]) {
+						li.style.borderLeft = "4px solid yellow";
+						li.style.opacity = "0.4";
+						li.title = "This subject no longer shows up in lessons or reviews, since "+data["hidden_at"].split("T")[0]+".";
+					}
+					else if (data["srs_stage"]) {
 						li.style.borderLeft = `4px solid var(--${srsStages[data["srs_stage"]]["short"].toLowerCase()}-color)`;
-						//li.style.backgroundColor = `var(--${srsStages[data["srs_stage"]]["short"].toLowerCase()}-color)`;
+						li.title = srsStages[data["srs_stage"]]["name"];
 					}
 
 					const itemSpan = document.createElement("span");
@@ -2923,7 +3003,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		}
 	}
 	
-	if (request.kanjiHighlighted) {
+	if (request.kanjiHighlighted && document.getElementById("kanjiHighlightedList")) {
 		chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
 			const kanjiAssoc = result["wkhighlight_kanji_assoc"];
 			const kanjiHighlightedList = request.kanjiHighlighted;
@@ -3004,6 +3084,7 @@ const setupSubjectsLists = (callback) => {
 					"readings": kanji["readings"],
 					"visually_similar_subject_ids": kanji["visually_similar_subject_ids"],
 					"amalgamation_subject_ids": kanji["amalgamation_subject_ids"],
+					"hidden_at": kanji["hidden_at"]
 				};
 				if (kanji["srs_stage"])
 					list["srs_stage"] = kanji["srs_stage"];
@@ -3024,6 +3105,7 @@ const setupSubjectsLists = (callback) => {
 					"reading_mnemonic": vocab["reading_mnemonic"],
 					"component_subject_ids": vocab["component_subject_ids"],
 					"context_sentences" : vocab["context_sentences"],
+					"hidden_at": vocab["hidden_at"]
 				};
 				if (vocab["srs_stage"])
 					list["srs_stage"] = vocab["srs_stage"];
@@ -3039,6 +3121,7 @@ const setupSubjectsLists = (callback) => {
 					"meanings": radical["meanings"],
 					"characters": radical["characters"] ? radical["characters"] : `<img height="22px" style="margin-top:-3px;margin-bottom:-4px;padding-top:8px" src="${radical["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`,
 					"level": radical["level"],
+					"hidden_at": radical["hidden_at"]
 				};
 				if (radical["srs_stage"])
 					list["sts_stage"] = radical["srs_stage"];

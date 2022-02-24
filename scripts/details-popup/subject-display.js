@@ -201,9 +201,12 @@
 				this.detailsPopup.appendChild(this.charContainer(item["characters"], id, save));
 
 				// srs stage border
-				const srsId = item["srs_stage"];
-				this.detailsPopup.style.setProperty("border-top", "4px solid "+(srsId != undefined ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "black"), "important");
-
+				if (item["hidden_at"])
+					this.detailsPopup.style.setProperty("border-top", "4px solid yellow", "important");	
+				else {
+					const srsId = item["srs_stage"];
+					this.detailsPopup.style.setProperty("border-top", "4px solid "+(srsId != undefined ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "black"), "important");	
+				}
 				
 				const detailedInfoWrapper = this.detailsPopup.getElementsByClassName("sd-popupDetails_detailedInfoWrapper");
 				if (detailedInfoWrapper)
@@ -284,6 +287,9 @@
 			const detailedInfoWrapper = document.createElement("div");
 			detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
 			
+			// if (kanjiInfo["hidden_at"])
+			// 	detailedInfoWrapper.parentElement.style.filter = "contrast(5)";
+
 			const updateMarginTop = () => {
 				let kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
 				if (kanjiWrapper)
@@ -329,7 +335,12 @@
 			const srsStageText = document.createElement("strong");
 			srsStage.appendChild(srsStageText);
 			const srsStageId = kanjiInfo["srs_stage"];
-			if (srsStageId != undefined) {
+			if (kanjiInfo["hidden_at"]) {
+				srsStageText.appendChild(document.createTextNode("Legacy"));
+				srsStageText.style.setProperty("color", "yellow", "important");
+				srsStageText.title = "This subject no longer shows up in lessons or reviews, since "+kanjiInfo["hidden_at"].split("T")[0]+".";
+			}
+			else if (srsStageId != undefined) {
 				srsStageText.appendChild(document.createTextNode(srsStages[srsStageId]["name"]));
 				srsStageText.style.setProperty("color", `var(--${srsStages[srsStageId]["short"].toLowerCase()}-color)`, "important");				
 			}
@@ -408,6 +419,9 @@
 			// detailed info section
 			const detailedInfoWrapper = document.createElement("div");
 			detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
+
+			// if (vocabInfo["hidden_at"])
+			// 	detailedInfoWrapper.parentElement.style.filter = "contrast(5)";
 			
 			const updateMarginTop = () => {
 				let kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
@@ -469,7 +483,12 @@
 			const srsStageText = document.createElement("strong");
 			srsStage.appendChild(srsStageText);
 			const srsStageId = vocabInfo["srs_stage"];
-			if (srsStageId != undefined) {
+			if (vocabInfo["hidden_at"]) {
+				srsStageText.appendChild(document.createTextNode("Legacy"));
+				srsStageText.style.setProperty("color", "yellow", "important");
+				srsStageText.title = "This subject no longer shows up in lessons or reviews, since "+vocabInfo["hidden_at"].split("T")[0]+".";
+			}
+			else if (srsStageId != undefined) {
 				srsStageText.appendChild(document.createTextNode(srsStages[srsStageId]["name"]));
 				srsStageText.style.setProperty("color", `var(--${srsStages[srsStageId]["short"].toLowerCase()}-color)`, "important");				
 			}

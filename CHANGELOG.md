@@ -10,7 +10,9 @@
 - Removed old interface (not accessibable through the X button on the top right anymore)
 - Small changes on buttons to blacklist a site to fit most recent interface
 - Added overall progression bar on each SRS Stage
-- Added overall progression stats (number of subjects) on each SRS Stage 
+- Added overall progression stats (number of subjects) on each SRS Stage
+- Added levels in progress stats
+- Possibility to chose, through settings, what to show in the home page of the extension popup
 
 ## Content
 - Added button to play sound of reading to the details popup of any vocabulary

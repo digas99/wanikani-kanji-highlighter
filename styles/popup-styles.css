@@ -667,6 +667,18 @@ i {
 	padding: 7px;
 }
 
+.levelup-marker {
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+    height: 25px;
+}
+
+.levelup-marker > div {
+	border-right: 2px solid black;
+    height: 25px;
+}
+
 /* REVIEWS PAGE */
 #reviewsPage-nmrReviews24hLabel {
 	color: #747474;

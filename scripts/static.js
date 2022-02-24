@@ -71,13 +71,20 @@ const defaultSettings = {
 	"miscellaneous": {
 		time_in_12h_format: true,
 		kana_writing: false,
-		extension_popup_width: 400,
-		show_scripts_status: true
+		extension_popup_width: 400
 	},
 	"sizes": {
 		highlighted_kanji_height: 150,
 		reviews_list_height: 235,
 		lessons_list_height: 450
+	},
+	"extension_popup_interface": {
+		scripts_status: true,
+		highlighted_kanji: true,
+		lessons_and_reviews: true,
+		overall_progression_bar: true,
+		overall_progression_stats: true,
+		levels_in_progress: true
 	}
 };
 
@@ -118,32 +125,6 @@ const settingsInterface = [
 		]
 	},
 	{
-		title:"Extension Icon",
-		options: [
-			{
-				title:"Kanji Counter",
-				type: "checkbox",
-				id:"settings-extension_icon-kanji_counter",
-				description: "Show Kanji Counter on the Extension icon"
-			},
-			// {
-			// 	title:"Time Until Next Reviews",
-			// 	type: "checkbox",
-			// 	id:"settings-extension_icon-time_until_next_reviews"
-			// },
-			// {
-			// 	title:"Number of Reviews",
-			// 	type: "checkbox",
-			// 	id:"settings-extension_icon-number_of_reviews"
-			// },
-			// {
-			// 	title:"Number of Lessons",
-			// 	type: "checkbox",
-			// 	id:"settings-extension_icon-number_of_lessons"
-			// }
-		]
-	},
-	{
 		title:"Notifications",
 		options: [
 			{
@@ -163,6 +144,47 @@ const settingsInterface = [
 				type: "checkbox",
 				id:"settings-notifications-searching_a_webpage_word",
 				description: "Get a notification when searching a word from a webpage on the extension"
+			}
+		]
+	},
+	{
+		title: "Extension Popup Interface",
+		options: [
+			{
+				title: "Scripts Status",
+				type: "checkbox",
+				id: "settings-extension_popup_interface-scripts_status",
+				description: "Show scripts status in the extension popup home."
+			},
+			{
+				title: "Highlighted Kanji",
+				type: "checkbox",
+				id: "settings-extension_popup_interface-highlighted_kanji",
+				description: "Show kanji highlighted in the current page in the extension popup home."
+			},
+			{
+				title: "Lessons and Reviews",
+				type: "checkbox",
+				id: "settings-extension_popup_interface-lessons_and_reviews",
+				description: "Show number of lessons and reviews in the extension popup home."
+			},
+			{
+				title: "Overall Progression Bar",
+				type: "checkbox",
+				id: "settings-extension_popup_interface-overall_progression_bar",
+				description: "Show progression bar for each SRS Stage in the extension popup home. \x0DTip: the higher your level, the better the progress bar is to understand."
+			},
+			{
+				title: "Overall Progression Stats",
+				type: "checkbox",
+				id: "settings-extension_popup_interface-overall_progression_stats",
+				description: "Show numbers for each SRS Stage in the extension popup home."
+			},
+			{
+				title: "Levels In Progress",
+				type: "checkbox",
+				id: "settings-extension_popup_interface-levels_in_progress",
+				description: "Show which levels still have subjects in progress in the extension popup home."
 			}
 		]
 	},
@@ -191,13 +213,33 @@ const settingsInterface = [
 				},
 				id: "settings-miscellaneous-extension_popup_width",
 				description: "Width of the Extension Popup window."
-			},
-			{
-				title: "Show Scripts Status",
-				type: "checkbox",
-				id: "settings-miscellaneous-show_scripts_status",
-				description: "Show scripts status in the front page."
 			}
+		]
+	},
+	{
+		title:"Extension Icon",
+		options: [
+			{
+				title:"Kanji Counter",
+				type: "checkbox",
+				id:"settings-extension_icon-kanji_counter",
+				description: "Show Kanji Counter on the Extension icon"
+			},
+			// {
+			// 	title:"Time Until Next Reviews",
+			// 	type: "checkbox",
+			// 	id:"settings-extension_icon-time_until_next_reviews"
+			// },
+			// {
+			// 	title:"Number of Reviews",
+			// 	type: "checkbox",
+			// 	id:"settings-extension_icon-number_of_reviews"
+			// },
+			// {
+			// 	title:"Number of Lessons",
+			// 	type: "checkbox",
+			// 	id:"settings-extension_icon-number_of_lessons"
+			// }
 		]
 	}
 	// {

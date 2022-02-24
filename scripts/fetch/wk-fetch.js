@@ -32,7 +32,8 @@ const setupKanji = (apiToken, callback) =>
 											"visually_similar_subject_ids" : data.visually_similar_subject_ids,
 											"slug": data.slug,
 											"id":kanji.id,
-											"subject_type":kanji.object
+											"subject_type":kanji.object,
+											"hidden_at":data.hidden_at
 										};
 
 										kanji_assoc[data.slug] = kanji.id;
@@ -41,7 +42,8 @@ const setupKanji = (apiToken, callback) =>
 											"id":kanji.id,
 											"meanings" : data.meanings.map(data => data.meaning),
 											"readings" : data.readings,
-											"subject_type":kanji.object
+											"subject_type":kanji.object,
+											"hidden_at":data.hidden_at
 										};
 									});
 
@@ -98,7 +100,8 @@ const setupRadicals = (apiToken, callback) =>
 											"level" : data.level,
 											"id":radical.id,
 											"meanings": data.meanings.map(data => data.meaning),
-											"subject_type":radical.object
+											"subject_type":radical.object,
+											"hidden_at":data.hidden_at
 										};
 
 										levels["wkhighlight_radical_level"+data.level][radical.id] = {
@@ -106,7 +109,8 @@ const setupRadicals = (apiToken, callback) =>
 											"character_images" : data.character_images,
 											"id":radical.id,
 											"meanings": data.meanings.map(data => data.meaning),
-											"subject_type":radical.object
+											"subject_type":radical.object,
+											"hidden_at":data.hidden_at
 										};
 									});
 								// saving all radical
@@ -160,7 +164,8 @@ const setupVocab = (apiToken, callback) =>
 											"readings" : data.readings.map(data => data.reading),
 											"pronunciation_audios" : data.pronunciation_audios,
 											"id":vocab.id,
-											"subject_type":vocab.object
+											"subject_type":vocab.object,
+											"hidden_at":data.hidden_at
 										};
 										
 										vocab_assoc[data.characters] = vocab.id;
@@ -170,7 +175,8 @@ const setupVocab = (apiToken, callback) =>
 											"meanings": data.meanings.map(data => data.meaning),
 											"readings" : data.readings.map(data => data.reading),
 											"pronunciation_audios" : data.pronunciation_audios,
-											"subject_type":vocab.object
+											"subject_type":vocab.object,
+											"hidden_at":data.hidden_at
 										};
 									});
 								// saving all vocabulary
