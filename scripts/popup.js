@@ -59,6 +59,16 @@ const footer = () => {
 const reloadPage = (message, color) => {
 	const wrapper = document.createElement("div");
 	
+	const logoWrapper = document.createElement("div");
+	wrapper.appendChild(logoWrapper);
+	logoWrapper.classList.add("logo-section");
+	const logo = document.createElement("img");
+	logoWrapper.appendChild(logo);
+	logo.src = "../logo/logo.png";
+	const extensionTitle = document.createElement("p");
+	logoWrapper.appendChild(extensionTitle);
+	extensionTitle.appendChild(document.createTextNode("Wanikani Kanji Highlighter"));
+
 	const submitMessage = document.createElement("p");
 	submitMessage.id = "message";
 	submitMessage.style.marginTop = "5px";
@@ -73,6 +83,13 @@ const reloadPage = (message, color) => {
 	reloadButton.className = "button centered";
 	reloadButton.id = "reloadPage";
 	wrapper.appendChild(reloadButton);
+
+	const version = document.createElement("p");
+	wrapper.appendChild(version);
+	version.style.textAlign = "center";
+	version.style.color = "silver";
+	version.style.marginTop = "5px";
+	reposFirstVersion("digas99", "wanikani-kanji-highlighter").then(result => version.appendChild(document.createTextNode(result)));
 
 	return wrapper;
 }
@@ -106,9 +123,20 @@ window.onload = () => {
 					apiInputWrapper.classList.add("apiKey_wrapper");
 					main.appendChild(apiInputWrapper);
 
+					const logoWrapper = document.createElement("div");
+					apiInputWrapper.appendChild(logoWrapper);
+					logoWrapper.classList.add("logo-section");
+					const logo = document.createElement("img");
+					logoWrapper.appendChild(logo);
+					logo.src = "../logo/logo.png";
+					const extensionTitle = document.createElement("p");
+					logoWrapper.appendChild(extensionTitle);
+					extensionTitle.appendChild(document.createTextNode("Wanikani Kanji Highlighter"));
+
 					const apiLabel = document.createElement("p");
-					apiLabel.style.marginBottom = "5px";
-					apiLabel.style.fontSize = "14px";
+					apiLabel.style.marginBottom = "10px";
+					apiLabel.style.marginLeft = "10px";
+					apiLabel.style.fontSize = "16px";
 					apiLabel.appendChild(document.createTextNode("API Key: "));
 					apiInputWrapper.appendChild(apiLabel);
 				
@@ -124,13 +152,21 @@ window.onload = () => {
 
 					// what is an api key
 					const whatIsAPIKey = document.createElement("div");
-					whatIsAPIKey.style.marginTop = "2px";
+					whatIsAPIKey.style.marginTop = "10px";
+					whatIsAPIKey.style.textAlign = "center";
 					apiInputWrapper.appendChild(whatIsAPIKey);
 					const whatIsAPIKeyLink = document.createElement("a");
 					whatIsAPIKeyLink.href = "#";
 					whatIsAPIKeyLink.id = "whatIsAPIKey";
 					whatIsAPIKeyLink.appendChild(document.createTextNode("What is an API Key?"));
 					whatIsAPIKey.appendChild(whatIsAPIKeyLink);
+
+					const version = document.createElement("p");
+					apiInputWrapper.appendChild(version);
+					version.style.textAlign = "center";
+					version.style.color = "silver";
+					version.style.marginTop = "5px";
+					reposFirstVersion("digas99", "wanikani-kanji-highlighter").then(result => version.appendChild(document.createTextNode(result)));
 				}
 				else {
 					const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading account info...");
@@ -834,7 +870,7 @@ window.onload = () => {
 													const levelsInProgress = document.createElement("div");
 													userInfoWrapper.appendChild(levelsInProgress);
 													levelsInProgress.classList.add("userInfoWrapper-wrapper");
-													levelsInProgress.style.width = "88%";
+													levelsInProgress.style.width = "86%";
 													const levelsInProgressTitle = document.createElement("p");
 													levelsInProgress.appendChild(levelsInProgressTitle);
 													levelsInProgressTitle.appendChild(document.createTextNode("Levels In Progress"));
@@ -929,7 +965,10 @@ window.onload = () => {
 																	progressBarWrapper.appendChild(barTitle);
 																	barTitle.style.position = "absolute";
 																	barTitle.style.right = "0px";
-																	barTitle.style.marginTop = "3px";
+																	barTitle.style.backgroundColor = "var(--default-color)";
+																	barTitle.style.color = "white";
+																	barTitle.style.padding = "5px";
+																	barTitle.style.width = "42px";
 																	barTitle.appendChild(document.createTextNode(level+" "+types[i].charAt(0).toUpperCase()+types[i].substring(1, 3)));
 
 																	// levelup marker
@@ -937,7 +976,7 @@ window.onload = () => {
 																		const levelupMarkerWrapper = document.createElement("div");
 																		progressBarWrapper.appendChild(levelupMarkerWrapper);
 																		levelupMarkerWrapper.classList.add("levelup-marker");
-																		levelupMarkerWrapper.style.width = "88%";
+																		levelupMarkerWrapper.style.width = "86%";
 																		const levelupMarker = document.createElement("div");
 																		levelupMarkerWrapper.appendChild(levelupMarker);
 																		
@@ -1028,7 +1067,8 @@ const submitAction = () => {
 }
 
 const secondaryPage = (titleText, width) => {
-	document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(width, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
+	if (width)
+		document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(width, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
 
 	// remove any active secondary page
 	if (document.getElementById("secPageMain"))
@@ -1106,7 +1146,7 @@ document.addEventListener("click", e => {
 	}
 
 	if (targetElem.id === "whatIsAPIKey") {
-		const content = secondaryPage("API Key", 250);
+		const content = secondaryPage("API Key");
 
 		for (const text of ["A WaniKani API Key is a token that is meant to give you access to all the content provided by WaniKani through a third party application (like this one).", "You can create your API Key on <a href='https://www.wanikani.com/' target='_blank'>WaniKani official website</a> through the following steps:"]) {
 			const pWrapper = document.createElement("div");
@@ -1137,20 +1177,25 @@ document.addEventListener("click", e => {
 	}
 
 	if (targetElem.id === "goBack") {
-		document.getElementById("secPageMain").remove();
-		document.getElementById("main").style.removeProperty("display");
-		
-		document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(defaultWindowSize, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
-		
-		Array.from(document.getElementsByClassName("navbar_icon"))
-			.forEach(icon => icon.classList.remove("disabled"));
+		chrome.storage.local.get("wkhighlight_settings", result => {
+			document.getElementById("secPageMain").remove();
+			document.getElementById("main").style.removeProperty("display");
+			
+			if (result && result["wkhighlight_settings"] && result["wkhighlight_settings"]["miscellaneous"])
+				document.documentElement.style.setProperty('--body-base-width', result["wkhighlight_settings"]["miscellaneous"]["extension_popup_width"]+"px");
+			else
+				document.documentElement.style.setProperty('--body-base-width', defaultWindowSize+"px");
+			
+			Array.from(document.getElementsByClassName("navbar_icon"))
+				.forEach(icon => icon.classList.remove("disabled"));
+		});
 	}
 
 	if (sidePanelIconTargeted(targetElem, "exit")) {
 		const main = document.getElementById("main");
 		chrome.storage.local.clear();
 		if (main) {
-			main.replaceChild(reloadPage("Logout successfully", "green"), main.childNodes[1]);
+			main.replaceChild(reloadPage("Logout successfully", "green"), document.getElementById("userInfoWrapper"));
 		}
 	}
 
@@ -1167,7 +1212,7 @@ document.addEventListener("click", e => {
 						chrome.storage.local.set({"wkhighlight_blacklist": blacklisted});
 						const main = document.getElementById("main");
 						if (main) {
-							main.replaceChild(reloadPage(`Extension ACTIVATED on <div class="locationDiv"><span>${location}</span></div>`, "green"), main.firstChild);
+							main.replaceChild(reloadPage(`Extension ACTIVATED on <div class="locationDiv"><span>${location}</span></div>`, "green"),  document.getElementById("userInfoWrapper"));
 						}
 						chrome.browserAction.setBadgeText({text: '', tabId:activeTab.id});
 					});
@@ -1184,7 +1229,7 @@ document.addEventListener("click", e => {
 			.filter(icon => icon.getElementsByTagName("IMG")[0].title === "Settings" && icon.closest(".side-panel"))[0];
 		targetIcon?.classList.add("disabled");
 
-		const content = secondaryPage("Settings", 300);
+		const content = secondaryPage("Settings", 400);
 		content.id = "settingsContent";
 
 		const settingsChecks = document.createElement("div");
@@ -1501,7 +1546,7 @@ document.addEventListener("click", e => {
 						chrome.storage.local.set({"wkhighlight_blacklist":blacklistedUrls});
 						const main = document.getElementById("main");
 						if (main) {
-							main.replaceChild(reloadPage(`Extension DEACTIVATED on: <div class="locationDiv"><span>${response["windowLocation"]}</span></div>`, "green"), main.firstChild);
+							main.replaceChild(reloadPage(`Extension DEACTIVATED on: <div class="locationDiv"><span>${response["windowLocation"]}</span></div>`, "green"),  document.getElementById("userInfoWrapper"));
 						}
 					}
 				});
@@ -1517,7 +1562,7 @@ document.addEventListener("click", e => {
 			.filter(icon => icon.getElementsByTagName("IMG")[0].title === "About" && icon.closest(".side-panel"))[0];
 		targetIcon?.classList.add("disabled");
 
-		const content = secondaryPage("About", 300);
+		const content = secondaryPage("About", 400);
 
 		const appInfo = document.createElement("div");
 		content.appendChild(appInfo);
@@ -1904,7 +1949,12 @@ document.addEventListener("click", e => {
 		if (wrapper)
 			wrapper.remove();
 		
-		document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(defaultWindowSize, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
+		chrome.storage.local.get("wkhighlight_settings", result => {
+			if (result && result["wkhighlight_settings"] && result["wkhighlight_settings"]["miscellaneous"])
+				document.documentElement.style.setProperty('--body-base-width', result["wkhighlight_settings"]["miscellaneous"]["extension_popup_width"]+"px");
+			else
+				document.documentElement.style.setProperty('--body-base-width', defaultWindowSize+"px");
+		});
 
 		if (document.getElementById("kanjiSearchInput"))
 			document.getElementById("kanjiSearchInput").value = "";
@@ -2017,7 +2067,13 @@ document.addEventListener("click", e => {
 			elem.getElementsByClassName("searchResultItemInfo")[0].style.display = "grid";
 			removeSquareClasses(elem);
 		});
-		document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(defaultWindowSize, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
+
+		chrome.storage.local.get("wkhighlight_settings", result => {
+			if (result && result["wkhighlight_settings"] && result["wkhighlight_settings"]["miscellaneous"])
+				document.documentElement.style.setProperty('--body-base-width', result["wkhighlight_settings"]["miscellaneous"]["extension_popup_width"]+"px");
+			else
+				document.documentElement.style.setProperty('--body-base-width', defaultWindowSize+"px");
+		});
 	}
 
 	// clicked in target icon

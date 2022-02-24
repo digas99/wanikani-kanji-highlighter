@@ -193,10 +193,11 @@ i {
 .button {
     background-color: var(--default-color);
     color: white;
-    padding: 4px;
-	cursor: pointer;
-	transition: 0.3s;
-	text-align: center;
+    padding: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+    text-align: center;
+    border-radius: 9px;
 }
 
 .button:hover {
@@ -315,6 +316,21 @@ i {
 }
 
 /* API KEY INPUT PAGE */
+
+.logo-section {
+	border-radius: 9px;
+    text-align: center;
+    margin: 0 15px;
+    margin-bottom: 20px;
+    background-color: var(--default-color);
+    padding: 22px;
+    color: white;
+}
+
+.logo-section > p {
+	font-size: 18px;
+    font-weight: bold;
+}
 
 #whatIsAPIKey {
 	font-size: 11px;

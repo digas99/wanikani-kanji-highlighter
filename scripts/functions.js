@@ -251,10 +251,9 @@ const mdToHTML = lineText => {
 	}
 	else {
 		elem = document.createElement("h"+hCounter);
-		if (hCounter == 2) {
+		if (hCounter == 2)
 			elem.style.marginTop = "10px";
-			elem.style.borderTop = "1px solid silver";
-		}
+		
 		if (hCounter == 3) elem.style.fontSize = "16px";
 	}
 
@@ -317,6 +316,7 @@ const counterAnimation = (currentValue, newValue, targetElem, delay) => {
 }
 
 const manageBodyWidth = (width, bodyWidth) => {
+	console.log(width, bodyWidth);
 	if (typeof bodyWidth === "number" && typeof width === "number" && width <= bodyWidth)
 		width = bodyWidth;
 	return width;

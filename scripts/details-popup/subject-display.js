@@ -408,7 +408,7 @@
 				const timestampsWrapper = infoTable("Timestamps", []);
 				details.appendChild(timestampsWrapper);
 				const images = ["https://i.imgur.com/fszQn7s.png", "https://i.imgur.com/Pi3fG6f.png", "https://i.imgur.com/bsZwaVy.png", "https://i.imgur.com/x7ialfz.png", "https://i.imgur.com/a0lyk8f.png", "https://i.imgur.com/VKoEfQD.png", "https://i.imgur.com/pXqcusW.png", "https://i.imgur.com/1EA2EWP.png"];
-				timestampsWrapper.appendChild(timestamps(kanjiInfo["timestamps"], images, srsStage));
+				timestampsWrapper.appendChild(timestamps(kanjiInfo["hidden_at"] ? {...kanjiInfo["timestamps"], ...{"legacy":kanjiInfo["hidden_at"]}} : kanjiInfo["timestamps"], kanjiInfo["hidden_at"] ? [...images, ...["https://i.imgur.com/YQVUCpW.png"]] : images, srsStage));
 			}
 
 			this.detailsPopup.scrollTo(0, 0);
@@ -487,6 +487,13 @@
 				srsStageText.appendChild(document.createTextNode("Legacy"));
 				srsStageText.style.setProperty("color", "yellow", "important");
 				srsStageText.title = "This subject no longer shows up in lessons or reviews, since "+vocabInfo["hidden_at"].split("T")[0]+".";
+
+				srsStage.classList.add("sd-detailsPopup_label-img");
+				const passed = document.createElement("img");
+				srsStage.appendChild(passed);
+				passed.src = "https://i.imgur.com/YQVUCpW.png";
+				passed.style.setProperty("width", "13px", "important");
+				srsStage.title = "This subject no longer shows up in lessons or reviews, since "+vocabInfo["hidden_at"].split("T")[0]+".";
 			}
 			else if (srsStageId != undefined) {
 				srsStageText.appendChild(document.createTextNode(srsStages[srsStageId]["name"]));
@@ -569,7 +576,7 @@
 				const timestampsWrapper = infoTable("Timestamps", []);
 				details.appendChild(timestampsWrapper);
 				const images = ["https://i.imgur.com/fszQn7s.png", "https://i.imgur.com/Pi3fG6f.png", "https://i.imgur.com/bsZwaVy.png", "https://i.imgur.com/x7ialfz.png", "https://i.imgur.com/a0lyk8f.png", "https://i.imgur.com/VKoEfQD.png", "https://i.imgur.com/pXqcusW.png", "https://i.imgur.com/1EA2EWP.png"];
-				timestampsWrapper.appendChild(timestamps(vocabInfo["timestamps"], images, srsStage));
+				timestampsWrapper.appendChild(timestamps(vocabInfo["hidden_at"] ? {...vocabInfo["timestamps"], ...{"legacy":vocabInfo["hidden_at"]}} : vocabInfo["timestamps"], vocabInfo["hidden_at"] ? [...images, ...["https://i.imgur.com/YQVUCpW.png"]] : images, srsStage));
 			}
 
 			this.detailsPopup.scrollTo(0, 0);
