@@ -1,4 +1,5 @@
 # [Changelog v0.6.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.3)
+Released on 25/02/2022
 
 ## Popup
 - Slider on settings to change width of extension popup
