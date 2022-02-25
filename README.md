@@ -18,7 +18,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v062)
+1. [Latest Features](#changelog-v063)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -30,14 +30,43 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
-# Changelog v0.6.2
+## Changelog v0.6.3
 
-## Popup
+### Popup
+- Slider on settings to change width of extension popup
+- Precise search switch button now works on kana writing and kanji (before, it was always precise)
+- Sliders on settings now work with mouse wheel too (shift + wheel increases scale)
+- Activating kana writing on text inputs of a web page no longer requires page reload (activation and deactivation happens in real time now)
+- Some containers within the extension popup have been made resizable
+- Bar with status of Highlighting and Details Popup (if those features are active or not)
+- Removed old interface (not accessibable through the X button on the top right anymore)
+- Small changes on buttons to blacklist a site to fit most recent interface
+- Added overall progression bar on each SRS Stage
+- Added overall progression stats (number of subjects) on each SRS Stage
+- Added levels in progress stats
+- Possibility to chose, through settings, what to show in the home page of the extension popup
+
+### Content
+- Added button to play sound of reading to the details popup of any vocabulary
+- Added real time color change to details popup, when changing it from the settings of the extension popup
+
+### Bug Fix
+- Clicking on a search result while on kana writing mode now searches for that result (before, it only worked while on romaji mode)
+- Fixed issue where list of highlighted kanji wouldn't show up if extension popup was opened too soon
+- Fixed issue where search on extension popup wouldn't load subjects when clicking to change type of input (from Romaji to Kana)
+- Improved kana writing to fix some bugs with situations like "しゅっしゃ" and "かんじ" (when written as kanji instead of kannji)
+- Fixed issue where the bars stating the number of highlighted kanji wouldn't show up or not update automaticaly
+- Fixed issue where highlight wouldn't work if you changed tabs before page loaded
+- Improved verifications to reduce times when highlight runs when it shouldn't
+
+## Changelog v0.6.2
+
+### Popup
 - Added SRS Stage to extension popup search results
 - Changed style of search result cards
 - Added button to side panel to get random subject (type of subject - kanji, vocabulary or any - can be specified in settings)
 
-## Content
+### Content
 - Added SRS Stage information to details popup
 - Added Timestamp Statistics to details popup
 - Added Reviews Statistics to details popup
@@ -55,7 +84,7 @@ It works with any website, and provides detailed information about any kanji tha
 - Added slider to settings to set the opacity of the small details popup
 - Option to write with kana on webpage text inputs
 
-## Bug Fix
+### Bug Fix
 - Fixed issue where subject data wasn't being loaded the first time the extension run
 - Notifications now show subjects numbers updated
 - Adjusted extension popup interactions when at wanikani.com
@@ -65,7 +94,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 Released on 15/12/2021
 
-## Bug Fix
+### Bug Fix
 
 - Assignment material shown in reviews/lessons list now match the real number of assigments (only showing up to 500 assignments before, due to a bug)
 

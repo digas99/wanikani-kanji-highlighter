@@ -2159,6 +2159,7 @@ document.addEventListener("click", e => {
 								srsTitleEgg.style.backgroundPositionX = "-67px";
 
 						}
+
 						srsTitle.appendChild(document.createTextNode(srsStages[srsId]["name"]+` (${assignments.length})`));
 						srsTitle.id = "reviews"+srsStages[srsId]["short"];
 						srsTitle.style.color = "white";
@@ -2492,6 +2493,7 @@ document.addEventListener("click", e => {
 			lessonsList.appendChild(lessonsListBar);
 			const lessonsListUl = document.createElement("ul");
 			lessonsList.appendChild(lessonsListUl);
+			lessonsListUl.style.maxHeight = "unset";
 
 			if (lessons) {
 				//setup list of material for current reviews

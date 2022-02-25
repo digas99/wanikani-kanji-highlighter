@@ -641,7 +641,7 @@ i {
 .overall-progress > li {
 	padding: 16px;
     color: white;
-    width: -webkit-fill-available;
+    width: 100%;
     text-align: center;
     font-size: 25px;
 	margin: 0 1px;
