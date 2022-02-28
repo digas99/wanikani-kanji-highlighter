@@ -14,6 +14,8 @@ let lastReviewsValue = 0;
 
 let blacklisted_site = false;
 
+let itemsListLoadingElem;
+
 const footer = () => {
 	const wrapper = document.createElement("div");
 	wrapper.id = "footer";
@@ -208,7 +210,7 @@ window.onload = () => {
 						.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
 
 					document.body.style.cursor = "progress";
-					chrome.storage.local.get(["wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons", "wkhighlight_kanji_progress", "wkhighlight_kanji_levelsInProgress", "wkhighlight_radical_progress", "wkhighlight_radical_levelsInProgress", "wkhighlight_vocabulary_progress", "wkhighlight_vocabulary_levelsInProgress", "wkhighlight_settings", "wkhighlight_allkanji_size", "wkhighlight_allradicals_size", "wkhighlight_allvocab_size"], response => {
+					chrome.storage.local.get(["wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons", "wkhighlight_kanji_progress", "wkhighlight_kanji_levelsInProgress", "wkhighlight_radical_progress", "wkhighlight_radical_levelsInProgress", "wkhighlight_vocabulary_progress", "wkhighlight_vocabulary_levelsInProgress", "wkhighlight_settings", "wkhighlight_allkanji_size", "wkhighlight_allradicals_size", "wkhighlight_allvocab_size", "wkhighlight_blacklist", "wkhighlight_kanji_assoc"], response => {
 						const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatDate(new Date());
 
 						modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
@@ -297,80 +299,76 @@ window.onload = () => {
 											const ul = document.createElement("ul");
 											container.appendChild(ul);
 
-											chrome.storage.local.get(["wkhighlight_settings"], result => {
-												let buttons = ["../images/settings.png", "../images/search.png", "../images/blacklist.png", "../images/about.png", "../images/random.png", "../images/exit.png"];
-												if (blacklisted_site)
-													buttons = ["../images/settings.png", "../images/search.png", "../images/run.png", "../images/about.png", "../images/random.png", "../images/exit.png"];
-												if (atWanikani)
-													buttons = ["../images/settings.png", "../images/about.png", "../images/exit.png"];
-												buttons.forEach(img => {
-													const li = document.createElement("li");
-													ul.appendChild(li);
-													li.style.position = "relative";
-													const link = document.createElement("a");
-													li.appendChild(link);
-													link.style.padding = "0 5px";
-													link.href = "#";
-													link.classList.add("navbar_icon");
-													link.addEventListener("click", () => {
-														const sidePanelLogo = document.getElementById("side-panel-logo");
-														if (sidePanelLogo && container.classList.contains("side-panel-focus")) {
-															sidePanelLogo.dispatchEvent(new MouseEvent("click", {
-																"view": window,
-																"bubbles": true,
-																"cancelable": false
-															}));
-														}
-													});
-													const icon_img = document.createElement("img");
-													icon_img.id = img.split("/")[2].split(".")[0];
-													icon_img.src = img;
-													icon_img.title = icon_img.id[0].toUpperCase()+icon_img.id.slice(1);
-													icon_img.style.width = "20px";
-													link.appendChild(icon_img);
-
-													if (icon_img.title === "Blacklist") {
-														chrome.storage.local.get(["wkhighlight_blacklist"], data => {
-															let blacklisted = data["wkhighlight_blacklist"];
-															const nmrBlacklisted = document.createElement("span");
-															link.appendChild(nmrBlacklisted);
-															nmrBlacklisted.classList.add("side-panel-info-alert");
-															nmrBlacklisted.style.backgroundColor = "red";
-															nmrBlacklisted.style.color = "white";
-															nmrBlacklisted.style.filter = "invert(1)";
-															nmrBlacklisted.appendChild(document.createTextNode(blacklisted ? blacklisted.length : "0"));
-														});
-													}
-
-													if (icon_img.title === "Random") {
-														icon_img.setAttribute("data-item-id", "rand");
-														icon_img.classList.add("kanjiDetails");
-														
-														const settings = result["wkhighlight_settings"];
-														if (settings && settings["kanji_details_popup"] && settings["kanji_details_popup"]["random_subject"]) {
-															const type = document.createElement("span");
-															link.appendChild(type);
-															type.id = "random-subject-type";
-															type.classList.add("side-panel-info-alert");
-															type.appendChild(document.createTextNode(settings["kanji_details_popup"]["random_subject"].charAt(0)));
-
-															if (settings["kanji_details_popup"]["random_subject"] == "Any") {
-																type.style.removeProperty("background-color");
-																type.style.removeProperty("filter");
-															}
-															else if (settings["kanji_details_popup"]["random_subject"] == "Kanji") {
-																icon_img.setAttribute("data-item-id", "rand-kanji");
-																type.style.backgroundColor = "var(--kanji-tag-color)";
-																type.style.filter = "invert(1)";
-															}
-															else if (settings["kanji_details_popup"]["random_subject"] == "Vocabulary") {
-																icon_img.setAttribute("data-item-id", "rand-vocab");
-																type.style.backgroundColor = "var(--vocab-tag-color)";
-																type.style.filter = "invert(1)";
-															}
-														}	
+											let buttons = ["../images/settings.png", "../images/search.png", "../images/blacklist.png", "../images/about.png", "../images/random.png", "../images/exit.png"];
+											if (blacklisted_site)
+												buttons = ["../images/settings.png", "../images/search.png", "../images/run.png", "../images/about.png", "../images/random.png", "../images/exit.png"];
+											if (atWanikani)
+												buttons = ["../images/settings.png", "../images/about.png", "../images/exit.png"];
+											buttons.forEach(img => {
+												const li = document.createElement("li");
+												ul.appendChild(li);
+												li.style.position = "relative";
+												const link = document.createElement("a");
+												li.appendChild(link);
+												link.style.padding = "0 5px";
+												link.href = "#";
+												link.classList.add("navbar_icon");
+												link.addEventListener("click", () => {
+													const sidePanelLogo = document.getElementById("side-panel-logo");
+													if (sidePanelLogo && container.classList.contains("side-panel-focus")) {
+														sidePanelLogo.dispatchEvent(new MouseEvent("click", {
+															"view": window,
+															"bubbles": true,
+															"cancelable": false
+														}));
 													}
 												});
+												const icon_img = document.createElement("img");
+												icon_img.id = img.split("/")[2].split(".")[0];
+												icon_img.src = img;
+												icon_img.title = icon_img.id[0].toUpperCase()+icon_img.id.slice(1);
+												icon_img.style.width = "20px";
+												link.appendChild(icon_img);
+
+												if (icon_img.title === "Blacklist") {
+													let blacklisted = response["wkhighlight_blacklist"];
+													const nmrBlacklisted = document.createElement("span");
+													link.appendChild(nmrBlacklisted);
+													nmrBlacklisted.classList.add("side-panel-info-alert");
+													nmrBlacklisted.style.backgroundColor = "red";
+													nmrBlacklisted.style.color = "white";
+													nmrBlacklisted.style.filter = "invert(1)";
+													nmrBlacklisted.appendChild(document.createTextNode(blacklisted ? blacklisted.length : "0"));
+												}
+
+												if (icon_img.title === "Random") {
+													icon_img.setAttribute("data-item-id", "rand");
+													icon_img.classList.add("kanjiDetails");
+													
+													const settings = response["wkhighlight_settings"];
+													if (settings && settings["kanji_details_popup"] && settings["kanji_details_popup"]["random_subject"]) {
+														const type = document.createElement("span");
+														link.appendChild(type);
+														type.id = "random-subject-type";
+														type.classList.add("side-panel-info-alert");
+														type.appendChild(document.createTextNode(settings["kanji_details_popup"]["random_subject"].charAt(0)));
+
+														if (settings["kanji_details_popup"]["random_subject"] == "Any") {
+															type.style.removeProperty("background-color");
+															type.style.removeProperty("filter");
+														}
+														else if (settings["kanji_details_popup"]["random_subject"] == "Kanji") {
+															icon_img.setAttribute("data-item-id", "rand-kanji");
+															type.style.backgroundColor = "var(--kanji-tag-color)";
+															type.style.filter = "invert(1)";
+														}
+														else if (settings["kanji_details_popup"]["random_subject"] == "Vocabulary") {
+															icon_img.setAttribute("data-item-id", "rand-vocab");
+															type.style.backgroundColor = "var(--vocab-tag-color)";
+															type.style.filter = "invert(1)";
+														}
+													}	
+												}
 											});
 
 											const exitIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Exit")[0];
@@ -431,10 +429,8 @@ window.onload = () => {
 														userInfoWrapper.appendChild(kanjiFoundWrapper);
 														kanjiFoundWrapper.classList.add("resizable", "highlightedKanjiContainer", "userInfoWrapper-wrapper");
 														kanjiFoundWrapper.style.maxHeight = defaultSettings["sizes"]["highlighted_kanji_height"]+"px";
-														chrome.storage.local.get(["wkhighlight_settings"], result => {
-															if (result["wkhighlight_settings"] && result["wkhighlight_settings"]["sizes"])
-																kanjiFoundWrapper.style.maxHeight = result["wkhighlight_settings"]["sizes"]["highlighted_kanji_height"]+"px";
-														});
+														if (response["wkhighlight_settings"] && response["wkhighlight_settings"]["sizes"])
+															kanjiFoundWrapper.style.maxHeight = response["wkhighlight_settings"]["sizes"]["highlighted_kanji_height"]+"px";
 
 														kanjiFoundWrapper.setAttribute("data-settings", "sizes-highlighted_kanji_height");
 														const resizableS = document.createElement("div");
@@ -448,77 +444,75 @@ window.onload = () => {
 														kanjiFoundWrapper.appendChild(kanjiFoundList);
 		
 														chrome.tabs.query({currentWindow: true, active: true}, tabs => {
-															chrome.tabs.sendMessage(tabs[0].id, {nmrKanjiHighlighted:"popup"}, response => {
-																chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
-																	let learned = [], notLearned = [];
-																	if (response) {
-																		learned = response["learned"];
-																		notLearned = response["notLearned"];
+															chrome.tabs.sendMessage(tabs[0].id, {nmrKanjiHighlighted:"popup"}, result => {
+																let learned = [], notLearned = [];
+																if (result) {
+																	learned = result["learned"];
+																	notLearned = result["notLearned"];
+																}
+	
+																kanjiFound.id = "nmrKanjiHighlighted";
+																kanjiFound.classList.add("userInfoWrapper-title");
+																kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong></strong> (in the page)`;
+														
+																const barData = [
+																	{
+																		link: "learnedKanji",
+																		color: "var(--highlight-default-color)",
+																		value: learned.length
+																	},
+																	{
+																		link: "notLearnedKanji",
+																		color: "var(--notLearned-color)",
+																		value: notLearned.length
 																	}
+																];
+	
+																kanjiFoundBar.parentElement.replaceChild(itemsListBar(barData), kanjiFoundBar);
+	
+																kanjiFoundList.id = "kanjiHighlightedList";
+																const parentMaxHeight = kanjiFoundList.parentElement.style.maxHeight;
+																kanjiFoundList.style.maxHeight = (Number(parentMaxHeight.substring(0, parentMaxHeight.length-2))-40)+"px";
+																kanjiFoundList.classList.add("simple-grid");
+																const kanjiFoundUl = document.createElement("ul");
+																kanjiFoundList.appendChild(kanjiFoundUl);
+	
+																const kanjiAssoc = response["wkhighlight_kanji_assoc"];
+																kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${result ? result["nmrKanjiHighlighted"] : 0}</strong> (in the page)`;
 		
-																	kanjiFound.id = "nmrKanjiHighlighted";
-																	kanjiFound.classList.add("userInfoWrapper-title");
-																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong></strong> (in the page)`;
-															
-																	const barData = [
-																		{
-																			link: "learnedKanji",
-																			color: "var(--highlight-default-color)",
-																			value: learned.length
-																		},
-																		{
-																			link: "notLearnedKanji",
-																			color: "var(--notLearned-color)",
-																			value: notLearned.length
-																		}
-																	];
-		
-																	kanjiFoundBar.parentElement.replaceChild(itemsListBar(barData), kanjiFoundBar);
-		
-																	kanjiFoundList.id = "kanjiHighlightedList";
-																	const parentMaxHeight = kanjiFoundList.parentElement.style.maxHeight;
-																	kanjiFoundList.style.maxHeight = (Number(parentMaxHeight.substring(0, parentMaxHeight.length-2))-40)+"px";
-																	kanjiFoundList.classList.add("simple-grid");
-																	const kanjiFoundUl = document.createElement("ul");
-																	kanjiFoundList.appendChild(kanjiFoundUl);
-		
-																	const kanjiAssoc = result["wkhighlight_kanji_assoc"];
-																	kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${response ? response["nmrKanjiHighlighted"] : 0}</strong> (in the page)`;
-			
-																	const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned"];
-																	[learned, notLearned].forEach((type, i) => {
-																		type.forEach(kanji => {
-																			const kanjiFoundLi = document.createElement("li");
-																			kanjiFoundUl.appendChild(kanjiFoundLi);
-																			kanjiFoundLi.classList.add("clickable", "kanjiDetails", classes[i]);
-																			kanjiFoundLi.appendChild(document.createTextNode(kanji));
-																			if (kanjiAssoc && kanjiAssoc[kanji]) kanjiFoundLi.setAttribute("data-item-id", kanjiAssoc[kanji]);
-																		});
+																const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned"];
+																[learned, notLearned].forEach((type, i) => {
+																	type.forEach(kanji => {
+																		const kanjiFoundLi = document.createElement("li");
+																		kanjiFoundUl.appendChild(kanjiFoundLi);
+																		kanjiFoundLi.classList.add("clickable", "kanjiDetails", classes[i]);
+																		kanjiFoundLi.appendChild(document.createTextNode(kanji));
+																		if (kanjiAssoc && kanjiAssoc[kanji]) kanjiFoundLi.setAttribute("data-item-id", kanjiAssoc[kanji]);
 																	});
-																
-																	if (learned.length == 0 && notLearned.length == 0) {
-																		kanjiFoundUl.style.position = "relative";
-																		const kanjiModel = document.createElement("p");
-																		kanjiFoundUl.appendChild(kanjiModel);
-																		const randHex = rand(parseInt("4e00", 16), parseInt("9faf", 16)).toString(16);
-																		kanjiModel.appendChild(document.createTextNode(String.fromCharCode(`0x${randHex}`)));
-																		kanjiModel.style.textAlign = "center";
-																		kanjiModel.style.paddingBottom = "12px";
-																		kanjiModel.style.color = "#d8d8d8";
-																		kanjiModel.style.fontSize = "52px";
-																		kanjiModel.style.marginTop = "-10px";
-																		const noKanjiFound = document.createElement("p");
-																		kanjiFoundUl.appendChild(noKanjiFound);
-																		noKanjiFound.appendChild(document.createTextNode("No Kanji from Wanikani found in the current page."));
-																		noKanjiFound.style.textAlign = "center";
-																		noKanjiFound.style.padding = "0 5px";
-																		noKanjiFound.style.color = "silver";
-																		noKanjiFound.style.fontSize = "13px";
-																		const notFoundSlash = document.createElement("div");
-																		kanjiFoundUl.appendChild(notFoundSlash);
-																		notFoundSlash.classList.add("notFoundKanjiSlash");
-																	}
 																});
+															
+																if (learned.length == 0 && notLearned.length == 0) {
+																	kanjiFoundUl.style.position = "relative";
+																	const kanjiModel = document.createElement("p");
+																	kanjiFoundUl.appendChild(kanjiModel);
+																	const randHex = rand(parseInt("4e00", 16), parseInt("9faf", 16)).toString(16);
+																	kanjiModel.appendChild(document.createTextNode(String.fromCharCode(`0x${randHex}`)));
+																	kanjiModel.style.textAlign = "center";
+																	kanjiModel.style.paddingBottom = "12px";
+																	kanjiModel.style.color = "#d8d8d8";
+																	kanjiModel.style.fontSize = "52px";
+																	kanjiModel.style.marginTop = "-10px";
+																	const noKanjiFound = document.createElement("p");
+																	kanjiFoundUl.appendChild(noKanjiFound);
+																	noKanjiFound.appendChild(document.createTextNode("No Kanji from Wanikani found in the current page."));
+																	noKanjiFound.style.textAlign = "center";
+																	noKanjiFound.style.padding = "0 5px";
+																	noKanjiFound.style.color = "silver";
+																	noKanjiFound.style.fontSize = "13px";
+																	const notFoundSlash = document.createElement("div");
+																	kanjiFoundUl.appendChild(notFoundSlash);
+																	notFoundSlash.classList.add("notFoundKanjiSlash");
+																}
 															});
 														});
 													}	
@@ -535,16 +529,16 @@ window.onload = () => {
 														if (userInfoNav)
 															userInfoNav.style.display = "none";
 
-														document.getElementById("kanjiSearchInput").click();
-														if (kanjiList.length == 0 || vocabList.length == 0) {
-															document.body.style.setProperty("cursor", "progress", "important");
-															loadItemsLists(() => {
-																document.body.style.cursor = "inherit";
-																searchSubject(input)
-															});
-														}
-														else
-															searchSubject(input);
+														// document.getElementById("kanjiSearchInput").click();
+														// if (kanjiList.length == 0 || vocabList.length == 0) {
+														// 	document.body.style.setProperty("cursor", "progress", "important");
+														// 	loadItemsLists(() => {
+														// 		document.body.style.cursor = "inherit";
+														// 		searchSubject(input)
+														// 	});
+														// }
+														// else
+														searchSubject(input);
 															
 														chrome.storage.local.remove(["wkhighlight_contextMenuSelectedText"]);
 														chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
@@ -643,13 +637,12 @@ window.onload = () => {
 															if (reviewsForNextHour.length > 0) {
 																const remainingTime = msToTime(thisDate - currentTime);
 																moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
-																chrome.storage.local.get(["wkhighlight_settings"], result => {
-																	const settings = result["wkhighlight_settings"];
-																	let time = `${thisDate.getHours() < 10 ? "0"+thisDate.getHours() : thisDate.getHours()}:${thisDate.getMinutes() < 10 ? "0"+thisDate.getMinutes() : thisDate.getMinutes()}`;
-																	if (settings && settings["miscellaneous"]["time_in_12h_format"])
-																		time = time12h(time);
-																	moreReviewsDate.innerText = `${thisDate.getMonthName().slice(0, 3)} ${thisDate.getDate() < 10 ? "0"+thisDate.getDate() : thisDate.getDate()}, ${time}`;
-																});
+																const settings = response["wkhighlight_settings"];
+																let time = `${thisDate.getHours() < 10 ? "0"+thisDate.getHours() : thisDate.getHours()}:${thisDate.getMinutes() < 10 ? "0"+thisDate.getMinutes() : thisDate.getMinutes()}`;
+																if (settings && settings["miscellaneous"]["time_in_12h_format"])
+																	time = time12h(time);
+																moreReviewsDate.innerText = `${thisDate.getMonthName().slice(0, 3)} ${thisDate.getDate() < 10 ? "0"+thisDate.getDate() : thisDate.getDate()}, ${time}`;
+																
 																// create interval delay
 																// 10% of a day are 8640000 milliseconds
 																// 10% of an hour are 360000 milliseconds
@@ -885,7 +878,6 @@ window.onload = () => {
 																const levelsId = Object.keys(levels);
 																Object.values(levels).forEach((info, j) => {
 																	const values = Object.values(info).filter(subject => !subject["hidden_at"]);
-																	console.log(values);
 																	const all = values.length;
 																	const passed = values.filter(subject => subject["passed_at"]).length;
 																	const notPassed = values.filter(subject => !subject["passed_at"]);
@@ -997,17 +989,23 @@ window.onload = () => {
 																		.forEach(bar => levelsInProgress.appendChild(bar)), 200);
 												}
 											}
+
+
+											// const itemsListLoadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading subjects info...");
+											// itemsListLoadingElem = itemsListLoadingVal[0];
+											// itemsListLoadingElem.style.display = "none";
+											// main.appendChild(itemsListLoadingElem);
+
+											loadItemsLists();
 									});
 								}
 							});
 					});
 					document.body.style.cursor = "inherit";
-			
 				}
 			});
 		});
 	});
-
 }
 
 const enhancedWarning = (text, color) => {
@@ -1523,15 +1521,15 @@ document.addEventListener("click", e => {
 
 			input.focus();
 			input.click();
-			if (kanjiList.length == 0 || vocabList.length == 0) {
-				document.body.style.setProperty("cursor", "progress", "important");
-				loadItemsLists(() => {
-					document.body.style.cursor = "inherit";
-					searchSubject(input)
-				});
-			}
-			else
-				searchSubject(input);
+			// if (kanjiList.length == 0 || vocabList.length == 0) {
+			// 	document.body.style.setProperty("cursor", "progress", "important");
+			// 	loadItemsLists(() => {
+			// 		document.body.style.cursor = "inherit";
+			// 		searchSubject(input)
+			// 	});
+			// }
+			// else
+			searchSubject(input);
 		}
 	}
 
@@ -1928,15 +1926,15 @@ document.addEventListener("click", e => {
 				}
 			});
 	
-			if (kanjiList.length == 0 || vocabList.length == 0) {
-				const loadingSubjects = loading(["main-loading", "search-loading"], ["kanjiHighlightedLearned"], 50, "Loading Subjects...");
-				const loadingSubjectsElem = loadingSubjects[0];
-				document.getElementById("userInfoWrapper").appendChild(loadingSubjectsElem);
-				loadItemsLists(() => {
-					loadingSubjectsElem.remove();
-					clearInterval(loadingSubjects[1]);
-				});
-			}
+			// if (kanjiList.length == 0 || vocabList.length == 0) {
+			// 	const loadingSubjects = loading(["main-loading", "search-loading"], ["kanjiHighlightedLearned"], 50, "Loading Subjects...");
+			// 	const loadingSubjectsElem = loadingSubjects[0];
+			// 	document.getElementById("userInfoWrapper").appendChild(loadingSubjectsElem);
+			// 	loadItemsLists(() => {
+			// 		loadingSubjectsElem.remove();
+			// 		clearInterval(loadingSubjects[1]);
+			// 	});
+			// }
 		}
 	}
 
@@ -1999,15 +1997,15 @@ document.addEventListener("click", e => {
 	if (targetElem.classList.contains("searchResultItem")) {
 		const input = document.getElementById("kanjiSearchInput");
 		input.value = targetElem.innerText;
-		if (kanjiList.length == 0 || vocabList.length == 0) {
-			document.body.style.cursor = "progress";
-			loadItemsLists(() => {
-				document.body.style.cursor = "inherit";
-				searchSubject(input, "あ");
-			});
-		}
-		else
-			searchSubject(input, "あ");
+		// if (kanjiList.length == 0 || vocabList.length == 0) {
+		// 	document.body.style.cursor = "progress";
+		// 	loadItemsLists(() => {
+		// 		document.body.style.cursor = "inherit";
+		// 		searchSubject(input, "あ");
+		// 	});
+		// }
+		// else
+		searchSubject(input, "あ");
 	}
 
 	// clicked in a search result line, but not the character itself
@@ -2288,18 +2286,18 @@ document.addEventListener("click", e => {
 			if (reviews) {
 				//setup list of material for current reviews
 				if (reviews["data"]) {
-					if (radicalList.length === 0 || kanjiList.length === 0 || vocabList.length === 0) {
-						const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading Subjects...");
-						const loadingElem = loadingVal[0];
-						reviewsListUl.appendChild(loadingElem);
+					// if (radicalList.length === 0 || kanjiList.length === 0 || vocabList.length === 0) {
+					// 	const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading Subjects...");
+					// 	const loadingElem = loadingVal[0];
+					// 	reviewsListUl.appendChild(loadingElem);
 
-						loadItemsLists(() => {
-							displayAssignmentMaterials(reviews["data"], reviewsListUl, loadingElem);
-							clearInterval(loadingVal[1])
-						});
-					}
-					else
-						displayAssignmentMaterials(reviews["data"], reviewsListUl);
+					// 	loadItemsLists(() => {
+					// 		displayAssignmentMaterials(reviews["data"], reviewsListUl, loadingElem);
+					// 		clearInterval(loadingVal[1])
+					// 	});
+					// }
+					// else
+					displayAssignmentMaterials(reviews["data"], reviewsListUl);
 				}
 
 				// setup chart for the next reviews
@@ -2498,20 +2496,20 @@ document.addEventListener("click", e => {
 			if (lessons) {
 				//setup list of material for current reviews
 				if (lessons["data"]) {
-					if (radicalList.length === 0 || kanjiList.length === 0 || vocabList.length === 0) {
-						const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading Subjects...");
-						const loadingElem = loadingVal[0];
-						lessonsListUl.appendChild(loadingElem);
-						lessonsListUl.style.maxHeight = "unset";
+					// if (radicalList.length === 0 || kanjiList.length === 0 || vocabList.length === 0) {
+					// 	const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading Subjects...");
+					// 	const loadingElem = loadingVal[0];
+					// 	lessonsListUl.appendChild(loadingElem);
+					// 	lessonsListUl.style.maxHeight = "unset";
 
 	
-						loadItemsLists(() => {
-							displayAssignmentMaterials(lessons["data"], lessonsListUl, loadingElem);
-							clearInterval(loadingVal[1]);
-						});
-					}
-					else
-						displayAssignmentMaterials(lessons["data"], lessonsListUl);
+					// 	loadItemsLists(() => {
+					// 		displayAssignmentMaterials(lessons["data"], lessonsListUl, loadingElem);
+					// 		clearInterval(loadingVal[1]);
+					// 	});
+					// }
+					// else
+					displayAssignmentMaterials(lessons["data"], lessonsListUl);
 				}
 			}
 		});

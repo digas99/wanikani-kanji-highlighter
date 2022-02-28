@@ -303,7 +303,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 
 	if (request.kanaWriting)
-		kanaWriting = kanaWriting;
+		kanaWriting = request.kanaWriting;
 });
 
 const contextMenuItem = {
