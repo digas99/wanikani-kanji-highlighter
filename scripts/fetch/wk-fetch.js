@@ -5,6 +5,10 @@ const setupKanji = (apiToken, callback) =>
 			modifiedSince(apiToken, kanjiUpdated, "https://api.wanikani.com/v2/subjects?types=kanji")
 				.then(modified => {
 					if (!result['wkhighlight_allkanji'] || modified) {
+						let lib = new localStorageDB("subjects", localStorage);
+						const tableExists = lib.tableExists("kanji");
+						if (!tableExists)
+							lib.createTable("kanji", ["amalgamation_subject_ids", "characters", "component_subject_ids", "level", "meanings", "readings", "visually_similar_subject_ids", "id", "subject_type", "hidden_at", "srs_stage", "hidden", "passed_at"]);
 						fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=kanji")
 							.then(kanji_data => {
 								const kanji_dict = {};
@@ -36,6 +40,38 @@ const setupKanji = (apiToken, callback) =>
 											"hidden_at":data.hidden_at
 										};
 
+										if (!tableExists)
+											lib.insert("kanji", {
+												"amalgamation_subject_ids" : data.amalgamation_subject_ids,
+												"characters" : data.characters,
+												"component_subject_ids" : data.component_subject_ids,
+												"level" : data.level,
+												"meanings" : data.meanings.map(data => data.meaning),
+												"readings" : data.readings,
+												"visually_similar_subject_ids" : data.visually_similar_subject_ids,
+												"id" : kanji.id,
+												"subject_type" : kanji.object,
+												"hidden_at" : data.hidden_at,
+												"srs_stage" : null,
+												"hidden" : null,
+												"padded_at" : null
+											});
+										else {
+											lib.update("kanji", {id: kanji.id}, row => {
+												row.amalgamation_subject_ids = data.amalgamation_subject_ids;
+												row.characters = data.characters;
+												row.component_subject_ids = data.component_subject_ids;
+												row.level = data.level;
+												row.meanings = data.meanings.map(data => data.meaning);
+												row.readings = data.readings;
+												row.visually_similar_subject_ids = data.visually_similar_subject_ids;
+												row.id = kanji.id;
+												row.subject_type = kanji.object;
+												row.hidden_at = data.hidden_at;
+												return row;
+											});
+										}
+
 										kanji_assoc[data.slug] = kanji.id;
 										levels["wkhighlight_kanji_level"+data.level][kanji.id] = {
 											"characters" : data.characters,
@@ -63,6 +99,8 @@ const setupKanji = (apiToken, callback) =>
 									if (callback)
 										callback(kanji_dict, true);	
 								});
+
+								console.log(lib.commit());
 							})
 							.catch(reject);
 					}
@@ -82,6 +120,10 @@ const setupRadicals = (apiToken, callback) =>
 			modifiedSince(apiToken, radicalsUpdated, "https://api.wanikani.com/v2/subjects?types=radical")
 				.then(modified => {
 					if (!result['wkhighlight_allradicals'] || modified) {
+						let lib = new localStorageDB("subjects", localStorage);
+						const tableExists = lib.tableExists("radical");
+						if (!tableExists)
+							lib.createTable("radical", ["characters", "character_images", "level", "id", "subject_type", "hidden_at", "srs_stage", "hidden", "passed_at"]);
 						fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=radical")
 							.then(radical_data => {
 								const radical_dict = {};
@@ -104,6 +146,30 @@ const setupRadicals = (apiToken, callback) =>
 											"hidden_at":data.hidden_at
 										};
 
+										if (!tableExists)
+											lib.insert("radical", {
+												"characters" : data.characters,
+												"character_images" : data.character_images,
+												"level" : data.level,
+												"id":radical.id,
+												"subject_type":radical.object,
+												"hidden_at":data.hidden_at,
+												"srs_stage" : null,
+												"hidden" : null,
+												"padded_at" : null
+											});
+										else {
+											lib.update("radical", {id: kanji.id}, row => {
+												row.characters = data.characters;
+												row.character_images = data.character_images;
+												row.level = data.level;
+												row.id = kanji.id;
+												row.subject_type = kanji.object;
+												row.hidden_at = data.hidden_at;
+												return row;
+											});
+										}
+
 										levels["wkhighlight_radical_level"+data.level][radical.id] = {
 											"characters" : data.characters,
 											"character_images" : data.character_images,
@@ -120,6 +186,8 @@ const setupRadicals = (apiToken, callback) =>
 									if (callback)
 										callback(radical_dict, true);
 								});
+
+								console.log(lib.commit());
 							})
 							.catch(reject);
 					}
@@ -139,6 +207,11 @@ const setupVocab = (apiToken, callback) =>
 			modifiedSince(apiToken, vocabUpdates, "https://api.wanikani.com/v2/subjects?types=vocabulary")
 				.then(modified => {
 					if (!result['wkhighlight_allvocab'] || modified) {
+						const lib = new localStorageDB("subjects", localStorage);
+						const tableExists = lib.tableExists("vocabulary");
+						if (!tableExists)
+							lib.createTable("vocabulary", ["characters", "component_subject_ids", "level", "meanings", "readings", "id", "subject_type", "hidden_at", "srs_stage", "hidden", "passed_at"]);
+
 						fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=vocabulary")
 							.then(vocab_data => {
 								const vocab_dict = {};
@@ -167,7 +240,35 @@ const setupVocab = (apiToken, callback) =>
 											"subject_type":vocab.object,
 											"hidden_at":data.hidden_at
 										};
-										
+
+										if (!tableExists)
+											lib.insert("vocabulary", {
+												"characters" : data.characters,
+												"component_subject_ids" : data.component_subject_ids, 
+												"level" : data.level,
+												"meanings" : data.meanings.map(data => data.meaning),
+												"readings" : data.readings.map(data => data.reading),
+												"id":vocab.id,
+												"subject_type":vocab.object,
+												"hidden_at":data.hidden_at,
+												"srs_stage" : null,
+												"hidden" : null,
+												"padded_at" : null
+											});
+										else {
+											lib.update("vocabulary", {id: vocab.id}, row => {
+												row.characters = data.characters;
+												row.component_subject_ids = data.component_subject_ids;
+												row.level = data.level;
+												row.meanings = data.meanings.map(data => data.meaning);
+												row.readings = data.readings.map(data => data.reading);
+												row.id = vocab.id;
+												row.subject_type = vocab.object;
+												row.hidden_at = data.hidden_at;
+												return row;
+											});
+										}
+	
 										vocab_assoc[data.characters] = vocab.id;
 										levels["wkhighlight_vocabulary_level"+data.level][vocab.id] = {
 											"characters" : data.characters,
@@ -186,6 +287,8 @@ const setupVocab = (apiToken, callback) =>
 									if (callback)
 										callback(vocab_dict, true);
 								});
+
+								console.log(lib.commit());
 							})
 							.catch(reject);
 					}

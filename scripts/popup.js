@@ -529,15 +529,7 @@ window.onload = () => {
 														if (userInfoNav)
 															userInfoNav.style.display = "none";
 
-														// document.getElementById("kanjiSearchInput").click();
-														// if (kanjiList.length == 0 || vocabList.length == 0) {
-														// 	document.body.style.setProperty("cursor", "progress", "important");
-														// 	loadItemsLists(() => {
-														// 		document.body.style.cursor = "inherit";
-														// 		searchSubject(input)
-														// 	});
-														// }
-														// else
+														document.getElementById("kanjiSearchInput").click();
 														searchSubject(input);
 															
 														chrome.storage.local.remove(["wkhighlight_contextMenuSelectedText"]);
@@ -870,39 +862,64 @@ window.onload = () => {
 													levelsInProgressTitle.classList.add("userInfoWrapper-title");
 													const types = ["radical", "kanji", "vocabulary"];
 													let progressBarWrappers = [];
+													let lib = new localStorageDB("subjects", localStorage);
 													[radicalsLevelInProgress ? radicalsLevelInProgress : [],
 													kanjiLevelInProgress ? kanjiLevelInProgress : [],
 													vocabularyLevelInProgress ? vocabularyLevelInProgress : []]
-														.forEach((type, i) => {
-															chrome.storage.local.get(type.map(level => "wkhighlight_"+types[i]+"_level"+level), levels => {
-																const levelsId = Object.keys(levels);
-																Object.values(levels).forEach((info, j) => {
-																	const values = Object.values(info).filter(subject => !subject["hidden_at"]);
-																	const all = values.length;
-																	const passed = values.filter(subject => subject["passed_at"]).length;
-																	const notPassed = values.filter(subject => !subject["passed_at"]);
-																	const locked = notPassed.filter(subject => subject["srs_stage"] == null).length;
-	
-																	const progressBarWrapper = document.createElement("ul");
-																	progressBarWrappers.push(progressBarWrapper);
-																	progressBarWrapper.style.display = "flex";
-																	progressBarWrapper.style.margin = "1px 0";
-	
-																	// set order value
-																	const level = Number(levelsId[j].split("level")[1]);
-																	progressBarWrapper.setAttribute("data-order", level*10+i);
-	
-																	// bar for passed
+														.forEach((levels, i) => {
+															const type = types[i];
+															levels.forEach(level => {
+																const values = lib.queryAll(type, {
+																	query: row => {
+																		return row.level == level && row.hidden_at == null
+																	}
+																});
+																const all = values.length;
+																const passed = values.filter(subject => subject["passed_at"]).length;
+																const notPassed = values.filter(subject => !subject["passed_at"]);
+																const locked = notPassed.filter(subject => subject["srs_stage"] == null).length;
+
+																const progressBarWrapper = document.createElement("ul");
+																progressBarWrappers.push(progressBarWrapper);
+																progressBarWrapper.style.display = "flex";
+																progressBarWrapper.style.margin = "1px 0";
+
+																// set order value
+																const levelValue = Number(level);
+																progressBarWrapper.setAttribute("data-order", levelValue*10+i);
+
+																// bar for passed
+																const progressBarBar = document.createElement("li");
+																progressBarWrapper.appendChild(progressBarBar);
+																progressBarBar.classList.add("clickable");
+																progressBarBar.style.height = "25px";
+																const percentageValue = passed/all*100;
+																progressBarBar.style.width = percentageValue+"%";
+																progressBarBar.style.backgroundColor = "black";
+																progressBarBar.style.overflow = "hidden";
+																progressBarBar.style.color = "white";
+																progressBarBar.title = "Passed: "+passed;
+																if (percentageValue > 8.1) {
+																	const percentage = document.createElement("div");
+																	progressBarBar.appendChild(percentage);
+																	percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
+																	percentage.style.textAlign = "center";
+																	percentage.style.marginTop = "5px";
+																}
+
+																// traverse from initiate until apprentice IV
+																for (let i = 5; i >= 0; i--) {
+																	const stageSubjects = notPassed.filter(subject => subject["srs_stage"] == i).length;
 																	const progressBarBar = document.createElement("li");
 																	progressBarWrapper.appendChild(progressBarBar);
 																	progressBarBar.classList.add("clickable");
 																	progressBarBar.style.height = "25px";
-																	const percentageValue = passed/all*100;
+																	const percentageValue = stageSubjects/all*100;
 																	progressBarBar.style.width = percentageValue+"%";
-																	progressBarBar.style.backgroundColor = "black";
+																	progressBarBar.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][srsStages[i]["short"].toLowerCase()+"_color"] : srsStages[i]["color"];
 																	progressBarBar.style.overflow = "hidden";
 																	progressBarBar.style.color = "white";
-																	progressBarBar.title = "Passed: "+passed;
+																	progressBarBar.title = srsStages[i]["name"]+": "+stageSubjects;
 																	if (percentageValue > 8.1) {
 																		const percentage = document.createElement("div");
 																		progressBarBar.appendChild(percentage);
@@ -910,77 +927,55 @@ window.onload = () => {
 																		percentage.style.textAlign = "center";
 																		percentage.style.marginTop = "5px";
 																	}
-	
-																	// traverse from initiate until apprentice IV
-																	for (let i = 5; i >= 0; i--) {
-																		const stageSubjects = notPassed.filter(subject => subject["srs_stage"] == i).length;
-																		const progressBarBar = document.createElement("li");
-																		progressBarWrapper.appendChild(progressBarBar);
-																		progressBarBar.classList.add("clickable");
-																		progressBarBar.style.height = "25px";
-																		const percentageValue = stageSubjects/all*100;
-																		progressBarBar.style.width = percentageValue+"%";
-																		progressBarBar.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][srsStages[i]["short"].toLowerCase()+"_color"] : srsStages[i]["color"];
-																		progressBarBar.style.overflow = "hidden";
-																		progressBarBar.style.color = "white";
-																		progressBarBar.title = srsStages[i]["name"]+": "+stageSubjects;
-																		if (percentageValue > 8.1) {
-																			const percentage = document.createElement("div");
-																			progressBarBar.appendChild(percentage);
-																			percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
-																			percentage.style.textAlign = "center";
-																			percentage.style.marginTop = "5px";
-																		}
-																	}
+																}
 
-																	// bar for locked
-																	const progressBarLocked = document.createElement("li");
-																	progressBarWrapper.appendChild(progressBarLocked);
-																	progressBarLocked.classList.add("clickable");
-																	progressBarLocked.style.height = "25px";
-																	const percentageValueLocked = locked/all*100;
-																	progressBarLocked.style.width = percentageValueLocked+"%";
-																	progressBarLocked.style.backgroundColor = "white";
-																	progressBarLocked.style.overflow = "hidden";
-																	progressBarLocked.style.color = "black";
-																	progressBarLocked.title = "Locked: "+locked;
-																	if (percentageValueLocked > 8.1) {
-																		const percentage = document.createElement("div");
-																		progressBarLocked.appendChild(percentage);
-																		percentage.appendChild(document.createTextNode(percentageValueLocked.toFixed(percentageValueLocked > 11 ? 1 : 0)+"%"));
-																		percentage.style.textAlign = "center";
-																		percentage.style.marginTop = "5px";
-																	}
-	
-																	// bar id
-																	const barTitle = document.createElement("span");
-																	progressBarWrapper.appendChild(barTitle);
-																	barTitle.style.position = "absolute";
-																	barTitle.style.right = "0px";
-																	barTitle.style.backgroundColor = "var(--default-color)";
-																	barTitle.style.color = "white";
-																	barTitle.style.padding = "5px";
-																	barTitle.style.width = "42px";
-																	barTitle.appendChild(document.createTextNode(level+" "+types[i].charAt(0).toUpperCase()+types[i].substring(1, 3)));
+																// bar for locked
+																const progressBarLocked = document.createElement("li");
+																progressBarWrapper.appendChild(progressBarLocked);
+																progressBarLocked.classList.add("clickable");
+																progressBarLocked.style.height = "25px";
+																const percentageValueLocked = locked/all*100;
+																progressBarLocked.style.width = percentageValueLocked+"%";
+																progressBarLocked.style.backgroundColor = "white";
+																progressBarLocked.style.overflow = "hidden";
+																progressBarLocked.style.color = "black";
+																progressBarLocked.title = "Locked: "+locked;
+																if (percentageValueLocked > 8.1) {
+																	const percentage = document.createElement("div");
+																	progressBarLocked.appendChild(percentage);
+																	percentage.appendChild(document.createTextNode(percentageValueLocked.toFixed(percentageValueLocked > 11 ? 1 : 0)+"%"));
+																	percentage.style.textAlign = "center";
+																	percentage.style.marginTop = "5px";
+																}
 
-																	// levelup marker
-																	if (types[i] == "kanji" && level == userInfo["level"]) {
-																		const levelupMarkerWrapper = document.createElement("div");
-																		progressBarWrapper.appendChild(levelupMarkerWrapper);
-																		levelupMarkerWrapper.classList.add("levelup-marker");
-																		levelupMarkerWrapper.style.width = "86%";
-																		const levelupMarker = document.createElement("div");
-																		levelupMarkerWrapper.appendChild(levelupMarker);
-																		
-																		// calculate number of kanji to get atleast 90%
-																		let final = all;
-																		for (let k = all; k > 0; k--) {
-																			if (k/all*100 < 90) break;
-																			final = k;
-																		}
-																		levelupMarker.style.width = final/all*100+"%";
+																// bar id
+																const barTitle = document.createElement("span");
+																progressBarWrapper.appendChild(barTitle);
+																barTitle.style.position = "absolute";
+																barTitle.style.right = "0px";
+																barTitle.style.backgroundColor = "var(--default-color)";
+																barTitle.style.color = "white";
+																barTitle.style.padding = "5px";
+																barTitle.style.width = "42px";
+																barTitle.appendChild(document.createTextNode(levelValue+" "+types[i].charAt(0).toUpperCase()+types[i].substring(1, 3)));
+
+																// levelup marker
+																if (types[i] == "kanji" && levelValue == userInfo["level"]) {
+																	const levelupMarkerWrapper = document.createElement("div");
+																	progressBarWrapper.appendChild(levelupMarkerWrapper);
+																	levelupMarkerWrapper.classList.add("levelup-marker");
+																	levelupMarkerWrapper.style.width = "86%";
+																	const levelupMarker = document.createElement("div");
+																	levelupMarkerWrapper.appendChild(levelupMarker);
+																	
+																	// calculate number of kanji to get atleast 90%
+																	let final = all;
+																	for (let k = all; k > 0; k--) {
+																		if (k/all*100 < 90) break;
+																		final = k;
 																	}
-																});
+																	levelupMarker.style.width = final/all*100+"%";
+																}
 															});
 														});
 	
@@ -993,10 +988,11 @@ window.onload = () => {
 
 											// const itemsListLoadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading subjects info...");
 											// itemsListLoadingElem = itemsListLoadingVal[0];
-											// itemsListLoadingElem.style.display = "none";
-											// main.appendChild(itemsListLoadingElem);
 
-											loadItemsLists();
+											// loadItemsLists(() => {
+											// 	itemsListLoadingElem.remove();
+											// 	itemsListLoadingElem = null;
+											// });
 									});
 								}
 							});
@@ -1192,6 +1188,7 @@ document.addEventListener("click", e => {
 	if (sidePanelIconTargeted(targetElem, "exit")) {
 		const main = document.getElementById("main");
 		chrome.storage.local.clear();
+		localStorage.clear("db_subjects");
 		if (main) {
 			main.replaceChild(reloadPage("Logout successfully", "green"), document.getElementById("userInfoWrapper"));
 		}
@@ -1521,14 +1518,6 @@ document.addEventListener("click", e => {
 
 			input.focus();
 			input.click();
-			// if (kanjiList.length == 0 || vocabList.length == 0) {
-			// 	document.body.style.setProperty("cursor", "progress", "important");
-			// 	loadItemsLists(() => {
-			// 		document.body.style.cursor = "inherit";
-			// 		searchSubject(input)
-			// 	});
-			// }
-			// else
 			searchSubject(input);
 		}
 	}
@@ -1576,6 +1565,83 @@ document.addEventListener("click", e => {
 		const description = document.createElement("p");
 		appInfo.appendChild(description)
 		description.appendChild(document.createTextNode("Unofficial kanji highlighter, matching kanji learned with WaniKani."));
+		
+		const apiKeyDisplayWrapper = document.createElement("div");
+		content.appendChild(apiKeyDisplayWrapper);
+		apiKeyDisplayWrapper.style.padding = "20px 10px";
+		apiKeyDisplayWrapper.style.borderBottom = "1px solid silver";
+		const apiKeyTitle = document.createElement("h3");
+		apiKeyDisplayWrapper.appendChild(apiKeyTitle);
+		apiKeyTitle.appendChild(document.createTextNode("API Key"));
+		const apiKeyValue = document.createElement("p");
+		apiKeyDisplayWrapper.appendChild(apiKeyValue);
+		chrome.storage.local.get(["wkhighlight_apiKey"], result => apiKeyValue.appendChild(document.createTextNode(result["wkhighlight_apiKey"])));
+
+		const usedLibsWrapper = document.createElement("div");
+		content.appendChild(usedLibsWrapper);
+		usedLibsWrapper.style.padding = "20px 10px";
+		usedLibsWrapper.style.borderBottom = "1px solid silver";
+		const usedLibsTitle = document.createElement("h3");
+		usedLibsWrapper.appendChild(usedLibsTitle);
+		usedLibsTitle.appendChild(document.createTextNode("Used libraries"));
+		const usedLibsList = document.createElement("ul");
+		usedLibsWrapper.appendChild(usedLibsList);
+		[
+			{
+				img: "../images/chart_js.svg",
+				title: "Chart.js",
+				link: "https://www.chartjs.org/",
+				description: "Creation of charts, used to show number of future reviews per day."
+			},
+			{
+				img: "../images/chart_js_plugin_datalabels.svg",
+				title: "chartjs-plugin-datalabels",
+				link: "https://chartjs-plugin-datalabels.netlify.app/",
+				description: "Dynamic content in data labels of charts from Chart.js."
+			},
+			{
+				img: "../images/library.png",
+				title: "localStorageDB",
+				link: "https://nadh.in/code/localstoragedb/",
+				description: "Organize browser local storage for it to behave as a relational database, which allowed for minimal loading times in the Extension Popup."
+			}
+		].forEach(lib => {
+			const libWrapper = document.createElement("li");
+			usedLibsList.appendChild(libWrapper);
+			libWrapper.style.marginBottom = "10px";
+			const link = document.createElement("a");
+			libWrapper.appendChild(link);
+			link.target = "_blank";
+			link.style.display = "flex";
+			link.style.alignItems = "center";
+			link.style.height = "40px";
+			link.href = lib.link;
+			if (lib.img) {
+				const icon_img = document.createElement("img");
+				link.appendChild(icon_img);
+				icon_img.src = lib.img;
+				icon_img.style.marginRight = "10px";
+
+				if (lib.img == "../images/library.png") {
+					icon_img.style.width = "30px";
+					icon_img.style.marginLeft = "10px";
+					icon_img.title = "Not the real logo"
+				}
+				else {
+					icon_img.style.width = "40px";
+					icon_img.title = lib.link;
+				}
+			}
+			const title = document.createElement("b");
+			link.appendChild(title);
+			title.appendChild(document.createTextNode(lib.title));
+			title.title = lib.link;
+			const description = document.createElement("p");
+			libWrapper.appendChild(description);
+			description.appendChild(document.createTextNode(lib.description));
+			description.style.paddingLeft = "20px";
+			description.style.marginTop = "5px";
+		});
 
 		const readme = document.createElement("div");
 		content.appendChild(readme);
@@ -1598,17 +1664,6 @@ document.addEventListener("click", e => {
 						h2.style.color = "white";
 					});
 			});
-		
-		const apiKeyDisplayWrapper = document.createElement("div");
-		content.appendChild(apiKeyDisplayWrapper);
-		apiKeyDisplayWrapper.style.padding = "20px 10px";
-		apiKeyDisplayWrapper.style.borderBottom = "1px solid silver";
-		const apiKeyTitle = document.createElement("h3");
-		apiKeyDisplayWrapper.appendChild(apiKeyTitle);
-		apiKeyTitle.appendChild(document.createTextNode("API Key"));
-		const apiKeyValue = document.createElement("p");
-		apiKeyDisplayWrapper.appendChild(apiKeyValue);
-		chrome.storage.local.get(["wkhighlight_apiKey"], result => apiKeyValue.appendChild(document.createTextNode(result["wkhighlight_apiKey"])));
 
 		const footer = document.createElement("div");
 		content.appendChild(footer);
@@ -1623,6 +1678,7 @@ document.addEventListener("click", e => {
 		const links = document.createElement("div");
 		footer.appendChild(links);
 		links.style.paddingTop = "10px";
+		links.style.textAlign = "center";
 		[
 			{
 				link: "https://github.com/digas99/wanikani-kanji-highlighter",
@@ -1925,16 +1981,6 @@ document.addEventListener("click", e => {
 					});
 				}
 			});
-	
-			// if (kanjiList.length == 0 || vocabList.length == 0) {
-			// 	const loadingSubjects = loading(["main-loading", "search-loading"], ["kanjiHighlightedLearned"], 50, "Loading Subjects...");
-			// 	const loadingSubjectsElem = loadingSubjects[0];
-			// 	document.getElementById("userInfoWrapper").appendChild(loadingSubjectsElem);
-			// 	loadItemsLists(() => {
-			// 		loadingSubjectsElem.remove();
-			// 		clearInterval(loadingSubjects[1]);
-			// 	});
-			// }
 		}
 	}
 
@@ -1943,7 +1989,7 @@ document.addEventListener("click", e => {
 		Array.from(document.getElementsByClassName("navbar_icon"))
 			.forEach(icon => icon.classList.remove("disabled"));
 
-		const wrapper = document.getElementById("searchResultItemWrapper");
+		const wrapper = document.getElementById("searchResultWrapper");
 		if (wrapper)
 			wrapper.remove();
 		
@@ -1997,14 +2043,7 @@ document.addEventListener("click", e => {
 	if (targetElem.classList.contains("searchResultItem")) {
 		const input = document.getElementById("kanjiSearchInput");
 		input.value = targetElem.innerText;
-		// if (kanjiList.length == 0 || vocabList.length == 0) {
-		// 	document.body.style.cursor = "progress";
-		// 	loadItemsLists(() => {
-		// 		document.body.style.cursor = "inherit";
-		// 		searchSubject(input, "あ");
-		// 	});
-		// }
-		// else
+
 		searchSubject(input, "あ");
 	}
 
@@ -2111,6 +2150,8 @@ document.addEventListener("click", e => {
 			.map(assignment => ({"srs_stage":assignment["srs_stage"], "subject_id":assignment["subject_id"], "subject_type":assignment["subject_type"]}));
 		
 		chrome.storage.local.get(["wkhighlight_settings"], result => {
+			const lib = new localStorageDB("subjects", localStorage);
+
 			if (loading) loading.remove();
 
 			const settings = result["wkhighlight_settings"];
@@ -2195,53 +2236,57 @@ document.addEventListener("click", e => {
 						itemsListWrapper.appendChild(itemsList);
 						assignments.map(assignment => assignment["data"])
 							.forEach(assignment => {
-							const li = document.createElement("li");
-							itemsList.appendChild(li);
-							let characters = "";
-							let cssVar, filtered;
-							switch(assignment["subject_type"]) {
-								case "kanji":
-									filtered = kanjiList.filter(kanji => kanji["id"] == assignment["subject_id"]);
-									li.classList.add("kanji_back" , "kanjiDetails", "clickable");
-									cssVar = "--kanji-tag-color";
-									break;
-								case "vocabulary":
-									filtered = vocabList.filter(vocab => vocab["id"] == assignment["subject_id"]);
-									li.classList.add("vocab_back" , "kanjiDetails", "clickable");
-									cssVar = "--vocab-tag-color";
-									break;
-								case "radical":
-									filtered = radicalList.filter(radical => radical["id"] == assignment["subject_id"]);
-									li.classList.add("radical_back");
-									li.style.height = "30px";
-									cssVar = "--radical-tag-color";
-									break;
-							}
-							const subject = filtered[0];
-							if (subject) {
-								characters = subject["characters"];
-								if (!atWanikani) {					
-									if (subject["meanings"]) li.title = subject["meanings"][0];
-									if (subject["readings"]) {
-										if (subject["readings"][0]["reading"])
-											li.title += " | "+subject["readings"].filter(reading => reading["primary"])[0]["reading"];
-										else
-											li.title += " | "+subject["readings"][0];
+								const li = document.createElement("li");
+								itemsList.appendChild(li);
+								let characters = "";
+								let cssVar;
+								const filtered = lib.queryAll(assignment["subject_type"], {
+									query: {id : assignment["subject_id"]}
+								});
+
+								switch(assignment["subject_type"]) {
+									case "kanji":
+										li.classList.add("kanji_back" , "kanjiDetails", "clickable");
+										cssVar = "--kanji-tag-color";
+										break;
+									case "vocabulary":
+										li.classList.add("vocab_back" , "kanjiDetails", "clickable");
+										cssVar = "--vocab-tag-color";
+										break;
+									case "radical":
+										li.classList.add("radical_back");
+										li.style.height = "30px";
+										cssVar = "--radical-tag-color";
+										break;
+								}
+
+								console.log(filtered);
+								const subject = filtered[0];
+								if (subject) {
+									console.log(subject);
+									characters = subject["characters"];
+									if (!atWanikani) {					
+										if (subject["meanings"]) li.title = subject["meanings"][0];
+										if (subject["readings"]) {
+											if (subject["readings"][0]["reading"])
+												li.title += " | "+subject["readings"].filter(reading => reading["primary"])[0]["reading"];
+											else
+												li.title += " | "+subject["readings"][0];
+										}
 									}
 								}
-							}
-							let backColor = hexToRGB(getComputedStyle(document.body).getPropertyValue(cssVar));
-							li.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
-							if (characters !== "L")
-								li.innerHTML = characters;
-							else {
-								const wrapperForL = document.createElement("div");
-								li.appendChild(wrapperForL);
-								wrapperForL.style.marginTop = "5px";
-								wrapperForL.appendChild(document.createTextNode(characters));
-							}
-							li.setAttribute('data-item-id', assignment["subject_id"]);
-							if (characters !== "L" && li.children.length > 0 && li.style.color == "rgb(255, 255, 255)") li.children[0].style.filter = "invert(1)";
+								let backColor = hexToRGB(getComputedStyle(document.body).getPropertyValue(cssVar));
+								li.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
+								if (characters !== "L")
+									li.innerHTML = characters;
+								else {
+									const wrapperForL = document.createElement("div");
+									li.appendChild(wrapperForL);
+									wrapperForL.style.marginTop = "5px";
+									wrapperForL.appendChild(document.createTextNode(characters));
+								}
+								li.setAttribute('data-item-id', assignment["subject_id"]);
+								if (characters !== "L" && li.children.length > 0 && li.style.color == "rgb(255, 255, 255)") li.children[0].style.filter = "invert(1)";
 						});
 					}
 				});
@@ -2285,20 +2330,8 @@ document.addEventListener("click", e => {
 
 			if (reviews) {
 				//setup list of material for current reviews
-				if (reviews["data"]) {
-					// if (radicalList.length === 0 || kanjiList.length === 0 || vocabList.length === 0) {
-					// 	const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading Subjects...");
-					// 	const loadingElem = loadingVal[0];
-					// 	reviewsListUl.appendChild(loadingElem);
-
-					// 	loadItemsLists(() => {
-					// 		displayAssignmentMaterials(reviews["data"], reviewsListUl, loadingElem);
-					// 		clearInterval(loadingVal[1])
-					// 	});
-					// }
-					// else
+				if (reviews["data"])
 					displayAssignmentMaterials(reviews["data"], reviewsListUl);
-				}
 
 				// setup chart for the next reviews
 				if (reviews["next_reviews"]) {
@@ -2495,22 +2528,8 @@ document.addEventListener("click", e => {
 
 			if (lessons) {
 				//setup list of material for current reviews
-				if (lessons["data"]) {
-					// if (radicalList.length === 0 || kanjiList.length === 0 || vocabList.length === 0) {
-					// 	const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading Subjects...");
-					// 	const loadingElem = loadingVal[0];
-					// 	lessonsListUl.appendChild(loadingElem);
-					// 	lessonsListUl.style.maxHeight = "unset";
-
-	
-					// 	loadItemsLists(() => {
-					// 		displayAssignmentMaterials(lessons["data"], lessonsListUl, loadingElem);
-					// 		clearInterval(loadingVal[1]);
-					// 	});
-					// }
-					// else
-					displayAssignmentMaterials(lessons["data"], lessonsListUl);
-				}
+				if (lessons["data"])
+						displayAssignmentMaterials(lessons["data"], lessonsListUl);
 			}
 		});
 	}
@@ -2817,6 +2836,7 @@ const searchSubject = (event, searchType) => {
 	let filteredKanji = [];
 	let filteredVocab = [];
 
+	const lib = new localStorageDB("subjects", localStorage);
 
 	chrome.storage.local.get(["wkhighlight_settings"], result => {
 		const settings = result["wkhighlight_settings"];
@@ -2826,40 +2846,68 @@ const searchSubject = (event, searchType) => {
 			
 				// if it is hiragana
 				if (input.value.match(/[\u3040-\u309f]/)) {
-					const filterByReadings = (itemList, value) => itemList.filter(item => matchesReadings(value, item["readings"], settings["search"]["targeted_search"]));
-					filteredKanji = filterByReadings(kanjiList, input.value);
-					filteredVocab = filterByReadings(vocabList, input.value);
+					//const filterByReadings = (itemList, value) => itemList.filter(item => matchesReadings(value, item["readings"], settings["search"]["targeted_search"]));
+					filteredKanji = lib.queryAll("kanji", {
+						query: row => matchesReadings(input.value, row.readings, settings["search"]["targeted_search"])
+					});
+					filteredVocab = lib.queryAll("vocabulary", {
+						query: row => matchesReadings(input.value, row.readings, settings["search"]["targeted_search"])
+					});
 				}
 			}
 			else {
 				// if it is a chinese character
 				if (value.match(/[\u3400-\u9FBF]/)) {
-					filteredKanji = filteredKanji.concat(kanjiList.filter(kanji => value == kanji["characters"]));
+					filteredKanji = filteredKanji.concat(lib.queryAll("kanji", {
+						query: row => value == row.characters
+					}));
+							
 					if (filteredKanji.length > 0 && !settings["search"]["targeted_search"]) {
-						const mainKanji = filteredKanji[0];
-						mainKanji["visually_similar_subject_ids"].forEach(id => filteredKanji.push(kanjiList.filter(kanji => kanji.id==id)[0]));
-						mainKanji["amalgamation_subject_ids"].forEach(id => filteredVocab.push(vocabList.filter(vocab => vocab.id == id)[0]));
+						filteredKanji[0]["visually_similar_subject_ids"].forEach(id => filteredKanji.push(lib.queryAll("kanji", {
+							query: row => id == row.id
+						})));
+						filteredKanji[0]["amalgamation_subject_ids"].forEach(id => filteredVocab.push(lib.queryAll("vocabulary", {
+							query: row => id == row.id
+						})));
 					}
-					filteredVocab = filteredVocab.concat(vocabList.filter(vocab => value == vocab["characters"]));
+
+					filteredVocab = filteredVocab.concat(lib.queryAll("vocabulary", {
+						query: row => value == row.characters
+					}));
+
 					if (filteredVocab.length > 0) {
-						filteredVocab[0]["component_subject_ids"].forEach(id => filteredKanji.push(kanjiList.filter(kanji => kanji.id==id)[0]));
+						filteredVocab[0]["component_subject_ids"].forEach(id => filteredKanji.push(lib.queryAll("kanji", {
+							query: row => id == row.id
+						})));
 					}
 				}
 				// if is number check for level
 				else if (!isNaN(value)) {
-					const filterByLevel = (itemList, value) => itemList.filter(item => value == item["level"]);
-					filteredKanji = filterByLevel(kanjiList, value);
-					filteredVocab = filterByLevel(vocabList, value);
+					//const filterByLevel = (itemList, value) => itemList.filter(item => value == item["level"]);
+					filteredKanji = lib.queryAll("kanji", {
+						query: row => row.level == value
+					});
+					filteredVocab = lib.queryAll("vocabulary", {
+						query: row => row.level == value
+					});
 				}
 				else if (value == "legacy") {
-					filteredKanji = kanjiList.filter(item => item["hidden_at"]);
-					filteredVocab = vocabList.filter(item => item["hidden_at"]);
+					filteredKanji = lib.queryAll("kanji", {
+						query: row => row.hidden_at !== null
+					});
+					filteredVocab = lib.queryAll("vocabulary", {
+						query: row => row.hidden_at !== null
+					});
 				}
 				else {
-					const filterByMeanings = (itemList, value) => itemList.filter(item => matchesMeanings(value, item["meanings"], settings["search"]["targeted_search"]));
+					//const filterByMeanings = (itemList, value) => itemList.filter(item => matchesMeanings(value, item["meanings"], settings["search"]["targeted_search"]));
 					const cleanInput = input.value.toLowerCase().trim();
-					filteredKanji = filterByMeanings(kanjiList, cleanInput);
-					filteredVocab = filterByMeanings(vocabList, cleanInput);
+					filteredKanji = lib.queryAll("kanji", {
+						query: row => matchesMeanings(cleanInput, row.meanings, settings["search"]["targeted_search"])
+					});
+					filteredVocab = lib.queryAll("vocabulary", {
+						query: row => matchesMeanings(value, row.meanings, settings["search"]["targeted_search"])
+					});
 				}
 			}
 		
@@ -2874,14 +2922,15 @@ const searchSubject = (event, searchType) => {
 				const sortObjectByLevel = itemList => itemList.sort((a,b) => a["level"] > b["level"] ? 1 : -1);
 				if (filteredKanji.length > 0) sortObjectByLevel(filteredKanji).unshift(firstKanji);
 				if (filteredVocab.length > 0) sortObjectByLevel(filteredVocab).unshift(firstVocab);
-				const filteredContent = [...new Set(filteredKanji.concat(filteredVocab))];
+				const filteredContent = [...new Set(filteredKanji.concat(filteredVocab))].flat(0);
 			
+				console.log(filteredContent);
 				if (nmrItemsFound) 
 					nmrItemsFound.innerHTML = `<span>Found <strong>${filteredContent.length}</strong> items<span>`;
 		
 				for (const index in filteredContent) {
 					const data = filteredContent[index];
-					const type = data["type"];
+					const type = data["subject_type"];
 					const chars = data["characters"];
 		
 					const kanjiAlike = type == "kanji" || chars.length == 1;
@@ -3196,30 +3245,32 @@ const setupSubjectsLists = (callback) => {
 
 const loadItemsLists = callback => {
 	chrome.storage.local.get(["wkhighlight_allkanji", "wkhighlight_allvocab", "wkhighlight_allradicals"], result => {
-		const allKanji = result["wkhighlight_allkanji"];
-		const allVocab = result["wkhighlight_allvocab"];
-		const allRadicals = result["wkhighlight_allradicals"];
-
-		if (!allRadicals || !allKanji || !allVocab) {
-			Promise.all([setupKanji(apiKey), setupRadicals(apiKey), setupVocab(apiKey)])
-				.then(values => {
-					setupSubjectsLists(callback);
-					
-					const allKanji = values[0][0];
-					const allRadicals = values[1][0];
-					const allVocab = values[2][0];
-					
-					// associate assignments and stats info to subjects
-					[allKanji, allRadicals, allVocab].forEach(list => {
-						if (list) {
-							assignUponSubjects(list);
-							revStatsUponSubjects(apiKey, list);
-						}
+		setTimeout(() => {
+			const allKanji = result["wkhighlight_allkanji"];
+			const allVocab = result["wkhighlight_allvocab"];
+			const allRadicals = result["wkhighlight_allradicals"];
+	
+			if (!allRadicals || !allKanji || !allVocab) {
+				Promise.all([setupKanji(apiKey), setupRadicals(apiKey), setupVocab(apiKey)])
+					.then(values => {
+						setupSubjectsLists(callback);
+						
+						const allKanji = values[0][0];
+						const allRadicals = values[1][0];
+						const allVocab = values[2][0];
+						
+						// associate assignments and stats info to subjects
+						[allKanji, allRadicals, allVocab].forEach(list => {
+							if (list) {
+								assignUponSubjects(list);
+								revStatsUponSubjects(apiKey, list);
+							}
+						});
 					});
-				});
-		}
-		else
-			setupSubjectsLists(callback);
+			}
+			else
+				setupSubjectsLists(callback);
+		}, 1500);
 	});
 }
 

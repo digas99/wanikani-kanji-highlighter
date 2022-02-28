@@ -1,3 +1,8 @@
+# Changelog v0.6.4
+
+## Popup
+- Changed the way the loading of subjects is being done to reduce significantly it's time
+
 # [Changelog v0.6.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.3)
 
 ## Popup

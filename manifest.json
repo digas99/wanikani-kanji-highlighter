@@ -15,14 +15,16 @@
                     "scripts/functions.js",
                     "scripts/static.js",
                     "scripts/kana.js",
-                    "scripts/background.js"]
+                    "scripts/background.js",
+                    "lib/localstoragedb.min.js"]
     },
     "content_scripts": [
         {
             "matches": ["*://*/*"],
             "js": ["scripts/essentials.js",
                     "scripts/functions.js",
-                    "scripts/static.js"]
+                    "scripts/static.js",
+                    "lib/localstoragedb.min.js"]
         }
     ],
     "browser_action": {
