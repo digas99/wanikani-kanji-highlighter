@@ -386,6 +386,7 @@ const assignUponSubjects = list => {
 							row.srs_stage = data["srs_stage"];
 							row.hidden = data["hidden"];
 							row.passed_at = data["passed_at"];
+							row.available_at = data["available_at"];
 							return row;
 						});
 

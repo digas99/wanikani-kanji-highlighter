@@ -8,7 +8,7 @@ const setupKanji = (apiToken, callback) =>
 						let lib = new localStorageDB("subjects", localStorage);
 						const tableExists = lib.tableExists("kanji");
 						if (!tableExists)
-							lib.createTable("kanji", ["amalgamation_subject_ids", "characters", "component_subject_ids", "level", "meanings", "readings", "visually_similar_subject_ids", "id", "subject_type", "hidden_at", "srs_stage", "hidden", "passed_at"]);
+							lib.createTable("kanji", ["amalgamation_subject_ids", "characters", "component_subject_ids", "level", "meanings", "readings", "visually_similar_subject_ids", "id", "subject_type", "hidden_at", "srs_stage", "hidden", "passed_at", "available_at"]);
 						fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=kanji")
 							.then(kanji_data => {
 								const kanji_dict = {};
@@ -54,7 +54,7 @@ const setupKanji = (apiToken, callback) =>
 												"hidden_at" : data.hidden_at,
 												"srs_stage" : null,
 												"hidden" : null,
-												"padded_at" : null
+												"passed_at" : null
 											});
 										else {
 											lib.update("kanji", {id: kanji.id}, row => {
@@ -123,7 +123,7 @@ const setupRadicals = (apiToken, callback) =>
 						let lib = new localStorageDB("subjects", localStorage);
 						const tableExists = lib.tableExists("radical");
 						if (!tableExists)
-							lib.createTable("radical", ["characters", "character_images", "level", "id", "subject_type", "hidden_at", "srs_stage", "hidden", "passed_at"]);
+							lib.createTable("radical", ["characters", "character_images", "level", "id", "meanings", "subject_type", "hidden_at", "srs_stage", "hidden", "passed_at", "available_at"]);
 						fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=radical")
 							.then(radical_data => {
 								const radical_dict = {};
@@ -152,19 +152,22 @@ const setupRadicals = (apiToken, callback) =>
 												"character_images" : data.character_images,
 												"level" : data.level,
 												"id":radical.id,
+												"meanings": data.meanings.map(data => data.meaning),
 												"subject_type":radical.object,
 												"hidden_at":data.hidden_at,
 												"srs_stage" : null,
 												"hidden" : null,
-												"padded_at" : null
+												"passed_at" : null,
+												"available_at" : null
 											});
 										else {
-											lib.update("radical", {id: kanji.id}, row => {
+											lib.update("radical", {id: radical.id}, row => {
 												row.characters = data.characters;
 												row.character_images = data.character_images;
 												row.level = data.level;
-												row.id = kanji.id;
-												row.subject_type = kanji.object;
+												row.id = radical.id;
+												row.meanings = data.meanings.map(data => data.meaning);
+												row.subject_type = radical.object;
 												row.hidden_at = data.hidden_at;
 												return row;
 											});
@@ -210,7 +213,7 @@ const setupVocab = (apiToken, callback) =>
 						const lib = new localStorageDB("subjects", localStorage);
 						const tableExists = lib.tableExists("vocabulary");
 						if (!tableExists)
-							lib.createTable("vocabulary", ["characters", "component_subject_ids", "level", "meanings", "readings", "id", "subject_type", "hidden_at", "srs_stage", "hidden", "passed_at"]);
+							lib.createTable("vocabulary", ["characters", "component_subject_ids", "level", "meanings", "readings", "id", "subject_type", "hidden_at", "srs_stage", "hidden", "passed_at", "available_at"]);
 
 						fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=vocabulary")
 							.then(vocab_data => {
@@ -253,7 +256,8 @@ const setupVocab = (apiToken, callback) =>
 												"hidden_at":data.hidden_at,
 												"srs_stage" : null,
 												"hidden" : null,
-												"padded_at" : null
+												"passed_at" : null,
+												"available_at" : null
 											});
 										else {
 											lib.update("vocabulary", {id: vocab.id}, row => {

@@ -278,23 +278,214 @@ window.onload = () => {
 											document.body.appendChild(container);
 											document.body.style.paddingRight = "40px";
 											container.classList.add("side-panel");
+											const sideUserInfoWrapper = document.createElement("div");
+											container.appendChild(sideUserInfoWrapper);
+											sideUserInfoWrapper.classList.add("clickable");
 											const avatarWrapper = document.createElement("div");
-											container.appendChild(avatarWrapper);
+											sideUserInfoWrapper.appendChild(avatarWrapper);
 											avatarWrapper.style.marginTop = "10px";
-											const avatarLink = document.createElement("a");
-											avatarWrapper.appendChild(avatarLink);
-											avatarLink.href = userInfo["profile_url"];
-											avatarLink.title = userInfo["username"];
-											avatarLink.target = "_blank";
 											const avatar = document.createElement("img");
-											avatarLink.appendChild(avatar);
+											avatarWrapper.appendChild(avatar);
+											avatar.title = userInfo["username"];
 											avatar.src = avatarElem ? "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0] : "/images/wanikani-default.png";
+											avatar.style.borderRadius = "50%";
+											avatar.style.border = "3px solid white";
+											avatar.style.width = "26px";
 											const level = document.createElement("p");
-											container.appendChild(level);
+											sideUserInfoWrapper.appendChild(level);
 											level.style.fontWeight = "bold";
 											level.style.color = "#ccc";
 											level.title = "Level";
+											level.id = "user-level";
 											level.appendChild(document.createTextNode(userInfo["level"]));
+											sideUserInfoWrapper.addEventListener("click", () => {
+												Array.from(document.getElementsByClassName("side-panel")[0].getElementsByClassName("disabled")).forEach(elem => elem.classList.remove("disabled"));
+
+												const content = secondaryPage("Profile");
+
+												const levelsChooser = document.createElement("div");
+												content.appendChild(levelsChooser);
+												levelsChooser.classList.add("levels-chooser-wrapper");
+												const cover = document.createElement("div");
+												levelsChooser.appendChild(cover);
+												cover.classList.add("levels-chooser-cover");
+												const avatarWrapper = document.createElement("div");
+												levelsChooser.appendChild(avatarWrapper);
+												avatarWrapper.style.padding = "15px";
+												avatarWrapper.style.position = "absolute";
+												avatarWrapper.style.zIndex = "1";
+												const userHandler = document.createElement("div");
+												levelsChooser.appendChild(userHandler);
+												userHandler.appendChild(document.createTextNode(userInfo["username"]));
+												userHandler.style.position = "absolute";
+												userHandler.style.left = "170px";
+												userHandler.style.top = "110px";
+												userHandler.style.fontSize = "17px";
+												userHandler.style.color = "white";
+												const avatarLink = document.createElement("a");
+												avatarWrapper.appendChild(avatarLink);
+												avatarLink.href = userInfo["profile_url"];
+												avatarLink.title = userInfo["profile_url"];
+												avatarLink.target = "_blank";
+												const avatar = document.createElement("img");
+												avatarLink.appendChild(avatar);
+												avatar.src = avatarElem ? "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0] : "/images/wanikani-default.png";
+												avatar.style.borderRadius = "50%";
+												avatar.style.border = "4px solid white";
+												avatar.style.width = "140px";
+												const levelsList = document.createElement("ul");
+												levelsChooser.appendChild(levelsList);
+												levelsList.classList.add("levels-chooser");
+												levelsList.style.paddingTop = "175px";
+												[
+													Number(userInfo["level"]) > 1 ? Number(userInfo["level"])-1 : " ",
+													userInfo["level"],
+													Number(userInfo["level"]) < 60 ? Number(userInfo["level"])+1 : " "
+												].forEach((level, i) => {
+													const levelWrapper = document.createElement("li");
+													levelsList.appendChild(levelWrapper);
+													levelWrapper.appendChild(document.createTextNode(level));
+													levelWrapper.title = i == 0 ? "Previous Level" : i == 1 ? "Current Level" : "Next Level";
+												});
+
+												const lib = new localStorageDB("subjects", localStorage);
+												
+												const levelProgressWrapper = document.createElement("div");
+												levelsChooser.appendChild(levelProgressWrapper);
+												levelProgressWrapper.style.padding = "15px 35px";
+												const levelProgressBarTitle = document.createElement("p");
+												levelProgressWrapper.appendChild(levelProgressBarTitle);
+												levelProgressBarTitle.style.fontSize = "16px";
+												levelProgressBarTitle.style.marginBottom = "10px";
+												levelProgressBarTitle.style.paddingLeft = "10px";
+												levelProgressBarTitle.appendChild(document.createTextNode("Level Progress"));
+												const levelProgress = document.createElement("div");
+												levelProgressWrapper.appendChild(levelProgress);
+												levelProgress.classList.add("level-progress-bar");
+												const goDownArrowWrapper = document.createElement("div");
+												levelsChooser.appendChild(goDownArrowWrapper);
+												goDownArrowWrapper.style.padding = "15px 35px";
+												goDownArrowWrapper.style.textAlign = "center";
+												goDownArrowWrapper.classList.add("clickable");
+												goDownArrowWrapper.title = "Scroll Down";
+												const  goDownArrow = document.createElement("i");
+												goDownArrowWrapper.appendChild(goDownArrow);
+												goDownArrow.classList.add("down");
+												goDownArrow.style.borderColor = "white";
+												goDownArrow.style.padding = "8px";
+												goDownArrowWrapper.addEventListener("click", () => window.scroll(0, levelsChooser.offsetHeight+20));
+
+												const subjectsDisplay = document.createElement("div");
+												content.appendChild(subjectsDisplay);
+												subjectsDisplay.style.padding = "15px";
+												subjectsDisplay.style.fontSize = "23px";
+												["radical", "kanji", "vocab"].forEach(type => {
+													const subjects = lib.queryAll(type == "vocab" ? "vocabulary" : type, {
+														query: {level:userInfo["level"]}
+													});
+													const passedSubjects = subjects.filter(subject => subject.passed_at != null);
+
+													if (type == "kanji") {
+														const levelProgressBar = document.createElement("div");
+														levelProgress.appendChild(levelProgressBar);
+														const percentage = passedSubjects.length / subjects.length * 100;
+														setTimeout(() => {
+															levelProgressBar.style.width = (percentage >= 1 ? percentage : 100)+"%";
+															if (percentage > 8.1 || percentage < 1) {
+																const barLabel = document.createElement("p");
+																levelProgressBar.appendChild(barLabel);
+																barLabel.appendChild(document.createTextNode(percentage.toFixed(percentage > 12 ? 1 : 0)+"%"));
+																if (percentage < 1) {
+																	levelProgressBar.style.backgroundColor = "white";
+																	barLabel.style.color = "black";
+																}
+															}
+	
+															if (percentage < 81 && percentage >= 1) {
+																const progressValues = document.createElement("span");
+																levelProgress.appendChild(progressValues);
+																progressValues.appendChild(document.createTextNode(passedSubjects.length + " / " + subjects.length));
+															}
+														}, 200);
+														levelProgressBar.classList.add("clickable");
+														levelProgressBar.title = "Passed Kanji: "+passedSubjects.length+" / "+percentage.toFixed(1)+"%";
+													}
+
+													const title = document.createElement("p");
+													subjectsDisplay.appendChild(title);
+													title.appendChild(document.createTextNode(type.charAt(0).toUpperCase()+(type == "vocab" ? "vocabulary" : type).substring(1)+(type == "radical" ? "s" : "")));
+													title.style.color = "white";
+													title.style.padding = "5px";
+													title.style.backgroundColor = "var(--default-color)";
+													title.style.paddingLeft = "10px";
+													title.style.display = "flex";
+													title.style.alignItems = "center";
+													const progress = document.createElement("span");
+													title.appendChild(progress);
+													progress.appendChild(document.createTextNode(passedSubjects.length+"/"+subjects.length));
+													progress.style.fontSize = "12px";
+													progress.style.marginLeft = "10px";
+													progress.style.color = "silver";
+
+													const subjectsListWrapper = document.createElement("div");
+													subjectsDisplay.appendChild(subjectsListWrapper);
+													subjectsListWrapper.classList.add("simple-grid");
+													const subjectsList = document.createElement("ul");
+													subjectsListWrapper.appendChild(subjectsList);
+													subjectsList.style.padding = "5px";
+													subjects.forEach(subject => {
+														const subjectWrapper = document.createElement("li");
+														subjectsList.appendChild(subjectWrapper);
+														const characters = subject["characters"] ? subject["characters"]  : `<img height="22px" style="margin-top:-3px;margin-bottom:-4px;padding-top:8px" src="${subject["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`;
+														subjectWrapper.classList.add(type+"_back");
+														subjectWrapper.title = subject["meanings"][0];
+														subjectWrapper.style.position = "relative";
+														if (type !== "radical") {
+															subjectWrapper.classList.add("clickable", "kanjiDetails");
+															subjectWrapper.setAttribute("data-item-id", subject["id"]);
+															if (subject["readings"][0]["reading"])
+																subjectWrapper.title += " | "+subject["readings"].filter(reading => reading["primary"])[0]["reading"];
+															else
+																subjectWrapper.title += " | "+subject["readings"][0];
+														}
+														let backColor = hexToRGB(getComputedStyle(document.body).getPropertyValue(`--${type}-tag-color`));
+														subjectWrapper.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
+														if (characters !== "L")
+															subjectWrapper.innerHTML = characters;
+														else {
+															const wrapperForLi = document.createElement("div");
+															subjectWrapper.appendChild(wrapperForLi);
+															wrapperForLi.style.marginTop = "5px";
+															wrapperForLi.appendChild(document.createTextNode(characters));
+														}
+														if (characters !== "L" && subjectWrapper.children.length > 0 && subjectWrapper.style.color == "rgb(255, 255, 255)")
+															subjectWrapper.children[0].style.filter = "invert(1)";
+													
+														if (subject["passed_at"]) {
+															const check = document.createElement("img");
+															subjectWrapper.appendChild(check);
+															check.src = "../images/check.png";
+															check.classList.add("passed-subject-check");
+															// fix issues with radicals that are images
+															if (subjectWrapper.firstChild.tagName == "IMG") {
+																subjectWrapper.firstChild.style.marginTop = "unset";
+															}
+														}
+														else if(subject["available_at"]) {
+															if (new Date(subject["available_at"]) - new Date() < 0) {
+																const time = document.createElement("div");
+																subjectWrapper.appendChild(time);
+																time.appendChild(document.createTextNode("now"));
+																time.classList.add("time-next-review-subject");
+															}
+														}
+
+														if (subject["srs_stage"])
+															subjectWrapper.title += " \x0D"+srsStages[subject["srs_stage"]]["name"];
+													});
+												});
+
+											});
 
 											const ul = document.createElement("ul");
 											container.appendChild(ul);
@@ -480,6 +671,7 @@ window.onload = () => {
 																const kanjiAssoc = response["wkhighlight_kanji_assoc"];
 																kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${result ? result["nmrKanjiHighlighted"] : 0}</strong> (in the page)`;
 		
+																const lib = new localStorageDB("subjects", localStorage);
 																const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned"];
 																[learned, notLearned].forEach((type, i) => {
 																	type.forEach(kanji => {
@@ -488,6 +680,12 @@ window.onload = () => {
 																		kanjiFoundLi.classList.add("clickable", "kanjiDetails", classes[i]);
 																		kanjiFoundLi.appendChild(document.createTextNode(kanji));
 																		if (kanjiAssoc && kanjiAssoc[kanji]) kanjiFoundLi.setAttribute("data-item-id", kanjiAssoc[kanji]);
+																	
+																		const subject = lib.queryAll("kanji", {
+																			query: {id: kanjiAssoc[kanji]}
+																		});
+																		if (subject[0])
+																			kanjiFoundLi.title = subject[0]["meanings"][0]+" | "+subject[0]["readings"].filter(reading => reading["primary"])[0]["reading"];
 																	});
 																});
 															
@@ -1061,6 +1259,8 @@ const submitAction = () => {
 }
 
 const secondaryPage = (titleText, width) => {
+	window.scroll(0, 0);
+
 	if (width)
 		document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(width, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
 
@@ -1171,6 +1371,8 @@ document.addEventListener("click", e => {
 	}
 
 	if (targetElem.id === "goBack") {
+		window.scroll(0, 0);
+
 		chrome.storage.local.get("wkhighlight_settings", result => {
 			document.getElementById("secPageMain").remove();
 			document.getElementById("main").style.removeProperty("display");
@@ -1186,6 +1388,8 @@ document.addEventListener("click", e => {
 	}
 
 	if (sidePanelIconTargeted(targetElem, "exit")) {
+		if (document.getElementById("goBack")) document.getElementById("goBack").click();
+
 		const main = document.getElementById("main");
 		chrome.storage.local.clear();
 		localStorage.clear("db_subjects");
@@ -1484,6 +1688,8 @@ document.addEventListener("click", e => {
 					const clearCacheButton = document.createElement("div");
 					clearCache.appendChild(clearCacheButton);
 					clearCacheButton.classList.add("button");
+					clearCacheButton.style.borderBottomLeftRadius = "unset";
+					clearCacheButton.style.borderBottomRightRadius = "unset";
 					clearCacheButton.id = button["name"].charAt(0).toLowerCase()+button["name"].split(" ").join("").slice(1);
 					clearCacheButton.appendChild(document.createTextNode(button["name"]));
 					const clearCacheDescription = document.createElement("div");
@@ -2264,7 +2470,7 @@ document.addEventListener("click", e => {
 								const subject = filtered[0];
 								if (subject) {
 									console.log(subject);
-									characters = subject["characters"];
+									characters = subject["characters"] ? subject["characters"]  : `<img height="22px" style="margin-top:-3px;margin-bottom:-4px;padding-top:8px" src="${subject["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`;
 									if (!atWanikani) {					
 										if (subject["meanings"]) li.title = subject["meanings"][0];
 										if (subject["readings"]) {
@@ -2280,10 +2486,10 @@ document.addEventListener("click", e => {
 								if (characters !== "L")
 									li.innerHTML = characters;
 								else {
-									const wrapperForL = document.createElement("div");
-									li.appendChild(wrapperForL);
-									wrapperForL.style.marginTop = "5px";
-									wrapperForL.appendChild(document.createTextNode(characters));
+									const wrapperForLii = document.createElement("div");
+									li.appendChild(wrapperForLi);
+									wrapperForLi.style.marginTop = "5px";
+									wrapperForLi.appendChild(document.createTextNode(characters));
 								}
 								li.setAttribute('data-item-id', assignment["subject_id"]);
 								if (characters !== "L" && li.children.length > 0 && li.style.color == "rgb(255, 255, 255)") li.children[0].style.filter = "invert(1)";
@@ -3125,6 +3331,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				kanjiFoundList.appendChild(kanjiFoundUl);
 				const learned = kanjiHighlightedList["learned"];
 				const notLearned = kanjiHighlightedList["notLearned"];
+				const lib = new localStorageDB("subjects", localStorage);
 				[learned, notLearned].forEach(type => {
 					type.forEach(kanji => {
 						const kanjiFoundLi = document.createElement("li");
@@ -3132,6 +3339,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 						kanjiFoundLi.classList.add("clickable", "kanjiDetails", type === learned ? "kanjiHighlightedLearned" : "kanjiHighlightedNotLearned");
 						kanjiFoundLi.appendChild(document.createTextNode(kanji));
 						if (kanjiAssoc) kanjiFoundLi.setAttribute("data-item-id", kanjiAssoc[kanji]);
+
+						const subject = lib.queryAll("kanji", {
+							query: {id: kanjiAssoc[kanji]}
+						});
+						if (subject[0])
+							kanjiFoundLi.title = subject[0]["meanings"][0]+" | "+subject[0]["readings"].filter(reading => reading["primary"])[0]["reading"];
 					});
 				});
 				

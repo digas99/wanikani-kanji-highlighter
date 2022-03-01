@@ -2,6 +2,7 @@
 
 ## Popup
 - Changed the way the loading of subjects is being done to reduce significantly it's time
+- Added Profile Page to Extension Popup, accessible by clicking the Avatar on the top right corner, in the side panel
 
 # [Changelog v0.6.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.3)
 

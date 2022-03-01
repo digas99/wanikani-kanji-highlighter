@@ -63,6 +63,7 @@ Table Of Contents
 	--enl-color-font: #000000;
 	--brn-color: #b34b50;
 	--brn-color-font: #000000;
+	scroll-behavior: smooth;
 }
 
 /* DEFAULTS */
@@ -251,9 +252,10 @@ i {
 
 .simple-grid > ul > li {
 	margin: 1px;
-    padding: 0px 3px;
+    padding: 2px 6px;
     display: inline-block;
-    border: 1px solid white;
+	margin: 2px;
+	text-shadow: -1px 1px 0px #727272;
 }
 
 
@@ -303,7 +305,7 @@ i {
     display: inline-flex;
 	color: white;
     margin-left: -8px;
-	z-index: 1;
+	z-index: 2;
 }
 
 #goBack {
@@ -423,7 +425,7 @@ i {
 	background-color: var(--default-color);
 	border-top: 5px solid var(--wanikani);
 	text-align: center;
-	z-index: 1;
+	z-index: 3;
 	transition: 0.5s;
 }
 
@@ -1113,7 +1115,6 @@ i {
 	margin: 9px 0;
 }
 
-
 /* 9. RUN OR NOT HIGHLIGHTER SITE INFO */
 
 .locationDiv {
@@ -1424,4 +1425,102 @@ i {
 /* 15. UNKNOWN */
 .linkArrow {
 	border-color: var(--default-color);
+}
+
+.levels-chooser-wrapper {
+	border-radius: 15px;
+    background-color: var(--default-color);
+    color: white;
+    margin: 0px 15px;
+    margin-top: 55px;
+	position: relative;
+	overflow: hidden;
+	transition: 0.3s;
+}
+
+.levels-chooser-wrapper:hover {
+	box-shadow: 0px 0px 5px 2px #878787;
+}
+
+.levels-chooser-cover {
+	position: absolute;
+    width: 100%;
+	height: 100px;
+	background-color: var(--wanikani);
+	background-image: url(../images/wanikani-background.png);
+    background-size: cover;
+}
+
+.levels-chooser {
+	display: flex;
+	align-items: center;
+	position: relative;
+}
+
+.levels-chooser li {
+	width: 100%;
+    text-align: center;
+}
+
+.levels-chooser li:nth-child(2) {
+	font-size: 80px;
+}
+
+.levels-chooser li:not(:nth-child(2)) {
+	font-size: 50px;
+    opacity: 0.3;
+}
+
+.level-progress-bar {
+	width: 100%;
+    height: 30px;
+    border-radius: 25px;
+    border: 1px solid silver;
+    overflow: hidden;
+	background-color: white;
+	box-shadow: inset 0px 2px 4px #888686;
+	display: flex;
+}
+
+.level-progress-bar > div {
+	background-color: var(--wanikani);
+    height: 100%;
+	width: 0;
+}
+
+.level-progress-bar > span {
+    background-color: unset;
+    color: silver;
+    margin-top: 7px;
+    margin-left: 6px;
+}
+
+.level-progress-bar > div > p {
+    height: 100%;
+    color: white;
+    text-align: center;
+    padding-top: 7px;
+    font-weight: bold;
+}
+
+.passed-subject-check {
+	width: 14px;
+    position: absolute;
+    top: -3px;
+    right: -5px;
+    filter: invert(72%) sepia(73%) saturate(3496%) hue-rotate(87deg) brightness(106%) contrast(109%) drop-shadow(0px 0px 2px black);
+	z-index: 1;
+}
+
+.time-next-review-subject {
+	font-size: 10px;
+    background-color: #42f541;
+    text-align: center;
+    padding: 2px;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    color: black;
+    border-radius: 5px;
+	box-shadow: 0px 0px 2px black;
 }
