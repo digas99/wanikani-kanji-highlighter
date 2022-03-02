@@ -256,6 +256,9 @@ i {
     display: inline-block;
 	margin: 2px;
 	text-shadow: -1px 1px 0px #727272;
+	box-shadow: -1px 2px 0px 1px var(--default-color);
+    border-radius: 6px;
+
 }
 
 
@@ -305,7 +308,7 @@ i {
     display: inline-flex;
 	color: white;
     margin-left: -8px;
-	z-index: 2;
+	z-index: 10;
 }
 
 #goBack {
@@ -425,7 +428,7 @@ i {
 	background-color: var(--default-color);
 	border-top: 5px solid var(--wanikani);
 	text-align: center;
-	z-index: 3;
+	z-index: 11;
 	transition: 0.5s;
 }
 
@@ -584,18 +587,34 @@ i {
 	font-size: 25.2px;
 }
 
-.notFoundKanjiSlash {
-	top: -25px;
-    bottom: 0;
-    right: 0;
+.not-found > p:first-child {
+	text-align: center;
+    padding-bottom: 12px;
+    color: rgb(216, 216, 216);
+    font-size: 52px;
+    margin-top: -10px;
+    width: 100%;
+    position: relative;
+}
+
+.not-found > p:last-child {
+	text-align: center;
+    padding: 0px 5px;
+    color: silver;
+    font-size: 13px;
+}
+
+.not-found > p > div {
+	right: 0;
     left: 0;
     margin: auto;
-    width: 65px;
+    width: 70px;
     height: 3px;
     background-color: rgb(216, 216, 216);
     position: absolute;
     transform: rotate(149deg);
     border: 3px solid white;
+    top: 50%;
 }
 
 .kanjiHighlightedLearned {
@@ -754,6 +773,7 @@ i {
 #assignmentsMaterialList > ul {
 	font-size: 20px;
 	max-height: 186px;
+	min-height: 186px;
     overflow: auto;
 	scroll-behavior: smooth;
 	padding: 5px;
@@ -1449,6 +1469,7 @@ i {
 	background-color: var(--wanikani);
 	background-image: url(../images/wanikani-background.png);
     background-size: cover;
+	border-bottom: 4px solid white;
 }
 
 .levels-chooser {
@@ -1523,4 +1544,58 @@ i {
     color: black;
     border-radius: 5px;
 	box-shadow: 0px 0px 2px black;
+	z-index: 1;
+}
+
+.menu-icons {
+	position: absolute;
+    right: 10px;
+    top: 7px;
+}
+
+.menu-icons > img {
+	width: 18px;
+    filter: invert(1);
+    padding: 0 5px;
+}
+
+.menu-popup {
+    position: absolute;
+    background-color: white;
+    top: 30px;
+    right: 5px;
+    z-index: 1;
+    border: 2px solid #2a2d48;
+	overflow: hidden;
+	transition: 0.5s;
+	z-index: 2;
+}
+
+.menu-popup > p {
+	font-size: 11px;
+    color: white;
+    text-align: right;
+    padding: 7px;
+    border: 1px solid white;
+    background-color: var(--default-color);
+}
+
+.menu-popup > ul {
+	padding: 10px;
+}
+
+.menu-popup > ul > li {
+	color: #585858;
+    font-size: 13px;
+	display: flex;
+    align-items: center;
+}
+
+.menu-popup > ul > li:not(:last-child) {
+	margin-bottom: 10px;
+}
+
+.menu-popup > ul > li > label {
+	margin-right: 10px;
+	width: 100%;
 }

@@ -322,6 +322,22 @@ window.onload = () => {
 												userHandler.style.top = "110px";
 												userHandler.style.fontSize = "17px";
 												userHandler.style.color = "white";
+												const profileEditWrapper = document.createElement("div");
+												levelsChooser.appendChild(profileEditWrapper);
+												profileEditWrapper.style.position = "absolute";
+												profileEditWrapper.style.right = "15px";
+												profileEditWrapper.style.top = "115px";
+												profileEditWrapper.style.filter = "invert(1)";
+												profileEditWrapper.style.zIndex = "1";
+												profileEditLink = document.createElement("a");
+												profileEditWrapper.appendChild(profileEditLink);
+												profileEditLink.href = "https://www.wanikani.com/settings/profile";
+												profileEditLink.target = "a_blank";
+												profileEditLink.title = "https://www.wanikani.com/settings/profile";
+												profileEdit = document.createElement("img");
+												profileEditLink.appendChild(profileEdit);
+												profileEdit.src = "../images/edit.png";
+												profileEdit.style.width = "14px";
 												const avatarLink = document.createElement("a");
 												avatarWrapper.appendChild(avatarLink);
 												avatarLink.href = userInfo["profile_url"];
@@ -411,10 +427,14 @@ window.onload = () => {
 														levelProgressBar.title = "Passed Kanji: "+passedSubjects.length+" / "+percentage.toFixed(1)+"%";
 													}
 
+													const subjectsWrapper = document.createElement("div");
+													subjectsDisplay.appendChild(subjectsWrapper);
+													subjectsWrapper.style.position = "relative";
 													const title = document.createElement("p");
-													subjectsDisplay.appendChild(title);
+													subjectsWrapper.appendChild(title);
 													title.appendChild(document.createTextNode(type.charAt(0).toUpperCase()+(type == "vocab" ? "vocabulary" : type).substring(1)+(type == "radical" ? "s" : "")));
 													title.style.color = "white";
+													title.style.position = "relative";
 													title.style.padding = "5px";
 													title.style.backgroundColor = "var(--default-color)";
 													title.style.paddingLeft = "10px";
@@ -426,9 +446,90 @@ window.onload = () => {
 													progress.style.fontSize = "12px";
 													progress.style.marginLeft = "10px";
 													progress.style.color = "silver";
+													
+													const menuIcons = document.createElement("div");
+													title.appendChild(menuIcons);
+													menuIcons.classList.add("menu-icons");
+
+													["sort", "filter", "burger-menu"].forEach(key => {
+														const img = document.createElement("img");
+														menuIcons.appendChild(img);
+														img.src = `../images/${key}.png`;
+														img.classList.add("clickable");
+														img.title = key.charAt(0).toUpperCase()+key.substring(1);
+														
+														let menuWrapper;
+														img.addEventListener("click", () => {
+															Array.from(subjectsWrapper.getElementsByClassName("menu-popup")).forEach(popup => {
+																if (popup !== menuWrapper)
+																	popup.remove();
+															});
+
+															if (subjectsWrapper.lastChild.classList.contains("menu-popup")) {
+																menuWrapper.style.maxHeight = "0px";
+																setTimeout(() => subjectsWrapper.lastChild.remove(), 300);
+															}
+															else {
+																menuWrapper = document.createElement("div");
+																subjectsWrapper.appendChild(menuWrapper);
+																menuWrapper.classList.add("menu-popup");
+																menuWrapper.style.maxHeight = "0px";
+																setTimeout(() => menuWrapper.style.maxHeight = "200px", 100);
+																const menuTitle = document.createElement("p");
+																menuWrapper.appendChild(menuTitle);
+																menuTitle.appendChild(document.createTextNode(img.title));
+																const menu = document.createElement("ul");
+																menuWrapper.appendChild(menu);
+	
+																switch(key) {
+																	case "sort":
+																		break;
+																	case "filter":
+																		break;
+																	case "burger-menu":
+																		// color by
+																		const colorBy = document.createElement("li");
+																		menu.appendChild(colorBy);
+																		const colorByLabel = document.createElement("label");
+																		colorBy.appendChild(colorByLabel);
+																		colorByLabel.appendChild(document.createTextNode("Color by"));
+																		const colorBySelect = document.createElement("select");
+																		colorBy.appendChild(colorBySelect);
+																		colorBySelect.classList.add("select");
+																		colorBySelect.style.width = "auto";
+																		["Subject Type", "SRS Stage"].forEach(option => {
+																			const colorByOption = document.createElement("option");
+																			colorBySelect.appendChild(colorByOption);
+																			colorByOption.appendChild(document.createTextNode(option));
+																		});
+			
+																		// show reviews info
+																		const reviewsInfo = document.createElement("li");
+																		menu.appendChild(reviewsInfo);
+																		const reviewsInfoLabel = document.createElement("label");
+																		reviewsInfo.appendChild(reviewsInfoLabel);
+																		reviewsInfoLabel.appendChild(document.createTextNode("Reviews info"));
+																		const inputDiv = document.createElement("div");
+																		inputDiv.classList.add("checkbox_wrapper", "clickable");
+																		inputDiv.classList.add("checkbox-enabled");
+																		reviewsInfo.appendChild(inputDiv);
+																		const checkbox = document.createElement("input");
+																		inputDiv.appendChild(checkbox);
+																		checkbox.type = "checkbox";
+																		checkbox.style.display = "none";
+																		const customCheckboxBall = document.createElement("div");
+																		inputDiv.appendChild(customCheckboxBall);
+																		customCheckboxBall.classList.add("custom-checkbox-ball");
+																		const customCheckboxBack = document.createElement("div");
+																		inputDiv.appendChild(customCheckboxBack);
+																		customCheckboxBack.classList.add("custom-checkbox-back");		
+																		break;
+																}											}
+														});
+													});
 
 													const subjectsListWrapper = document.createElement("div");
-													subjectsDisplay.appendChild(subjectsListWrapper);
+													subjectsWrapper.appendChild(subjectsListWrapper);
 													subjectsListWrapper.classList.add("simple-grid");
 													const subjectsList = document.createElement("ul");
 													subjectsListWrapper.appendChild(subjectsList);
@@ -690,26 +791,18 @@ window.onload = () => {
 																});
 															
 																if (learned.length == 0 && notLearned.length == 0) {
-																	kanjiFoundUl.style.position = "relative";
+																	const notFound = document.createElement("div");
+																	kanjiFoundUl.appendChild(notFound);
+																	notFound.classList.add("not-found");
 																	const kanjiModel = document.createElement("p");
-																	kanjiFoundUl.appendChild(kanjiModel);
+																	notFound.appendChild(kanjiModel);
 																	const randHex = rand(parseInt("4e00", 16), parseInt("9faf", 16)).toString(16);
 																	kanjiModel.appendChild(document.createTextNode(String.fromCharCode(`0x${randHex}`)));
-																	kanjiModel.style.textAlign = "center";
-																	kanjiModel.style.paddingBottom = "12px";
-																	kanjiModel.style.color = "#d8d8d8";
-																	kanjiModel.style.fontSize = "52px";
-																	kanjiModel.style.marginTop = "-10px";
 																	const noKanjiFound = document.createElement("p");
-																	kanjiFoundUl.appendChild(noKanjiFound);
-																	noKanjiFound.appendChild(document.createTextNode("No Kanji from Wanikani found in the current page."));
-																	noKanjiFound.style.textAlign = "center";
-																	noKanjiFound.style.padding = "0 5px";
-																	noKanjiFound.style.color = "silver";
-																	noKanjiFound.style.fontSize = "13px";
+																	notFound.appendChild(noKanjiFound);
+																	noKanjiFound.appendChild(document.createTextNode("No Kanji found in the current page!"));
 																	const notFoundSlash = document.createElement("div");
-																	kanjiFoundUl.appendChild(notFoundSlash);
-																	notFoundSlash.classList.add("notFoundKanjiSlash");
+																	kanjiModel.appendChild(notFoundSlash);
 																}
 															});
 														});
@@ -2366,6 +2459,7 @@ document.addEventListener("click", e => {
 				// filter by srs stages
 				const lessonsBarData = [];
 				const reviewsBarData = [];
+				let hasAssignments = false;
 				Object.keys(srsStages).forEach(srsId => {
 					const assignments = data.filter(assignment => assignment["data"]["srs_stage"] == srsId);
 					// setup srsrStages bar
@@ -2385,6 +2479,8 @@ document.addEventListener("click", e => {
 					}
 
 					if (assignments.length > 0) {
+						hasAssignments = true;
+
 						const srsWrapper = document.createElement("li");
 						container.appendChild(srsWrapper);
 						srsWrapper.style.marginBottom = "5px";
@@ -2466,10 +2562,8 @@ document.addEventListener("click", e => {
 										break;
 								}
 
-								console.log(filtered);
 								const subject = filtered[0];
 								if (subject) {
-									console.log(subject);
 									characters = subject["characters"] ? subject["characters"]  : `<img height="22px" style="margin-top:-3px;margin-bottom:-4px;padding-top:8px" src="${subject["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`;
 									if (!atWanikani) {					
 										if (subject["meanings"]) li.title = subject["meanings"][0];
@@ -2486,7 +2580,7 @@ document.addEventListener("click", e => {
 								if (characters !== "L")
 									li.innerHTML = characters;
 								else {
-									const wrapperForLii = document.createElement("div");
+									const wrapperForLi = document.createElement("div");
 									li.appendChild(wrapperForLi);
 									wrapperForLi.style.marginTop = "5px";
 									wrapperForLi.appendChild(document.createTextNode(characters));
@@ -2496,6 +2590,21 @@ document.addEventListener("click", e => {
 						});
 					}
 				});
+
+				if (!hasAssignments) {
+					const notFound = document.createElement("div");
+					container.appendChild(notFound);
+					notFound.classList.add("not-found");
+					const kanjiModel = document.createElement("p");
+					notFound.appendChild(kanjiModel);
+					const randHex = rand(parseInt("4e00", 16), parseInt("9faf", 16)).toString(16);
+					kanjiModel.appendChild(document.createTextNode(String.fromCharCode(`0x${randHex}`)));
+					const noKanjiFound = document.createElement("p");
+					notFound.appendChild(noKanjiFound);
+					noKanjiFound.appendChild(document.createTextNode("No subjects to study for now!"));
+					const notFoundSlash = document.createElement("div");
+					kanjiModel.appendChild(notFoundSlash);
+				}
 
 				const lessonsListBar = document.getElementById("lessonsListBar");
 				if (lessonsListBar)
@@ -3351,26 +3460,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				updateItemsListBar(document.getElementsByClassName("items-list-bar")[0], [learned.length, notLearned.length]);
 
 				if (learned.length == 0 && notLearned.length == 0) {
-					kanjiFoundUl.style.position = "relative";
+					const notFound = document.createElement("div");
+					kanjiFoundUl.appendChild(notFound);
+					notFound.classList.add("not-found");
 					const kanjiModel = document.createElement("p");
-					kanjiFoundUl.appendChild(kanjiModel);
+					notFound.appendChild(kanjiModel);
 					const randHex = rand(parseInt("4e00", 16), parseInt("9faf", 16)).toString(16);
 					kanjiModel.appendChild(document.createTextNode(String.fromCharCode(`0x${randHex}`)));
-					kanjiModel.style.textAlign = "center";
-					kanjiModel.style.paddingBottom = "12px";
-					kanjiModel.style.color = "#d8d8d8";
-					kanjiModel.style.fontSize = "52px";
-					kanjiModel.style.marginTop = "-10px";
 					const noKanjiFound = document.createElement("p");
-					kanjiFoundUl.appendChild(noKanjiFound);
-					noKanjiFound.appendChild(document.createTextNode("No Kanji from Wanikani found in the current page."));
-					noKanjiFound.style.textAlign = "center";
-					noKanjiFound.style.padding = "0 5px";
-					noKanjiFound.style.color = "silver";
-					noKanjiFound.style.fontSize = "13px";
+					notFound.appendChild(noKanjiFound);
+					noKanjiFound.appendChild(document.createTextNode("No Kanji found in the current page!"));
 					const notFoundSlash = document.createElement("div");
-					kanjiFoundUl.appendChild(notFoundSlash);
-					notFoundSlash.classList.add("notFoundKanjiSlash");
+					kanjiModel.appendChild(notFoundSlash);
 				}
 			}
 		});

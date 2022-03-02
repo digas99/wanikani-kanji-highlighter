@@ -71,7 +71,8 @@ const defaultSettings = {
 	"miscellaneous": {
 		time_in_12h_format: true,
 		kana_writing: false,
-		extension_popup_width: 400
+		extension_popup_width: 400,
+		// srs_info_on_reviews: false
 	},
 	"sizes": {
 		highlighted_kanji_height: 150,
@@ -213,7 +214,13 @@ const settingsInterface = [
 				},
 				id: "settings-miscellaneous-extension_popup_width",
 				description: "Width of the Extension Popup window."
-			}
+			},
+			// {
+			// 	title: "SRS Info on Reviews",
+			// 	type: "checkbox",
+			// 	id: "settings-miscellaneous-srs_info_on_reviews",
+			// 	description: "Show SRS information on the subjects while doing Reviews at wanikani.com"
+			// }
 		]
 	},
 	{
