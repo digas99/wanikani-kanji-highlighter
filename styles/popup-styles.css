@@ -305,7 +305,8 @@ i {
     top: 0;
     width: 100%;
     padding: 10px;
-    display: inline-flex;
+    display: flex;
+	align-items: center;
 	color: white;
     margin-left: -8px;
 	z-index: 10;
@@ -1451,15 +1452,9 @@ i {
 	border-radius: 15px;
     background-color: var(--default-color);
     color: white;
-    margin: 0px 15px;
     margin-top: 55px;
 	position: relative;
-	overflow: hidden;
 	transition: 0.3s;
-}
-
-.levels-chooser-wrapper:hover {
-	box-shadow: 0px 0px 5px 2px #878787;
 }
 
 .levels-chooser-cover {
@@ -1470,6 +1465,7 @@ i {
 	background-image: url(../images/wanikani-background.png);
     background-size: cover;
 	border-bottom: 4px solid white;
+	border-radius: 15px 15px 0px 0px;
 }
 
 .levels-chooser {
@@ -1550,12 +1546,17 @@ i {
 .menu-icons {
 	position: absolute;
     right: 10px;
-    top: 7px;
+	display: flex;
+	align-items: center;
 }
 
 .menu-icons > img {
 	width: 18px;
+	height: 18px;
     filter: invert(1);
+}
+
+.menu-icons > * {
     padding: 0 5px;
 }
 
