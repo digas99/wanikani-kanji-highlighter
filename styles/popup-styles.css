@@ -310,6 +310,7 @@ i {
 	color: white;
     margin-left: -8px;
 	z-index: 10;
+	border-bottom: 2px solid white;
 }
 
 #goBack {
@@ -1565,12 +1566,16 @@ i {
     background-color: white;
     top: 30px;
     right: 5px;
-    z-index: 1;
     border: 2px solid #2a2d48;
 	overflow: hidden;
 	transition: 0.5s;
 	z-index: 2;
+	/* opacity: 0.6; */
 }
+
+/* .menu-popup:hover {
+	opacity: 1;
+} */
 
 .menu-popup > p {
 	font-size: 11px;
