@@ -1478,6 +1478,7 @@ i {
 .levels-chooser li {
 	width: 100%;
     text-align: center;
+	transition: 0.3s;
 }
 
 .levels-chooser li:nth-child(2) {
@@ -1487,6 +1488,12 @@ i {
 .levels-chooser li:not(:nth-child(2)) {
 	font-size: 50px;
     opacity: 0.3;
+}
+
+.levels-chooser li:not(:nth-child(2)):hover {
+	opacity: 1;
+	cursor: pointer;
+	transform: scale(1.5);
 }
 
 .level-progress-bar {
