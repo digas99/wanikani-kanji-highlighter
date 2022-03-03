@@ -115,8 +115,8 @@ window.onload = () => {
 				if (settings && settings["miscellaneous"] && settings["miscellaneous"]["extension_popup_width"])
 					document.documentElement.style.setProperty('--body-base-width', settings["miscellaneous"]["extension_popup_width"]+"px");
 
-				if (settings && settings["home_page"] && settings["home_page"])
-					homePage = settings["home_page"];
+				if (settings && settings["home_page"] && settings["home_page"]["page"])
+					homePage = settings["home_page"]["page"];
 
 				atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url);
 
@@ -372,9 +372,12 @@ window.onload = () => {
 													levelWrapper.title = i == 0 ? "Previous Level" : i == 1 ? "Current Level" : "Next Level";
 												});
 
-												const createMenuIcons = (icons, wrapper, contentWrapper) => {
+												let initialSetup = true;;
+												const createMenuIcons = (icons, id, wrapper, contentWrapper) => {
 													const menuIcons = document.createElement("div");
 													menuIcons.classList.add("menu-icons");
+
+													settings_menus = settings["profile_menus"] ? settings["profile_menus"] : defaultSettings["profile_menus"];
 
 													icons.forEach(key => {
 														const img = document.createElement("img");
@@ -392,7 +395,10 @@ window.onload = () => {
 
 															if (wrapper.lastChild.classList.contains("menu-popup")) {
 																menuWrapper.style.maxHeight = "0px";
-																setTimeout(() => wrapper.lastChild.remove(), 300);
+																setTimeout(() => {
+																	if (wrapper && wrapper.lastChild && wrapper.lastChild.classList.contains("menu-popup"))
+																		wrapper.lastChild.remove();
+																}, 300);
 															}
 															else {
 																menuWrapper = document.createElement("div");
@@ -405,11 +411,12 @@ window.onload = () => {
 																menuTitle.appendChild(document.createTextNode(img.title));
 																const menu = document.createElement("ul");
 																menuWrapper.appendChild(menu);
-
 																const contentWrapperUl = Array.from(contentWrapper.getElementsByTagName("UL"));
 																let subjects = Array.from(contentWrapper.getElementsByTagName("li"));
 																switch(key) {
 																	case "sort":
+																		let typeDefault, directionDefault;
+
 																		const sortings = (value, direction) => {
 																			switch(value) {
 																				case "SRS Stage":
@@ -433,7 +440,7 @@ window.onload = () => {
 																			}
 																		}
 
-																		// sort
+																		// types
 																		const sort = document.createElement("li");
 																		menu.appendChild(sort);
 																		const sortLabel = document.createElement("label");
@@ -451,15 +458,22 @@ window.onload = () => {
 
 																		sortSelect.addEventListener("input", e => {
 																			const value = e.target.value;
-																			if (contentWrapperUl.length > 1)
-																				Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-sort-sort", value));
-																			else
-																				menuIcons.setAttribute("data-sort-sort", value);		
+																			if (contentWrapperUl.length > 1) {
+																				Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-sort-type", value));
+																				["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["sort"]["type"] = value);
+																			}
+																			else {
+																				menuIcons.setAttribute("data-sort-type", value);
+																				settings_menus[id]["sort"]["type"] = value;
+																			}	
 
 																			sortings(value, menuIcons.getAttribute("data-sort-direction"));
+
+																			chrome.storage.local.set({"wkhighlight_settings":settings});
 																		});
-																		if (menuIcons.getAttribute("data-sort-sort"))
-																			sortSelect.value = menuIcons.getAttribute("data-sort-sort");
+																		typeDefault = menuIcons.getAttribute("data-sort-type") ? menuIcons.getAttribute("data-sort-type") : settings_menus[id]["sort"]["type"];
+																		if (typeDefault)
+																			sortSelect.value = typeDefault;
 
 																		// direction
 																		const direction = document.createElement("li");
@@ -478,20 +492,31 @@ window.onload = () => {
 																		});
 																		directionSelect.addEventListener("input", e => {
 																			const value = e.target.value;
-																			if (contentWrapperUl.length > 1)
+																			if (contentWrapperUl.length > 1) {
 																				Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-sort-direction", value));
-																			else
-																				menuIcons.setAttribute("data-sort-direction", value);
-																			
-																			if (menuIcons.getAttribute("data-sort-sort")) {
-																				sortings(menuIcons.getAttribute("data-sort-sort"), value);
+																				["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["sort"]["direction"] = value);
 																			}
+																			else {
+																				menuIcons.setAttribute("data-sort-direction", value);
+																				settings_menus[id]["sort"]["direction"] = value;
+																			}
+																			
+																			if (menuIcons.getAttribute("data-sort-type"))
+																				sortings(menuIcons.getAttribute("data-sort-type"), value);
+
+																			chrome.storage.local.set({"wkhighlight_settings":settings});
 																		});
-																		if (menuIcons.getAttribute("data-sort-direction"))
-																			directionSelect.value = menuIcons.getAttribute("data-sort-direction");
+																		directionDefault = menuIcons.getAttribute("data-sort-direction") ? menuIcons.getAttribute("data-sort-direction") : settings_menus[id]["sort"]["direction"];
+																		if (directionDefault)
+																			directionSelect.value = directionDefault;
+
+																		if (initialSetup)
+																			sortings(typeDefault, directionDefault);
 
 																		break;
 																	case "filter":
+																		let srsDefault, stateDefault;
+
 																		const filters = (srs, state) => {
 																			if (srs !== "None") {
 																				Array.from(subjects).forEach(elem => {
@@ -527,16 +552,23 @@ window.onload = () => {
 																		});
 																		srsStageSelect.addEventListener("input", e => {
 																			const value = e.target.value;
-																			if (contentWrapperUl.length > 1)
+																			if (contentWrapperUl.length > 1) {
 																				Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-filter-srs_stage", value));
-																			else
+																				//["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["filter"]["srs_stage"] = value);
+																			}
+																			else {
 																				menuIcons.setAttribute("data-filter-srs_stage", value);
+																				//settings_menus[id]["filter"]["srs_stage"] = value;
+																			}
 																			subjects.forEach(elem => elem.style.removeProperty("display"));
 
 																			filters(value, menuIcons.getAttribute("data-filter-state") ? menuIcons.getAttribute("data-filter-state") : "None");
+																			
+																			//chrome.storage.local.set({"wkhighlight_settings":settings});
 																		});
-																		if (menuIcons.getAttribute("data-filter-srs_stage"))
-																			srsStageSelect.value = menuIcons.getAttribute("data-filter-srs_stage");
+																		srsDefault = menuIcons.getAttribute("data-filter-srs_stage") ? menuIcons.getAttribute("data-filter-srs_stage") : settings_menus[id]["filter"]["srs_stage"];
+																		if (srsDefault)
+																			srsStageSelect.value = srsDefault;
 
 																		// state
 																		const state = document.createElement("li");
@@ -555,40 +587,32 @@ window.onload = () => {
 																		});
 																		stateSelect.addEventListener("input", e => {
 																			const value = e.target.value;
-																			if (contentWrapperUl.length > 1)
+																			if (contentWrapperUl.length > 1) {
 																				Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-filter-state", value));
-																			else
+																				//["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["filter"]["state"] = value);
+																			}
+																			else {
 																				menuIcons.setAttribute("data-filter-state", value);
+																				//settings_menus[id]["filter"]["state"] = value;
+																			}
 																			subjects.forEach(elem => elem.style.removeProperty("display"));
 
 																			filters(menuIcons.getAttribute("data-filter-srs_stage") ? menuIcons.getAttribute("data-filter-srs_stage") : "None", value);
+																		
+																			//chrome.storage.local.set({"wkhighlight_settings":settings});
 																		});
-																		if (menuIcons.getAttribute("data-filter-state"))
-																			stateSelect.value = menuIcons.getAttribute("data-filter-state");
+																		stateDefault = menuIcons.getAttribute("data-filter-state") ? menuIcons.getAttribute("data-filter-state") : settings_menus[id]["filter"]["state"];
+																		if (stateDefault)
+																			stateSelect.value = stateDefault;
+
+																		//if (initialSetup)
+																		//	filters(srsDefault, stateDefault);
 
 																		break;
-																	case "burger-menu":
-																		// color by
-																		const colorBy = document.createElement("li");
-																		menu.appendChild(colorBy);
-																		const colorByLabel = document.createElement("label");
-																		colorBy.appendChild(colorByLabel);
-																		colorByLabel.appendChild(document.createTextNode("Color by"));
-																		const colorBySelect = document.createElement("select");
-																		colorBy.appendChild(colorBySelect);
-																		colorBySelect.classList.add("select");
-																		colorBySelect.style.width = "auto";
-																		["Subject Type", "SRS Stage"].forEach(option => {
-																			const colorByOption = document.createElement("option");
-																			colorBySelect.appendChild(colorByOption);
-																			colorByOption.appendChild(document.createTextNode(option));
-																		});
-																		colorBySelect.addEventListener("input", e => {
-																			const value = e.target.value;
-																			if (contentWrapperUl.length > 1)
-																				Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-menu-color_by", value));
-																			else
-																				menuIcons.setAttribute("data-menu-color_by", value);																			
+																	case "menu":
+																		let colorDefault, reviewsInfoDefault;
+
+																		const color_subjects = value => {
 																			switch(value) {
 																				case "Subject Type":
 																					subjects.forEach(elem => elem.style.removeProperty("background-color"));
@@ -606,10 +630,62 @@ window.onload = () => {
 																					});
 																					break;
 																			}
+																		}
+
+																		// color by
+																		const colorBy = document.createElement("li");
+																		menu.appendChild(colorBy);
+																		const colorByLabel = document.createElement("label");
+																		colorBy.appendChild(colorByLabel);
+																		colorByLabel.appendChild(document.createTextNode("Color by"));
+																		const colorBySelect = document.createElement("select");
+																		colorBy.appendChild(colorBySelect);
+																		colorBySelect.classList.add("select");
+																		colorBySelect.style.width = "auto";
+																		["Subject Type", "SRS Stage"].forEach(option => {
+																			const colorByOption = document.createElement("option");
+																			colorBySelect.appendChild(colorByOption);
+																			colorByOption.appendChild(document.createTextNode(option));
 																		});
-																		if (menuIcons.getAttribute("data-menu-color_by"))
-																			colorBySelect.value = menuIcons.getAttribute("data-menu-color_by");
-			
+																		colorBySelect.addEventListener("input", e => {
+																			const value = e.target.value;
+																			if (contentWrapperUl.length > 1) {
+																				Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-menu-color_by", value));
+																				["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["menu"]["color_by"] = value);
+																			}
+																			else {
+																				menuIcons.setAttribute("data-menu-color_by", value);
+																				settings_menus[id]["menu"]["color_by"] = value;																	
+																			}
+
+																			color_subjects(value);
+
+																			chrome.storage.local.set({"wkhighlight_settings":settings});
+																		});
+																		colorDefault = menuIcons.getAttribute("data-filter-color_by") ? menuIcons.getAttribute("data-filter-color_by") : settings_menus[id]["menu"]["color_by"];
+																		if (colorDefault)
+																			colorBySelect.value = colorDefault;
+
+																		if (initialSetup)
+																			color_subjects(colorDefault);
+
+																		const show_reviews_info = (checkbox, checked) => {
+																			if (!checked) {
+																				checkbox.classList.remove("checkbox-enabled");
+																				subjects.forEach(elem => {
+																					if (elem.getElementsByClassName("reviews-info")[0])
+																						elem.getElementsByClassName("reviews-info")[0].style.display = "none"; 
+																				});
+																			}
+																			else {
+																				checkbox.classList.add("checkbox-enabled");
+																				subjects.forEach(elem => {
+																					if (elem.getElementsByClassName("reviews-info")[0])
+																						elem.getElementsByClassName("reviews-info")[0].style.removeProperty("display"); 
+																				});
+																			}
+																		}
+																		
 																		// show reviews info
 																		const reviewsInfo = document.createElement("li");
 																		menu.appendChild(reviewsInfo);
@@ -622,11 +698,11 @@ window.onload = () => {
 																		const checkbox = document.createElement("input");
 																		inputDiv.appendChild(checkbox);
 																		checkbox.type = "checkbox";
-																		if (menuIcons.getAttribute("data-menu-show_reviews") == "true") {
+																		if (menuIcons.getAttribute("data-menu-reviews_info") == "true") {
 																			inputDiv.classList.add("checkbox-enabled");
 																			checkbox.checked = true;
 																		}
-																		else if (menuIcons.getAttribute("data-menu-show_reviews") == "false")
+																		else if (menuIcons.getAttribute("data-menu-reviews_info") == "false")
 																			checkbox.checked = false;
 																		checkbox.style.display = "none";
 																		const customCheckboxBall = document.createElement("div");
@@ -638,26 +714,23 @@ window.onload = () => {
 																		inputDiv.addEventListener("click", () => {
 																			checkbox.click();
 
-																			if (contentWrapperUl.length > 1)
-																				Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-menu-show_reviews", checkbox.checked));
-																			else
-																				menuIcons.setAttribute("data-menu-show_reviews", checkbox.checked);			
-																			if (!checkbox.checked) {
-																				inputDiv.classList.remove("checkbox-enabled");
-																				subjects.forEach(elem => {
-																					if (elem.getElementsByClassName("reviews-info")[0])
-																						elem.getElementsByClassName("reviews-info")[0].style.display = "none"; 
-																				});
+																			if (contentWrapperUl.length > 1) {
+																				Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-menu-reviews_info", checkbox.checked));
+																				["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["menu"]["reviews_info"] = checkbox.checked);
 																			}
 																			else {
-																				inputDiv.classList.add("checkbox-enabled");
-																				subjects.forEach(elem => {
-																					if (elem.getElementsByClassName("reviews-info")[0])
-																						elem.getElementsByClassName("reviews-info")[0].style.removeProperty("display"); 
-																				});
+ 																				menuIcons.setAttribute("data-menu-reviews_info", checkbox.checked);			
+																				settings_menus[id]["menu"]["reviews_info"] = checkbox.checked;
 																			}
 
+																			show_reviews_info(inputDiv, checkbox.checked);
+
+																			chrome.storage.local.set({"wkhighlight_settings":settings});
 																		});
+																		reviewsInfoDefault = menuIcons.getAttribute("data-filter-reviews_info") ? menuIcons.getAttribute("data-filter-reviews_info") : settings_menus[id]["menu"]["reviews_info"];
+
+																		if (initialSetup)
+																			show_reviews_info(inputDiv, reviewsInfoDefault);
 
 																		break;
 																}											
@@ -679,16 +752,21 @@ window.onload = () => {
 													arrow.style.marginBottom = (-2*(arrow.style.padding.split("px")[0]))+"px";
 													arrowWrapper.addEventListener("click", () => {
 														if (arrow.classList.contains("up")) {
-															flipArrow(arrow, "up", "down");
+															flipArrow(arrow, "up", "down", arrow.style.padding);
 															arrowWrapper.title = "Open";
 															if (contentWrapper) contentWrapper.style.display = "none";
 														}
 														else {
-															flipArrow(arrow, "down", "up");													arrowWrapper.title = "Close";
+															flipArrow(arrow, "down", "up", arrow.style.padding);
 															arrowWrapper.title = "Close";
 															if (contentWrapper) contentWrapper.style.removeProperty("display");
 														}
-													});
+
+														settings_menus[id]["opened"] = arrow.classList.contains("up");
+														chrome.storage.local.set({"wkhighlight_settings":settings});
+													});	
+													if (!settings_menus[id]["opened"])
+														arrowWrapper.click();
 
 													return menuIcons;
 												}
@@ -737,7 +815,7 @@ window.onload = () => {
 												allProgress.style.marginLeft = "10px";
 												allProgress.style.color = "silver";
 												const subjectsDisplay = document.createElement("div");
-												allTitle.appendChild(createMenuIcons(["sort", "filter", "burger-menu"], allTitle, subjectsDisplay));
+												allTitle.appendChild(createMenuIcons(["sort", "filter", "menu"], "all", allTitle, subjectsDisplay));
 												levelsChooser.appendChild(subjectsDisplay);
 												subjectsDisplay.style.padding = "7px";
 												subjectsDisplay.style.fontSize = "23px";
@@ -799,7 +877,7 @@ window.onload = () => {
 													progress.style.marginLeft = "10px";
 													progress.style.color = "silver";
 													const subjectsListWrapper = document.createElement("div");
-													title.appendChild(createMenuIcons(["sort", "filter", "burger-menu"], subjectsWrapper, subjectsListWrapper));
+													title.appendChild(createMenuIcons(["sort", "filter", "menu"], type == "vocab" ? "vocabulary" : type, subjectsWrapper, subjectsListWrapper));
 													subjectsWrapper.appendChild(subjectsListWrapper);
 													subjectsListWrapper.classList.add("simple-grid");
 													const subjectsList = document.createElement("ul");
@@ -868,6 +946,20 @@ window.onload = () => {
 												});
 												
 												allProgress.appendChild(document.createTextNode(allPassedSubjects+"/"+allSubjects));
+
+												settings_menus = settings["profile_menus"] ? settings["profile_menus"] : defaultSettings["profile_menus"];
+												Object.keys(settings_menus).forEach(type => {
+													const menuIcons = Array.from(document.getElementsByClassName("menu-icons")).filter(elem => (elem.parentElement.firstChild.textContent == "Radicals" ? "radical" : elem.parentElement.firstChild.textContent.toLowerCase()) == type)[0];
+													Object.keys(settings_menus[type]).forEach(menu => {
+														if (menu !== "opened") {
+															Object.keys(settings_menus[type][menu]).forEach(option => {
+																menuIcons.setAttribute("data-"+menu+"-"+option, settings_menus[type][menu][option]);
+																Array.from(menuIcons.getElementsByTagName("img")).filter(elem => elem.title.toLowerCase() == menu)[0].click();
+															});
+														}
+													});
+												});
+												initialSetup = false;
 											});
 
 											const ul = document.createElement("ul");
@@ -1700,7 +1792,7 @@ const secondaryPage = (titleText, width) => {
 	starWrapper.appendChild(star);
 	star.style.width = "20px";
 	chrome.storage.local.get("wkhighlight_settings", result => {
-		homePage = result["wkhighlight_settings"]["home_page"];
+		homePage = result["wkhighlight_settings"]["home_page"]["page"];
 
 		if (homePage == titleText) {
 			star.src = "../images/star-filled.png";
@@ -1718,13 +1810,13 @@ const secondaryPage = (titleText, width) => {
 				star.src = "../images/star-filled.png";
 				star.classList.add("star-active");
 				starWrapper.title = "Return to default Home Page";
-				settings["home_page"] = titleText;
+				settings["home_page"]["page"] = titleText;
 			}
 			else {
 				star.src = "../images/star.png";
 				star.classList.remove("star-active");
 				starWrapper.title = "Make this the Home Page";
-				settings["home_page"] = null;
+				settings["home_page"]["page"] = null;
 			}
 
 			chrome.storage.local.set({"wkhighlight_settings":settings});
@@ -2601,7 +2693,7 @@ document.addEventListener("click", e => {
 					navbarOptions.appendChild(listOfOptions);
 					listOfOptions.style.display = "flex";
 					const titles = ["List", "Big Grid", "Small Grid"];
-					["list", "menu", "grid"].forEach((option, i) => {
+					["list", "big-grid", "small-grid"].forEach((option, i) => {
 						const li = document.createElement("li");
 						listOfOptions.appendChild(li);
 						li.classList.add("searchResultNavbarOption", "clickable");
@@ -2710,11 +2802,11 @@ document.addEventListener("click", e => {
 			if (classes.contains("searchResultItemSquareSmall")) classes.remove("searchResultItemSquareSmall");
 		}
 
-		if (["searchResultOptionmenu", "searchResultOptiongrid"].includes(targetElem.id)) {
+		if (["searchResultOptionbig-grid", "searchResultOptionsmall-grid"].includes(targetElem.id)) {
 			Array.from(document.getElementsByClassName("searchResultItemInfo")).forEach(elem => {
 				const parent = elem.parentElement;
 				removeSquareClasses(parent);
-				parent.classList.add(targetElem.id == "searchResultOptionmenu" ? "searchResultItemSquare" : "searchResultItemSquareSmall");
+				parent.classList.add(targetElem.id == "searchResultOptionbig-grid" ? "searchResultItemSquare" : "searchResultItemSquareSmall");
 				elem.style.display = "none";
 			});
 			// if there are results in the search
@@ -2722,7 +2814,7 @@ document.addEventListener("click", e => {
 			if (resultsWrapper && resultsWrapper.childNodes.length > 0)
 				document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(630, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
 			
-			const newClass = targetElem.id === "searchResultOptionmenu" ? "searchResultItemType-small" : "searchResultItemType-tiny"; 
+			const newClass = targetElem.id === "searchResultOptionbig-grid" ? "searchResultItemType-small" : "searchResultItemType-tiny"; 
 			Array.from(document.getElementsByClassName("searchResultItemType")).forEach(elem => elem.classList.replace(elem.classList[2], newClass));
 		}
 		else {
@@ -3655,11 +3747,11 @@ const searchSubject = (event, searchType) => {
 					
 					// if it is not in list type
 					if (settings["search"]["results_display"] != "searchResultOptionlist") {
-						if (settings["search"]["results_display"] == "searchResultOptionmenu") {
+						if (settings["search"]["results_display"] == "searchResultOptionbig-grid") {
 							li.classList.add("searchResultItemSquare");
 							subjectType.classList.add("searchResultItemType-small");
 						}
-						else if (settings["search"]["results_display"] == "searchResultOptiongrid") {
+						else if (settings["search"]["results_display"] == "searchResultOptionsmall-grid") {
 							li.classList.add("searchResultItemSquareSmall");
 							subjectType.classList.add("searchResultItemType-tiny");
 						}

@@ -86,6 +86,71 @@ const defaultSettings = {
 		overall_progression_bar: true,
 		overall_progression_stats: true,
 		levels_in_progress: true
+	},
+	"home_page": {
+		"page": null
+	},
+	"profile_menus": {
+		"all": {
+			"opened": true,
+			"menu": {
+				"color_by": "Subject Type",
+				"reviews_info": true
+			},
+			"filter": {
+				"srs_stage": "None",
+				"state": "None"
+			},
+			"sort": {
+				"type": "None",
+				"direction": "Ascending"
+			}
+		},
+		"radical": {
+			"opened": true,
+			"menu": {
+				"color_by": "Subject Type",
+				"reviews_info": true
+			},
+			"filter": {
+				"srs_stage": "None",
+				"state": "None"
+			},
+			"sort": {
+				"type": "None",
+				"direction": "Ascending"
+			}
+		},
+		"kanji": {
+			"opened": true,
+			"menu": {
+				"color_by": "Subject Type",
+				"reviews_info": true
+			},
+			"filter": {
+				"srs_stage": "None",
+				"state": "None"
+			},
+			"sort": {
+				"type": "None",
+				"direction": "Ascending"
+			}
+		},
+		"vocabulary": {
+			"opened": true,
+			"menu": {
+				"color_by": "Subject Type",
+				"reviews_info": true
+			},
+			"filter": {
+				"srs_stage": "None",
+				"state": "None"
+			},
+			"sort": {
+				"type": "None",
+				"direction": "Ascending"
+			}
+		}
 	}
 };
 

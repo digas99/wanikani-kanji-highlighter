@@ -324,9 +324,9 @@ const manageBodyWidth = (width, bodyWidth) => {
 	return width;
 } 
 
-const flipArrow = (arrow, sourceDir, destDir) => {
+const flipArrow = (arrow, sourceDir, destDir, paddingValue) => {
 	if (arrow) {
-		const padding = parseInt(window.getComputedStyle(arrow).padding.split("px")[0]);
+		const padding = parseInt(paddingValue ? paddingValue : window.getComputedStyle(arrow).padding.split("px")[0]);
 		if (typeof padding === "number" && !isNaN(padding)) {
 			arrow.classList.remove(sourceDir);
 			arrow.classList.add(destDir);
