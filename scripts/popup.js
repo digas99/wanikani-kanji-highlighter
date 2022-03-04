@@ -368,7 +368,10 @@ window.onload = () => {
 													].forEach((level, i) => {
 														const levelWrapper = document.createElement("li");
 														wrapper.appendChild(levelWrapper);
-														levelWrapper.appendChild(document.createTextNode(level));
+														const levelContent = document.createElement("div");
+														levelWrapper.appendChild(levelContent);
+														levelContent.appendChild(document.createTextNode(level));
+														levelContent.style.width = "100%";
 														levelWrapper.title = i == 0 ? "Previous" : i == 2 ? "Next" : "";
 													});	
 													return wrapper;
@@ -421,7 +424,7 @@ window.onload = () => {
 															
 															let menuWrapper;
 															img.addEventListener("click", () => {
-																console.log(initialSetup);
+																// close all opened menus except this one
 																Array.from(document.getElementsByClassName("menu-popup")).forEach(popup => {
 																	if (popup !== menuWrapper)
 																		popup.remove();
@@ -961,6 +964,7 @@ window.onload = () => {
 												}
 
 												const levels_chooser_action = levelsList => {
+													let middleLevel;
 													Array.from(levelsList.getElementsByTagName("LI")).forEach((levelWrapper, i) => {
 														const level = Number(levelWrapper.innerText);
 														if (!isNaN(level) && i !== 1) {
@@ -978,7 +982,42 @@ window.onload = () => {
 
 																levels_chooser_action(newList);
 															});
+
+															let smallLevel;
+															const margin = 50;
+															levelWrapper.addEventListener("mouseover", () => {
+																smallLevel = document.createElement("div");
+																smallLevel.classList.add("levels-chooser-small-level");
+																if (i == 0) {
+																	levelsList.style.marginLeft = margin+"px";
+																	levelWrapper.style.paddingLeft = margin+"px";
+																	levelWrapper.style.marginLeft = (-1*margin)+"px";
+																	levelsList.insertBefore(smallLevel, levelsList.firstChild);
+																	smallLevel.appendChild(document.createTextNode(level-1));
+																	smallLevel.style.left = (-1*margin/2)+"px";
+																}
+																else {
+																	levelsList.style.marginRight = margin+"px";
+																	levelWrapper.style.paddingRight = margin+"px";
+																	levelWrapper.style.marginRight = (-1*margin)+"px";
+																	levelsList.appendChild(smallLevel);
+																	smallLevel.appendChild(document.createTextNode(level+1));
+																	smallLevel.style.right = (-1*margin/2)+"px";
+																}
+															});
+
+															levelWrapper.addEventListener("mouseout", () => {
+																if (smallLevel) smallLevel.remove();
+																if (i == 0) {
+																	levelsList.style.removeProperty("margin-left");
+																}
+																else {
+																	levelsList.style.removeProperty("margin-right");
+																}
+															});
 														}
+														
+														if (i == 1) middleLevel = levelWrapper;
 													});
 
 													settings_menus = settings["profile_menus"] ? settings["profile_menus"] : defaultSettings["profile_menus"];
@@ -1806,21 +1845,23 @@ const secondaryPage = (titleText, width) => {
 	navbar.classList.add("topNav");
 	main.appendChild(navbar);
 
-	// go back arrow
+	// go back
+	const goBackWrapper = document.createElement("div");
+	navbar.appendChild(goBackWrapper); 
+	goBackWrapper.id = "goBack";
+	goBackWrapper.title = "Go back";
+	goBackWrapper.classList.add("clickable");
 	const arrowWrapper = document.createElement("div");
-	arrowWrapper.id = "goBack";
-	arrowWrapper.title = "Go back";
+	goBackWrapper.appendChild(arrowWrapper);
+	arrowWrapper.style.display = "flex";
+	arrowWrapper.style.alignItems = "center";
 	const arrow = document.createElement("i");
-	arrow.className = "left clickable";
-	arrow.style.pointerEvents = "none";
-	arrow.style.padding = "4px";
+	arrow.classList.add("left");
 	arrowWrapper.appendChild(arrow);
-	navbar.appendChild(arrowWrapper); 
-
 	const title = document.createElement("h3");
 	title.style.margin = "0 0 0 10px";
 	title.appendChild(document.createTextNode(titleText));
-	navbar.appendChild(title);
+	arrowWrapper.appendChild(title);
 
 	const starWrapper = document.createElement("div");
 	navbar.appendChild(starWrapper);
