@@ -109,7 +109,7 @@
 			
 			// clicked on sidebar audio
 			if (node.classList.contains("sd-detailsPopup_cardSideBarAudio"))
-				playSubjectAudio(this.allVocab[getItemIdFromSideBar(node.parentElement.parentElement.parentElement)]["pronunciation_audios"]);
+				playSubjectAudio(this.allVocab[getItemIdFromSideBar(node.parentElement.parentElement.parentElement)]["pronunciation_audios"], node);
 	
 			// clicked on sidebar info
 			if (node.classList.contains("sd-detailsPopup_cardSideBarInfo")) {
@@ -463,7 +463,7 @@
 			audioButtonWrapper.appendChild(audioButton);
 			audioButton.src = "https://i.imgur.com/ETwuWqJ.png";
 			audioButton.style.setProperty("width", "18px", "important");
-			audioButton.addEventListener("click", () => playSubjectAudio(this.allVocab[document.getElementsByClassName("sd-detailsPopup_kanji")[0].getAttribute("data-item-id")]["pronunciation_audios"]));
+			audioButton.addEventListener("click", () => playSubjectAudio(this.allVocab[document.getElementsByClassName("sd-detailsPopup_kanji")[0].getAttribute("data-item-id")]["pronunciation_audios"], audioButtonWrapper));
 
 			const infoSection = document.createElement("div");
 			details.appendChild(infoSection);
@@ -1061,14 +1061,26 @@
 		return stats;
 	}
 
-	const playSubjectAudio = audioList => {
+	const playSubjectAudio = (audioList, wrapper) => {
 		if (audioList && audioList.length > 0) {
 			const audio = new Audio();
 			audio.src = audioList[Math.floor(Math.random() * audioList.length)].url;
 			const play = audio.play();
 			if (play !== undefined) {
 				play.then(() => console.log("Audio played"))
-				.catch(e => console.log("Could not play audio!"));
+				.catch(e => {
+					let failAudioPlay;
+					if (wrapper.getElementsByClassName("sd-detailsPopup_fail-audio-play").length == 0) {
+						wrapper.getElementsByClassName("sd-detailsPopup_fail-audio-play");
+						failAudioPlay = document.createElement("div");
+						wrapper.appendChild(failAudioPlay);
+						failAudioPlay.classList.add("sd-detailsPopup_fail-audio-play");
+						failAudioPlay.appendChild(document.createTextNode("Could not play audio"));
+						console.log("Could not play audio!");
+					}
+
+					wrapper.addEventListener("mouseout", () => failAudioPlay.remove());
+				});
 			}
 		}
 	}

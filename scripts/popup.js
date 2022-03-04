@@ -992,17 +992,21 @@ window.onload = () => {
 																	levelsList.style.marginLeft = margin+"px";
 																	levelWrapper.style.paddingLeft = margin+"px";
 																	levelWrapper.style.marginLeft = (-1*margin)+"px";
-																	levelsList.insertBefore(smallLevel, levelsList.firstChild);
-																	smallLevel.appendChild(document.createTextNode(level-1));
-																	smallLevel.style.left = (-1*margin/2)+"px";
+																	if (level !== 1) {
+																		levelsList.insertBefore(smallLevel, levelsList.firstChild);
+																		smallLevel.appendChild(document.createTextNode(level-1));
+																		smallLevel.style.left = (-1*margin/2)+"px";
+																	}
 																}
 																else {
 																	levelsList.style.marginRight = margin+"px";
 																	levelWrapper.style.paddingRight = margin+"px";
 																	levelWrapper.style.marginRight = (-1*margin)+"px";
-																	levelsList.appendChild(smallLevel);
-																	smallLevel.appendChild(document.createTextNode(level+1));
-																	smallLevel.style.right = (-1*margin/2)+"px";
+																	if (level !== 60) {
+																		levelsList.appendChild(smallLevel);
+																		smallLevel.appendChild(document.createTextNode(level+1));
+																		smallLevel.style.right = (-1*margin/2)+"px";
+																	}
 																}
 															});
 
@@ -3700,7 +3704,10 @@ const searchSubject = (event, searchType) => {
 						query: row => value == row.characters
 					}));
 
+					filteredVocab = filteredVocab.flat();
+
 					if (filteredVocab.length > 0) {
+						console.log(filteredVocab);
 						filteredVocab[0]["component_subject_ids"].forEach(id => filteredKanji.push(lib.queryAll("kanji", {
 							query: row => id == row.id
 						})));
@@ -3736,6 +3743,9 @@ const searchSubject = (event, searchType) => {
 				}
 			}
 		
+			filteredKanji = filteredKanji.flat();
+			filteredVocab = filteredVocab.flat();
+
 			const nmrItemsFound = document.getElementById("nmrKanjiFound");
 			if (nmrItemsFound) 
 				nmrItemsFound.innerHTML = `<span>Found <strong>0</strong> items<span>`;
