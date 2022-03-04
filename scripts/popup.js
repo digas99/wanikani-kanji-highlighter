@@ -658,12 +658,17 @@ window.onload = () => {
 																					case "SRS Stage":
 																						subjects.forEach(elem => {
 																							if (elem.getAttribute("data-srs")) {
-																								if (elem.getAttribute("data-srs") == "-1")
-																									elem.style.setProperty("background-color", "black", "important");
-																								else {
-																									const stageColor = settings && settings["appearance"] ? settings["appearance"][srsStages[elem.getAttribute("data-srs")]["short"].toLowerCase()+"_color"] : srsStages[elem.getAttribute("data-srs")]["color"];
-																									elem.style.setProperty("background-color", stageColor, "important");
+																								let backColor;
+																								if (elem.getAttribute("data-srs") == "-1") {
+																									backColor = "#000000";
+																									elem.style.setProperty("background-color", backColor, "important");
 																								}
+																								else {
+																									backColor = settings && settings["appearance"] ? settings["appearance"][srsStages[elem.getAttribute("data-srs")]["short"].toLowerCase()+"_color"] : srsStages[elem.getAttribute("data-srs")]["color"];
+																									elem.style.setProperty("background-color", backColor, "important");
+																								}
+																								backColor = hexToRGB(backColor);
+																								elem.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
 																							}
 																						});
 																						break;
@@ -964,7 +969,6 @@ window.onload = () => {
 												}
 
 												const levels_chooser_action = levelsList => {
-													let middleLevel;
 													Array.from(levelsList.getElementsByTagName("LI")).forEach((levelWrapper, i) => {
 														const level = Number(levelWrapper.innerText);
 														if (!isNaN(level) && i !== 1) {
@@ -1057,6 +1061,7 @@ window.onload = () => {
 												const li = document.createElement("li");
 												ul.appendChild(li);
 												li.style.position = "relative";
+												li.classList.add("clickable");
 												const link = document.createElement("a");
 												li.appendChild(link);
 												link.style.padding = "0 5px";
@@ -2947,6 +2952,7 @@ document.addEventListener("click", e => {
 
 	// if clicked on a kanji that can generate detail info popup
 	if (targetElem.classList.contains("kanjiDetails")) {
+		console.log(targetElem);
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			chrome.tabs.sendMessage(tabs[0].id, {infoPopupFromSearch:targetElem.getAttribute("data-item-id")}, () => window.chrome.runtime.lastError);
 		});
@@ -3373,6 +3379,13 @@ document.addEventListener("click", e => {
 				"cancelable": false
 			}));
 		}
+	}
+
+	// click button animation
+	if (targetElem.classList.contains("clickable") || targetElem.closest(".clickable")) {
+		const target = targetElem.closest(".clickable") ? targetElem.closest(".clickable") : targetElem;
+		target.style.transform = "scale(0.95)";
+		setTimeout(() => target.style.removeProperty("transform"), 100);
 	}
 });
 
@@ -4170,3 +4183,26 @@ document.addEventListener("keydown", e => {
 		}
 	}
 });
+
+window.onscroll = () => {
+	let goTop = document.getElementsByClassName("goTop")[0];
+	if (document.documentElement.scrollTop > 500) {
+		if (!goTop) {
+			goTop = document.createElement("div");
+			document.body.appendChild(goTop);
+			goTop.classList.add("goTop", "clickable");
+			const arrow = document.createElement("i");
+			goTop.appendChild(arrow);
+			arrow.classList.add("up");
+			goTop.style.top = "0";
+			setTimeout(() => goTop.style.top = "56px", 200);
+			goTop.addEventListener("click", () => window.scrollTo(0,0));
+		}
+	}
+	else {
+		if (goTop) {
+			goTop.style.top = "0px";
+			setTimeout(() => goTop.remove(), 200);
+		}
+	}
+}

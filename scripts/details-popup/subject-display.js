@@ -178,6 +178,8 @@
 
 		// create popup
 		create: function() {
+			Array.from(document.getElementsByClassName("sd-detailsPopup")).forEach(elem => elem.remove());
+
 			this.detailsPopup = document.createElement("div");
 			this.detailsPopup.className = "sd-rightOverFlowPopup sd-detailsPopup";
 			this.detailsPopup.style.setProperty("transition", "0.3s", "important");
