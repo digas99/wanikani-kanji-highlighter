@@ -2018,6 +2018,8 @@ document.addEventListener("click", e => {
 	}
 
 	if (sidePanelIconTargeted(targetElem, "run")) {
+		if (document.getElementById("goBack")) document.getElementById("goBack").click();
+
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			var activeTab = tabs[0];
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "host"}, response => {
@@ -2348,6 +2350,8 @@ document.addEventListener("click", e => {
 	}
 
 	if (sidePanelIconTargeted(targetElem, "blacklist")) {
+		if (document.getElementById("goBack")) document.getElementById("goBack").click();
+
 		chrome.storage.local.get(["wkhighlight_blacklist"], blacklist => {
 			let blacklistedUrls = blacklist["wkhighlight_blacklist"] ? blacklist["wkhighlight_blacklist"] : [];
 			chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {

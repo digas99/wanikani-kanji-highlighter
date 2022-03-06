@@ -183,7 +183,7 @@ i {
 }
 
 .clickable:hover {
-	opacity: 0.5;
+	opacity: 0.7;
 }
 
 .verticalAlign {
@@ -805,7 +805,8 @@ i {
 	font-size: 20px;
 	max-height: 186px;
 	min-height: 186px;
-    overflow: auto;
+    overflow-y: auto;
+	overflow-x: hidden;
 	scroll-behavior: smooth;
 	padding: 5px;
 }

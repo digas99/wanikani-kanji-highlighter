@@ -1,4 +1,5 @@
-# Changelog v0.6.4
+# [Changelog v0.6.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.4)
+Released on 06/03/2022
 
 ## Popup
 - Changed the way the loading of subjects is being done to reduce significantly it's time
