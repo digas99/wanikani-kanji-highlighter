@@ -63,6 +63,7 @@ Table Of Contents
 	--enl-color-font: #000000;
 	--brn-color: #b34b50;
 	--brn-color-font: #000000;
+	scroll-behavior: smooth;
 }
 
 /* DEFAULTS */
@@ -182,7 +183,7 @@ i {
 }
 
 .clickable:hover {
-	opacity: 0.5;
+	opacity: 0.7;
 }
 
 .verticalAlign {
@@ -251,9 +252,13 @@ i {
 
 .simple-grid > ul > li {
 	margin: 1px;
-    padding: 0px 3px;
+    padding: 2px 6px;
     display: inline-block;
-    border: 1px solid white;
+	margin: 2px;
+	text-shadow: -1px 1px 0px #727272;
+	box-shadow: -1px 2px 0px 1px var(--default-color);
+    border-radius: 6px;
+
 }
 
 
@@ -300,10 +305,12 @@ i {
     top: 0;
     width: 100%;
     padding: 10px;
-    display: inline-flex;
+    display: flex;
+	align-items: center;
 	color: white;
     margin-left: -8px;
-	z-index: 1;
+	z-index: 10;
+	border-bottom: 2px solid white;
 }
 
 #goBack {
@@ -311,8 +318,37 @@ i {
 	cursor: pointer;
 }
 
-#goBack > i {
+#goBack i {
 	border-color: white;
+	padding: 4px;
+}
+
+#goBack * {
+	pointer-events: none;
+}
+
+.goTop {
+    position: fixed;
+    top: 56px;
+    z-index: 5;
+    background-color: var(--default-color);
+    border: 3px solid white;
+    border-radius: 50%;
+    height: 30px;
+    width: 30px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    box-shadow: 0px 1px 4px 0px black;
+	transition: 0.3s;
+	text-align: center;
+	padding: 2px;
+}
+
+.goTop i {
+	margin-bottom: -18px;
+    border-color: white;
+    padding: 5px;
 }
 
 /* API KEY INPUT PAGE */
@@ -423,7 +459,7 @@ i {
 	background-color: var(--default-color);
 	border-top: 5px solid var(--wanikani);
 	text-align: center;
-	z-index: 1;
+	z-index: 11;
 	transition: 0.5s;
 }
 
@@ -582,18 +618,34 @@ i {
 	font-size: 25.2px;
 }
 
-.notFoundKanjiSlash {
-	top: -25px;
-    bottom: 0;
-    right: 0;
+.not-found > p:first-child {
+	text-align: center;
+    padding-bottom: 12px;
+    color: rgb(216, 216, 216);
+    font-size: 52px;
+    margin-top: -10px;
+    width: 100%;
+    position: relative;
+}
+
+.not-found > p:last-child {
+	text-align: center;
+    padding: 0px 5px;
+    color: silver;
+    font-size: 13px;
+}
+
+.not-found > p > div {
+	right: 0;
     left: 0;
     margin: auto;
-    width: 65px;
+    width: 70px;
     height: 3px;
     background-color: rgb(216, 216, 216);
     position: absolute;
     transform: rotate(149deg);
     border: 3px solid white;
+    top: 50%;
 }
 
 .kanjiHighlightedLearned {
@@ -752,7 +804,9 @@ i {
 #assignmentsMaterialList > ul {
 	font-size: 20px;
 	max-height: 186px;
-    overflow: auto;
+	min-height: 186px;
+    overflow-y: auto;
+	overflow-x: hidden;
 	scroll-behavior: smooth;
 	padding: 5px;
 }
@@ -1113,7 +1167,6 @@ i {
 	margin: 9px 0;
 }
 
-
 /* 9. RUN OR NOT HIGHLIGHTER SITE INFO */
 
 .locationDiv {
@@ -1143,7 +1196,6 @@ i {
     margin-bottom: 5px;
     padding-bottom: 5px;
 	background-color: white;
-    border: 2px solid white;
     border-radius: 5px;
     color: black;
 	border: 1px solid silver;
@@ -1425,4 +1477,180 @@ i {
 /* 15. UNKNOWN */
 .linkArrow {
 	border-color: var(--default-color);
+}
+
+.levels-chooser-wrapper {
+	border-radius: 15px;
+    background-color: var(--default-color);
+    color: white;
+    margin-top: 55px;
+	position: relative;
+	transition: 0.3s;
+}
+
+.levels-chooser-cover {
+	position: absolute;
+    width: 100%;
+	height: 100px;
+	background-color: var(--wanikani);
+	background-image: url(../images/wanikani-background.png);
+    background-size: cover;
+	border-bottom: 4px solid white;
+	border-radius: 15px 15px 0px 0px;
+}
+
+.levels-chooser {
+	display: flex;
+	align-items: center;
+	position: relative;
+	transition: 0.3s;
+}
+
+.levels-chooser li {
+	width: 100%;
+    text-align: center;
+	transition: 0.3s;
+	user-select: none;
+}
+
+.levels-chooser li:nth-of-type(2) {
+	font-size: 80px;
+}
+
+.levels-chooser li:not(:nth-of-type(2)) {
+	font-size: 50px;
+    opacity: 0.3;
+	display: flex;
+	align-items: center;
+}
+
+.levels-chooser li:not(:nth-of-type(2)):hover {
+	opacity: 0.7;
+	cursor: pointer;
+	transform: scale(1.3);
+}
+
+.levels-chooser-small-level {
+	font-size: 30px;
+	opacity: 0.3;
+	position: absolute;
+    width: fit-content;
+	pointer-events: none;
+}
+
+.level-progress-bar {
+	width: 100%;
+    height: 30px;
+    border-radius: 25px;
+    border: 1px solid silver;
+    overflow: hidden;
+	background-color: white;
+	box-shadow: inset 0px 2px 4px #888686;
+	display: flex;
+}
+
+.level-progress-bar > div {
+	background-color: var(--wanikani);
+    height: 100%;
+	width: 0;
+}
+
+.level-progress-bar > span {
+    background-color: unset;
+    color: silver;
+    margin-top: 7px;
+    margin-left: 6px;
+}
+
+.level-progress-bar > div > p {
+    height: 100%;
+    color: white;
+    text-align: center;
+    padding-top: 7px;
+    font-weight: bold;
+}
+
+.passed-subject-check {
+	width: 14px;
+    position: absolute;
+    top: -3px;
+    right: -5px;
+    filter: invert(72%) sepia(73%) saturate(3496%) hue-rotate(87deg) brightness(106%) contrast(109%) drop-shadow(0px 0px 2px black);
+	z-index: 1;
+}
+
+.time-next-review-subject {
+	font-size: 10px;
+    background-color: #42f541;
+    text-align: center;
+    padding: 2px;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    color: black;
+    border-radius: 5px;
+	box-shadow: 0px 0px 2px black;
+	z-index: 1;
+}
+
+.menu-icons {
+	position: absolute;
+    right: 10px;
+	display: flex;
+	align-items: center;
+}
+
+.menu-icons > img {
+	width: 18px;
+	height: 18px;
+    filter: invert(1);
+}
+
+.menu-icons > * {
+    padding: 0 5px;
+}
+
+.menu-popup {
+    position: absolute;
+    background-color: white;
+    top: 30px;
+    right: 5px;
+    border: 2px solid #2a2d48;
+	overflow: hidden;
+	transition: 0.5s;
+	z-index: 2;
+	/* opacity: 0.6; */
+}
+
+/* .menu-popup:hover {
+	opacity: 1;
+} */
+
+.menu-popup > p {
+	font-size: 11px;
+    color: white;
+    text-align: right;
+    padding: 7px;
+    border: 1px solid white;
+    background-color: var(--default-color);
+}
+
+.menu-popup > ul {
+	padding: 10px;
+}
+
+.menu-popup > ul > li {
+	color: #585858;
+    font-size: 13px;
+	display: flex;
+    align-items: center;
+}
+
+.menu-popup > ul > li:not(:last-child) {
+	margin-bottom: 10px;
+}
+
+.menu-popup > ul > li > label {
+	margin-right: 10px;
+	width: 100%;
 }

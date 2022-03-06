@@ -18,7 +18,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v063)
+1. [Latest Features](#changelog-v064)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -30,7 +30,21 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
+## Changelog v0.6.4
+
+Released on 06/03/2022
+
+### Popup
+- Changed the way the loading of subjects is being done to reduce significantly it's time
+- Added Profile Page to Extension Popup, accessible by clicking the Avatar on the top right corner, in the side panel. This allows to:
+  - See all subjects on your curret level
+  - Filter and sort those subjects
+  - See subjects from other levels
+- Added Star to the top right corner of every secundary page that allows to make that page the Home Page of the Extension Popup
+
 ## Changelog v0.6.3
+
+Released on 25/02/2022
 
 ### Popup
 - Slider on settings to change width of extension popup
@@ -60,6 +74,8 @@ It works with any website, and provides detailed information about any kanji tha
 - Improved verifications to reduce times when highlight runs when it shouldn't
 
 ## Changelog v0.6.2
+
+Released on 29/12/2021
 
 ### Popup
 - Added SRS Stage to extension popup search results

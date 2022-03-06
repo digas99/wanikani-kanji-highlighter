@@ -205,12 +205,11 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 						if (!blacklist["wkhighlight_blacklist"] || blacklist["wkhighlight_blacklist"].length === 0 || !blacklisted(blacklist["wkhighlight_blacklist"], url)) {
 							setSettings();
 	
-							chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings"], result => {
+							chrome.storage.local.get(["wkhighlight_apiKey"], result => {
 								if (result["wkhighlight_apiKey"]) {
 									apiToken = result["wkhighlight_apiKey"];
 
 									tabs.executeScript(thisTabId, {file: 'scripts/kana.js'}, () => tabs.sendMessage(thisTabId, {kanaWriting:kanaWriting}));
-									const settings = result["wkhighlight_settings"] ? result["wkhighlight_settings"] : defaultSettings;
 									if (settings && settings["miscellaneous"] && settings["miscellaneous"]["kana_writing"])
 										tabs.executeScript(thisTabId, {file: 'scripts/kana-inputs.js'});
 				
@@ -263,7 +262,8 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 					chrome.browserAction.setBadgeText({text: "W", tabId:thisTabId});
 					chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1", tabId:thisTabId});
 
-					tabs.executeScript(thisTabId, {file: 'scripts/wanikani.js'});
+					// if (settings && settings["miscellaneous"]["srs_info_on_reviews"])
+					// 	tabs.executeScript(thisTabId, {file: 'scripts/wanikani.js'});
 				}
 			}
 		});
@@ -303,7 +303,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 
 	if (request.kanaWriting)
-		kanaWriting = kanaWriting;
+		kanaWriting = request.kanaWriting;
 });
 
 const contextMenuItem = {

@@ -71,7 +71,8 @@ const defaultSettings = {
 	"miscellaneous": {
 		time_in_12h_format: true,
 		kana_writing: false,
-		extension_popup_width: 400
+		extension_popup_width: 400,
+		// srs_info_on_reviews: false
 	},
 	"sizes": {
 		highlighted_kanji_height: 150,
@@ -85,6 +86,71 @@ const defaultSettings = {
 		overall_progression_bar: true,
 		overall_progression_stats: true,
 		levels_in_progress: true
+	},
+	"home_page": {
+		"page": null
+	},
+	"profile_menus": {
+		"all": {
+			"opened": true,
+			"menu": {
+				"color_by": "Subject Type",
+				"reviews_info": true
+			},
+			"filter": {
+				"srs_stage": "None",
+				"state": "None"
+			},
+			"sort": {
+				"type": "None",
+				"direction": "Ascending"
+			}
+		},
+		"radical": {
+			"opened": true,
+			"menu": {
+				"color_by": "Subject Type",
+				"reviews_info": true
+			},
+			"filter": {
+				"srs_stage": "None",
+				"state": "None"
+			},
+			"sort": {
+				"type": "None",
+				"direction": "Ascending"
+			}
+		},
+		"kanji": {
+			"opened": true,
+			"menu": {
+				"color_by": "Subject Type",
+				"reviews_info": true
+			},
+			"filter": {
+				"srs_stage": "None",
+				"state": "None"
+			},
+			"sort": {
+				"type": "None",
+				"direction": "Ascending"
+			}
+		},
+		"vocabulary": {
+			"opened": true,
+			"menu": {
+				"color_by": "Subject Type",
+				"reviews_info": true
+			},
+			"filter": {
+				"srs_stage": "None",
+				"state": "None"
+			},
+			"sort": {
+				"type": "None",
+				"direction": "Ascending"
+			}
+		}
 	}
 };
 
@@ -213,7 +279,13 @@ const settingsInterface = [
 				},
 				id: "settings-miscellaneous-extension_popup_width",
 				description: "Width of the Extension Popup window."
-			}
+			},
+			// {
+			// 	title: "SRS Info on Reviews",
+			// 	type: "checkbox",
+			// 	id: "settings-miscellaneous-srs_info_on_reviews",
+			// 	description: "Show SRS information on the subjects while doing Reviews at wanikani.com"
+			// }
 		]
 	},
 	{

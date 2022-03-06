@@ -1,3 +1,14 @@
+# [Changelog v0.6.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.4)
+Released on 06/03/2022
+
+## Popup
+- Changed the way the loading of subjects is being done to reduce significantly it's time
+- Added Profile Page to Extension Popup, accessible by clicking the Avatar on the top right corner, in the side panel. This allows to:
+  - See all subjects on your curret level
+  - Filter and sort those subjects
+  - See subjects from other levels
+- Added Star to the top right corner of every secundary page that allows to make that page the Home Page of the Extension Popup
+
 # [Changelog v0.6.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.3)
 Released on 25/02/2022
 

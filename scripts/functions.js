@@ -209,6 +209,7 @@ const clearCache = () => {
 		});
 		window.location.reload();
 		chrome.storage.local.remove(keysToRemove);
+		localStorage.clear("db_subjects");
 	});
 }
 
@@ -222,6 +223,7 @@ const clearSubjects = () => {
 		});
 		window.location.reload();
 		chrome.storage.local.remove(keysToRemove);
+		localStorage.clear("db_subjects");
 	});
 }
 
@@ -322,9 +324,9 @@ const manageBodyWidth = (width, bodyWidth) => {
 	return width;
 } 
 
-const flipArrow = (arrow, sourceDir, destDir) => {
+const flipArrow = (arrow, sourceDir, destDir, paddingValue) => {
 	if (arrow) {
-		const padding = parseInt(window.getComputedStyle(arrow).padding.split("px")[0]);
+		const padding = parseInt(paddingValue ? paddingValue : window.getComputedStyle(arrow).padding.split("px")[0]);
 		if (typeof padding === "number" && !isNaN(padding)) {
 			arrow.classList.remove(sourceDir);
 			arrow.classList.add(destDir);
@@ -348,6 +350,8 @@ const assignUponSubjects = list => {
 			const levelsInProgress = [];
 			if (allAssignments) {
 				console.log(`Associating assignments with ${type} ...`);
+
+				const lib = new localStorageDB("subjects", localStorage);
 				allAssignments.forEach(assignment => {
 					const data = assignment["data"];
 					const subjectId = data["subject_id"];
@@ -378,10 +382,21 @@ const assignUponSubjects = list => {
 							currentSubjectLevelStats["hidden"] = data["hidden"];
 						}
 
+						lib.update(type, {id:subjectId}, row => {
+							row.srs_stage = data["srs_stage"];
+							row.hidden = data["hidden"];
+							row.passed_at = data["passed_at"];
+							row.available_at = data["available_at"];
+							return row;
+						});
+
 						if (!data["passed_at"] && !levelsInProgress.includes(subject["level"]))
 							levelsInProgress.push(subject["level"]);
 					}
 				});
+
+				console.log("commit from assignments");
+				console.log(lib.commit());
 
 				let storageId;
 				switch(type) {
