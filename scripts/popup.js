@@ -105,13 +105,13 @@ window.onload = () => {
 	main.id = "main";
 	document.body.appendChild(main);
 
-	chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_blacklist", "wkhighlight_settings"], result => {
+	chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_blacklist", "wkhighlight_settings", "wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons", "wkhighlight_kanji_progress", "wkhighlight_kanji_levelsInProgress", "wkhighlight_radical_progress", "wkhighlight_radical_levelsInProgress", "wkhighlight_vocabulary_progress", "wkhighlight_vocabulary_levelsInProgress", "wkhighlight_settings", "wkhighlight_allkanji_size", "wkhighlight_allradicals_size", "wkhighlight_allvocab_size", "wkhighlight_blacklist", "wkhighlight_kanji_assoc"], response => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			activeTab = tabs[0];
-			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, response => {
-				const url = response ? response["windowLocation"] : "";
+			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, urlValue => {
+				const url = urlValue ? urlValue["windowLocation"] : "";
 
-				settings = result["wkhighlight_settings"];
+				settings = response["wkhighlight_settings"];
 				if (settings && settings["miscellaneous"] && settings["miscellaneous"]["extension_popup_width"])
 					document.documentElement.style.setProperty('--body-base-width', settings["miscellaneous"]["extension_popup_width"]+"px");
 
@@ -120,9 +120,9 @@ window.onload = () => {
 
 				atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url);
 
-				blacklisted_site = blacklisted(result["wkhighlight_blacklist"], url);
+				blacklisted_site = blacklisted(response["wkhighlight_blacklist"], url);
 
-				apiKey = result["wkhighlight_apiKey"];
+				apiKey = response["wkhighlight_apiKey"];
 				// if the user did not add a key yet
 				if (!apiKey) {
 					chrome.browserAction.setBadgeText({text: '', tabId:activeTab.id});
@@ -217,1309 +217,1476 @@ window.onload = () => {
 						.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
 
 					document.body.style.cursor = "progress";
-					chrome.storage.local.get(["wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons", "wkhighlight_kanji_progress", "wkhighlight_kanji_levelsInProgress", "wkhighlight_radical_progress", "wkhighlight_radical_levelsInProgress", "wkhighlight_vocabulary_progress", "wkhighlight_vocabulary_levelsInProgress", "wkhighlight_settings", "wkhighlight_allkanji_size", "wkhighlight_allradicals_size", "wkhighlight_allvocab_size", "wkhighlight_blacklist", "wkhighlight_kanji_assoc"], response => {
-						const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatDate(new Date());
+					const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatDate(new Date());
 
-						modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
-							.then(modified => {
-								const userInfo = result["wkhighlight_userInfo"]["data"];
+					modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
+						.then(modified => {
+							const userInfo = response["wkhighlight_userInfo"]["data"];	
+							
+							// remove loading animation
+							loadingElem.remove();
+							clearInterval(loadingVal[1]);
 
-								// if user info has been updated in wanikani, then update cache
-								if (!userInfo || modified)
-									fetchUserInfo(apiKey)
-									
-								if (userInfo) {
-									// get user avatar
+							// if user info has been updated in wanikani, then update cache
+							if (!userInfo || modified)
+								fetchUserInfo(apiKey)
+							
+							if (userInfo) {
+								const userInfoWrapper = document.createElement("div");
+								userInfoWrapper.id = "userInfoWrapper";
+								main.appendChild(userInfoWrapper);
+	
+								// messages if at wanikani or site blacklisted
+								if (atWanikani) userInfoWrapper.appendChild(enhancedWarning("Limited features at wanikani, sorry!", "var(--wanikani)"));
+								else if (blacklisted_site) userInfoWrapper.appendChild(enhancedWarning("Site blacklisted by you!", "red"));
+
+								// scripts uptime
+								if (response["wkhighlight_settings"] && response["wkhighlight_settings"]["extension_popup_interface"] ? response["wkhighlight_settings"]["extension_popup_interface"]["scripts_status"] : settingsInterface["extension_popup_interface"]["scripts_status"]) {
+									const scriptsUptimeWrapper = document.createElement("div");
+									userInfoWrapper.appendChild(scriptsUptimeWrapper);
+									scriptsUptimeWrapper.title = "Scripts Uptime Status";
+									scriptsUptimeWrapper.id = "scriptsUptime";
+									const scriptsUptimeUl = document.createElement("ul");
+									scriptsUptimeWrapper.appendChild(scriptsUptimeUl);
+									chrome.tabs.query({currentWindow: true, active: true}, tabs => {
+										["Highlighter", "Details Popup"].forEach(script => {
+											const scriptsUptimeLi = document.createElement("li");
+											scriptsUptimeUl.appendChild(scriptsUptimeLi);
+											scriptsUptimeLi.appendChild(document.createTextNode(script));
+											const scriptsUptimeSignal = document.createElement("div");
+											scriptsUptimeLi.appendChild(scriptsUptimeSignal);
+
+											chrome.tabs.sendMessage(tabs[0].id, {uptime: script}, response => {
+												if (response) scriptsUptimeSignal.style.backgroundColor = "#80fd80";
+											});
+										});
+									});
+								}
+
+								document.body.style.minHeight = "365px";
+
+								// hide navbar icons and logo wrapper
+								Array.from(document.getElementsByClassName("navbar_icon"))
+									.forEach(icon => icon.style.display = "none");
+								const logoWrapper = document.getElementById("logoWrapper");
+								if (logoWrapper) logoWrapper.style.display = "none";
+
+								// side panel
+								const container = document.createElement("div");
+								document.body.appendChild(container);
+								document.body.style.paddingRight = "40px";
+								container.classList.add("side-panel");
+								const sideUserInfoWrapper = document.createElement("div");
+								container.appendChild(sideUserInfoWrapper);
+								sideUserInfoWrapper.classList.add("clickable");
+								sideUserInfoWrapper.id = "profile";
+								const avatarWrapper = document.createElement("div");
+								sideUserInfoWrapper.appendChild(avatarWrapper);
+								avatarWrapper.style.marginTop = "10px";
+								const avatar = document.createElement("img");
+								avatarWrapper.appendChild(avatar);
+								avatar.title = userInfo["username"];
+								avatar.src = "/images/wanikani-default.png";
+								// get user avatar
+								if (!userInfo["avatar"]) {
 									fetch("https://www.wanikani.com/users/"+userInfo["username"])
 										.then(result => result.text())
 										.then(content => {
 											const parser = new DOMParser();
 											const doc = parser.parseFromString(content, 'text/html');
 											const avatarElem = doc.getElementsByClassName("avatar user-avatar-default")[0];
-											
-											// remove loading animation
-											loadingElem.remove();
-											clearInterval(loadingVal[1]);	
+											const avatarSrc = "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0];
+											userInfo["avatar"] = avatarSrc;
+											avatar.src = userInfo["avatar"];
+											chrome.storage.local.set({"wkhighlight_userInfo":response["wkhighlight_userInfo"]});
+										});
+								}
+								else
+									avatar.src = userInfo["avatar"];
+								avatar.style.borderRadius = "50%";
+								avatar.style.border = "3px solid white";
+								avatar.style.width = "26px";
+								const level = document.createElement("p");
+								sideUserInfoWrapper.appendChild(level);
+								level.style.fontWeight = "bold";
+								level.style.color = "#ccc";
+								level.title = "Level";
+								level.id = "user-level";
+								level.appendChild(document.createTextNode(userInfo["level"]));
+								sideUserInfoWrapper.addEventListener("click", () => {
+									Array.from(document.getElementsByClassName("side-panel")[0].getElementsByClassName("disabled")).forEach(elem => elem.classList.remove("disabled"));
 
-											const userInfoWrapper = document.createElement("div");
-											userInfoWrapper.id = "userInfoWrapper";
-											main.appendChild(userInfoWrapper);
-				
-											// messages if at wanikani or site blacklisted
-											if (atWanikani) userInfoWrapper.appendChild(enhancedWarning("Limited features at wanikani, sorry!", "var(--wanikani)"));
-											else if (blacklisted_site) userInfoWrapper.appendChild(enhancedWarning("Site blacklisted by you!", "red"));
+									const content = secondaryPage("Profile");
 
-											// scripts uptime
-											if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["scripts_status"] : settingsInterface["extension_popup_interface"]["scripts_status"]) {
-												const scriptsUptimeWrapper = document.createElement("div");
-												userInfoWrapper.appendChild(scriptsUptimeWrapper);
-												scriptsUptimeWrapper.title = "Scripts Uptime Status";
-												scriptsUptimeWrapper.id = "scriptsUptime";
-												const scriptsUptimeUl = document.createElement("ul");
-												scriptsUptimeWrapper.appendChild(scriptsUptimeUl);
-												chrome.tabs.query({currentWindow: true, active: true}, tabs => {
-													["Highlighter", "Details Popup"].forEach(script => {
-														const scriptsUptimeLi = document.createElement("li");
-														scriptsUptimeUl.appendChild(scriptsUptimeLi);
-														scriptsUptimeLi.appendChild(document.createTextNode(script));
-														const scriptsUptimeSignal = document.createElement("div");
-														scriptsUptimeLi.appendChild(scriptsUptimeSignal);
-	
-														chrome.tabs.sendMessage(tabs[0].id, {uptime: script}, response => {
-															if (response) scriptsUptimeSignal.style.backgroundColor = "#80fd80";
-														});
+									const levelsChooser = document.createElement("div");
+									content.appendChild(levelsChooser);
+									levelsChooser.classList.add("levels-chooser-wrapper");
+									const cover = document.createElement("div");
+									levelsChooser.appendChild(cover);
+									cover.classList.add("levels-chooser-cover");
+									const avatarWrapper = document.createElement("div");
+									levelsChooser.appendChild(avatarWrapper);
+									avatarWrapper.style.padding = "15px";
+									avatarWrapper.style.position = "absolute";
+									avatarWrapper.style.zIndex = "1";
+									const userHandler = document.createElement("div");
+									levelsChooser.appendChild(userHandler);
+									userHandler.appendChild(document.createTextNode(userInfo["username"]));
+									userHandler.style.position = "absolute";
+									userHandler.style.left = "170px";
+									userHandler.style.top = "110px";
+									userHandler.style.fontSize = "17px";
+									userHandler.style.color = "white";
+									const profileEditWrapper = document.createElement("div");
+									levelsChooser.appendChild(profileEditWrapper);
+									profileEditWrapper.style.position = "absolute";
+									profileEditWrapper.style.right = "15px";
+									profileEditWrapper.style.top = "115px";
+									profileEditWrapper.style.filter = "invert(1)";
+									profileEditWrapper.style.zIndex = "1";
+									profileEditLink = document.createElement("a");
+									profileEditWrapper.appendChild(profileEditLink);
+									profileEditLink.href = "https://www.wanikani.com/settings/profile";
+									profileEditLink.target = "a_blank";
+									profileEditLink.title = "https://www.wanikani.com/settings/profile";
+									profileEdit = document.createElement("img");
+									profileEditLink.appendChild(profileEdit);
+									profileEdit.src = "../images/edit.png";
+									profileEdit.style.width = "14px";
+									const avatarLink = document.createElement("a");
+									avatarWrapper.appendChild(avatarLink);
+									avatarLink.href = userInfo["profile_url"];
+									avatarLink.title = userInfo["profile_url"];
+									avatarLink.target = "_blank";
+									const avatar = document.createElement("img");
+									avatarLink.appendChild(avatar);
+									avatar.src = userInfo["avatar"] ? userInfo["avatar"] : "/images/wanikani-default.png";
+									avatar.style.borderRadius = "50%";
+									avatar.style.border = "4px solid white";
+									avatar.style.width = "140px";
+
+									const levels_chooser = levelValue => {
+										const wrapper = document.createElement("ul");
+										wrapper.classList.add("levels-chooser");
+										[
+											levelValue > 1 ? levelValue-1 : " ",
+											levelValue,
+											levelValue < 60 ? levelValue+1 : " "
+										].forEach((level, i) => {
+											const levelWrapper = document.createElement("li");
+											wrapper.appendChild(levelWrapper);
+											const levelContent = document.createElement("div");
+											levelWrapper.appendChild(levelContent);
+											levelContent.appendChild(document.createTextNode(level));
+											levelContent.style.width = "100%";
+											levelWrapper.title = i == 0 ? "Previous" : i == 2 ? "Next" : "";
+										});	
+										return wrapper;
+									}
+
+									const levelsList = levels_chooser(Number(userInfo["level"]));
+									levelsChooser.appendChild(levelsList);
+									levelsList.style.paddingTop = "175px";
+
+									const levelProgressWrapper = document.createElement("div");
+									levelsChooser.appendChild(levelProgressWrapper);
+									levelProgressWrapper.style.padding = "15px 35px";
+									const levelProgressBarTitle = document.createElement("p");
+									levelProgressWrapper.appendChild(levelProgressBarTitle);
+									levelProgressBarTitle.style.fontSize = "16px";
+									levelProgressBarTitle.style.marginBottom = "10px";
+									levelProgressBarTitle.style.paddingLeft = "10px";
+									levelProgressBarTitle.appendChild(document.createTextNode("Level Progress"));
+									const levelProgress = document.createElement("div");
+									levelProgressWrapper.appendChild(levelProgress);
+									levelProgress.classList.add("level-progress-bar");
+									const goDownArrowWrapper = document.createElement("div");
+									levelsChooser.appendChild(goDownArrowWrapper);
+									goDownArrowWrapper.style.padding = "15px 35px";
+									goDownArrowWrapper.style.textAlign = "center";
+									goDownArrowWrapper.classList.add("clickable");
+									goDownArrowWrapper.title = "Scroll Down";
+									const  goDownArrow = document.createElement("i");
+									goDownArrowWrapper.appendChild(goDownArrow);
+									goDownArrow.classList.add("down");
+									goDownArrow.style.borderColor = "white";
+									goDownArrow.style.padding = "8px";
+									goDownArrowWrapper.addEventListener("click", () => window.scroll(0, 420));
+
+									let initialSetup = true;
+									const level_subjects = (levelValue, levelProgressBar) => {
+										const createMenuIcons = (icons, id, wrapper, contentWrapper) => {
+											const menuIcons = document.createElement("div");
+											menuIcons.classList.add("menu-icons");
+											menuIcons.setAttribute("data-id", id);
+
+											settings_menus = settings["profile_menus"] ? settings["profile_menus"] : defaultSettings["profile_menus"];
+
+											icons.forEach(key => {
+												const img = document.createElement("img");
+												menuIcons.appendChild(img);
+												img.src = `../images/${key}.png`;
+												img.classList.add("clickable");
+												img.title = key.charAt(0).toUpperCase()+key.substring(1);
+												
+												let menuWrapper;
+												img.addEventListener("click", () => {
+													// close all opened menus except this one
+													Array.from(document.getElementsByClassName("menu-popup")).forEach(popup => {
+														if (popup !== menuWrapper)
+															popup.remove();
 													});
-												});
-											}
 
-											document.body.style.minHeight = "365px";
-
-											// hide navbar icons and logo wrapper
-											Array.from(document.getElementsByClassName("navbar_icon"))
-												.forEach(icon => icon.style.display = "none");
-											const logoWrapper = document.getElementById("logoWrapper");
-											if (logoWrapper) logoWrapper.style.display = "none";
-
-											// side panel
-											const container = document.createElement("div");
-											document.body.appendChild(container);
-											document.body.style.paddingRight = "40px";
-											container.classList.add("side-panel");
-											const sideUserInfoWrapper = document.createElement("div");
-											container.appendChild(sideUserInfoWrapper);
-											sideUserInfoWrapper.classList.add("clickable");
-											sideUserInfoWrapper.id = "profile";
-											const avatarWrapper = document.createElement("div");
-											sideUserInfoWrapper.appendChild(avatarWrapper);
-											avatarWrapper.style.marginTop = "10px";
-											const avatar = document.createElement("img");
-											avatarWrapper.appendChild(avatar);
-											avatar.title = userInfo["username"];
-											avatar.src = avatarElem ? "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0] : "/images/wanikani-default.png";
-											avatar.style.borderRadius = "50%";
-											avatar.style.border = "3px solid white";
-											avatar.style.width = "26px";
-											const level = document.createElement("p");
-											sideUserInfoWrapper.appendChild(level);
-											level.style.fontWeight = "bold";
-											level.style.color = "#ccc";
-											level.title = "Level";
-											level.id = "user-level";
-											level.appendChild(document.createTextNode(userInfo["level"]));
-											sideUserInfoWrapper.addEventListener("click", () => {
-												Array.from(document.getElementsByClassName("side-panel")[0].getElementsByClassName("disabled")).forEach(elem => elem.classList.remove("disabled"));
-
-												const content = secondaryPage("Profile");
-
-												const levelsChooser = document.createElement("div");
-												content.appendChild(levelsChooser);
-												levelsChooser.classList.add("levels-chooser-wrapper");
-												const cover = document.createElement("div");
-												levelsChooser.appendChild(cover);
-												cover.classList.add("levels-chooser-cover");
-												const avatarWrapper = document.createElement("div");
-												levelsChooser.appendChild(avatarWrapper);
-												avatarWrapper.style.padding = "15px";
-												avatarWrapper.style.position = "absolute";
-												avatarWrapper.style.zIndex = "1";
-												const userHandler = document.createElement("div");
-												levelsChooser.appendChild(userHandler);
-												userHandler.appendChild(document.createTextNode(userInfo["username"]));
-												userHandler.style.position = "absolute";
-												userHandler.style.left = "170px";
-												userHandler.style.top = "110px";
-												userHandler.style.fontSize = "17px";
-												userHandler.style.color = "white";
-												const profileEditWrapper = document.createElement("div");
-												levelsChooser.appendChild(profileEditWrapper);
-												profileEditWrapper.style.position = "absolute";
-												profileEditWrapper.style.right = "15px";
-												profileEditWrapper.style.top = "115px";
-												profileEditWrapper.style.filter = "invert(1)";
-												profileEditWrapper.style.zIndex = "1";
-												profileEditLink = document.createElement("a");
-												profileEditWrapper.appendChild(profileEditLink);
-												profileEditLink.href = "https://www.wanikani.com/settings/profile";
-												profileEditLink.target = "a_blank";
-												profileEditLink.title = "https://www.wanikani.com/settings/profile";
-												profileEdit = document.createElement("img");
-												profileEditLink.appendChild(profileEdit);
-												profileEdit.src = "../images/edit.png";
-												profileEdit.style.width = "14px";
-												const avatarLink = document.createElement("a");
-												avatarWrapper.appendChild(avatarLink);
-												avatarLink.href = userInfo["profile_url"];
-												avatarLink.title = userInfo["profile_url"];
-												avatarLink.target = "_blank";
-												const avatar = document.createElement("img");
-												avatarLink.appendChild(avatar);
-												avatar.src = avatarElem ? "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0] : "/images/wanikani-default.png";
-												avatar.style.borderRadius = "50%";
-												avatar.style.border = "4px solid white";
-												avatar.style.width = "140px";
-
-												const levels_chooser = levelValue => {
-													const wrapper = document.createElement("ul");
-													wrapper.classList.add("levels-chooser");
-													[
-														levelValue > 1 ? levelValue-1 : " ",
-														levelValue,
-														levelValue < 60 ? levelValue+1 : " "
-													].forEach((level, i) => {
-														const levelWrapper = document.createElement("li");
-														wrapper.appendChild(levelWrapper);
-														const levelContent = document.createElement("div");
-														levelWrapper.appendChild(levelContent);
-														levelContent.appendChild(document.createTextNode(level));
-														levelContent.style.width = "100%";
-														levelWrapper.title = i == 0 ? "Previous" : i == 2 ? "Next" : "";
-													});	
-													return wrapper;
-												}
-
-												const levelsList = levels_chooser(Number(userInfo["level"]));
-												levelsChooser.appendChild(levelsList);
-												levelsList.style.paddingTop = "175px";
-
-												const levelProgressWrapper = document.createElement("div");
-												levelsChooser.appendChild(levelProgressWrapper);
-												levelProgressWrapper.style.padding = "15px 35px";
-												const levelProgressBarTitle = document.createElement("p");
-												levelProgressWrapper.appendChild(levelProgressBarTitle);
-												levelProgressBarTitle.style.fontSize = "16px";
-												levelProgressBarTitle.style.marginBottom = "10px";
-												levelProgressBarTitle.style.paddingLeft = "10px";
-												levelProgressBarTitle.appendChild(document.createTextNode("Level Progress"));
-												const levelProgress = document.createElement("div");
-												levelProgressWrapper.appendChild(levelProgress);
-												levelProgress.classList.add("level-progress-bar");
-												const goDownArrowWrapper = document.createElement("div");
-												levelsChooser.appendChild(goDownArrowWrapper);
-												goDownArrowWrapper.style.padding = "15px 35px";
-												goDownArrowWrapper.style.textAlign = "center";
-												goDownArrowWrapper.classList.add("clickable");
-												goDownArrowWrapper.title = "Scroll Down";
-												const  goDownArrow = document.createElement("i");
-												goDownArrowWrapper.appendChild(goDownArrow);
-												goDownArrow.classList.add("down");
-												goDownArrow.style.borderColor = "white";
-												goDownArrow.style.padding = "8px";
-												goDownArrowWrapper.addEventListener("click", () => window.scroll(0, 420));
-
-												let initialSetup = true;
-												const level_subjects = (levelValue, levelProgressBar) => {
-													const createMenuIcons = (icons, id, wrapper, contentWrapper) => {
-														const menuIcons = document.createElement("div");
-														menuIcons.classList.add("menu-icons");
-														menuIcons.setAttribute("data-id", id);
-	
-														settings_menus = settings["profile_menus"] ? settings["profile_menus"] : defaultSettings["profile_menus"];
-	
-														icons.forEach(key => {
-															const img = document.createElement("img");
-															menuIcons.appendChild(img);
-															img.src = `../images/${key}.png`;
-															img.classList.add("clickable");
-															img.title = key.charAt(0).toUpperCase()+key.substring(1);
-															
-															let menuWrapper;
-															img.addEventListener("click", () => {
-																// close all opened menus except this one
-																Array.from(document.getElementsByClassName("menu-popup")).forEach(popup => {
-																	if (popup !== menuWrapper)
-																		popup.remove();
-																});
-	
-																if (wrapper.lastChild.classList.contains("menu-popup")) {
-																	menuWrapper.style.maxHeight = "0px";
-																	setTimeout(() => {
-																		if (wrapper && wrapper.lastChild && wrapper.lastChild.classList.contains("menu-popup"))
-																			wrapper.lastChild.remove();
-																	}, 300);
-																}
-																else {
-																	menuWrapper = document.createElement("div");
-																	if (!initialSetup)
-																		wrapper.appendChild(menuWrapper);
-																	menuWrapper.classList.add("menu-popup");
-																	menuWrapper.style.maxHeight = "0px";
-																	setTimeout(() => menuWrapper.style.maxHeight = "200px", 100);
-																	const menuTitle = document.createElement("p");
-																	menuWrapper.appendChild(menuTitle);
-																	menuTitle.appendChild(document.createTextNode(img.title));
-																	const menu = document.createElement("ul");
-																	menuWrapper.appendChild(menu);
-																	const contentWrapperUl = Array.from(contentWrapper.getElementsByTagName("UL"));
-																	let subjects = Array.from(contentWrapper.getElementsByTagName("li"));
-																	switch(key) {
-																		case "sort":
-																			let typeDefault, directionDefault;
-	
-																			const sortings = (value, direction) => {
-																				switch(value) {
-																					case "SRS Stage":
-																						contentWrapperUl.forEach(wrapper => {
-																							Array.from(wrapper.getElementsByTagName("LI")).sort((a, b) => Number((direction == "Descending" ? b : a).getAttribute("data-srs")) - Number((direction == "Descending" ? a : b).getAttribute("data-srs")))
-																								.forEach(elem => wrapper.appendChild(elem));
-																						});
-																						break;
-																					case "Next Review":
-																						contentWrapperUl.forEach(wrapper => {
-																							Array.from(wrapper.getElementsByTagName("LI"))
-																								.filter(elem => elem.getAttribute("data-available_at"))
-																								.sort((a, b) => new Date((direction == "Descending" ? b : a).getAttribute("data-available_at")) - new Date((direction == "Descending" ? a : b).getAttribute("data-available_at")))
-																								.forEach(elem => wrapper.appendChild(elem));
-																							
-																							Array.from(wrapper.getElementsByTagName("LI"))
-																								.filter(elem => !elem.getAttribute("data-available_at"))
-																								.forEach(elem => wrapper.appendChild(elem));
-																						});
-																						break;
-																				}
-																			}
-	
-																			// types
-																			const sort = document.createElement("li");
-																			menu.appendChild(sort);
-																			const sortLabel = document.createElement("label");
-																			sort.appendChild(sortLabel);
-																			sortLabel.appendChild(document.createTextNode("Type"));
-																			const sortSelect = document.createElement("select");
-																			sort.appendChild(sortSelect);
-																			sortSelect.classList.add("select");
-																			sortSelect.style.width = "auto";
-																			["None", "SRS Stage", "Next Review"].forEach(option => {
-																				const sortOption = document.createElement("option");
-																				sortSelect.appendChild(sortOption);
-																				sortOption.appendChild(document.createTextNode(option));
-																			});
-	
-																			sortSelect.addEventListener("input", e => {
-																				const value = e.target.value;
-																				if (contentWrapperUl.length > 1) {
-																					Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-sort-type", value));
-																					["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["sort"]["type"] = value);
-																				}
-																				else {
-																					menuIcons.setAttribute("data-sort-type", value);
-																					settings_menus[id]["sort"]["type"] = value;
-																				}	
-	
-																				sortings(value, menuIcons.getAttribute("data-sort-direction"));
-	
-																				chrome.storage.local.set({"wkhighlight_settings":settings});
-																			});
-																			typeDefault = menuIcons.getAttribute("data-sort-type") ? menuIcons.getAttribute("data-sort-type") : settings_menus[id]["sort"]["type"];
-																			if (typeDefault)
-																				sortSelect.value = typeDefault;
-	
-																			// direction
-																			const direction = document.createElement("li");
-																			menu.appendChild(direction);
-																			const directionLabel = document.createElement("label");
-																			direction.appendChild(directionLabel);
-																			directionLabel.appendChild(document.createTextNode("Direction"));
-																			const directionSelect = document.createElement("select");
-																			direction.appendChild(directionSelect);
-																			directionSelect.classList.add("select");
-																			directionSelect.style.width = "auto";
-																			["Ascending", "Descending"].forEach(option => {
-																				const directionOption = document.createElement("option");
-																				directionSelect.appendChild(directionOption);
-																				directionOption.appendChild(document.createTextNode(option));
-																			});
-																			directionSelect.addEventListener("input", e => {
-																				const value = e.target.value;
-																				if (contentWrapperUl.length > 1) {
-																					Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-sort-direction", value));
-																					["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["sort"]["direction"] = value);
-																				}
-																				else {
-																					menuIcons.setAttribute("data-sort-direction", value);
-																					settings_menus[id]["sort"]["direction"] = value;
-																				}
-																				
-																				if (menuIcons.getAttribute("data-sort-type"))
-																					sortings(menuIcons.getAttribute("data-sort-type"), value);
-	
-																				chrome.storage.local.set({"wkhighlight_settings":settings});
-																			});
-																			directionDefault = menuIcons.getAttribute("data-sort-direction") ? menuIcons.getAttribute("data-sort-direction") : settings_menus[id]["sort"]["direction"];
-																			if (directionDefault)
-																				directionSelect.value = directionDefault;
-	
-																			if (initialSetup)
-																				sortings(typeDefault, directionDefault);
-	
-																			break;
-																		case "filter":
-																			let srsDefault, stateDefault;
-	
-																			const filters = (srs, state) => {
-																				if (srs !== "None") {
-																					Array.from(subjects).forEach(elem => {
-																						const srsChecker = srs !== "None" && (elem.getAttribute("data-srs") == "-1" && srs !== "Locked" || elem.getAttribute("data-srs") !== "-1" && srs !== srsStages[elem.getAttribute("data-srs")]["name"]);
-																						if (srsChecker)
-																							elem.style.display = "none";
-																					});
-																				}
-	
-																				if (state !== "None") {
-																					Array.from(subjects).forEach(elem => {
-																						const stateChecker = state !== "None" && (state !== (elem.getElementsByClassName("passed-subject-check").length > 0 ? "Passed" : "Not Passed"));
-																						if (stateChecker)
-																							elem.style.display = "none";
-																					});
-																				}
-																			}
-	
-																			// srs stage
-																			const srsStage = document.createElement("li");
-																			menu.appendChild(srsStage);
-																			const srsStageLabel = document.createElement("label");
-																			srsStage.appendChild(srsStageLabel);
-																			srsStageLabel.appendChild(document.createTextNode("SRS Stage"));
-																			const srsStageSelect = document.createElement("select");
-																			srsStage.appendChild(srsStageSelect);
-																			srsStageSelect.classList.add("select");
-																			srsStageSelect.style.width = "auto";
-																			[...["None", "Locked"], ...Object.values(srsStages).map(value => value.name)].forEach(option => {
-																				const srsStageOption = document.createElement("option");
-																				srsStageSelect.appendChild(srsStageOption);
-																				srsStageOption.appendChild(document.createTextNode(option));
-																			});
-																			srsStageSelect.addEventListener("input", e => {
-																				const value = e.target.value;
-																				if (contentWrapperUl.length > 1) {
-																					Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-filter-srs_stage", value));
-																					["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["filter"]["srs_stage"] = value);
-																				}
-																				else {
-																					menuIcons.setAttribute("data-filter-srs_stage", value);
-																					settings_menus[id]["filter"]["srs_stage"] = value;
-																				}
-																				subjects.forEach(elem => elem.style.removeProperty("display"));
-	
-																				filters(value, menuIcons.getAttribute("data-filter-state") ? menuIcons.getAttribute("data-filter-state") : "None");
-																				
-																				chrome.storage.local.set({"wkhighlight_settings":settings});
-																			});
-																			srsDefault = menuIcons.getAttribute("data-filter-srs_stage") ? menuIcons.getAttribute("data-filter-srs_stage") : settings_menus[id]["filter"]["srs_stage"];
-																			if (srsDefault)
-																				srsStageSelect.value = srsDefault;
-	
-																			// state
-																			const state = document.createElement("li");
-																			menu.appendChild(state);
-																			const stateLabel = document.createElement("label");
-																			state.appendChild(stateLabel);
-																			stateLabel.appendChild(document.createTextNode("State"));
-																			const stateSelect = document.createElement("select");
-																			state.appendChild(stateSelect);
-																			stateSelect.classList.add("select");
-																			stateSelect.style.width = "auto";
-																			["None", "Passed", "Not Passed"].forEach(option => {
-																				const stateOption = document.createElement("option");
-																				stateSelect.appendChild(stateOption);
-																				stateOption.appendChild(document.createTextNode(option));
-																			});
-																			stateSelect.addEventListener("input", e => {
-																				const value = e.target.value;
-																				if (contentWrapperUl.length > 1) {
-																					Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-filter-state", value));
-																					["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["filter"]["state"] = value);
-																				}
-																				else {
-																					menuIcons.setAttribute("data-filter-state", value);
-																					settings_menus[id]["filter"]["state"] = value;
-																				}
-																				subjects.forEach(elem => elem.style.removeProperty("display"));
-	
-																				filters(menuIcons.getAttribute("data-filter-srs_stage") ? menuIcons.getAttribute("data-filter-srs_stage") : "None", value);
-																			
-																				chrome.storage.local.set({"wkhighlight_settings":settings});
-																			});
-																			stateDefault = menuIcons.getAttribute("data-filter-state") ? menuIcons.getAttribute("data-filter-state") : settings_menus[id]["filter"]["state"];
-																			if (stateDefault)
-																				stateSelect.value = stateDefault;
-	
-																			if (initialSetup)
-																				filters(srsDefault, stateDefault);
-	
-																			break;
-																		case "menu":
-																			let colorDefault, reviewsInfoDefault;
-	
-																			const color_subjects = value => {
-																				switch(value) {
-																					case "Subject Type":
-																						subjects.forEach(elem => elem.style.removeProperty("background-color"));
-																						break;
-																					case "SRS Stage":
-																						subjects.forEach(elem => {
-																							if (elem.getAttribute("data-srs")) {
-																								let backColor;
-																								if (elem.getAttribute("data-srs") == "-1") {
-																									backColor = "#000000";
-																									elem.style.setProperty("background-color", backColor, "important");
-																								}
-																								else {
-																									backColor = settings && settings["appearance"] ? settings["appearance"][srsStages[elem.getAttribute("data-srs")]["short"].toLowerCase()+"_color"] : srsStages[elem.getAttribute("data-srs")]["color"];
-																									elem.style.setProperty("background-color", backColor, "important");
-																								}
-																								backColor = hexToRGB(backColor);
-																								elem.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
-																							}
-																						});
-																						break;
-																				}
-																			}
-	
-																			// color by
-																			const colorBy = document.createElement("li");
-																			menu.appendChild(colorBy);
-																			const colorByLabel = document.createElement("label");
-																			colorBy.appendChild(colorByLabel);
-																			colorByLabel.appendChild(document.createTextNode("Color by"));
-																			const colorBySelect = document.createElement("select");
-																			colorBy.appendChild(colorBySelect);
-																			colorBySelect.classList.add("select");
-																			colorBySelect.style.width = "auto";
-																			["Subject Type", "SRS Stage"].forEach(option => {
-																				const colorByOption = document.createElement("option");
-																				colorBySelect.appendChild(colorByOption);
-																				colorByOption.appendChild(document.createTextNode(option));
-																			});
-																			colorBySelect.addEventListener("input", e => {
-																				const value = e.target.value;
-																				if (contentWrapperUl.length > 1) {
-																					Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-menu-color_by", value));
-																					["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["menu"]["color_by"] = value);
-																				}
-																				else {
-																					menuIcons.setAttribute("data-menu-color_by", value);
-																					settings_menus[id]["menu"]["color_by"] = value;																	
-																				}
-	
-																				color_subjects(value);
-	
-																				chrome.storage.local.set({"wkhighlight_settings":settings});
-																			});
-																			colorDefault = menuIcons.getAttribute("data-filter-color_by") ? menuIcons.getAttribute("data-filter-color_by") : settings_menus[id]["menu"]["color_by"];
-																			if (colorDefault)
-																				colorBySelect.value = colorDefault;
-	
-																			if (initialSetup)
-																				color_subjects(colorDefault);
-	
-																			const show_reviews_info = (checkbox, checked) => {
-																				if (!checked) {
-																					checkbox.classList.remove("checkbox-enabled");
-																					subjects.forEach(elem => {
-																						if (elem.getElementsByClassName("reviews-info")[0])
-																							elem.getElementsByClassName("reviews-info")[0].style.display = "none"; 
-																					});
-																				}
-																				else {
-																					checkbox.classList.add("checkbox-enabled");
-																					subjects.forEach(elem => {
-																						if (elem.getElementsByClassName("reviews-info")[0])
-																							elem.getElementsByClassName("reviews-info")[0].style.removeProperty("display"); 
-																					});
-																				}
-																			}
-																			
-																			// show reviews info
-																			const reviewsInfo = document.createElement("li");
-																			menu.appendChild(reviewsInfo);
-																			const reviewsInfoLabel = document.createElement("label");
-																			reviewsInfo.appendChild(reviewsInfoLabel);
-																			reviewsInfoLabel.appendChild(document.createTextNode("Reviews info"));
-																			const inputDiv = document.createElement("div");
-																			inputDiv.classList.add("checkbox_wrapper", "clickable");
-																			reviewsInfo.appendChild(inputDiv);
-																			const checkbox = document.createElement("input");
-																			inputDiv.appendChild(checkbox);
-																			checkbox.type = "checkbox";
-																			if (menuIcons.getAttribute("data-menu-reviews_info") == "true") {
-																				inputDiv.classList.add("checkbox-enabled");
-																				checkbox.checked = true;
-																			}
-																			else if (menuIcons.getAttribute("data-menu-reviews_info") == "false")
-																				checkbox.checked = false;
-																			checkbox.style.display = "none";
-																			const customCheckboxBall = document.createElement("div");
-																			inputDiv.appendChild(customCheckboxBall);
-																			customCheckboxBall.classList.add("custom-checkbox-ball");
-																			const customCheckboxBack = document.createElement("div");
-																			inputDiv.appendChild(customCheckboxBack);
-																			customCheckboxBack.classList.add("custom-checkbox-back");	
-																			inputDiv.addEventListener("click", () => {
-																				checkbox.click();
-	
-																				if (contentWrapperUl.length > 1) {
-																					Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-menu-reviews_info", checkbox.checked));
-																					["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["menu"]["reviews_info"] = checkbox.checked);
-																				}
-																				else {
-																					 menuIcons.setAttribute("data-menu-reviews_info", checkbox.checked);			
-																					settings_menus[id]["menu"]["reviews_info"] = checkbox.checked;
-																				}
-	
-																				show_reviews_info(inputDiv, checkbox.checked);
-	
-																				chrome.storage.local.set({"wkhighlight_settings":settings});
-																			});
-																			reviewsInfoDefault = menuIcons.getAttribute("data-filter-reviews_info") ? menuIcons.getAttribute("data-filter-reviews_info") : settings_menus[id]["menu"]["reviews_info"];
-	
-																			if (initialSetup)
-																				show_reviews_info(inputDiv, reviewsInfoDefault);
-	
-																			break;
-																	}											
-																}
-															});
-														});
-	
-														// menu close arrow
-														const arrowWrapper = document.createElement("div");
-														menuIcons.appendChild(arrowWrapper);
-														arrowWrapper.style.padding = "0px 7px";
-														arrowWrapper.classList.add("clickable");
-														arrowWrapper.title = "Close";
-														const  arrow = document.createElement("i");
-														arrowWrapper.appendChild(arrow);
-														arrow.classList.add("up");
-														arrow.style.borderColor = "white";
-														arrow.style.padding = "5px";
-														arrow.style.marginBottom = (-2*(arrow.style.padding.split("px")[0]))+"px";
-														arrowWrapper.addEventListener("click", () => {
-															if (arrow.classList.contains("up")) {
-																flipArrow(arrow, "up", "down", arrow.style.padding);
-																arrowWrapper.title = "Open";
-																if (contentWrapper) contentWrapper.style.display = "none";
-															}
-															else {
-																flipArrow(arrow, "down", "up", arrow.style.padding);
-																arrowWrapper.title = "Close";
-																if (contentWrapper) contentWrapper.style.removeProperty("display");
-															}
-	
-															settings_menus[id]["opened"] = arrow.classList.contains("up");
-															chrome.storage.local.set({"wkhighlight_settings":settings});
-														});	
-														if (!settings_menus[id]["opened"])
-															arrowWrapper.click();
-	
-														return menuIcons;
+													if (wrapper.lastChild.classList.contains("menu-popup")) {
+														menuWrapper.style.maxHeight = "0px";
+														setTimeout(() => {
+															if (wrapper && wrapper.lastChild && wrapper.lastChild.classList.contains("menu-popup"))
+																wrapper.lastChild.remove();
+														}, 300);
 													}
-	
-													const lib = new localStorageDB("subjects", localStorage);
-													
-													const levelSubjectsWrapper = document.createElement("div");
-													const allTitle = document.createElement("p");
-													levelSubjectsWrapper.appendChild(allTitle);
-													allTitle.appendChild(document.createTextNode("All"));
-													allTitle.style.color = "white";
-													allTitle.style.position = "relative";
-													allTitle.style.padding = "5px";
-													allTitle.style.backgroundColor = "var(--default-color)";
-													allTitle.style.paddingLeft = "10px";
-													allTitle.style.display = "flex";
-													allTitle.style.alignItems = "center";
-													allTitle.style.fontSize = "23px";
-													allTitle.style.borderTop = "2px solid white";
-													const allProgress = document.createElement("span");
-													allTitle.appendChild(allProgress);
-													allProgress.style.fontSize = "12px";
-													allProgress.style.marginLeft = "10px";
-													allProgress.style.color = "silver";
-													const subjectsDisplay = document.createElement("div");
-													allTitle.appendChild(createMenuIcons(["sort", "filter", "menu"], "all", allTitle, subjectsDisplay));
-													levelSubjectsWrapper.appendChild(subjectsDisplay);
-													subjectsDisplay.style.padding = "7px";
-													subjectsDisplay.style.fontSize = "23px";
-													subjectsDisplay.style.backgroundColor = "white";
-													subjectsDisplay.style.border = "10px solid var(--default-color)";
-													let allSubjects = 0, allPassedSubjects = 0;
-													["radical", "kanji", "vocab"].forEach(type => {
-														const subjects = lib.queryAll(type == "vocab" ? "vocabulary" : type, {
-															query: {level:levelValue}
-														}).filter(subject => !subject["hidden_at"]);
-														const passedSubjects = subjects.filter(subject => subject.passed_at != null);
-														allSubjects += subjects.length;
-														allPassedSubjects += passedSubjects.length;
-	
-														if (type == "kanji") {
-															const progressBar = document.createElement("div");
-															levelProgressBar.appendChild(progressBar);
-															const percentage = passedSubjects.length / subjects.length * 100;
-															progressBar.style.width = (percentage >= 1 ? percentage : 100)+"%";
-															if (percentage > 8.1 || percentage < 1) {
-																const barLabel = document.createElement("p");
-																progressBar.appendChild(barLabel);
-																barLabel.appendChild(document.createTextNode(percentage.toFixed(percentage > 12 ? 1 : 0)+"%"));
-																if (percentage < 1) {
-																	progressBar.style.backgroundColor = "white";
-																	barLabel.style.color = "black";
-																}
-															}
-	
-															if (percentage < 81 && percentage >= 1) {
-																const progressValues = document.createElement("span");
-																levelProgress.appendChild(progressValues);
-																progressValues.appendChild(document.createTextNode(passedSubjects.length + " / " + subjects.length));
-															}
-															progressBar.classList.add("clickable");
-															progressBar.title = "Passed Kanji: "+passedSubjects.length+" / "+percentage.toFixed(1)+"%";
-														}
-	
-														const subjectsWrapper = document.createElement("div");
-														subjectsDisplay.appendChild(subjectsWrapper);
-														subjectsWrapper.style.position = "relative";
-														subjectsWrapper.style.marginBottom = "10px";
-														const title = document.createElement("p");
-														subjectsWrapper.appendChild(title);
-														title.appendChild(document.createTextNode(type.charAt(0).toUpperCase()+(type == "vocab" ? "vocabulary" : type).substring(1)+(type == "radical" ? "s" : "")));
-														title.style.color = "white";
-														title.style.position = "relative";
-														title.style.padding = "5px";
-														title.style.backgroundColor = "var(--default-color)";
-														title.style.paddingLeft = "10px";
-														title.style.display = "flex";
-														title.style.alignItems = "center";
-														const progress = document.createElement("span");
-														title.appendChild(progress);
-														progress.appendChild(document.createTextNode(passedSubjects.length+"/"+subjects.length));
-														progress.style.fontSize = "12px";
-														progress.style.marginLeft = "10px";
-														progress.style.color = "silver";
-														const subjectsListWrapper = document.createElement("div");
-														title.appendChild(createMenuIcons(["sort", "filter", "menu"], type == "vocab" ? "vocabulary" : type, subjectsWrapper, subjectsListWrapper));
-														subjectsWrapper.appendChild(subjectsListWrapper);
-														subjectsListWrapper.classList.add("simple-grid");
-														const subjectsList = document.createElement("ul");
-														subjectsListWrapper.appendChild(subjectsList);
-														subjectsList.style.padding = "5px";
-														subjects.forEach(subject => {
-															const subjectWrapper = document.createElement("li");
-															subjectsList.appendChild(subjectWrapper);
-															const characters = subject["characters"] ? subject["characters"]  : `<img height="22px" style="margin-top:-3px;margin-bottom:-4px;padding-top:8px" src="${subject["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`;
-															subjectWrapper.classList.add(type+"_back");
-															subjectWrapper.title = subject["meanings"][0];
-															subjectWrapper.style.position = "relative";
-															if (type !== "radical") {
-																subjectWrapper.classList.add("clickable", "kanjiDetails");
-																subjectWrapper.setAttribute("data-item-id", subject["id"]);
-																if (subject["readings"][0]["reading"])
-																	subjectWrapper.title += " | "+subject["readings"].filter(reading => reading["primary"])[0]["reading"];
-																else
-																	subjectWrapper.title += " | "+subject["readings"][0];
-															}
-															let backColor = hexToRGB(getComputedStyle(document.body).getPropertyValue(`--${type}-tag-color`));
-															subjectWrapper.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
-															if (characters !== "L")
-																subjectWrapper.innerHTML = characters;
-															else {
-																const wrapperForLi = document.createElement("div");
-																subjectWrapper.appendChild(wrapperForLi);
-																wrapperForLi.style.marginTop = "5px";
-																wrapperForLi.appendChild(document.createTextNode(characters));
-															}
-															if (characters !== "L" && subjectWrapper.children.length > 0 && subjectWrapper.style.color == "rgb(255, 255, 255)")
-																subjectWrapper.children[0].style.filter = "invert(1)";
-														
-															if (subject["passed_at"]) {
-																const check = document.createElement("img");
-																subjectWrapper.appendChild(check);
-																check.src = "../images/check.png";
-																check.classList.add("passed-subject-check", "reviews-info");
-																// fix issues with radicals that are images
-																if (subjectWrapper.firstChild.tagName == "IMG") {
-																	subjectWrapper.firstChild.style.marginTop = "unset";
-																}
-															}
-															else if(subject["available_at"]) {
-																if (new Date(subject["available_at"]) - new Date() < 0) {
-																	const time = document.createElement("div");
-																	subjectWrapper.appendChild(time);
-																	time.appendChild(document.createTextNode("now"));
-																	time.classList.add("time-next-review-subject", "reviews-info");
-																}
-															}
-	
-															if (subject["available_at"])
-																subjectWrapper.setAttribute("data-available_at", subject["available_at"]);
-															
-	
-															if (subject["srs_stage"] !== null) {
-																subjectWrapper.title += " \x0D"+srsStages[subject["srs_stage"]]["name"];
-																subjectWrapper.setAttribute("data-srs", subject["srs_stage"]);
-															}
-															else {
-																subjectWrapper.title += " \x0D"+"Locked";
-																subjectWrapper.setAttribute("data-srs", -1);
-															}
-														});
-													});
-													
-													allProgress.appendChild(document.createTextNode(allPassedSubjects+"/"+allSubjects));
+													else {
+														menuWrapper = document.createElement("div");
+														if (!initialSetup)
+															wrapper.appendChild(menuWrapper);
+														menuWrapper.classList.add("menu-popup");
+														menuWrapper.style.maxHeight = "0px";
+														setTimeout(() => menuWrapper.style.maxHeight = "200px", 100);
+														const menuTitle = document.createElement("p");
+														menuWrapper.appendChild(menuTitle);
+														menuTitle.appendChild(document.createTextNode(img.title));
+														const menu = document.createElement("ul");
+														menuWrapper.appendChild(menu);
+														const contentWrapperUl = Array.from(contentWrapper.getElementsByTagName("UL"));
+														let subjects = Array.from(contentWrapper.getElementsByTagName("li"));
+														switch(key) {
+															case "sort":
+																let typeDefault, directionDefault;
 
-													return levelSubjectsWrapper;
-												}
+																const sortings = (value, direction) => {
+																	switch(value) {
+																		case "SRS Stage":
+																			contentWrapperUl.forEach(wrapper => {
+																				Array.from(wrapper.getElementsByTagName("LI")).sort((a, b) => Number((direction == "Descending" ? b : a).getAttribute("data-srs")) - Number((direction == "Descending" ? a : b).getAttribute("data-srs")))
+																					.forEach(elem => wrapper.appendChild(elem));
+																			});
+																			break;
+																		case "Next Review":
+																			contentWrapperUl.forEach(wrapper => {
+																				Array.from(wrapper.getElementsByTagName("LI"))
+																					.filter(elem => elem.getAttribute("data-available_at"))
+																					.sort((a, b) => new Date((direction == "Descending" ? b : a).getAttribute("data-available_at")) - new Date((direction == "Descending" ? a : b).getAttribute("data-available_at")))
+																					.forEach(elem => wrapper.appendChild(elem));
+																				
+																				Array.from(wrapper.getElementsByTagName("LI"))
+																					.filter(elem => !elem.getAttribute("data-available_at"))
+																					.forEach(elem => wrapper.appendChild(elem));
+																			});
+																			break;
+																	}
+																}
 
-												const levels_chooser_action = levelsList => {
-													Array.from(levelsList.getElementsByTagName("LI")).forEach((levelWrapper, i) => {
-														const level = Number(levelWrapper.innerText);
-														if (!isNaN(level) && i !== 1) {
-															levelWrapper.addEventListener("click", () => {
-																initialSetup = true;
+																// types
+																const sort = document.createElement("li");
+																menu.appendChild(sort);
+																const sortLabel = document.createElement("label");
+																sort.appendChild(sortLabel);
+																sortLabel.appendChild(document.createTextNode("Type"));
+																const sortSelect = document.createElement("select");
+																sort.appendChild(sortSelect);
+																sortSelect.classList.add("select");
+																sortSelect.style.width = "auto";
+																["None", "SRS Stage", "Next Review"].forEach(option => {
+																	const sortOption = document.createElement("option");
+																	sortSelect.appendChild(sortOption);
+																	sortOption.appendChild(document.createTextNode(option));
+																});
 
-																levelsChooser.lastChild.remove();
-																Array.from(levelProgress.children).forEach(child => child.remove());
+																sortSelect.addEventListener("input", e => {
+																	const value = e.target.value;
+																	if (contentWrapperUl.length > 1) {
+																		Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-sort-type", value));
+																		["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["sort"]["type"] = value);
+																	}
+																	else {
+																		menuIcons.setAttribute("data-sort-type", value);
+																		settings_menus[id]["sort"]["type"] = value;
+																	}	
+
+																	sortings(value, menuIcons.getAttribute("data-sort-direction"));
+
+																	chrome.storage.local.set({"wkhighlight_settings":settings});
+																});
+																typeDefault = menuIcons.getAttribute("data-sort-type") ? menuIcons.getAttribute("data-sort-type") : settings_menus[id]["sort"]["type"];
+																if (typeDefault)
+																	sortSelect.value = typeDefault;
+
+																// direction
+																const direction = document.createElement("li");
+																menu.appendChild(direction);
+																const directionLabel = document.createElement("label");
+																direction.appendChild(directionLabel);
+																directionLabel.appendChild(document.createTextNode("Direction"));
+																const directionSelect = document.createElement("select");
+																direction.appendChild(directionSelect);
+																directionSelect.classList.add("select");
+																directionSelect.style.width = "auto";
+																["Ascending", "Descending"].forEach(option => {
+																	const directionOption = document.createElement("option");
+																	directionSelect.appendChild(directionOption);
+																	directionOption.appendChild(document.createTextNode(option));
+																});
+																directionSelect.addEventListener("input", e => {
+																	const value = e.target.value;
+																	if (contentWrapperUl.length > 1) {
+																		Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-sort-direction", value));
+																		["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["sort"]["direction"] = value);
+																	}
+																	else {
+																		menuIcons.setAttribute("data-sort-direction", value);
+																		settings_menus[id]["sort"]["direction"] = value;
+																	}
+																	
+																	if (menuIcons.getAttribute("data-sort-type"))
+																		sortings(menuIcons.getAttribute("data-sort-type"), value);
+
+																	chrome.storage.local.set({"wkhighlight_settings":settings});
+																});
+																directionDefault = menuIcons.getAttribute("data-sort-direction") ? menuIcons.getAttribute("data-sort-direction") : settings_menus[id]["sort"]["direction"];
+																if (directionDefault)
+																	directionSelect.value = directionDefault;
+
+																if (initialSetup)
+																	sortings(typeDefault, directionDefault);
+
+																break;
+															case "filter":
+																let srsDefault, stateDefault;
+
+																const filters = (srs, state) => {
+																	if (srs !== "None") {
+																		Array.from(subjects).forEach(elem => {
+																			const srsChecker = srs !== "None" && (elem.getAttribute("data-srs") == "-1" && srs !== "Locked" || elem.getAttribute("data-srs") !== "-1" && srs !== srsStages[elem.getAttribute("data-srs")]["name"]);
+																			if (srsChecker)
+																				elem.style.display = "none";
+																		});
+																	}
+
+																	if (state !== "None") {
+																		Array.from(subjects).forEach(elem => {
+																			const stateChecker = state !== "None" && (state !== (elem.getElementsByClassName("passed-subject-check").length > 0 ? "Passed" : "Not Passed"));
+																			if (stateChecker)
+																				elem.style.display = "none";
+																		});
+																	}
+																}
+
+																// srs stage
+																const srsStage = document.createElement("li");
+																menu.appendChild(srsStage);
+																const srsStageLabel = document.createElement("label");
+																srsStage.appendChild(srsStageLabel);
+																srsStageLabel.appendChild(document.createTextNode("SRS Stage"));
+																const srsStageSelect = document.createElement("select");
+																srsStage.appendChild(srsStageSelect);
+																srsStageSelect.classList.add("select");
+																srsStageSelect.style.width = "auto";
+																[...["None", "Locked"], ...Object.values(srsStages).map(value => value.name)].forEach(option => {
+																	const srsStageOption = document.createElement("option");
+																	srsStageSelect.appendChild(srsStageOption);
+																	srsStageOption.appendChild(document.createTextNode(option));
+																});
+																srsStageSelect.addEventListener("input", e => {
+																	const value = e.target.value;
+																	if (contentWrapperUl.length > 1) {
+																		Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-filter-srs_stage", value));
+																		["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["filter"]["srs_stage"] = value);
+																	}
+																	else {
+																		menuIcons.setAttribute("data-filter-srs_stage", value);
+																		settings_menus[id]["filter"]["srs_stage"] = value;
+																	}
+																	subjects.forEach(elem => elem.style.removeProperty("display"));
+
+																	filters(value, menuIcons.getAttribute("data-filter-state") ? menuIcons.getAttribute("data-filter-state") : "None");
+																	
+																	chrome.storage.local.set({"wkhighlight_settings":settings});
+																});
+																srsDefault = menuIcons.getAttribute("data-filter-srs_stage") ? menuIcons.getAttribute("data-filter-srs_stage") : settings_menus[id]["filter"]["srs_stage"];
+																if (srsDefault)
+																	srsStageSelect.value = srsDefault;
+
+																// state
+																const state = document.createElement("li");
+																menu.appendChild(state);
+																const stateLabel = document.createElement("label");
+																state.appendChild(stateLabel);
+																stateLabel.appendChild(document.createTextNode("State"));
+																const stateSelect = document.createElement("select");
+																state.appendChild(stateSelect);
+																stateSelect.classList.add("select");
+																stateSelect.style.width = "auto";
+																["None", "Passed", "Not Passed"].forEach(option => {
+																	const stateOption = document.createElement("option");
+																	stateSelect.appendChild(stateOption);
+																	stateOption.appendChild(document.createTextNode(option));
+																});
+																stateSelect.addEventListener("input", e => {
+																	const value = e.target.value;
+																	if (contentWrapperUl.length > 1) {
+																		Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-filter-state", value));
+																		["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["filter"]["state"] = value);
+																	}
+																	else {
+																		menuIcons.setAttribute("data-filter-state", value);
+																		settings_menus[id]["filter"]["state"] = value;
+																	}
+																	subjects.forEach(elem => elem.style.removeProperty("display"));
+
+																	filters(menuIcons.getAttribute("data-filter-srs_stage") ? menuIcons.getAttribute("data-filter-srs_stage") : "None", value);
 																
-																const newList = levels_chooser(level);
-																levelsChooser.replaceChild(newList, levelsList);
-																newList.style.paddingTop = "175px";
-
-																levelsChooser.appendChild(level_subjects(level, levelProgress));
-
-																levels_chooser_action(newList);
-															});
-
-															let smallLevel;
-															const margin = 50;
-															levelWrapper.addEventListener("mouseover", () => {
-																smallLevel = document.createElement("div");
-																smallLevel.classList.add("levels-chooser-small-level");
-																if (i == 0) {
-																	levelsList.style.marginLeft = margin+"px";
-																	levelWrapper.style.paddingLeft = margin+"px";
-																	levelWrapper.style.marginLeft = (-1*margin)+"px";
-																	if (level !== 1) {
-																		levelsList.insertBefore(smallLevel, levelsList.firstChild);
-																		smallLevel.appendChild(document.createTextNode(level-1));
-																		smallLevel.style.left = (-1*margin/2)+"px";
-																	}
-																}
-																else {
-																	levelsList.style.marginRight = margin+"px";
-																	levelWrapper.style.paddingRight = margin+"px";
-																	levelWrapper.style.marginRight = (-1*margin)+"px";
-																	if (level !== 60) {
-																		levelsList.appendChild(smallLevel);
-																		smallLevel.appendChild(document.createTextNode(level+1));
-																		smallLevel.style.right = (-1*margin/2)+"px";
-																	}
-																}
-															});
-
-															levelWrapper.addEventListener("mouseout", () => {
-																if (smallLevel) smallLevel.remove();
-																if (i == 0) {
-																	levelsList.style.removeProperty("margin-left");
-																}
-																else {
-																	levelsList.style.removeProperty("margin-right");
-																}
-															});
-														}
-														
-														if (i == 1) middleLevel = levelWrapper;
-													});
-
-													settings_menus = settings["profile_menus"] ? settings["profile_menus"] : defaultSettings["profile_menus"];
-													Object.keys(settings_menus).forEach(type => {
-														const menuIcons = Array.from(document.getElementsByClassName("menu-icons")).filter(elem => (elem.getAttribute("data-id") == type))[0];
-														Object.keys(settings_menus[type]).forEach(menu => {
-															if (menu !== "opened") {
-																Object.keys(settings_menus[type][menu]).forEach(option => {
-																	menuIcons.setAttribute("data-"+menu+"-"+option, settings_menus[type][menu][option]);
-																	Array.from(menuIcons.getElementsByTagName("img")).filter(elem => elem.title.toLowerCase() == menu)[0].click();
+																	chrome.storage.local.set({"wkhighlight_settings":settings});
 																});
-															}
-														});
-													});
+																stateDefault = menuIcons.getAttribute("data-filter-state") ? menuIcons.getAttribute("data-filter-state") : settings_menus[id]["filter"]["state"];
+																if (stateDefault)
+																	stateSelect.value = stateDefault;
 
-													initialSetup = false;
-												}
+																if (initialSetup)
+																	filters(srsDefault, stateDefault);
 
-												levelsChooser.appendChild(level_subjects(Number(userInfo["level"]), levelProgress));
+																break;
+															case "menu":
+																let colorDefault, reviewsInfoDefault;
 
-												levels_chooser_action(levelsList);
-											});
+																const color_subjects = value => {
+																	switch(value) {
+																		case "Subject Type":
+																			subjects.forEach(elem => elem.style.removeProperty("background-color"));
+																			break;
+																		case "SRS Stage":
+																			subjects.forEach(elem => {
+																				if (elem.getAttribute("data-srs")) {
+																					let backColor;
+																					if (elem.getAttribute("data-srs") == "-1") {
+																						backColor = "#000000";
+																						elem.style.setProperty("background-color", backColor, "important");
+																					}
+																					else {
+																						backColor = settings && settings["appearance"] ? settings["appearance"][srsStages[elem.getAttribute("data-srs")]["short"].toLowerCase()+"_color"] : srsStages[elem.getAttribute("data-srs")]["color"];
+																						elem.style.setProperty("background-color", backColor, "important");
+																					}
+																					backColor = hexToRGB(backColor);
+																					elem.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
+																				}
+																			});
+																			break;
+																	}
+																}
 
-											const ul = document.createElement("ul");
-											container.appendChild(ul);
+																// color by
+																const colorBy = document.createElement("li");
+																menu.appendChild(colorBy);
+																const colorByLabel = document.createElement("label");
+																colorBy.appendChild(colorByLabel);
+																colorByLabel.appendChild(document.createTextNode("Color by"));
+																const colorBySelect = document.createElement("select");
+																colorBy.appendChild(colorBySelect);
+																colorBySelect.classList.add("select");
+																colorBySelect.style.width = "auto";
+																["Subject Type", "SRS Stage"].forEach(option => {
+																	const colorByOption = document.createElement("option");
+																	colorBySelect.appendChild(colorByOption);
+																	colorByOption.appendChild(document.createTextNode(option));
+																});
+																colorBySelect.addEventListener("input", e => {
+																	const value = e.target.value;
+																	if (contentWrapperUl.length > 1) {
+																		Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-menu-color_by", value));
+																		["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["menu"]["color_by"] = value);
+																	}
+																	else {
+																		menuIcons.setAttribute("data-menu-color_by", value);
+																		settings_menus[id]["menu"]["color_by"] = value;																	
+																	}
 
-											let buttons = ["../images/settings.png", "../images/search.png", "../images/blacklist.png", "../images/about.png", "../images/random.png", "../images/exit.png"];
-											if (blacklisted_site)
-												buttons = ["../images/settings.png", "../images/search.png", "../images/run.png", "../images/about.png", "../images/random.png", "../images/exit.png"];
-											if (atWanikani)
-												buttons = ["../images/settings.png", "../images/about.png", "../images/exit.png"];
-											buttons.forEach(img => {
-												const li = document.createElement("li");
-												ul.appendChild(li);
-												li.style.position = "relative";
-												li.classList.add("clickable");
-												const link = document.createElement("a");
-												li.appendChild(link);
-												link.style.padding = "0 5px";
-												link.href = "#";
-												link.classList.add("navbar_icon");
-												link.addEventListener("click", () => {
-													const sidePanelLogo = document.getElementById("side-panel-logo");
-													if (sidePanelLogo && container.classList.contains("side-panel-focus")) {
-														sidePanelLogo.dispatchEvent(new MouseEvent("click", {
-															"view": window,
-															"bubbles": true,
-															"cancelable": false
-														}));
+																	color_subjects(value);
+
+																	chrome.storage.local.set({"wkhighlight_settings":settings});
+																});
+																colorDefault = menuIcons.getAttribute("data-filter-color_by") ? menuIcons.getAttribute("data-filter-color_by") : settings_menus[id]["menu"]["color_by"];
+																if (colorDefault)
+																	colorBySelect.value = colorDefault;
+
+																if (initialSetup)
+																	color_subjects(colorDefault);
+
+																const show_reviews_info = (checkbox, checked) => {
+																	if (!checked) {
+																		checkbox.classList.remove("checkbox-enabled");
+																		subjects.forEach(elem => {
+																			if (elem.getElementsByClassName("reviews-info")[0])
+																				elem.getElementsByClassName("reviews-info")[0].style.display = "none"; 
+																		});
+																	}
+																	else {
+																		checkbox.classList.add("checkbox-enabled");
+																		subjects.forEach(elem => {
+																			if (elem.getElementsByClassName("reviews-info")[0])
+																				elem.getElementsByClassName("reviews-info")[0].style.removeProperty("display"); 
+																		});
+																	}
+																}
+																
+																// show reviews info
+																const reviewsInfo = document.createElement("li");
+																menu.appendChild(reviewsInfo);
+																const reviewsInfoLabel = document.createElement("label");
+																reviewsInfo.appendChild(reviewsInfoLabel);
+																reviewsInfoLabel.appendChild(document.createTextNode("Reviews info"));
+																const inputDiv = document.createElement("div");
+																inputDiv.classList.add("checkbox_wrapper", "clickable");
+																reviewsInfo.appendChild(inputDiv);
+																const checkbox = document.createElement("input");
+																inputDiv.appendChild(checkbox);
+																checkbox.type = "checkbox";
+																if (menuIcons.getAttribute("data-menu-reviews_info") == "true") {
+																	inputDiv.classList.add("checkbox-enabled");
+																	checkbox.checked = true;
+																}
+																else if (menuIcons.getAttribute("data-menu-reviews_info") == "false")
+																	checkbox.checked = false;
+																checkbox.style.display = "none";
+																const customCheckboxBall = document.createElement("div");
+																inputDiv.appendChild(customCheckboxBall);
+																customCheckboxBall.classList.add("custom-checkbox-ball");
+																const customCheckboxBack = document.createElement("div");
+																inputDiv.appendChild(customCheckboxBack);
+																customCheckboxBack.classList.add("custom-checkbox-back");	
+																inputDiv.addEventListener("click", () => {
+																	checkbox.click();
+
+																	if (contentWrapperUl.length > 1) {
+																		Array.from(document.getElementsByClassName("menu-icons")).forEach(elem => elem.setAttribute("data-menu-reviews_info", checkbox.checked));
+																		["all", "radical", "kanji", "vocabulary"].forEach(type => settings_menus[type]["menu"]["reviews_info"] = checkbox.checked);
+																	}
+																	else {
+																			menuIcons.setAttribute("data-menu-reviews_info", checkbox.checked);			
+																		settings_menus[id]["menu"]["reviews_info"] = checkbox.checked;
+																	}
+
+																	show_reviews_info(inputDiv, checkbox.checked);
+
+																	chrome.storage.local.set({"wkhighlight_settings":settings});
+																});
+																reviewsInfoDefault = menuIcons.getAttribute("data-filter-reviews_info") ? menuIcons.getAttribute("data-filter-reviews_info") : settings_menus[id]["menu"]["reviews_info"];
+
+																if (initialSetup)
+																	show_reviews_info(inputDiv, reviewsInfoDefault);
+
+																break;
+														}											
 													}
 												});
-												const icon_img = document.createElement("img");
-												icon_img.id = img.split("/")[2].split(".")[0];
-												icon_img.src = img;
-												icon_img.title = icon_img.id[0].toUpperCase()+icon_img.id.slice(1);
-												icon_img.style.width = "20px";
-												link.appendChild(icon_img);
-
-												if (icon_img.title === "Blacklist") {
-													let blacklisted = response["wkhighlight_blacklist"];
-													const nmrBlacklisted = document.createElement("span");
-													link.appendChild(nmrBlacklisted);
-													nmrBlacklisted.classList.add("side-panel-info-alert");
-													nmrBlacklisted.style.backgroundColor = "red";
-													nmrBlacklisted.style.color = "white";
-													nmrBlacklisted.style.filter = "invert(1)";
-													nmrBlacklisted.appendChild(document.createTextNode(blacklisted ? blacklisted.length : "0"));
-												}
-
-												if (icon_img.title === "Random") {
-													icon_img.setAttribute("data-item-id", "rand");
-													icon_img.classList.add("kanjiDetails");
-													
-													settings = response["wkhighlight_settings"];
-													if (settings && settings["kanji_details_popup"] && settings["kanji_details_popup"]["random_subject"]) {
-														const type = document.createElement("span");
-														link.appendChild(type);
-														type.id = "random-subject-type";
-														type.classList.add("side-panel-info-alert");
-														type.appendChild(document.createTextNode(settings["kanji_details_popup"]["random_subject"].charAt(0)));
-
-														if (settings["kanji_details_popup"]["random_subject"] == "Any") {
-															type.style.removeProperty("background-color");
-															type.style.removeProperty("filter");
-														}
-														else if (settings["kanji_details_popup"]["random_subject"] == "Kanji") {
-															icon_img.setAttribute("data-item-id", "rand-kanji");
-															type.style.backgroundColor = "var(--kanji-tag-color)";
-															type.style.filter = "invert(1)";
-														}
-														else if (settings["kanji_details_popup"]["random_subject"] == "Vocabulary") {
-															icon_img.setAttribute("data-item-id", "rand-vocab");
-															type.style.backgroundColor = "var(--vocab-tag-color)";
-															type.style.filter = "invert(1)";
-														}
-													}	
-												}
 											});
 
-											const exitIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Exit")[0];
-											if (exitIcon) exitIcon.style.paddingLeft = "3px";
-
-											const blacklistIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Blacklist")[0];
-											if (blacklistIcon) blacklistIcon.style.paddingRight = "3px";
-
-											const logoDiv = document.createElement("div");
-											container.appendChild(logoDiv);
-											logoDiv.id = "side-panel-logo";
-											logoDiv.classList.add("clickable");
-											logoDiv.title = "Wanikani Kanji Highlighter";
-											logoDiv.addEventListener("click", () => {
-												if (!container.classList.contains("side-panel-focus")) {
-													container.classList.add("side-panel-focus");
-													
-													Array.from(document.getElementsByClassName("navbar_icon"))
-														.filter(icon => icon.style.display !== "none")
-														.forEach(icon => {
-															const label = document.createElement("p");
-															icon.appendChild(label);
-															label.style.pointerEvents = "none";
-															label.appendChild(document.createTextNode(icon.getElementsByTagName("img")[0].title));
-														});
-													
-													Array.from(document.getElementsByClassName("side-panel-info-alert"))
-														.forEach(div => div.style.left = "19px");
+											// menu close arrow
+											const arrowWrapper = document.createElement("div");
+											menuIcons.appendChild(arrowWrapper);
+											arrowWrapper.style.padding = "0px 7px";
+											arrowWrapper.classList.add("clickable");
+											arrowWrapper.title = "Close";
+											const  arrow = document.createElement("i");
+											arrowWrapper.appendChild(arrow);
+											arrow.classList.add("up");
+											arrow.style.borderColor = "white";
+											arrow.style.padding = "5px";
+											arrow.style.marginBottom = (-2*(arrow.style.padding.split("px")[0]))+"px";
+											arrowWrapper.addEventListener("click", () => {
+												if (arrow.classList.contains("up")) {
+													flipArrow(arrow, "up", "down", arrow.style.padding);
+													arrowWrapper.title = "Open";
+													if (contentWrapper) contentWrapper.style.display = "none";
 												}
 												else {
-													container.classList.remove("side-panel-focus");
-													Array.from(document.getElementsByClassName("navbar_icon"))
-														.filter(icon => icon.style.display !== "none")
-														.forEach(icon => {
-															icon.getElementsByTagName("p")[0].remove();
-														});
+													flipArrow(arrow, "down", "up", arrow.style.padding);
+													arrowWrapper.title = "Close";
+													if (contentWrapper) contentWrapper.style.removeProperty("display");
+												}
 
-													Array.from(document.getElementsByClassName("side-panel-info-alert"))
-														.forEach(div => {
-															div.style.removeProperty("left");
-															div.style.display = "none";
-															setTimeout(() => div.style.removeProperty("display"), 300);
-														});
-													
+												settings_menus[id]["opened"] = arrow.classList.contains("up");
+												chrome.storage.local.set({"wkhighlight_settings":settings});
+											});	
+											if (!settings_menus[id]["opened"])
+												arrowWrapper.click();
+
+											return menuIcons;
+										}
+
+										const lib = new localStorageDB("subjects", localStorage);
+										
+										const levelSubjectsWrapper = document.createElement("div");
+										const allTitle = document.createElement("p");
+										levelSubjectsWrapper.appendChild(allTitle);
+										allTitle.appendChild(document.createTextNode("All"));
+										allTitle.style.color = "white";
+										allTitle.style.position = "relative";
+										allTitle.style.padding = "5px";
+										allTitle.style.backgroundColor = "var(--default-color)";
+										allTitle.style.paddingLeft = "10px";
+										allTitle.style.display = "flex";
+										allTitle.style.alignItems = "center";
+										allTitle.style.fontSize = "23px";
+										allTitle.style.borderTop = "2px solid white";
+										const allProgress = document.createElement("span");
+										allTitle.appendChild(allProgress);
+										allProgress.style.fontSize = "12px";
+										allProgress.style.marginLeft = "10px";
+										allProgress.style.color = "silver";
+										const subjectsDisplay = document.createElement("div");
+										allTitle.appendChild(createMenuIcons(["sort", "filter", "menu"], "all", allTitle, subjectsDisplay));
+										levelSubjectsWrapper.appendChild(subjectsDisplay);
+										subjectsDisplay.style.padding = "7px";
+										subjectsDisplay.style.fontSize = "23px";
+										subjectsDisplay.style.backgroundColor = "white";
+										subjectsDisplay.style.border = "10px solid var(--default-color)";
+										let allSubjects = 0, allPassedSubjects = 0;
+										["radical", "kanji", "vocab"].forEach(type => {
+											const subjects = lib.queryAll(type == "vocab" ? "vocabulary" : type, {
+												query: {level:levelValue}
+											}).filter(subject => !subject["hidden_at"]);
+											const passedSubjects = subjects.filter(subject => subject.passed_at != null);
+											allSubjects += subjects.length;
+											allPassedSubjects += passedSubjects.length;
+
+											if (type == "kanji") {
+												const progressBar = document.createElement("div");
+												levelProgressBar.appendChild(progressBar);
+												const percentage = passedSubjects.length / subjects.length * 100;
+												progressBar.style.width = (percentage >= 1 ? percentage : 100)+"%";
+												if (percentage > 8.1 || percentage < 1) {
+													const barLabel = document.createElement("p");
+													progressBar.appendChild(barLabel);
+													barLabel.appendChild(document.createTextNode(percentage.toFixed(percentage > 12 ? 1 : 0)+"%"));
+													if (percentage < 1) {
+														progressBar.style.backgroundColor = "white";
+														barLabel.style.color = "black";
+													}
+												}
+
+												if (percentage < 81 && percentage >= 1) {
+													const progressValues = document.createElement("span");
+													levelProgress.appendChild(progressValues);
+													progressValues.appendChild(document.createTextNode(passedSubjects.length + " / " + subjects.length));
+												}
+												progressBar.classList.add("clickable");
+												progressBar.title = "Passed Kanji: "+passedSubjects.length+" / "+percentage.toFixed(1)+"%";
+											}
+
+											const subjectsWrapper = document.createElement("div");
+											subjectsDisplay.appendChild(subjectsWrapper);
+											subjectsWrapper.style.position = "relative";
+											subjectsWrapper.style.marginBottom = "10px";
+											const title = document.createElement("p");
+											subjectsWrapper.appendChild(title);
+											title.appendChild(document.createTextNode(type.charAt(0).toUpperCase()+(type == "vocab" ? "vocabulary" : type).substring(1)+(type == "radical" ? "s" : "")));
+											title.style.color = "white";
+											title.style.position = "relative";
+											title.style.padding = "5px";
+											title.style.backgroundColor = "var(--default-color)";
+											title.style.paddingLeft = "10px";
+											title.style.display = "flex";
+											title.style.alignItems = "center";
+											const progress = document.createElement("span");
+											title.appendChild(progress);
+											progress.appendChild(document.createTextNode(passedSubjects.length+"/"+subjects.length));
+											progress.style.fontSize = "12px";
+											progress.style.marginLeft = "10px";
+											progress.style.color = "silver";
+											const subjectsListWrapper = document.createElement("div");
+											title.appendChild(createMenuIcons(["sort", "filter", "menu"], type == "vocab" ? "vocabulary" : type, subjectsWrapper, subjectsListWrapper));
+											subjectsWrapper.appendChild(subjectsListWrapper);
+											subjectsListWrapper.classList.add("simple-grid");
+											const subjectsList = document.createElement("ul");
+											subjectsListWrapper.appendChild(subjectsList);
+											subjectsList.style.padding = "5px";
+											subjects.forEach(subject => {
+												const subjectWrapper = document.createElement("li");
+												subjectsList.appendChild(subjectWrapper);
+												const characters = subject["characters"] ? subject["characters"]  : `<img height="22px" style="margin-top:-3px;margin-bottom:-4px;padding-top:8px" src="${subject["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`;
+												subjectWrapper.classList.add(type+"_back");
+												if (!atWanikani)
+													subjectWrapper.title = subject["meanings"][0];
+												subjectWrapper.style.position = "relative";
+												if (type !== "radical") {
+													subjectWrapper.classList.add("clickable", "kanjiDetails");
+													subjectWrapper.setAttribute("data-item-id", subject["id"]);
+													if (!atWanikani) {
+														if (subject["readings"][0]["reading"])
+															subjectWrapper.title += " | "+subject["readings"].filter(reading => reading["primary"])[0]["reading"];
+														else
+															subjectWrapper.title += " | "+subject["readings"][0];
+													}
+												}
+												let backColor = hexToRGB(getComputedStyle(document.body).getPropertyValue(`--${type}-tag-color`));
+												subjectWrapper.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
+												if (characters !== "L")
+													subjectWrapper.innerHTML = characters;
+												else {
+													const wrapperForLi = document.createElement("div");
+													subjectWrapper.appendChild(wrapperForLi);
+													wrapperForLi.style.marginTop = "5px";
+													wrapperForLi.appendChild(document.createTextNode(characters));
+												}
+												if (characters !== "L" && subjectWrapper.children.length > 0 && subjectWrapper.style.color == "rgb(255, 255, 255)")
+													subjectWrapper.children[0].style.filter = "invert(1)";
+											
+												if (subject["passed_at"]) {
+													const check = document.createElement("img");
+													subjectWrapper.appendChild(check);
+													check.src = "../images/check.png";
+													check.classList.add("passed-subject-check", "reviews-info");
+													// fix issues with radicals that are images
+													if (subjectWrapper.firstChild.tagName == "IMG") {
+														subjectWrapper.firstChild.style.marginTop = "unset";
+													}
+												}
+												else if(subject["available_at"]) {
+													if (new Date(subject["available_at"]) - new Date() < 0) {
+														const time = document.createElement("div");
+														subjectWrapper.appendChild(time);
+														time.appendChild(document.createTextNode("now"));
+														time.classList.add("time-next-review-subject", "reviews-info");
+													}
+												}
+
+												if (subject["available_at"])
+													subjectWrapper.setAttribute("data-available_at", subject["available_at"]);
+												
+
+												if (subject["srs_stage"] !== null) {
+													subjectWrapper.title += " \x0D"+srsStages[subject["srs_stage"]]["name"];
+													subjectWrapper.setAttribute("data-srs", subject["srs_stage"]);
+												}
+												else {
+													subjectWrapper.title += " \x0D"+"Locked";
+													subjectWrapper.setAttribute("data-srs", -1);
 												}
 											});
-											const logo = document.createElement("img");
-											logo.src="logo/logo.png";
-											logo.style.pointerEvents = "none";
-											logoDiv.appendChild(logo);
-
-											if (!atWanikani) {
-												if (!blacklisted_site) {
-
-													// highlighted kanji
-													if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["highlighted_kanji"] : settingsInterface["extension_popup_interface"]["highlighted_kanji"]) {
-														const kanjiFoundWrapper = document.createElement("div");
-														userInfoWrapper.appendChild(kanjiFoundWrapper);
-														kanjiFoundWrapper.classList.add("resizable", "highlightedKanjiContainer", "userInfoWrapper-wrapper");
-														kanjiFoundWrapper.style.maxHeight = defaultSettings["sizes"]["highlighted_kanji_height"]+"px";
-														if (response["wkhighlight_settings"] && response["wkhighlight_settings"]["sizes"])
-															kanjiFoundWrapper.style.maxHeight = response["wkhighlight_settings"]["sizes"]["highlighted_kanji_height"]+"px";
-
-														kanjiFoundWrapper.setAttribute("data-settings", "sizes-highlighted_kanji_height");
-														const resizableS = document.createElement("div");
-														kanjiFoundWrapper.appendChild(resizableS);
-														resizableS.classList.add("resizable-s");
-														const kanjiFound = document.createElement("div");
-														kanjiFoundWrapper.appendChild(kanjiFound);
-														const kanjiFoundBar = document.createElement("div");
-														kanjiFoundWrapper.appendChild(kanjiFoundBar);
-														const kanjiFoundList = document.createElement("div");
-														kanjiFoundWrapper.appendChild(kanjiFoundList);
-		
-														chrome.tabs.query({currentWindow: true, active: true}, tabs => {
-															chrome.tabs.sendMessage(tabs[0].id, {nmrKanjiHighlighted:"popup"}, result => {
-																let learned = [], notLearned = [];
-																if (result) {
-																	learned = result["learned"];
-																	notLearned = result["notLearned"];
-																}
-	
-																kanjiFound.id = "nmrKanjiHighlighted";
-																kanjiFound.classList.add("userInfoWrapper-title");
-																kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong></strong> (in the page)`;
-														
-																const barData = [
-																	{
-																		link: "learnedKanji",
-																		color: "var(--highlight-default-color)",
-																		value: learned.length
-																	},
-																	{
-																		link: "notLearnedKanji",
-																		color: "var(--notLearned-color)",
-																		value: notLearned.length
-																	}
-																];
-	
-																kanjiFoundBar.parentElement.replaceChild(itemsListBar(barData), kanjiFoundBar);
-	
-																kanjiFoundList.id = "kanjiHighlightedList";
-																const parentMaxHeight = kanjiFoundList.parentElement.style.maxHeight;
-																kanjiFoundList.style.maxHeight = (Number(parentMaxHeight.substring(0, parentMaxHeight.length-2))-40)+"px";
-																kanjiFoundList.classList.add("simple-grid");
-																const kanjiFoundUl = document.createElement("ul");
-																kanjiFoundList.appendChild(kanjiFoundUl);
-	
-																const kanjiAssoc = response["wkhighlight_kanji_assoc"];
-																kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${result ? result["nmrKanjiHighlighted"] : 0}</strong> (in the page)`;
-		
-																const lib = new localStorageDB("subjects", localStorage);
-																const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned"];
-																[learned, notLearned].forEach((type, i) => {
-																	type.forEach(kanji => {
-																		const kanjiFoundLi = document.createElement("li");
-																		kanjiFoundUl.appendChild(kanjiFoundLi);
-																		kanjiFoundLi.classList.add("clickable", "kanjiDetails", classes[i]);
-																		kanjiFoundLi.appendChild(document.createTextNode(kanji));
-																		if (kanjiAssoc && kanjiAssoc[kanji]) kanjiFoundLi.setAttribute("data-item-id", kanjiAssoc[kanji]);
-																	
-																		const subject = lib.queryAll("kanji", {
-																			query: {id: kanjiAssoc[kanji]}
-																		});
-																		if (subject[0])
-																			kanjiFoundLi.title = subject[0]["meanings"][0]+" | "+subject[0]["readings"].filter(reading => reading["primary"])[0]["reading"];
-																	});
-																});
-															
-																if (learned.length == 0 && notLearned.length == 0) {
-																	const notFound = document.createElement("div");
-																	kanjiFoundUl.appendChild(notFound);
-																	notFound.classList.add("not-found");
-																	const kanjiModel = document.createElement("p");
-																	notFound.appendChild(kanjiModel);
-																	const randHex = rand(parseInt("4e00", 16), parseInt("9faf", 16)).toString(16);
-																	kanjiModel.appendChild(document.createTextNode(String.fromCharCode(`0x${randHex}`)));
-																	const noKanjiFound = document.createElement("p");
-																	notFound.appendChild(noKanjiFound);
-																	noKanjiFound.appendChild(document.createTextNode("No Kanji found in the current page!"));
-																	const notFoundSlash = document.createElement("div");
-																	kanjiModel.appendChild(notFoundSlash);
-																}
-															});
-														});
-													}	
-												}
-
-												const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchSubject);
-												searchArea.title = "Search subjects";
-												chrome.storage.local.get(["wkhighlight_contextMenuSelectedText"], result => {
-													const selectedText = result["wkhighlight_contextMenuSelectedText"];
-													if (selectedText) {
-														const input = [...searchArea.firstChild.childNodes].filter(child => child.tagName == "INPUT")[0];
-														input.value = selectedText;
-														const userInfoNav = document.getElementById("userInfoNavbar");
-														if (userInfoNav)
-															userInfoNav.style.display = "none";
-
-														document.getElementById("kanjiSearchInput").click();
-														searchSubject(input);
-															
-														chrome.storage.local.remove(["wkhighlight_contextMenuSelectedText"]);
-														chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
-															chrome.browserAction.setBadgeText({text: result["wkhighlight_nmrHighLightedKanji"].toString(), tabId:activeTab.id});
-															chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:activeTab.id});
-														});
-													}
-												});
-
-												userInfoWrapper.insertBefore(searchArea, userInfoWrapper.children[!blacklisted_site ? 1 : 2]);
-												const searchWrapper = searchArea.firstChild;
-												const searchTypeWrapper = document.createElement("div");
-												searchWrapper.appendChild(searchTypeWrapper);
-												searchTypeWrapper.classList.add("kanjiSearchTypeWrapper");
-												searchTypeWrapper.title = "Kana";
-												searchTypeWrapper.id = "kanjiSearchTypeKana";
-												const searchType = document.createElement("span");
-												searchTypeWrapper.appendChild(searchType);
-												searchType.id = "kanjiSearchType";
-												searchType.appendChild(document.createTextNode("あ"));
-											}
-
-											// lessons and reviews
-											if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["lessons_and_reviews"] : settingsInterface["extension_popup_interface"]["lessons_and_reviews"]) {
-												const summaryWrapper = document.createElement("div");
-												userInfoWrapper.appendChild(summaryWrapper);
-												summaryWrapper.style.textAlign = "center";
-												summaryWrapper.classList.add("userInfoWrapper-wrapper");
-												const summaryUl = document.createElement("ul");
-												summaryWrapper.appendChild(summaryUl);
-												summaryUl.style.display = "inline-flex";
-												summaryUl.style.width = "100%";
-												["Lessons", "Reviews"].forEach(topic => {
-													const summaryLi = document.createElement("li");
-													summaryUl.appendChild(summaryLi);
-													summaryLi.style.width = "100%";
-													summaryLi.style.color = "white";
-	
-													const titleWrapper = document.createElement("div");
-													summaryLi.appendChild(titleWrapper);
-													titleWrapper.classList.add("summaryTitle", "userInfoWrapper-title");
-													titleWrapper.title = topic+" in WaniKani";
-													const title = document.createElement("a");
-													titleWrapper.appendChild(title);
-													title.appendChild(document.createTextNode(topic));
-													title.href = "https://www.wanikani.com/"+topic[0].toLowerCase()+topic.slice(1, -1);
-													title.target = "_blank";
-													title.style.color = "white";
-	
-													const value = document.createElement("div");
-													summaryLi.appendChild(value);
-													value.appendChild(document.createTextNode("0"));
-													value.classList.add("summaryValue", "clickable");
-													value.style.backgroundColor = topic == "Lessons" ? "#4f7b61" : "#2c7080";
-													value.id = "summary"+topic;
-												});
-	
-												const reviewsLoadingVal = loading([], [], 25);
-												const reviewsLoadingElem = reviewsLoadingVal[0];
-												summaryWrapper.appendChild(reviewsLoadingElem);
-	
-												const moreReviews = document.createElement("p");
-												summaryWrapper.appendChild(moreReviews);
-												moreReviews.style.padding = "3px 0";
-												moreReviews.style.color = "#747474";
-												moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
-												const moreReviewsDate  = document.createElement("p");
-												summaryWrapper.appendChild(moreReviewsDate);
-												moreReviewsDate.style.padding = "3px 0";
-												moreReviewsDate.style.color = "#747474";
-											
-												// get all assignments if there are none in storage or if they were modified
-												setupAssignments(apiKey, () => setupAvailableAssignments(apiKey, setupSummary));
+										});
 										
-												const setupSummary = (reviews, lessons) => {
-													if (reviews) {
-														const currentTime = new Date().getTime();
-														
-														const currentValue = parseInt(document.getElementById("summaryReviews").innerText);
-														if (currentValue === 0)
-															document.getElementById("summaryReviews").innerText = reviews["count"] ? reviews["count"] : 0;
-														else {
-															if (reviews["count"] && typeof currentValue === "number" && !isNaN(currentTime) && reviews["count"] != lastReviewsValue) {
-																counterAnimation(currentValue, reviews["count"], document.getElementById("summaryReviews"), 5);
-																lastReviewsValue = reviews["count"];
-															}	
-														}												
-		
-														// get all the reviews for the next 14 days
-														const nextReviews = reviews["next_reviews"];
-														const hoursIn14Days = 24*14;
-														// check reviews for the next hours, for every exact hour
-														for (let i = 1; i < hoursIn14Days; i++) {
-															const thisDate = nextExactHour(new Date(), i);
-															const reviewsForNextHour = filterAssignmentsByTime(nextReviews, new Date(), thisDate);
-															if (reviewsForNextHour.length > 0) {
-																const remainingTime = msToTime(thisDate - currentTime);
-																moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
-																settings = response["wkhighlight_settings"];
-																let time = `${thisDate.getHours() < 10 ? "0"+thisDate.getHours() : thisDate.getHours()}:${thisDate.getMinutes() < 10 ? "0"+thisDate.getMinutes() : thisDate.getMinutes()}`;
-																if (settings && settings["miscellaneous"]["time_in_12h_format"])
-																	time = time12h(time);
-																moreReviewsDate.innerText = `${thisDate.getMonthName().slice(0, 3)} ${thisDate.getDate() < 10 ? "0"+thisDate.getDate() : thisDate.getDate()}, ${time}`;
-																
-																// create interval delay
-																// 10% of a day are 8640000 milliseconds
-																// 10% of an hour are 360000 milliseconds
-																// 10% of a minute are 6000 milliseconds
-																// 10% of a second are 100 milliseconds
-																const delays = {
-																	"Days":8640000,
-																	"Hrs":360000,
-																	"Min":6000,
-																	"Sec":100
-																}
+										allProgress.appendChild(document.createTextNode(allPassedSubjects+"/"+allSubjects));
 
-																// timeUnit = "Days, Hrs, etc..."
-																let timeUnit = remainingTime.split(" ")[1];
+										return levelSubjectsWrapper;
+									}
 
-																const timeStampRefresher = () => {
-																	const newCurrentDate = new Date().getTime();
-																	const newTimeStamp = msToTime(thisDate - newCurrentDate);
-																	const newTimeUnit = newTimeStamp.split(" ")[1];
-																	// check if has changed the unit of time
-																	if (newTimeUnit != timeUnit) {
-																		timeUnit = newTimeUnit;
-																		// if so then clear the current interval
-																		clearInterval(timeStampInterval);
-																		// and start a new one with a new interval delay
-																		timeStampInterval = setInterval(timeStampRefresher, delays[newTimeUnit]);
-																	}
+									const levels_chooser_action = levelsList => {
+										Array.from(levelsList.getElementsByTagName("LI")).forEach((levelWrapper, i) => {
+											const level = Number(levelWrapper.innerText);
+											if (!isNaN(level) && i !== 1) {
+												levelWrapper.addEventListener("click", () => {
+													initialSetup = true;
 
-																	// if time stamp reached 0
-																	if (thisDate <= newCurrentDate) {
-																		moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> <b class="refresh clickable">now</b>`;
-																		// refresh popup automatically
-																		setTimeout(() => window.location.reload(), 1000);
-																		clearInterval(timeStampInterval);
-																		return;
-																	}
+													levelsChooser.lastChild.remove();
+													Array.from(levelProgress.children).forEach(child => child.remove());
+													
+													const newList = levels_chooser(level);
+													levelsChooser.replaceChild(newList, levelsList);
+													newList.style.paddingTop = "175px";
 
-																	// refresh time stamp
-																	moreReviews.getElementsByTagName("B")[1].innerText = newTimeStamp;
-																}
+													levelsChooser.appendChild(level_subjects(level, levelProgress));
 
-																let timeStampInterval = setInterval(timeStampRefresher, delays[timeUnit]);
-																// 10% of a minute are 6000 milliseconds
-																break;
-															}
+													levels_chooser_action(newList);
+												});
+
+												let smallLevel;
+												const margin = 50;
+												levelWrapper.addEventListener("mouseover", () => {
+													smallLevel = document.createElement("div");
+													smallLevel.classList.add("levels-chooser-small-level");
+													if (i == 0) {
+														levelsList.style.marginLeft = margin+"px";
+														levelWrapper.style.paddingLeft = margin+"px";
+														levelWrapper.style.marginLeft = (-1*margin)+"px";
+														if (level !== 1) {
+															levelsList.insertBefore(smallLevel, levelsList.firstChild);
+															smallLevel.appendChild(document.createTextNode(level-1));
+															smallLevel.style.left = (-1*margin/2)+"px";
 														}
 													}
-
-													if (lessons) {
-														const currentValue = parseInt(document.getElementById("summaryLessons").innerText);
-														if (currentValue === 0)
-															document.getElementById("summaryLessons").innerText = lessons["count"] ? lessons["count"] : 0;
-														else {
-															if (lessons["count"] && typeof currentValue === "number" && !isNaN(currentValue) && lessons["count"] != lastLessonsValue) {
-																counterAnimation(currentValue, lessons["count"], document.getElementById("summaryLessons"), 5);
-																lastLessonsValue = lessons["count"];
-															}	
-														}												
+													else {
+														levelsList.style.marginRight = margin+"px";
+														levelWrapper.style.paddingRight = margin+"px";
+														levelWrapper.style.marginRight = (-1*margin)+"px";
+														if (level !== 60) {
+															levelsList.appendChild(smallLevel);
+															smallLevel.appendChild(document.createTextNode(level+1));
+															smallLevel.style.right = (-1*margin/2)+"px";
+														}
 													}
-													
-													reviewsLoadingElem.remove();
-													clearInterval(reviewsLoadingVal[1]);
+												});
+
+												levelWrapper.addEventListener("mouseout", () => {
+													if (smallLevel) smallLevel.remove();
+													if (i == 0) {
+														levelsList.style.removeProperty("margin-left");
+													}
+													else {
+														levelsList.style.removeProperty("margin-right");
+													}
+												});
+											}
+											
+											if (i == 1) middleLevel = levelWrapper;
+										});
+
+										settings_menus = settings["profile_menus"] ? settings["profile_menus"] : defaultSettings["profile_menus"];
+										Object.keys(settings_menus).forEach(type => {
+											const menuIcons = Array.from(document.getElementsByClassName("menu-icons")).filter(elem => (elem.getAttribute("data-id") == type))[0];
+											Object.keys(settings_menus[type]).forEach(menu => {
+												if (menu !== "opened") {
+													Object.keys(settings_menus[type][menu]).forEach(option => {
+														menuIcons.setAttribute("data-"+menu+"-"+option, settings_menus[type][menu][option]);
+														Array.from(menuIcons.getElementsByTagName("img")).filter(elem => elem.title.toLowerCase() == menu)[0].click();
+													});
 												}
+											});
+										});
 
+										initialSetup = false;
+									}
 
-												reviews = response["wkhighlight_reviews"];
-												lessons = response["wkhighlight_lessons"];
+									levelsChooser.appendChild(level_subjects(Number(userInfo["level"]), levelProgress));
+
+									levels_chooser_action(levelsList);
+								});
+
+								const ul = document.createElement("ul");
+								container.appendChild(ul);
+
+								let buttons = ["../images/settings.png", "../images/search.png", "../images/blacklist.png", "../images/about.png", "../images/random.png", "../images/exit.png"];
+								if (blacklisted_site)
+									buttons = ["../images/settings.png", "../images/search.png", "../images/run.png", "../images/about.png", "../images/random.png", "../images/exit.png"];
+								if (atWanikani)
+									buttons = ["../images/settings.png", "../images/about.png", "../images/exit.png"];
+								buttons.forEach(img => {
+									const li = document.createElement("li");
+									ul.appendChild(li);
+									li.style.position = "relative";
+									li.classList.add("clickable");
+									const link = document.createElement("a");
+									li.appendChild(link);
+									link.style.padding = "0 5px";
+									link.href = "#";
+									link.classList.add("navbar_icon");
+									link.addEventListener("click", () => {
+										const sidePanelLogo = document.getElementById("side-panel-logo");
+										if (sidePanelLogo && container.classList.contains("side-panel-focus")) {
+											sidePanelLogo.dispatchEvent(new MouseEvent("click", {
+												"view": window,
+												"bubbles": true,
+												"cancelable": false
+											}));
+										}
+									});
+									const icon_img = document.createElement("img");
+									icon_img.id = img.split("/")[2].split(".")[0];
+									icon_img.src = img;
+									icon_img.title = icon_img.id[0].toUpperCase()+icon_img.id.slice(1);
+									icon_img.style.width = "20px";
+									link.appendChild(icon_img);
+
+									if (icon_img.title === "Blacklist") {
+										let blacklisted = response["wkhighlight_blacklist"];
+										const nmrBlacklisted = document.createElement("span");
+										link.appendChild(nmrBlacklisted);
+										nmrBlacklisted.classList.add("side-panel-info-alert");
+										nmrBlacklisted.style.backgroundColor = "red";
+										nmrBlacklisted.style.color = "white";
+										nmrBlacklisted.style.filter = "invert(1)";
+										nmrBlacklisted.appendChild(document.createTextNode(blacklisted ? blacklisted.length : "0"));
+									}
+
+									if (icon_img.title === "Random") {
+										icon_img.setAttribute("data-item-id", "rand");
+										icon_img.classList.add("kanjiDetails");
+										
+										settings = response["wkhighlight_settings"];
+										if (settings && settings["kanji_details_popup"] && settings["kanji_details_popup"]["random_subject"]) {
+											const type = document.createElement("span");
+											link.appendChild(type);
+											type.id = "random-subject-type";
+											type.classList.add("side-panel-info-alert");
+											type.appendChild(document.createTextNode(settings["kanji_details_popup"]["random_subject"].charAt(0)));
+
+											if (settings["kanji_details_popup"]["random_subject"] == "Any") {
+												type.style.removeProperty("background-color");
+												type.style.removeProperty("filter");
+											}
+											else if (settings["kanji_details_popup"]["random_subject"] == "Kanji") {
+												icon_img.setAttribute("data-item-id", "rand-kanji");
+												type.style.backgroundColor = "var(--kanji-tag-color)";
+												type.style.filter = "invert(1)";
+											}
+											else if (settings["kanji_details_popup"]["random_subject"] == "Vocabulary") {
+												icon_img.setAttribute("data-item-id", "rand-vocab");
+												type.style.backgroundColor = "var(--vocab-tag-color)";
+												type.style.filter = "invert(1)";
+											}
+										}	
+									}
+								});
+
+								const exitIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Exit")[0];
+								if (exitIcon) exitIcon.style.paddingLeft = "3px";
+
+								const blacklistIcon = Array.from(ul.getElementsByTagName("li")).filter(li => li.getElementsByTagName("img")[0]?.title === "Blacklist")[0];
+								if (blacklistIcon) blacklistIcon.style.paddingRight = "3px";
+
+								const logoDiv = document.createElement("div");
+								container.appendChild(logoDiv);
+								logoDiv.id = "side-panel-logo";
+								logoDiv.classList.add("clickable");
+								logoDiv.title = "Wanikani Kanji Highlighter";
+								logoDiv.addEventListener("click", () => {
+									if (!container.classList.contains("side-panel-focus")) {
+										container.classList.add("side-panel-focus");
+										
+										Array.from(document.getElementsByClassName("navbar_icon"))
+											.filter(icon => icon.style.display !== "none")
+											.forEach(icon => {
+												const label = document.createElement("p");
+												icon.appendChild(label);
+												label.style.pointerEvents = "none";
+												label.appendChild(document.createTextNode(icon.getElementsByTagName("img")[0].title));
+											});
+										
+										Array.from(document.getElementsByClassName("side-panel-info-alert"))
+											.forEach(div => div.style.left = "19px");
+									}
+									else {
+										container.classList.remove("side-panel-focus");
+										Array.from(document.getElementsByClassName("navbar_icon"))
+											.filter(icon => icon.style.display !== "none")
+											.forEach(icon => {
+												icon.getElementsByTagName("p")[0].remove();
+											});
+
+										Array.from(document.getElementsByClassName("side-panel-info-alert"))
+											.forEach(div => {
+												div.style.removeProperty("left");
+												div.style.display = "none";
+												setTimeout(() => div.style.removeProperty("display"), 300);
+											});
+										
+									}
+								});
+								const logo = document.createElement("img");
+								logo.src="logo/logo.png";
+								logo.style.pointerEvents = "none";
+								logoDiv.appendChild(logo);
+
+								if (!atWanikani) {
+									if (!blacklisted_site) {
+
+										// highlighted kanji
+										if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["highlighted_kanji"] : settingsInterface["extension_popup_interface"]["highlighted_kanji"]) {
+											const kanjiFoundWrapper = document.createElement("div");
+											userInfoWrapper.appendChild(kanjiFoundWrapper);
+											kanjiFoundWrapper.classList.add("resizable", "highlightedKanjiContainer", "userInfoWrapper-wrapper");
+											kanjiFoundWrapper.style.maxHeight = defaultSettings["sizes"]["highlighted_kanji_height"]+"px";
+											if (response["wkhighlight_settings"] && response["wkhighlight_settings"]["sizes"])
+												kanjiFoundWrapper.style.maxHeight = response["wkhighlight_settings"]["sizes"]["highlighted_kanji_height"]+"px";
+
+											kanjiFoundWrapper.setAttribute("data-settings", "sizes-highlighted_kanji_height");
+											const resizableS = document.createElement("div");
+											kanjiFoundWrapper.appendChild(resizableS);
+											resizableS.classList.add("resizable-s");
+											const kanjiFound = document.createElement("div");
+											kanjiFoundWrapper.appendChild(kanjiFound);
+											const kanjiFoundBar = document.createElement("div");
+											kanjiFoundWrapper.appendChild(kanjiFoundBar);
+											const kanjiFoundList = document.createElement("div");
+											kanjiFoundWrapper.appendChild(kanjiFoundList);
+
+											chrome.tabs.query({currentWindow: true, active: true}, tabs => {
+												chrome.tabs.sendMessage(tabs[0].id, {nmrKanjiHighlighted:"popup"}, result => {
+													let learned = [], notLearned = [];
+													if (result) {
+														learned = result["learned"];
+														notLearned = result["notLearned"];
+													}
+
+													kanjiFound.id = "nmrKanjiHighlighted";
+													kanjiFound.classList.add("userInfoWrapper-title");
+													kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong></strong> (in the page)`;
+											
+													const barData = [
+														{
+															link: "learnedKanji",
+															color: "var(--highlight-default-color)",
+															value: learned.length
+														},
+														{
+															link: "notLearnedKanji",
+															color: "var(--notLearned-color)",
+															value: notLearned.length
+														}
+													];
+
+													kanjiFoundBar.parentElement.replaceChild(itemsListBar(barData), kanjiFoundBar);
+
+													kanjiFoundList.id = "kanjiHighlightedList";
+													const parentMaxHeight = kanjiFoundList.parentElement.style.maxHeight;
+													kanjiFoundList.style.maxHeight = (Number(parentMaxHeight.substring(0, parentMaxHeight.length-2))-40)+"px";
+													kanjiFoundList.classList.add("simple-grid");
+													const kanjiFoundUl = document.createElement("ul");
+													kanjiFoundList.appendChild(kanjiFoundUl);
+
+													const kanjiAssoc = response["wkhighlight_kanji_assoc"];
+													kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${result ? result["nmrKanjiHighlighted"] : 0}</strong> (in the page)`;
+
+													const lib = new localStorageDB("subjects", localStorage);
+													const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned"];
+													[learned, notLearned].forEach((type, i) => {
+														type.forEach(kanji => {
+															const kanjiFoundLi = document.createElement("li");
+															kanjiFoundUl.appendChild(kanjiFoundLi);
+															kanjiFoundLi.classList.add("clickable", "kanjiDetails", classes[i]);
+															kanjiFoundLi.appendChild(document.createTextNode(kanji));
+															if (kanjiAssoc && kanjiAssoc[kanji]) kanjiFoundLi.setAttribute("data-item-id", kanjiAssoc[kanji]);
+														
+															const subject = lib.queryAll("kanji", {
+																query: {id: kanjiAssoc[kanji]}
+															});
+															if (subject[0])
+																kanjiFoundLi.title = subject[0]["meanings"][0]+" | "+subject[0]["readings"].filter(reading => reading["primary"])[0]["reading"];
+														});
+													});
 												
-												setupAvailableAssignments(apiKey, setupSummary);
+													if (learned.length == 0 && notLearned.length == 0) {
+														const notFound = document.createElement("div");
+														kanjiFoundUl.appendChild(notFound);
+														notFound.classList.add("not-found");
+														const kanjiModel = document.createElement("p");
+														notFound.appendChild(kanjiModel);
+														const randHex = rand(parseInt("4e00", 16), parseInt("9faf", 16)).toString(16);
+														kanjiModel.appendChild(document.createTextNode(String.fromCharCode(`0x${randHex}`)));
+														const noKanjiFound = document.createElement("p");
+														notFound.appendChild(noKanjiFound);
+														noKanjiFound.appendChild(document.createTextNode("No Kanji found in the current page!"));
+														const notFoundSlash = document.createElement("div");
+														kanjiModel.appendChild(notFoundSlash);
+													}
+												});
+											});
+										}	
+									}
 
-												setupSummary(reviews, lessons);
+									const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchSubject);
+									searchArea.title = "Search subjects";
+									chrome.storage.local.get(["wkhighlight_contextMenuSelectedText"], result => {
+										const selectedText = result["wkhighlight_contextMenuSelectedText"];
+										if (selectedText) {
+											const input = [...searchArea.firstChild.childNodes].filter(child => child.tagName == "INPUT")[0];
+											input.value = selectedText;
+											const userInfoNav = document.getElementById("userInfoNavbar");
+											if (userInfoNav)
+												userInfoNav.style.display = "none";
+
+											document.getElementById("kanjiSearchInput").click();
+											searchSubject(input);
+												
+											chrome.storage.local.remove(["wkhighlight_contextMenuSelectedText"]);
+											chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
+												chrome.browserAction.setBadgeText({text: result["wkhighlight_nmrHighLightedKanji"].toString(), tabId:activeTab.id});
+												chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:activeTab.id});
+											});
+										}
+									});
+
+									userInfoWrapper.insertBefore(searchArea, userInfoWrapper.children[!blacklisted_site ? 1 : 2]);
+									const searchWrapper = searchArea.firstChild;
+									const searchTypeWrapper = document.createElement("div");
+									searchWrapper.appendChild(searchTypeWrapper);
+									searchTypeWrapper.classList.add("kanjiSearchTypeWrapper");
+									searchTypeWrapper.title = "Kana";
+									searchTypeWrapper.id = "kanjiSearchTypeKana";
+									const searchType = document.createElement("span");
+									searchTypeWrapper.appendChild(searchType);
+									searchType.id = "kanjiSearchType";
+									searchType.appendChild(document.createTextNode("あ"));
+								}
+
+								// lessons and reviews
+								if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["lessons_and_reviews"] : settingsInterface["extension_popup_interface"]["lessons_and_reviews"]) {
+									const summaryWrapper = document.createElement("div");
+									userInfoWrapper.appendChild(summaryWrapper);
+									summaryWrapper.style.textAlign = "center";
+									summaryWrapper.classList.add("userInfoWrapper-wrapper");
+									const summaryUl = document.createElement("ul");
+									summaryWrapper.appendChild(summaryUl);
+									summaryUl.style.display = "inline-flex";
+									summaryUl.style.width = "100%";
+									["Lessons", "Reviews"].forEach(topic => {
+										const summaryLi = document.createElement("li");
+										summaryUl.appendChild(summaryLi);
+										summaryLi.style.width = "100%";
+										summaryLi.style.color = "white";
+
+										const titleWrapper = document.createElement("div");
+										summaryLi.appendChild(titleWrapper);
+										titleWrapper.classList.add("summaryTitle", "userInfoWrapper-title");
+										titleWrapper.title = topic+" in WaniKani";
+										const title = document.createElement("a");
+										titleWrapper.appendChild(title);
+										title.appendChild(document.createTextNode(topic));
+										title.href = "https://www.wanikani.com/"+topic[0].toLowerCase()+topic.slice(1, -1);
+										title.target = "_blank";
+										title.style.color = "white";
+
+										const value = document.createElement("div");
+										summaryLi.appendChild(value);
+										value.appendChild(document.createTextNode("0"));
+										value.classList.add("summaryValue", "clickable");
+										value.style.backgroundColor = topic == "Lessons" ? "#4f7b61" : "#2c7080";
+										value.id = "summary"+topic;
+									});
+
+									const reviewsLoadingVal = loading([], [], 25);
+									const reviewsLoadingElem = reviewsLoadingVal[0];
+									summaryWrapper.appendChild(reviewsLoadingElem);
+
+									const moreReviews = document.createElement("p");
+									summaryWrapper.appendChild(moreReviews);
+									moreReviews.style.padding = "3px 0";
+									moreReviews.style.color = "#747474";
+									moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
+									const moreReviewsDate  = document.createElement("p");
+									summaryWrapper.appendChild(moreReviewsDate);
+									moreReviewsDate.style.padding = "3px 0";
+									moreReviewsDate.style.color = "#747474";
+								
+									// get all assignments if there are none in storage or if they were modified
+									setupAssignments(apiKey, () => setupAvailableAssignments(apiKey, setupSummary));
+							
+									const setupSummary = (reviews, lessons) => {
+										if (reviews) {
+											const currentTime = new Date().getTime();
+											
+											const currentValue = parseInt(document.getElementById("summaryReviews").innerText);
+											if (currentValue === 0)
+												document.getElementById("summaryReviews").innerText = reviews["count"] ? reviews["count"] : 0;
+											else {
+												if (reviews["count"] && typeof currentValue === "number" && !isNaN(currentTime) && reviews["count"] != lastReviewsValue) {
+													counterAnimation(currentValue, reviews["count"], document.getElementById("summaryReviews"), 5);
+													lastReviewsValue = reviews["count"];
+												}	
+											}												
+
+											// get all the reviews for the next 14 days
+											const nextReviews = reviews["next_reviews"];
+											const hoursIn14Days = 24*14;
+											// check reviews for the next hours, for every exact hour
+											for (let i = 1; i < hoursIn14Days; i++) {
+												const thisDate = nextExactHour(new Date(), i);
+												const reviewsForNextHour = filterAssignmentsByTime(nextReviews, new Date(), thisDate);
+												if (reviewsForNextHour.length > 0) {
+													const remainingTime = msToTime(thisDate - currentTime);
+													moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
+													settings = response["wkhighlight_settings"];
+													let time = `${thisDate.getHours() < 10 ? "0"+thisDate.getHours() : thisDate.getHours()}:${thisDate.getMinutes() < 10 ? "0"+thisDate.getMinutes() : thisDate.getMinutes()}`;
+													if (settings && settings["miscellaneous"]["time_in_12h_format"])
+														time = time12h(time);
+													moreReviewsDate.innerText = `${thisDate.getMonthName().slice(0, 3)} ${thisDate.getDate() < 10 ? "0"+thisDate.getDate() : thisDate.getDate()}, ${time}`;
+													
+													// create interval delay
+													// 10% of a day are 8640000 milliseconds
+													// 10% of an hour are 360000 milliseconds
+													// 10% of a minute are 6000 milliseconds
+													// 10% of a second are 100 milliseconds
+													const delays = {
+														"Days":8640000,
+														"Hrs":360000,
+														"Min":6000,
+														"Sec":100
+													}
+
+													// timeUnit = "Days, Hrs, etc..."
+													let timeUnit = remainingTime.split(" ")[1];
+
+													const timeStampRefresher = () => {
+														const newCurrentDate = new Date().getTime();
+														const newTimeStamp = msToTime(thisDate - newCurrentDate);
+														const newTimeUnit = newTimeStamp.split(" ")[1];
+														// check if has changed the unit of time
+														if (newTimeUnit != timeUnit) {
+															timeUnit = newTimeUnit;
+															// if so then clear the current interval
+															clearInterval(timeStampInterval);
+															// and start a new one with a new interval delay
+															timeStampInterval = setInterval(timeStampRefresher, delays[newTimeUnit]);
+														}
+
+														// if time stamp reached 0
+														if (thisDate <= newCurrentDate) {
+															moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> <b class="refresh clickable">now</b>`;
+															// refresh popup automatically
+															setTimeout(() => window.location.reload(), 1000);
+															clearInterval(timeStampInterval);
+															return;
+														}
+
+														// refresh time stamp
+														moreReviews.getElementsByTagName("B")[1].innerText = newTimeStamp;
+													}
+
+													let timeStampInterval = setInterval(timeStampRefresher, delays[timeUnit]);
+													// 10% of a minute are 6000 milliseconds
+													break;
+												}
+											}
+										}
+
+										if (lessons) {
+											const currentValue = parseInt(document.getElementById("summaryLessons").innerText);
+											if (currentValue === 0)
+												document.getElementById("summaryLessons").innerText = lessons["count"] ? lessons["count"] : 0;
+											else {
+												if (lessons["count"] && typeof currentValue === "number" && !isNaN(currentValue) && lessons["count"] != lastLessonsValue) {
+													counterAnimation(currentValue, lessons["count"], document.getElementById("summaryLessons"), 5);
+													lastLessonsValue = lessons["count"];
+												}	
+											}												
+										}
+										
+										reviewsLoadingElem.remove();
+										clearInterval(reviewsLoadingVal[1]);
+									}
+
+
+									reviews = response["wkhighlight_reviews"];
+									lessons = response["wkhighlight_lessons"];
+									
+									setupAvailableAssignments(apiKey, setupSummary);
+
+									setupSummary(reviews, lessons);
+								}
+
+								// overall progress
+								const radicalProgress = response["wkhighlight_radical_progress"];
+								const kanjiProgress = response["wkhighlight_kanji_progress"];
+								const vocabularyProgress = response["wkhighlight_vocabulary_progress"];
+								let progressBarWrapper, allSize, progress, unlockedSize=0;
+								if (radicalProgress || kanjiProgress || vocabularyProgress) {
+									// progress bar
+									if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["overall_progression_bar"] : settingsInterface["extension_popup_interface"]["overall_progression_bar"]) {
+										const radicalsSize = response["wkhighlight_allradicals_size"];
+										const kanjiSize = response["wkhighlight_allkanji_size"];
+										const vocabularySize = response["wkhighlight_allvocab_size"];
+										if (radicalsSize || kanjiSize || vocabularySize) {
+											allSize = (radicalsSize ? radicalsSize : 0) + (kanjiSize ? kanjiSize : 0) + (vocabularySize ? vocabularySize : 0);
+											
+											const progressBar = document.createElement("div");
+											userInfoWrapper.appendChild(progressBar);
+											progressBar.classList.add("userInfoWrapper-wrapper");
+											const progressBarTitle = document.createElement("p");
+											progressBar.appendChild(progressBarTitle);
+											progressBarTitle.appendChild(document.createTextNode("Overall Progression Bar"));
+											progressBarTitle.classList.add("userInfoWrapper-title");
+
+											progressBarWrapper = document.createElement("ul");
+											progressBar.appendChild(progressBarWrapper);
+											progressBarWrapper.style.height = "25px";
+											progressBarWrapper.style.display = "flex";
+											progressBarWrapper.style.flexDirection = "row";
+										}
+
+									}
+									
+									// progress stats
+									if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["overall_progression_stats"] : settingsInterface["extension_popup_interface"]["overall_progression_stats"]) {
+										progress = document.createElement("div");
+										userInfoWrapper.appendChild(progress);
+										const progressTitle = document.createElement("p");
+										progress.appendChild(progressTitle);
+										progressTitle.appendChild(document.createTextNode("Overall Progression Stats"));
+										progressTitle.classList.add("userInfoWrapper-title");
+									}
+
+									let wrapper;
+									Object.keys(srsStages).forEach(stage => {
+										const stageValue = (radicalProgress && radicalProgress[stage] ? radicalProgress[stage] : 0) + (kanjiProgress && kanjiProgress[stage] ? kanjiProgress[stage] : 0) + (vocabularyProgress && vocabularyProgress[stage] ? vocabularyProgress[stage] : 0);
+										const stageColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
+										unlockedSize+=stageValue;
+
+										// add bar to progress bar
+										if (progressBarWrapper && allSize) {
+											const progressBarBar = document.createElement("li");
+											progressBarWrapper.appendChild(progressBarBar);
+											progressBarBar.classList.add("clickable");
+											progressBarBar.style.height = "100%";
+											const percentageValue = stageValue/allSize*100;
+											progressBarBar.style.width = percentageValue+"%";
+											progressBarBar.style.backgroundColor = stageColor;
+											progressBarBar.style.overflow = "hidden";
+											progressBarBar.style.color = "white";
+											progressBarBar.title = srsStages[stage]["name"]+": "+stageValue+" / "+percentageValue.toFixed(1)+"%";
+											if (percentageValue > 8.1) {
+												const percentage = document.createElement("div");
+												progressBarBar.appendChild(percentage);
+												percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
+												percentage.style.textAlign = "center";
+												percentage.style.marginTop = "5px";
+											}
+										}
+
+										if (progress) {
+											// add square to progression stats
+											if (stage%5 == 0) {
+												wrapper = document.createElement("ul");
+												progress.appendChild(wrapper);
+												wrapper.classList.add("overall-progress");
 											}
 
-											// overall progress
-											const radicalProgress = response["wkhighlight_radical_progress"];
-											const kanjiProgress = response["wkhighlight_kanji_progress"];
-											const vocabularyProgress = response["wkhighlight_vocabulary_progress"];
-											let progressBarWrapper, allSize, progress, unlockedSize=0;
-											if (radicalProgress || kanjiProgress || vocabularyProgress) {
-												// progress bar
-												if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["overall_progression_bar"] : settingsInterface["extension_popup_interface"]["overall_progression_bar"]) {
-													const radicalsSize = response["wkhighlight_allradicals_size"];
-													const kanjiSize = response["wkhighlight_allkanji_size"];
-													const vocabularySize = response["wkhighlight_allvocab_size"];
-													if (radicalsSize || kanjiSize || vocabularySize) {
-														allSize = (radicalsSize ? radicalsSize : 0) + (kanjiSize ? kanjiSize : 0) + (vocabularySize ? vocabularySize : 0);
-														
-														const progressBar = document.createElement("div");
-														userInfoWrapper.appendChild(progressBar);
-														progressBar.classList.add("userInfoWrapper-wrapper");
-														const progressBarTitle = document.createElement("p");
-														progressBar.appendChild(progressBarTitle);
-														progressBarTitle.appendChild(document.createTextNode("Overall Progression Bar"));
-														progressBarTitle.classList.add("userInfoWrapper-title");
-	
-														progressBarWrapper = document.createElement("ul");
-														progressBar.appendChild(progressBarWrapper);
-														progressBarWrapper.style.height = "25px";
-														progressBarWrapper.style.display = "flex";
-														progressBarWrapper.style.flexDirection = "row";
+											const stageSquare = document.createElement("li");
+											stageSquare.style.backgroundColor = stageColor;
+											wrapper.appendChild(stageSquare);
+											stageSquare.appendChild(document.createTextNode(stageValue));
+											stageSquare.title = srsStages[stage]["name"];
+											const infoMenu = document.createElement("div");
+											stageSquare.appendChild(infoMenu);
+											if (stage < 5)
+												infoMenu.style.top = "35px";
+
+											if (stage%5 == 0)
+												infoMenu.style.left = "20px";
+
+											const infoMenuTitle = document.createElement("p");
+											infoMenu.appendChild(infoMenuTitle);
+											infoMenuTitle.appendChild(document.createTextNode(srsStages[stage]["name"]));
+											infoMenuTitle.style.color = stageColor;
+											const infoMenuBar = document.createElement("div");
+											infoMenu.appendChild(infoMenuBar);
+											const infoMenuListing = document.createElement("ul");
+											infoMenu.appendChild(infoMenuListing);
+											["Radicals", "Kanji", "Vocabulary"].forEach(type => {
+												let typeProgress = type == "Radicals" ? radicalProgress : type == "Kanji" ? kanjiProgress : vocabularyProgress;
+
+												const bar = document.createElement("div");
+												infoMenuBar.appendChild(bar);
+												bar.style.width = (typeProgress && typeProgress[stage] ? typeProgress[stage] / Number(stageSquare.innerText) *100 : 0)+"%";
+												const colorId = (type == "Radicals" ? "radical" : type == "Kanji" ? "kanji" : "vocab")+"_color";
+												bar.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][colorId] : defaultSettings["miscellaneous"][colorId];
+
+												const infoMenuType = document.createElement("li");
+												infoMenuListing.appendChild(infoMenuType);
+												const typeTitle = document.createElement("b");
+												infoMenuType.appendChild(typeTitle);
+												typeTitle.appendChild(document.createTextNode(type+": "));
+												infoMenuType.appendChild(document.createTextNode(typeProgress && typeProgress[stage] ? typeProgress[stage] : 0));
+											});
+
+											stageSquare.addEventListener("mouseover", () => infoMenu.style.display = "inherit");
+											stageSquare.addEventListener("mouseout", () => infoMenu.style.removeProperty("display"));
+										}
+									});
+
+									if (progressBarWrapper && allSize) {
+										const lockedSubjectsBar = document.createElement("li");
+										progressBarWrapper.appendChild(lockedSubjectsBar);
+										const percentageValue = (allSize-unlockedSize)/allSize*100
+										lockedSubjectsBar.style.width = percentageValue+"%";
+										lockedSubjectsBar.style.overflow = "hidden";
+										lockedSubjectsBar.style.height = "100%";
+										lockedSubjectsBar.classList.add("clickable");
+										lockedSubjectsBar.title = "Locked: "+(allSize-unlockedSize)+" / "+percentageValue.toFixed(1)+"%";
+										if (percentageValue > 8.1) {
+											const percentage = document.createElement("div");
+											lockedSubjectsBar.appendChild(percentage);
+											percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
+											percentage.style.textAlign = "center";
+											percentage.style.marginTop = "5px";
+										}
+									}
+								}
+
+								// Levels in progress
+								if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["levels_in_progress"] : settingsInterface["extension_popup_interface"]["levels_in_progress"]) {
+									const radicalsLevelInProgress = response["wkhighlight_radical_levelsInProgress"];
+									const kanjiLevelInProgress = response["wkhighlight_kanji_levelsInProgress"];
+									const vocabularyLevelInProgress = response["wkhighlight_vocabulary_levelsInProgress"];
+									if (radicalsLevelInProgress || kanjiLevelInProgress || vocabularyLevelInProgress) {
+										const levelsInProgress = document.createElement("div");
+										userInfoWrapper.appendChild(levelsInProgress);
+										levelsInProgress.classList.add("userInfoWrapper-wrapper");
+										levelsInProgress.style.width = "86%";
+										const levelsInProgressTitle = document.createElement("p");
+										levelsInProgress.appendChild(levelsInProgressTitle);
+										levelsInProgressTitle.appendChild(document.createTextNode("Levels In Progress"));
+										levelsInProgressTitle.classList.add("userInfoWrapper-title");
+										const types = ["radical", "kanji", "vocabulary"];
+										let progressBarWrappers = [];
+										let lib = new localStorageDB("subjects", localStorage);
+										[radicalsLevelInProgress ? radicalsLevelInProgress : [],
+										kanjiLevelInProgress ? kanjiLevelInProgress : [],
+										vocabularyLevelInProgress ? vocabularyLevelInProgress : []]
+											.forEach((levels, i) => {
+												const type = types[i];
+												levels.forEach(level => {
+													let values = [];
+													if (lib.tableExists(type)) {
+														values = lib.queryAll(type, {
+															query: row => {
+																return row.level == level && row.hidden_at == null
+															}
+														});
 													}
-	
-												}
-												
-												// progress stats
-												if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["overall_progression_stats"] : settingsInterface["extension_popup_interface"]["overall_progression_stats"]) {
-													progress = document.createElement("div");
-													userInfoWrapper.appendChild(progress);
-													const progressTitle = document.createElement("p");
-													progress.appendChild(progressTitle);
-													progressTitle.appendChild(document.createTextNode("Overall Progression Stats"));
-													progressTitle.classList.add("userInfoWrapper-title");
-												}
 
-												let wrapper;
-												Object.keys(srsStages).forEach(stage => {
-													const stageValue = (radicalProgress && radicalProgress[stage] ? radicalProgress[stage] : 0) + (kanjiProgress && kanjiProgress[stage] ? kanjiProgress[stage] : 0) + (vocabularyProgress && vocabularyProgress[stage] ? vocabularyProgress[stage] : 0);
-													const stageColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
-													unlockedSize+=stageValue;
+													const all = values.length;
+													const passed = values.filter(subject => subject["passed_at"]).length;
+													const notPassed = values.filter(subject => !subject["passed_at"]);
+													const locked = notPassed.filter(subject => subject["srs_stage"] == null).length;
 
-													// add bar to progress bar
-													if (progressBarWrapper && allSize) {
+													const progressBarWrapper = document.createElement("ul");
+													progressBarWrappers.push(progressBarWrapper);
+													progressBarWrapper.style.display = "flex";
+													progressBarWrapper.style.margin = "1px 0";
+
+													// set order value
+													const levelValue = Number(level);
+													progressBarWrapper.setAttribute("data-order", levelValue*10+i);
+
+													// bar for passed
+													const progressBarBar = document.createElement("li");
+													progressBarWrapper.appendChild(progressBarBar);
+													progressBarBar.classList.add("clickable");
+													progressBarBar.style.height = "25px";
+													const percentageValue = passed/all*100;
+													progressBarBar.style.width = percentageValue+"%";
+													progressBarBar.style.backgroundColor = "black";
+													progressBarBar.style.overflow = "hidden";
+													progressBarBar.style.color = "white";
+													progressBarBar.title = "Passed: "+passed;
+													if (percentageValue > 8.1) {
+														const percentage = document.createElement("div");
+														progressBarBar.appendChild(percentage);
+														percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
+														percentage.style.textAlign = "center";
+														percentage.style.marginTop = "5px";
+													}
+
+													// traverse from initiate until apprentice IV
+													for (let i = 5; i >= 0; i--) {
+														const stageSubjects = notPassed.filter(subject => subject["srs_stage"] == i).length;
 														const progressBarBar = document.createElement("li");
 														progressBarWrapper.appendChild(progressBarBar);
 														progressBarBar.classList.add("clickable");
-														progressBarBar.style.height = "100%";
-														const percentageValue = stageValue/allSize*100;
+														progressBarBar.style.height = "25px";
+														const percentageValue = stageSubjects/all*100;
 														progressBarBar.style.width = percentageValue+"%";
-														progressBarBar.style.backgroundColor = stageColor;
+														progressBarBar.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][srsStages[i]["short"].toLowerCase()+"_color"] : srsStages[i]["color"];
 														progressBarBar.style.overflow = "hidden";
 														progressBarBar.style.color = "white";
-														progressBarBar.title = srsStages[stage]["name"]+": "+stageValue+" / "+percentageValue.toFixed(1)+"%";
+														progressBarBar.title = srsStages[i]["name"]+": "+stageSubjects;
 														if (percentageValue > 8.1) {
 															const percentage = document.createElement("div");
 															progressBarBar.appendChild(percentage);
@@ -1529,247 +1696,135 @@ window.onload = () => {
 														}
 													}
 
-													if (progress) {
-														// add square to progression stats
-														if (stage%5 == 0) {
-															wrapper = document.createElement("ul");
-															progress.appendChild(wrapper);
-															wrapper.classList.add("overall-progress");
-														}
-
-														const stageSquare = document.createElement("li");
-														stageSquare.style.backgroundColor = stageColor;
-														wrapper.appendChild(stageSquare);
-														stageSquare.appendChild(document.createTextNode(stageValue));
-														stageSquare.title = srsStages[stage]["name"];
-														const infoMenu = document.createElement("div");
-														stageSquare.appendChild(infoMenu);
-														if (stage < 5)
-															infoMenu.style.top = "35px";
-
-														if (stage%5 == 0)
-															infoMenu.style.left = "20px";
-
-														const infoMenuTitle = document.createElement("p");
-														infoMenu.appendChild(infoMenuTitle);
-														infoMenuTitle.appendChild(document.createTextNode(srsStages[stage]["name"]));
-														infoMenuTitle.style.color = stageColor;
-														const infoMenuBar = document.createElement("div");
-														infoMenu.appendChild(infoMenuBar);
-														const infoMenuListing = document.createElement("ul");
-														infoMenu.appendChild(infoMenuListing);
-														["Radicals", "Kanji", "Vocabulary"].forEach(type => {
-															let typeProgress = type == "Radicals" ? radicalProgress : type == "Kanji" ? kanjiProgress : vocabularyProgress;
-
-															const bar = document.createElement("div");
-															infoMenuBar.appendChild(bar);
-															bar.style.width = (typeProgress[stage] ? typeProgress[stage] / Number(stageSquare.innerText) *100 : 0)+"%";
-															const colorId = (type == "Radicals" ? "radical" : type == "Kanji" ? "kanji" : "vocab")+"_color";
-															bar.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][colorId] : defaultSettings["miscellaneous"][colorId];
-
-															const infoMenuType = document.createElement("li");
-															infoMenuListing.appendChild(infoMenuType);
-															const typeTitle = document.createElement("b");
-															infoMenuType.appendChild(typeTitle);
-															typeTitle.appendChild(document.createTextNode(type+": "));
-															infoMenuType.appendChild(document.createTextNode(typeProgress[stage] ? typeProgress[stage] : 0));
-														});
-
-														stageSquare.addEventListener("mouseover", () => infoMenu.style.display = "inherit");
-														stageSquare.addEventListener("mouseout", () => infoMenu.style.removeProperty("display"));
-													}
-												});
-
-												if (progressBarWrapper && allSize) {
-													const lockedSubjectsBar = document.createElement("li");
-													progressBarWrapper.appendChild(lockedSubjectsBar);
-													const percentageValue = (allSize-unlockedSize)/allSize*100
-													lockedSubjectsBar.style.width = percentageValue+"%";
-													lockedSubjectsBar.style.overflow = "hidden";
-													lockedSubjectsBar.style.height = "100%";
-													lockedSubjectsBar.classList.add("clickable");
-													lockedSubjectsBar.title = "Locked: "+(allSize-unlockedSize)+" / "+percentageValue.toFixed(1)+"%";
-													if (percentageValue > 8.1) {
+													// bar for locked
+													const progressBarLocked = document.createElement("li");
+													progressBarWrapper.appendChild(progressBarLocked);
+													progressBarLocked.classList.add("clickable");
+													progressBarLocked.style.height = "25px";
+													const percentageValueLocked = locked/all*100;
+													progressBarLocked.style.width = percentageValueLocked+"%";
+													progressBarLocked.style.backgroundColor = "white";
+													progressBarLocked.style.overflow = "hidden";
+													progressBarLocked.style.color = "black";
+													progressBarLocked.title = "Locked: "+locked;
+													if (percentageValueLocked > 8.1) {
 														const percentage = document.createElement("div");
-														lockedSubjectsBar.appendChild(percentage);
-														percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
+														progressBarLocked.appendChild(percentage);
+														percentage.appendChild(document.createTextNode(percentageValueLocked.toFixed(percentageValueLocked > 11 ? 1 : 0)+"%"));
 														percentage.style.textAlign = "center";
 														percentage.style.marginTop = "5px";
 													}
-												}
-											}
 
-											// Levels in progress
-											if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["levels_in_progress"] : settingsInterface["extension_popup_interface"]["levels_in_progress"]) {
-												const radicalsLevelInProgress = response["wkhighlight_radical_levelsInProgress"];
-												const kanjiLevelInProgress = response["wkhighlight_kanji_levelsInProgress"];
-												const vocabularyLevelInProgress = response["wkhighlight_vocabulary_levelsInProgress"];
-												if (radicalsLevelInProgress || kanjiLevelInProgress || vocabularyLevelInProgress) {
-													const levelsInProgress = document.createElement("div");
-													userInfoWrapper.appendChild(levelsInProgress);
-													levelsInProgress.classList.add("userInfoWrapper-wrapper");
-													levelsInProgress.style.width = "86%";
-													const levelsInProgressTitle = document.createElement("p");
-													levelsInProgress.appendChild(levelsInProgressTitle);
-													levelsInProgressTitle.appendChild(document.createTextNode("Levels In Progress"));
-													levelsInProgressTitle.classList.add("userInfoWrapper-title");
-													const types = ["radical", "kanji", "vocabulary"];
-													let progressBarWrappers = [];
-													let lib = new localStorageDB("subjects", localStorage);
-													[radicalsLevelInProgress ? radicalsLevelInProgress : [],
-													kanjiLevelInProgress ? kanjiLevelInProgress : [],
-													vocabularyLevelInProgress ? vocabularyLevelInProgress : []]
-														.forEach((levels, i) => {
-															const type = types[i];
-															levels.forEach(level => {
-																let values = [];
-																if (lib.tableExists(type)) {
-																	values = lib.queryAll(type, {
-																		query: row => {
-																			return row.level == level && row.hidden_at == null
-																		}
-																	});
-																}
+													// bar id
+													const barTitle = document.createElement("span");
+													progressBarWrapper.appendChild(barTitle);
+													barTitle.style.position = "absolute";
+													barTitle.style.right = "0px";
+													barTitle.style.backgroundColor = "var(--default-color)";
+													barTitle.style.color = "white";
+													barTitle.style.padding = "5px";
+													barTitle.style.width = "42px";
+													barTitle.appendChild(document.createTextNode(levelValue+" "+types[i].charAt(0).toUpperCase()+types[i].substring(1, 3)));
 
-																const all = values.length;
-																const passed = values.filter(subject => subject["passed_at"]).length;
-																const notPassed = values.filter(subject => !subject["passed_at"]);
-																const locked = notPassed.filter(subject => subject["srs_stage"] == null).length;
+													// levelup marker
+													if (types[i] == "kanji" && levelValue == userInfo["level"]) {
+														const levelupMarkerWrapper = document.createElement("div");
+														progressBarWrapper.appendChild(levelupMarkerWrapper);
+														levelupMarkerWrapper.classList.add("levelup-marker");
+														levelupMarkerWrapper.style.width = "86%";
+														const levelupMarker = document.createElement("div");
+														levelupMarkerWrapper.appendChild(levelupMarker);
+														
+														// calculate number of kanji to get atleast 90%
+														let final = all;
+														for (let k = all; k > 0; k--) {
+															if (k/all*100 < 90) break;
+															final = k;
+														}
+														levelupMarker.style.width = final/all*100+"%";
+													}
+												});
+											});
 
-																const progressBarWrapper = document.createElement("ul");
-																progressBarWrappers.push(progressBarWrapper);
-																progressBarWrapper.style.display = "flex";
-																progressBarWrapper.style.margin = "1px 0";
-
-																// set order value
-																const levelValue = Number(level);
-																progressBarWrapper.setAttribute("data-order", levelValue*10+i);
-
-																// bar for passed
-																const progressBarBar = document.createElement("li");
-																progressBarWrapper.appendChild(progressBarBar);
-																progressBarBar.classList.add("clickable");
-																progressBarBar.style.height = "25px";
-																const percentageValue = passed/all*100;
-																progressBarBar.style.width = percentageValue+"%";
-																progressBarBar.style.backgroundColor = "black";
-																progressBarBar.style.overflow = "hidden";
-																progressBarBar.style.color = "white";
-																progressBarBar.title = "Passed: "+passed;
-																if (percentageValue > 8.1) {
-																	const percentage = document.createElement("div");
-																	progressBarBar.appendChild(percentage);
-																	percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
-																	percentage.style.textAlign = "center";
-																	percentage.style.marginTop = "5px";
-																}
-
-																// traverse from initiate until apprentice IV
-																for (let i = 5; i >= 0; i--) {
-																	const stageSubjects = notPassed.filter(subject => subject["srs_stage"] == i).length;
-																	const progressBarBar = document.createElement("li");
-																	progressBarWrapper.appendChild(progressBarBar);
-																	progressBarBar.classList.add("clickable");
-																	progressBarBar.style.height = "25px";
-																	const percentageValue = stageSubjects/all*100;
-																	progressBarBar.style.width = percentageValue+"%";
-																	progressBarBar.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][srsStages[i]["short"].toLowerCase()+"_color"] : srsStages[i]["color"];
-																	progressBarBar.style.overflow = "hidden";
-																	progressBarBar.style.color = "white";
-																	progressBarBar.title = srsStages[i]["name"]+": "+stageSubjects;
-																	if (percentageValue > 8.1) {
-																		const percentage = document.createElement("div");
-																		progressBarBar.appendChild(percentage);
-																		percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
-																		percentage.style.textAlign = "center";
-																		percentage.style.marginTop = "5px";
-																	}
-																}
-
-																// bar for locked
-																const progressBarLocked = document.createElement("li");
-																progressBarWrapper.appendChild(progressBarLocked);
-																progressBarLocked.classList.add("clickable");
-																progressBarLocked.style.height = "25px";
-																const percentageValueLocked = locked/all*100;
-																progressBarLocked.style.width = percentageValueLocked+"%";
-																progressBarLocked.style.backgroundColor = "white";
-																progressBarLocked.style.overflow = "hidden";
-																progressBarLocked.style.color = "black";
-																progressBarLocked.title = "Locked: "+locked;
-																if (percentageValueLocked > 8.1) {
-																	const percentage = document.createElement("div");
-																	progressBarLocked.appendChild(percentage);
-																	percentage.appendChild(document.createTextNode(percentageValueLocked.toFixed(percentageValueLocked > 11 ? 1 : 0)+"%"));
-																	percentage.style.textAlign = "center";
-																	percentage.style.marginTop = "5px";
-																}
-
-																// bar id
-																const barTitle = document.createElement("span");
-																progressBarWrapper.appendChild(barTitle);
-																barTitle.style.position = "absolute";
-																barTitle.style.right = "0px";
-																barTitle.style.backgroundColor = "var(--default-color)";
-																barTitle.style.color = "white";
-																barTitle.style.padding = "5px";
-																barTitle.style.width = "42px";
-																barTitle.appendChild(document.createTextNode(levelValue+" "+types[i].charAt(0).toUpperCase()+types[i].substring(1, 3)));
-
-																// levelup marker
-																if (types[i] == "kanji" && levelValue == userInfo["level"]) {
-																	const levelupMarkerWrapper = document.createElement("div");
-																	progressBarWrapper.appendChild(levelupMarkerWrapper);
-																	levelupMarkerWrapper.classList.add("levelup-marker");
-																	levelupMarkerWrapper.style.width = "86%";
-																	const levelupMarker = document.createElement("div");
-																	levelupMarkerWrapper.appendChild(levelupMarker);
-																	
-																	// calculate number of kanji to get atleast 90%
-																	let final = all;
-																	for (let k = all; k > 0; k--) {
-																		if (k/all*100 < 90) break;
-																		final = k;
-																	}
-																	levelupMarker.style.width = final/all*100+"%";
-																}
-															});
-														});
-	
-													// giving it some delay to let everything load (FIX THIS LATER)
-													setTimeout(() => progressBarWrappers.sort((a,b) => Number(a.dataset.order) - Number(b.dataset.order))
-																		.forEach(bar => levelsInProgress.appendChild(bar)), 200);
-												}
-											}
-
-											switch (homePage) {
-												case "Lessons":
-													document.getElementById("summaryLessons").click();
-													break;
-												case "Reviews":
-													document.getElementById("summaryReviews").click();
-													break;
-												case "Profile":
-													document.getElementById("profile").click();
-													break;
-												case "Settings":
-													document.getElementById("settings").click();
-													break;
-												case "About":
-													document.getElementById("about").click();
-													break;
-											}
-											// const itemsListLoadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading subjects info...");
-											// itemsListLoadingElem = itemsListLoadingVal[0];
-
-											// loadItemsLists(() => {
-											// 	itemsListLoadingElem.remove();
-											// 	itemsListLoadingElem = null;
-											// });
-									});
+										// giving it some delay to let everything load (FIX THIS LATER)
+										setTimeout(() => progressBarWrappers.sort((a,b) => Number(a.dataset.order) - Number(b.dataset.order))
+															.forEach(bar => levelsInProgress.appendChild(bar)), 200);
+									}
 								}
-							});
-					});
+
+								switch (homePage) {
+									case "Lessons":
+										document.getElementById("summaryLessons").click();
+										break;
+									case "Reviews":
+										document.getElementById("summaryReviews").click();
+										break;
+									case "Profile":
+										document.getElementById("profile").click();
+										break;
+									case "Settings":
+										document.getElementById("settings").click();
+										break;
+									case "About":
+										document.getElementById("about").click();
+										break;
+								}
+								// const itemsListLoadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading subjects info...");
+								// itemsListLoadingElem = itemsListLoadingVal[0];
+
+								// loadItemsLists(() => {
+								// 	itemsListLoadingElem.remove();
+								// 	itemsListLoadingElem = null;
+								// });
+								// });
+
+								// console.log("BEGIN");
+								// let textPopup, itemsListLoadingVal, itemsListLoadingElem;
+								// setupAssignments(apiKey)
+								// 	.then(() => {
+								// 		setupRadicals(apiKey)
+								// 			.then(radicals_dict => {
+								// 				if (radicals_dict[1]) {
+								// 					itemsListLoadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading subjects info...");
+								// 					itemsListLoadingElem = itemsListLoadingVal[0];
+								// 					textPopup = messagePopup("this-message", "Loading items...", "Deep loading of subjects. This might happen occasionaly.", true);
+								// 					document.body.appendChild(textPopup);
+								// 					if (itemsListLoadingElem)
+								// 						textPopup.getElementsByTagName("div")[1].appendChild(itemsListLoadingElem);
+								// 					assignUponSubjects(radicals_dict[0]);
+								// 					revStatsUponSubjects(apiKey, radicals_dict[0]);
+								// 				}
+
+								// 				setupVocab(apiKey)
+								// 					.then(vocab_dict => {
+								// 						if (vocab_dict[1]) {
+								// 							assignUponSubjects(vocab_dict[0]);
+								// 							revStatsUponSubjects(apiKey, vocab_dict[0]);
+								// 						}
+
+								// 						// setup kanji last to make sure scripts run with all subjects
+								// 						setupKanji(apiKey)
+								// 							.then(kanji_dict => {
+								// 								if (kanji_dict[1]) {
+								// 									assignUponSubjects(kanji_dict[0]);
+								// 									revStatsUponSubjects(apiKey, kanji_dict[0]);
+								// 								}
+								// 								console.log("END");
+								// 								if (itemsListLoadingElem) {
+								// 									itemsListLoadingElem.remove();
+								// 									itemsListLoadingElem = null;
+								// 								}
+																
+								// 								if (textPopup)
+								// 									textPopup.remove();
+
+								// 								location.reload();
+								// 							});
+								// 					});
+								// 			});
+								// 	});
+							}
+						});
 
 					document.body.style.cursor = "inherit";
 				}
@@ -1786,6 +1841,34 @@ const enhancedWarning = (text, color) => {
 	wrapper.style.borderLeft = "10px solid";
 	wrapper.style.color = color;
 	return wrapper;
+}
+
+const messagePopup = (id, title, message, focus, popupSize) => {
+	const container = document.createElement("div");
+	container.id = id;
+	container.classList.add("message-popup");
+
+	const back = document.createElement("div");
+	container.appendChild(back);
+	if (focus)
+		back.style.opacity = "0.5";
+
+	const popup = document.createElement("div");
+	container.appendChild(popup);
+	if (popupSize) {
+		if (popupSize.width) popup.style.width = popupSize.width;
+		if (popupSize.height) popup.style.width = popupSize.height;
+	}
+
+	const titleElem = document.createElement("p");
+	popup.appendChild(titleElem);
+	titleElem.appendChild(document.createTextNode(title));
+
+	const messageElem = document.createElement("div");
+	popup.appendChild(messageElem);
+	messageElem.appendChild(document.createTextNode(message));
+
+	return container;
 }
 
 const submitAction = () => {
@@ -2618,7 +2701,6 @@ document.addEventListener("click", e => {
 						case "kana_writing":
 							// update both on web page and background
 							chrome.tabs.query({currentWindow: true, active: true}, tabs => chrome.tabs.sendMessage(tabs[0].id, {kanaWriting: targetElem.checked}));
-							chrome.runtime.sendMessage({kanaWriting: targetElem.checked});
 							break;
 					}
 					break;
@@ -3922,7 +4004,7 @@ const matchesReadings = (input, readings, precise) => {
 
 let lastValueForKanjiHighlighted = 0;
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	if (request.nmrKanjiHighlighted) {
+	if (request.nmrKanjiHighlighted && sender.tab.id == activeTab.id) {
 		chrome.browserAction.setBadgeText({text: request.nmrKanjiHighlighted.toString(), tabId:activeTab.id});
 		chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:activeTab.id});
 
@@ -3964,7 +4046,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		}
 	}
 	
-	if (request.kanjiHighlighted && document.getElementById("kanjiHighlightedList")) {
+	if (request.kanjiHighlighted && document.getElementById("kanjiHighlightedList") && sender.tab.id == activeTab.id) {
 		chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
 			const kanjiAssoc = result["wkhighlight_kanji_assoc"];
 			const kanjiHighlightedList = request.kanjiHighlighted;

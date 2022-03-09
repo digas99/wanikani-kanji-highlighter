@@ -30,7 +30,7 @@ const convertToKana = text => {
 			kanaValue = kana[/[a-z]/.test(word.charAt(0)) ? 'll' : 'LL']+kana[word.slice(1)];
 		finalValue += kanaValue ? kanaValue : word;
 	}
-	return finalValue;
+	return finalValue == undefined ? '' : finalValue;
 }
 
 const isAllKana = text => {

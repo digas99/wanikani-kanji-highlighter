@@ -1654,3 +1654,44 @@ i {
 	margin-right: 10px;
 	width: 100%;
 }
+
+.message-popup {
+	position: fixed;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    z-index: 100;
+}
+
+.message-popup>div:first-of-type {
+	background-color: black;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.message-popup>div:nth-of-type(2) {
+    position: fixed;
+    left: 0;
+    right: 40px;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    width: 290px;
+    height: fit-content;
+    background-color: white;
+}
+
+.message-popup>div:nth-of-type(2)>p:first-of-type {
+    text-align: center;
+    padding: 15px;
+    background-color: var(--default-color);
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.message-popup>div:nth-of-type(2)>div:first-of-type {
+	padding: 10px;
+}
