@@ -1,3 +1,13 @@
+# [Changelog v0.6.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.5)
+Released on 10/03/2022
+
+## Popup
+- Reduced loading times
+- Removed subject info when hovering on subjects in profile, while at Wanikani
+
+## Bug Fix
+- Fixed issue where highlighted kanji would show on extension popups opened in other tabs (not only on the popup opened on their tab)
+
 # [Changelog v0.6.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.4)
 Released on 06/03/2022
 

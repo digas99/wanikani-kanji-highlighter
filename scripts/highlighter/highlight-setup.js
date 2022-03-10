@@ -60,7 +60,6 @@
 
 						totalHighlighted = learned.size() + notLearned.size();
 						contentHighlighted = {learned:learned.highlightedSet(), notLearned:notLearned.highlightedSet()};
-
 						chrome.runtime.sendMessage({badge:totalHighlighted, nmrKanjiHighlighted:totalHighlighted, kanjiHighlighted:contentHighlighted});
 						chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlighted, "wkhighlight_allHighLightedKanji":contentHighlighted});
 					}, delay);
@@ -95,7 +94,6 @@
 					sendResponse({uptime:true});
 					return true;
 				}
-
 			});
 
 			const addStylesToFrame = (iframe, highlightVar, className) => {

@@ -341,11 +341,8 @@ const flipArrow = (arrow, sourceDir, destDir, paddingValue) => {
 const assignUponSubjects = list => {
 	const type = list[Object.keys(list)[0]]["subject_type"];
 	if (list && type) {
-		const keys = Array(60).fill(0).map((_, i) => "wkhighlight_"+type+"_level"+(i+1));
-		keys.push("wkhighlight_assignments");
-		chrome.storage.local.get(keys, result => {
+		chrome.storage.local.get("wkhighlight_assignments", result => {
 			const allAssignments = result["wkhighlight_assignments"]["all"];
-			const levels = {};
 			const progress = Object.fromEntries(Object.keys(srsStages).map(stage => [stage, 0]));
 			const levelsInProgress = [];
 			if (allAssignments) {
@@ -357,8 +354,6 @@ const assignUponSubjects = list => {
 					const subjectId = data["subject_id"];
 					if (subjectId && list[subjectId]) {
 						const subject = list[subjectId];
-						if (!levels["wkhighlight_"+type+"_level"+subject["level"]])
-							levels["wkhighlight_"+type+"_level"+subject["level"]] = result["wkhighlight_"+type+"_level"+subject["level"]];
 
 						const timestamps = {
 							data_updated_at: assignment["data_updated_at"],
@@ -374,13 +369,6 @@ const assignUponSubjects = list => {
 						subject["srs_stage"] = data["srs_stage"];
 						subject["hidden"] = data["hidden"];
 						progress[data["srs_stage"]]++;
-
-						if (levels["wkhighlight_"+type+"_level"+subject["level"]] && levels["wkhighlight_"+type+"_level"+subject["level"]][subjectId]) {
-							const currentSubjectLevelStats = levels["wkhighlight_"+type+"_level"+subject["level"]][subjectId];
-							currentSubjectLevelStats["passed_at"] = data["passed_at"];
-							currentSubjectLevelStats["srs_stage"] = data["srs_stage"];
-							currentSubjectLevelStats["hidden"] = data["hidden"];
-						}
 
 						lib.update(type, {id:subjectId}, row => {
 							row.srs_stage = data["srs_stage"];
@@ -411,7 +399,7 @@ const assignUponSubjects = list => {
 						break;
 				}
 				if (storageId)
-					chrome.storage.local.set({...{[storageId]:list, ["wkhighlight_"+type+"_progress"]: progress, ["wkhighlight_"+type+"_levelsInProgress"]: levelsInProgress}, ...levels});
+					chrome.storage.local.set({...{[storageId]:list, ["wkhighlight_"+type+"_progress"]: progress, ["wkhighlight_"+type+"_levelsInProgress"]: levelsInProgress}});
 			}
 		});
 	}
