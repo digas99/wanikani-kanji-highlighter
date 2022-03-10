@@ -1,4 +1,5 @@
-# Changelog v0.6.5
+# [Changelog v0.6.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.5)
+Released on 10/03/2022
 
 ## Popup
 - Reduced loading times

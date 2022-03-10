@@ -18,7 +18,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v064)
+1. [Latest Features](#changelog-v065)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -29,6 +29,17 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.6. [Blacklisting a Site](#blacklisting-a-site)
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
+
+## Changelog v0.6.5
+
+Released on 10/03/2022
+
+### Popup
+- Reduced loading times
+- Removed subject info when hovering on subjects in profile, while at Wanikani
+
+### Bug Fix
+- Fixed issue where highlighted kanji would show on extension popups opened in other tabs (not only on the popup opened on their tab)
 
 ## Changelog v0.6.4
 
