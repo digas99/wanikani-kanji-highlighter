@@ -105,6 +105,10 @@ window.onload = () => {
 	main.id = "main";
 	document.body.appendChild(main);
 
+	const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading account info...");
+	const loadingElem = loadingVal[0];
+	main.appendChild(loadingElem);
+
 	chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_blacklist", "wkhighlight_settings", "wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons", "wkhighlight_kanji_progress", "wkhighlight_kanji_levelsInProgress", "wkhighlight_radical_progress", "wkhighlight_radical_levelsInProgress", "wkhighlight_vocabulary_progress", "wkhighlight_vocabulary_levelsInProgress", "wkhighlight_settings", "wkhighlight_allkanji_size", "wkhighlight_allradicals_size", "wkhighlight_allvocab_size", "wkhighlight_blacklist", "wkhighlight_kanji_assoc"], response => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			activeTab = tabs[0];
@@ -125,6 +129,10 @@ window.onload = () => {
 				apiKey = response["wkhighlight_apiKey"];
 				// if the user did not add a key yet
 				if (!apiKey) {
+					// remove loading animation
+					loadingElem.remove();
+					clearInterval(loadingVal[1]);
+					
 					chrome.browserAction.setBadgeText({text: '', tabId:activeTab.id});
 
 					// key input
@@ -178,10 +186,6 @@ window.onload = () => {
 					reposFirstVersion("digas99", "wanikani-kanji-highlighter").then(result => version.appendChild(document.createTextNode(result)));
 				}
 				else {
-					const loadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading account info...");
-					const loadingElem = loadingVal[0];
-					main.appendChild(loadingElem);
-	
 					// set settings
 					if (!settings)
 						settings = defaultSettings;
