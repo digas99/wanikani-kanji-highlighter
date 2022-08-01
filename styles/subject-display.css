@@ -124,7 +124,7 @@
 	z-index: 2;
 	display: flex !important;
     width: 275px !important;
-    min-height: 175px;
+    min-height: 200px;
     align-items: center;
     flex-direction: row;
     justify-content: center;
@@ -159,6 +159,10 @@
 #sd-detailsPopupCloseX {
     top: 8px;
     right: 9px;
+}
+
+#sd-detailsPopupCopy {
+    top: 8px;
 }
 
 .sd-detailsPopupButton {
@@ -202,7 +206,7 @@
 .sd-popupDetails_detailedInfoWrapper {
     color: white;
 	font-size: 15px;
-	margin-top: 140px !important;
+	margin-top: 200px !important;
 	transition: 0.3s;
 	text-align: left;
 }
@@ -214,7 +218,7 @@
     position: fixed;
 	text-align: center;
 	z-index: 2;
-	top: 176px;
+	top: 200px;
 }
 
 .sd-popupDetails_navbar > ul {
@@ -239,7 +243,7 @@
 
 .sd-popupDetails_anchor {
 	position: relative;
-	top: -215px;
+	top: -240px;
 }
 
 .sd-popupDetails_separator {
@@ -342,7 +346,7 @@
 	cursor: pointer;
 	transition: 0.2s;
 	max-width: 180px;
-	min-height: 53px;
+	min-height: 107px;
 	display: inline-block;
     text-align: center;
 	background-color: white;
@@ -460,4 +464,10 @@
     font-weight: bold;
     font-size: 9px;
     border-radius: 15px;
+}
+
+.sd-copiedMessage {
+	color: lightgray;
+	font-size: 12px;
+	margin-top: 4px;
 }

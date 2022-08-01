@@ -1,3 +1,14 @@
+# [Changelog v0.6.6]()
+
+## Popup
+- Added Copy to Clipboard button to API Key on About page
+
+## Content
+- Added Copy to Clipboard buttons to the main subject of lateral Details Popup and to each subject related to that main subject
+
+## Bug Fix
+- Previous Subject arrow on lateral Details Popup now is always visible to prevent a bug where it wouldn't show up, even when there were previous subjects
+
 # [Changelog v0.6.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.5)
 Released on 10/03/2022
 

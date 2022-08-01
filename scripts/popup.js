@@ -2489,9 +2489,37 @@ document.addEventListener("click", e => {
 		const apiKeyTitle = document.createElement("h3");
 		apiKeyDisplayWrapper.appendChild(apiKeyTitle);
 		apiKeyTitle.appendChild(document.createTextNode("API Key"));
+		const apiKeyValueWrapper = document.createElement("div");
+		apiKeyDisplayWrapper.appendChild(apiKeyValueWrapper);
+		apiKeyValueWrapper.style.display = "flex";
+		apiKeyValueWrapper.style.alignItems = "center";
+		apiKeyValueWrapper.style.columnGap = "10px";
 		const apiKeyValue = document.createElement("p");
-		apiKeyDisplayWrapper.appendChild(apiKeyValue);
-		chrome.storage.local.get(["wkhighlight_apiKey"], result => apiKeyValue.appendChild(document.createTextNode(result["wkhighlight_apiKey"])));
+		apiKeyValueWrapper.appendChild(apiKeyValue);
+		chrome.storage.local.get(["wkhighlight_apiKey"], result => {
+			apiKeyValue.appendChild(document.createTextNode(result["wkhighlight_apiKey"]));
+			// copy to clipboard button
+			const copyToClipboard = document.createElement("img");
+			apiKeyValueWrapper.appendChild(copyToClipboard);
+			copyToClipboard.src = "../images/copy.png";
+			copyToClipboard.classList.add("clickable");
+			copyToClipboard.style.width = "20px";
+			copyToClipboard.addEventListener("click", () => {
+				if (window.navigator.clipboard) {
+					window.navigator.clipboard.writeText(result["wkhighlight_apiKey"]).
+						then(() => {
+							Array.from(document.getElementsByClassName("copiedMessage")).forEach(elem => elem.remove());
+							const copiedMessage = document.createElement("div");
+							apiKeyValueWrapper.appendChild(copiedMessage);
+							copiedMessage.appendChild(document.createTextNode("Copied!"));
+							copiedMessage.classList.add("copiedMessage");
+							copiedMessage.style.color = "gray";
+							copiedMessage.style.fontSize = "12px";
+							setTimeout(() => copiedMessage.remove(), 1500);
+						});
+				}
+			});
+		});
 
 		const usedLibsWrapper = document.createElement("div");
 		content.appendChild(usedLibsWrapper);

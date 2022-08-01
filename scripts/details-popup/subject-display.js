@@ -41,8 +41,8 @@
 					sideBar.classList.add("sd-detailsPopup_cardSideBar");
 					const ul = document.createElement("ul");
 					sideBar.appendChild(ul);
-					const classes = ["sd-detailsPopup_cardSideBarAudio", "sd-detailsPopup_cardSideBarInfo"];
-					const icons = ["https://i.imgur.com/ETwuWqJ.png", "https://i.imgur.com/z5eKtlN.png"];
+					const classes = ["sd-detailsPopup_cardSideBarAudio", "sd-detailsPopup_cardSideBarInfo", "sd-detailsPopup_cardSideBarCopy"];
+					const icons = ["https://i.imgur.com/wjbObC4.png", "https://i.imgur.com/z5eKtlN.png", "https://i.imgur.com/kVFZ6bP.png"];
 					if (type == "kanji") {
 						classes.shift();
 						icons.shift();
@@ -108,8 +108,11 @@
 			}
 			
 			// clicked on sidebar audio
-			if (node.classList.contains("sd-detailsPopup_cardSideBarAudio"))
+			if (node.classList.contains("sd-detailsPopup_cardSideBarAudio")) {
 				playSubjectAudio(this.allVocab[getItemIdFromSideBar(node.parentElement.parentElement.parentElement)]["pronunciation_audios"], node);
+				node.firstChild.src = "https://i.imgur.com/ETwuWqJ.png";
+				setTimeout(() => node.firstChild.src = "https://i.imgur.com/wjbObC4.png", 1500);
+			}
 	
 			// clicked on sidebar info
 			if (node.classList.contains("sd-detailsPopup_cardSideBarInfo")) {
@@ -119,10 +122,23 @@
 					this.update(id, true);
 			}
 
+			// clicked on sidebar copy
+			if (node.classList.contains("sd-detailsPopup_cardSideBarCopy")) {
+				const id = getItemIdFromSideBar(node.parentElement.parentElement.parentElement);
+				if (window.navigator.clipboard && id) {
+					const item = this.allKanji[id] ? this.allKanji[id] : this.allVocab[id];
+					window.navigator.clipboard.writeText(item["characters"]).
+						then(() => {
+							node.firstChild.src = "https://i.imgur.com/eL3HiGE.png";
+							setTimeout(() => node.firstChild.src = "https://i.imgur.com/kVFZ6bP.png", 1500);
+						});
+				}
+			}
+
 			// clicked a button in kanji container
 			if (node.classList.contains("sd-detailsPopupButton")) {
 				// don't switchClass in the nodes inside the array
-				if (!["sd-detailsPopupCloseX", "sd-detailsPopupGoBack", "sd-detailsPopupGoUp"].includes(node.id)) {
+				if (!["sd-detailsPopupCloseX", "sd-detailsPopupGoBack", "sd-detailsPopupGoUp", "sd-detailsPopupCopy"].includes(node.id)) {
 					if (node.classList.contains("sd-detailsPopup_faded"))
 						node.classList.remove("sd-detailsPopup_faded");
 					else
@@ -160,6 +176,20 @@
 						this.update(kanji["id"], false);
 					}
 				}
+				
+				if (node.id == "sd-detailsPopupCopy") {
+					if (window.navigator.clipboard && this.currentItem) {
+						window.navigator.clipboard.writeText(this.currentItem["characters"]).
+							then(() => {
+								Array.from(document.getElementsByClassName("sd-copiedMessage")).forEach(elem => elem.remove());
+								const copiedMessage = document.createElement("div");
+								node.appendChild(copiedMessage);
+								copiedMessage.appendChild(document.createTextNode("Copied!"));
+								copiedMessage.classList.add("sd-copiedMessage");
+								setTimeout(() => copiedMessage.remove(), 1500);
+							});
+					}
+				}
 					
 			}
 			
@@ -195,6 +225,7 @@
 			if (id) {
 				const type = this.allKanji[id] ? "kanji" : "vocabulary";
 				const item = type === "kanji" ? this.allKanji[id] : this.allVocab[id];
+				this.currentItem = item;
 
 				if (!this.detailsPopup) this.create();
 
@@ -619,15 +650,16 @@
 				{id:"sd-detailsPopupGoUp", alt: "Go up (U)", active:true, src:"https://i.imgur.com/fszQn7s.png"},
 				{id:"sd-detailsPopupKeyBindings", alt: "Key Bindings", active:defaultSettings["kanji_details_popup"]["key_bindings"], src:"https://i.imgur.com/qbI2bKH.png"},
 				{id:"sd-detailsPopupSubjectLock", alt: "Subject lock (L)", active:this.locked, src:"https://i.imgur.com/gaKRPen.png"},
-				{id:"sd-detailsPopupFix", alt: "Subject fix (F)", active:this.fixed, src:"https://i.imgur.com/vZqwGZr.png"}
+				{id:"sd-detailsPopupFix", alt: "Subject fix (F)", active:this.fixed, src:"https://i.imgur.com/vZqwGZr.png"},
+				{id:"sd-detailsPopupCopy", alt: "Copy to Clipboard", active: true, src:"https://i.imgur.com/eL3HiGE.png"}
 			];
 
 			for (let i in buttons) {
 				const button = buttons[i];
 
 				// don't add go back button if there are no kanji to go back to
-				if (button["id"] == "sd-detailsPopupGoBack" && this.openedSubjects.length == 1)
-					continue;
+				//if (button["id"] == "sd-detailsPopupGoBack" && this.openedSubjects.length == 1)
+				//	continue;
 
 				const wrapper = document.createElement("div");
 				itemWrapper.appendChild(wrapper);
