@@ -895,9 +895,9 @@
 			navbarUl.appendChild(navbarLi);
 			navbarLi.title = info[0]+` (${info[0].charAt(0)})`;
 			navbarLi.classList.add("sd-detailsPopup_clickable");
-			const link = document.createElement("a");
+			const link = document.createElement("div");
 			navbarLi.appendChild(link);
-			link.href = `#sd-popupDetails_${info[0]}Section`;
+			link.addEventListener("click", () => document.querySelector(".sd-detailsPopup").scrollTo(0, document.getElementById(`sd-popupDetails_${info[0]}Section`).offsetTop));
 			const icon = document.createElement("img");
 			link.append(icon);
 			icon.src = info[1];

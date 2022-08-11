@@ -8,6 +8,7 @@
 
 ## Bug Fix
 - Previous Subject arrow on lateral Details Popup now is always visible to prevent a bug where it wouldn't show up, even when there were previous subjects
+- Navbar on lateral Details Popup now scrolls to each section without affecting the main webpage (some webpages would react badly to url hash changes when using anchor links and reload the page)
 
 # [Changelog v0.6.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.5)
 Released on 10/03/2022

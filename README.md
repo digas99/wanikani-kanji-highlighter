@@ -18,7 +18,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v065)
+1. [Latest Features](#changelog-v066)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -29,6 +29,18 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.6. [Blacklisting a Site](#blacklisting-a-site)
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
+
+## Changelog v0.6.6
+
+### Popup
+- Added Copy to Clipboard button to API Key on About page
+
+### Content
+- Added Copy to Clipboard buttons to the main subject of lateral Details Popup and to each subject related to that main subject
+
+### Bug Fix
+- Previous Subject arrow on lateral Details Popup now is always visible to prevent a bug where it wouldn't show up, even when there were previous subjects
+- Navbar on lateral Details Popup now scrolls to each section without affecting the main webpage (some webpages would react badly to url hash changes when using anchor links and reload the page) 
 
 ## Changelog v0.6.5
 
