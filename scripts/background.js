@@ -1,3 +1,10 @@
+importScripts("/scripts/fetch/data-fetch.js",
+	"/scripts/fetch/wk-fetch.js",
+	"/scripts/functions.js",
+	"/scripts/static.js",
+	"/scripts/kana.js",
+	"/lib/localstoragedb.min.js");
+
 const tabs = chrome.tabs;
 let thisTabId, apiToken;
 // highlighting properties
@@ -84,9 +91,6 @@ const setupLearnedKanji = async (apiToken, page, kanji) => {
 	return learnedKanji;
 }
 
-const executeScripts = (scripts, tabId) => scripts.forEach(script => tabs.executeScript(tabId, {file: script}));
-const insertStyles = (styles, tabId) => styles.forEach(style => tabs.insertCSS(tabId, {file: style}));
-
 const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	console.log("Setting up content scripts...");
 
@@ -106,14 +110,30 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	const scripts = kanji => {
 		// inject details popup
 		if (settings["kanji_details_popup"]["activated"]) {
-			executeScripts(['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js'], thisTabId);
-			insertStyles(['styles/subject-display.css'], thisTabId);
+			chrome.scripting.executeScript({
+				target: {tabId: thisTabId},
+				files: ['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js']
+			});
+
+			chrome.scripting.insertCSS({
+				target: {tabId: thisTabId},
+				files: ['styles/subject-display.css'],
+			});
 		}
 
 		// inject highlighter
-		tabs.executeScript(thisTabId, {file: 'scripts/highlighter/highlight.js'}, () => {
-			insertStyles(['styles/highlight.css'], thisTabId);
-			tabs.executeScript(thisTabId, {file: 'scripts/highlighter/highlight-setup.js'}, () => injectedHighlighter = true);
+		chrome.scripting.executeScript({
+			target: {tabId: thisTabId},
+			files: ['scripts/highlighter/highlight.js']
+		}, () => {
+			chrome.scripting.insertCSS({
+				target: {tabId: thisTabId},
+				files: ['styles/highlight.css'],
+			});
+			chrome.scripting.executeScript({
+				target: {tabId: thisTabId},
+				files: ['scripts/highlighter/highlight-setup.js']
+			}, () => injectedHighlighter = true);
 
 			chrome.storage.local.get(["wkhighlight_allLearnableKanji"], result => {
 				const allKanji = result["wkhighlight_allLearnableKanji"];
@@ -129,8 +149,6 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 					}});
 				}
 			});
-
-			chrome.runtime.lastError;
 		});
 	}
 
@@ -160,9 +178,9 @@ tabs.onActivated.addListener(activeInfo => {
 				if (settings["extension_icon"]["kanji_counter"] && injectedHighlighter) {
 					tabs.sendMessage(thisTabId, {nmrKanjiHighlighted:"popup"}, response => {
 						if (response && response["nmrKanjiHighlighted"])
-							chrome.browserAction.setBadgeText({text:response["nmrKanjiHighlighted"].toString(), tabId:thisTabId});
+							chrome.action.setBadgeText({text:response["nmrKanjiHighlighted"].toString(), tabId:thisTabId});
 						else
-							chrome.browserAction.setBadgeText({text: "0", tabId:thisTabId});
+							chrome.action.setBadgeText({text: "0", tabId:thisTabId});
 						
 						if (!response) {
 							// highlighter not injected because of some error
@@ -171,13 +189,13 @@ tabs.onActivated.addListener(activeInfo => {
 								if (!blacklist["wkhighlight_blacklist"] || blacklist["wkhighlight_blacklist"].length === 0 || !blacklisted(blacklist["wkhighlight_blacklist"], thisUrl))
 									setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", allKanjiList);
 								else {
-									chrome.browserAction.setBadgeText({text: '!', tabId:thisTabId});
-									chrome.browserAction.setBadgeBackgroundColor({color: "#dc6560", tabId:thisTabId});
+									chrome.action.setBadgeText({text: '!', tabId:thisTabId});
+									chrome.action.setBadgeBackgroundColor({color: "#dc6560", tabId:thisTabId});
 								}
 							});
 						}
 			
-						chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
+						chrome.action.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 
 						tabs.sendMessage(thisTabId, {kanaWriting:kanaWriting});
 						
@@ -185,8 +203,8 @@ tabs.onActivated.addListener(activeInfo => {
 				}
 			}
 			else {
-				chrome.browserAction.setBadgeText({text: "W", tabId:thisTabId});
-				chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1", tabId:thisTabId});
+				chrome.action.setBadgeText({text: "W", tabId:thisTabId});
+				chrome.action.setBadgeBackgroundColor({color: "#f100a1", tabId:thisTabId});
 			}
 		}
 	});
@@ -209,13 +227,21 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 								if (result["wkhighlight_apiKey"]) {
 									apiToken = result["wkhighlight_apiKey"];
 
-									tabs.executeScript(thisTabId, {file: 'scripts/kana.js'}, () => tabs.sendMessage(thisTabId, {kanaWriting:kanaWriting}));
-									if (settings && settings["miscellaneous"] && settings["miscellaneous"]["kana_writing"])
-										tabs.executeScript(thisTabId, {file: 'scripts/kana-inputs.js'});
+									chrome.scripting.executeScript({
+										target: {tabId: thisTabId},
+										files: ["scripts/kana.js"]
+									}, () => tabs.sendMessage(thisTabId, {kanaWriting:kanaWriting}));
+
+									if (settings && settings["miscellaneous"] && settings["miscellaneous"]["kana_writing"]) {
+										chrome.scripting.executeScript({
+											target: {tabId: thisTabId},
+											files: ["scripts/kana-inputs.js"]
+										});
+									}
 				
 									if (settings["extension_icon"]["kanji_counter"]) {
-										chrome.browserAction.setBadgeText({text: "0", tabId:thisTabId});
-										chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
+										chrome.action.setBadgeText({text: "0", tabId:thisTabId});
+										chrome.action.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 									}
 					
 									// get all assignments if there are none in storage or if they were modified
@@ -253,14 +279,14 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 							});
 						}
 						else {
-							chrome.browserAction.setBadgeText({text: '!', tabId:thisTabId});
-							chrome.browserAction.setBadgeBackgroundColor({color: "#dc6560", tabId:thisTabId});
+							chrome.action.setBadgeText({text: '!', tabId:thisTabId});
+							chrome.action.setBadgeBackgroundColor({color: "#dc6560", tabId:thisTabId});
 						}
 					});
 				}
 				else {
-					chrome.browserAction.setBadgeText({text: "W", tabId:thisTabId});
-					chrome.browserAction.setBadgeBackgroundColor({color: "#f100a1", tabId:thisTabId});
+					chrome.action.setBadgeText({text: "W", tabId:thisTabId});
+					chrome.action.setBadgeBackgroundColor({color: "#f100a1", tabId:thisTabId});
 
 					// if (settings && settings["miscellaneous"]["srs_info_on_reviews"])
 					// 	tabs.executeScript(thisTabId, {file: 'scripts/wanikani.js'});
@@ -285,8 +311,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		tabs.sendMessage(thisTabId, {popupDetails: request.popupDetails});
 
 	if (request.badge && settings["extension_icon"]["kanji_counter"] && sender.url === thisUrl) {
-		chrome.browserAction.setBadgeText({text: request.badge.toString(), tabId:thisTabId});
-		chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
+		chrome.action.setBadgeText({text: request.badge.toString(), tabId:thisTabId});
+		chrome.action.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 	}
 
 	if (request.imgUrl) {
@@ -319,8 +345,8 @@ chrome.contextMenus.onClicked.addListener(data => {
 	if (data["menuItemId"] == "wkhighlighterSearchKanji" && selectedText) {
 		selectedText = selectedText.trim();
 		chrome.storage.local.set({wkhighlight_contextMenuSelectedText:selectedText});
-		chrome.browserAction.setBadgeText({text: '\u2B06', tabId:thisTabId});
-		chrome.browserAction.setBadgeBackgroundColor({color: "green", tabId:thisTabId});
+		chrome.action.setBadgeText({text: '\u2B06', tabId:thisTabId});
+		chrome.action.setBadgeBackgroundColor({color: "green", tabId:thisTabId});
 		chrome.storage.local.get(["wkhighlight_settings"], result => {
 			const settings = result["wkhighlight_settings"];
 			if (settings && settings["notifications"]["searching_a_webpage_word"]) {

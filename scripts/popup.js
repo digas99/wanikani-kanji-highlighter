@@ -133,7 +133,7 @@ window.onload = () => {
 					loadingElem.remove();
 					clearInterval(loadingVal[1]);
 					
-					chrome.browserAction.setBadgeText({text: '', tabId:activeTab.id});
+					chrome.action.setBadgeText({text: '', tabId:activeTab.id});
 
 					// key input
 					const apiInputWrapper = document.createElement("div");
@@ -1301,8 +1301,8 @@ window.onload = () => {
 												
 											chrome.storage.local.remove(["wkhighlight_contextMenuSelectedText"]);
 											chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
-												chrome.browserAction.setBadgeText({text: result["wkhighlight_nmrHighLightedKanji"].toString(), tabId:activeTab.id});
-												chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:activeTab.id});
+												chrome.action.setBadgeText({text: result["wkhighlight_nmrHighLightedKanji"].toString(), tabId:activeTab.id});
+												chrome.action.setBadgeBackgroundColor({color: "#4d70d1", tabId:activeTab.id});
 											});
 										}
 									});
@@ -2121,7 +2121,7 @@ document.addEventListener("click", e => {
 						if (main) {
 							main.replaceChild(reloadPage(`Extension ACTIVATED on <div class="locationDiv"><span>${location}</span></div>`, "green"),  document.getElementById("userInfoWrapper"));
 						}
-						chrome.browserAction.setBadgeText({text: '', tabId:activeTab.id});
+						chrome.action.setBadgeText({text: '', tabId:activeTab.id});
 					});
 				}
 			});
@@ -2692,11 +2692,11 @@ document.addEventListener("click", e => {
 							if (targetElem.checked) {
 								chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
 									value = (result && result["wkhighlight_nmrHighLightedKanji"] ? result["wkhighlight_nmrHighLightedKanji"] : 0).toString();
-									chrome.browserAction.setBadgeText({text: value, tabId:activeTab.id});
+									chrome.action.setBadgeText({text: value, tabId:activeTab.id});
 								});
 							}
 							else
-								chrome.browserAction.setBadgeText({text: '', tabId:activeTab.id});
+								chrome.action.setBadgeText({text: '', tabId:activeTab.id});
 
 							break;
 					}
@@ -4037,8 +4037,8 @@ const matchesReadings = (input, readings, precise) => {
 let lastValueForKanjiHighlighted = 0;
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.nmrKanjiHighlighted && sender.tab.id == activeTab.id) {
-		chrome.browserAction.setBadgeText({text: request.nmrKanjiHighlighted.toString(), tabId:activeTab.id});
-		chrome.browserAction.setBadgeBackgroundColor({color: "#4d70d1", tabId:activeTab.id});
+		chrome.action.setBadgeText({text: request.nmrKanjiHighlighted.toString(), tabId:activeTab.id});
+		chrome.action.setBadgeBackgroundColor({color: "#4d70d1", tabId:activeTab.id});
 
 		let nmrKanjiHighlightedElem = document.getElementById("nmrKanjiHighlighted")?.getElementsByTagName("strong")[0];
 		if (!nmrKanjiHighlightedElem) {
