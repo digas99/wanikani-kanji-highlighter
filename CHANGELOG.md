@@ -1,4 +1,10 @@
-# [Changelog v0.6.6]()
+# [Changelog v0.6.7]()
+
+## Popup
+- Added navbar to Changelogs list in the About page
+
+# [Changelog v0.6.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.6)
+Released on 11/08/2022
 
 ## Popup
 - Added Copy to Clipboard button to API Key on About page
@@ -6,7 +12,7 @@
 ## Content
 - Added Copy to Clipboard buttons to the main subject of lateral Details Popup and to each subject related to that main subject
 
-## Bug Fix
+## Bug Fixes
 - Previous Subject arrow on lateral Details Popup now is always visible to prevent a bug where it wouldn't show up, even when there were previous subjects
 - Navbar on lateral Details Popup now scrolls to each section without affecting the main webpage (some webpages would react badly to url hash changes when using anchor links and reload the page)
 
@@ -17,7 +23,7 @@ Released on 10/03/2022
 - Reduced loading times
 - Removed subject info when hovering on subjects in profile, while at Wanikani
 
-## Bug Fix
+## Bug Fixes
 - Fixed issue where highlighted kanji would show on extension popups opened in other tabs (not only on the popup opened on their tab)
 
 # [Changelog v0.6.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.4)
@@ -52,7 +58,7 @@ Released on 25/02/2022
 - Added button to play sound of reading to the details popup of any vocabulary
 - Added real time color change to details popup, when changing it from the settings of the extension popup
 
-## Bug Fix
+## Bug Fixes
 - Clicking on a search result while on kana writing mode now searches for that result (before, it only worked while on romaji mode)
 - Fixed issue where list of highlighted kanji wouldn't show up if extension popup was opened too soon
 - Fixed issue where search on extension popup wouldn't load subjects when clicking to change type of input (from Romaji to Kana)
@@ -87,7 +93,7 @@ Released on 29/12/2021
 - Added slider to settings to set the opacity of the small details popup
 - Option to write with kana on webpage text inputs
 
-## Bug Fix
+## Bug Fixes
 - Fixed issue where subject data wasn't being loaded the first time the extension run
 - Notifications now show subjects numbers updated
 - Adjusted extension popup interactions when at wanikani.com
@@ -96,7 +102,7 @@ Released on 29/12/2021
 # [Changelog v0.6.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.1)
 Released on 15/12/2021
 
-## Bug Fix
+## Bug Fixes
 - Assignment material shown in reviews/lessons list now match the real number of assigments (only showing up to 500 assignments before, due to a bug)
 
 # [Changelog v0.6.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.0)
@@ -117,14 +123,14 @@ Released on 16/11/2021
 # [Changelog v0.5.7](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.7)
 Released on 08/10/2021
 
-## Bug Fix
+## Bug Fixes
 - Fixed issue where, on Youtube, highlighted content wouldn't update when clicking on a new video
 - Fixed issue where some kanji would be highlighted as learned, when it was not the case
 
 # [Changelog v0.5.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.6)
 Released on 03/10/2021
 
-## Bug Fix
+## Bug Fixes
 - Fixed issue where future reviews were not being fetched and displayed in the future reviews chart
 
 # [Changelog v0.5.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.5)
@@ -137,7 +143,7 @@ Released on 28/09/2021
 - Improved "romaji to kana" system. Now, writing, for example, "kko" becomes "っこ", as it should
 - Possibility to change time format within extension popup between 12h and 24h
 
-## Bug Fix
+## Bug Fixes
 - Fixed Kanji Search Settings Navbar taking time to show up, or not loading at all
 - Details Popup no longer closes for no reason when clicking to see the details popup of a subject from within that details popup
 - Details Popup no longer shows duplicate information on a subject
@@ -155,7 +161,7 @@ Released on 03/09/2021
 # [Changelog v0.5.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.3)
 Released on 30/08/2021
 
-## Bug Fix
+## Bug Fixes
 - Fixed issue where the app wouldn't fetch new subjects added/altered in WaniKani (Content Updates)
 - Going forwards or backwards in the future reviews chart now shows the correct day when entering a new month
 
@@ -176,7 +182,7 @@ Released on 10/08/2021
 - The same chart also has arrows to navigate through the days more easily. The left and right arrows of the keyboard can be used for the same effect
 - Reduced the time of the initial loading to almost none. The loading is now done only when needed, in certain key parts.
 
-## Bug Fix
+## Bug Fixes
 - Extension popup no longer reloads when user rejects the reset of all colors in settings
 
 # [Changelog v0.5.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.5.0)
@@ -205,7 +211,7 @@ Released on 09/08/2021
 - Settings page is now organized into sections
 - Color of highlight and kanji cards can now be customized in the popup settings
 
-## Bug Fix
+## Bug Fixes
 - Fixed weird placements of elements inside kanji details popup (extra blank spaces, content too big for its container, etc...)
 
 ---
@@ -217,7 +223,7 @@ Released on 02/08/2021
 - Possibility to make the kanji search results more or less broaden through the targeted search icon in the search results navbar. If targeted search is activated, then the result of the search will be exactly what was typed in (i.e.: searching gold will only show results with gold (results as goldfish, for example, will not be included))
 - Added the list of kanji that were highlighted in that page to the extension popup
 
-## Bug Fix
+## Bug Fixes
 - Content inside kanji details popup no longer loads multiple times, which was also causing problems when navigating through kanji and vocabulary within the kanji details popup
 
 # [Changelog v0.4.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.4)
@@ -239,7 +245,7 @@ Released on 02/06/2021
 - Selecting any word in a page and then right clicking it will show an option in the context menu to allow the user to search for that word in the Search Bar in the extension popup
 - Kanji counter in the extension icon doesn't have a cap of 99 kanji anymore
 
-## Bug Fix
+## Bug Fixes
 - The Kanji Info Popup is now the same in every page, and no longer gets all wrongly formated depending on the page it is in
 - Fixed an issue where if you were to click a kanji from a Search Result while there is already a Kanji Info Popup open, the Bottom Right Kanji Popup would become unclickable
 
@@ -254,13 +260,13 @@ Released on 01/06/2021
 ## Popup
 - When clicking a result of a search that is a kanji, the info popup for that kanji will appear in the bottom right corner of the webpage, as if that kanji was highlighted and the user hovered over it
 
-## Bug Fix
+## Bug Fixes
 - Fix issue where the extension popup wouldn't load correctly and would stay that way
 
 # [Changelog v0.4.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.1)
 Released on 30/05/2021
 
-## Bug Fix
+## Bug Fixes
 - Fixed bug where name of kanji wouldn't show up properly in the Kanji Info Popup
 
 # [Changelog v0.4.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.0)
@@ -298,19 +304,19 @@ Released on 22/05/2021
     - When something matches, it shows the character, the names and the readings for the kanji
     - Any kanji will show up, even the ones you haven't learned yet
 
-## Bug Fix
+## Bug Fixes
 - Clicking outside the settings and exit buttons, in the popup extension, no longer triggers them by mistake
 
 ---
 
 # [Changelog v0.2.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.2.2)
 Released on 13/05/2021
-## Bug Fix
+## Bug Fixes
 - Fixed extension popup not fully loading on certain websites
 
 # [Changelog v0.2.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.2.1)
 Released on 12/05/2021
-## Bug Fix
+## Bug Fixes
 - Fixed wrong version number displaying on the extension popup
 
 # [Changelog v0.2.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.2.0)
@@ -322,14 +328,14 @@ Released on 11/05/2021
 ## Content
 - Put an indicator when a kanji reading is hidden because of overflow on small Popup of Kanji Info
 
-## Bug Fix
+## Bug Fixes
 - Fixed some styling formatting issues with the highlighting of the kanji in some websites
 
 ---
 
 # [Changelog v0.1.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.1.1)
 Released on 07/05/2021
-## Bug Fix
+## Bug Fixes
 - Fixed page loading issues when navigating through pages of a same website
 - The extension now works on subdomains of Wanikani
 

@@ -674,6 +674,7 @@ i {
 
 ::-webkit-scrollbar, #reviewsMaterialList > ul::-webkit-scrollbar {
 	width: 15px;
+	height: 5px;
 }
 
 ::-webkit-scrollbar-track, #reviewsMaterialList > ul::-webkit-scrollbar-track {
@@ -1694,4 +1695,25 @@ i {
 
 .message-popup>div:nth-of-type(2)>div:first-of-type {
 	padding: 10px;
+}
+
+.readme-navbar {
+    display: flex;
+    font-size: 12px;
+    overflow: auto;
+    margin-bottom: 4px;
+    column-gap: 2px;
+    padding-bottom: 2px;
+}
+
+.readme-navbar > div {
+	padding: 5px;
+    border: 2px solid var(--default-color);
+    color: var(--default-color);
+	font-weight: bold;
+}
+
+.readme-navbar-selected, .readme-navbar > div:hover {
+    background-color: var(--default-color);
+	color: white !important;
 }

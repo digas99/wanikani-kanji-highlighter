@@ -2591,9 +2591,13 @@ document.addEventListener("click", e => {
 		content.appendChild(readme);
 		readme.style.padding = "20px 10px";
 		readme.style.borderBottom = "1px solid silver";
+		const readmeNavbar = document.createElement("div");
+		readme.appendChild(readmeNavbar);
+		readmeNavbar.classList.add("readme-navbar");
 		const readmeContent = document.createElement("div");
 		readmeContent.style.maxHeight = "245px";
 		readmeContent.style.overflowY = "auto";
+		readmeContent.style.scrollBehavior = "smooth";
 		readme.appendChild(readmeContent);
 		fetch('../CHANGELOG.md')
 			.then(response => response.text())
@@ -2602,10 +2606,22 @@ document.addEventListener("click", e => {
 				readmeContent.getElementsByTagName("h2")[0].style.removeProperty("margin-top");
 
 				Array.from(readmeContent.getElementsByTagName("h2"))
-					.forEach(h2 => {
+					.forEach((h2, i) => {
 						h2.style.backgroundColor = "var(--default-color)";
 						h2.style.padding = "4px";
 						h2.style.color = "white";
+
+						// fill navbar
+						const navbarSection = document.createElement("div");
+						readmeNavbar.appendChild(navbarSection);
+						navbarSection.classList.add("clickable");
+						navbarSection.appendChild(document.createTextNode(h2.innerText.split("v")[1]));
+						navbarSection.addEventListener("click", () => {
+							Array.from(document.getElementsByClassName("readme-navbar-selected")).forEach(elem => elem.classList.remove("readme-navbar-selected"));
+							navbarSection.classList.add("readme-navbar-selected");
+							readmeContent.scrollTo(0, h2.offsetTop-readmeNavbar.offsetTop-h2.offsetHeight-8);
+						});
+						if (i == 0) navbarSection.classList.add("readme-navbar-selected");
 					});
 			});
 
