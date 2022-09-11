@@ -30,7 +30,7 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
-## [Changelog v0.6.7]()
+## Changelog v0.6.7
 
 ### Popup
 - Added navbar to Changelogs list in the About page

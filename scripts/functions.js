@@ -253,8 +253,10 @@ const mdToHTML = lineText => {
 	}
 	else {
 		elem = document.createElement("h"+hCounter);
-		if (hCounter == 2)
-			elem.style.marginTop = "10px";
+		if (hCounter == 2) {
+			elem.style.marginTop = "20px";
+			elem.style.marginBottom = "5px";
+		}
 		
 		if (hCounter == 3) elem.style.fontSize = "16px";
 	}
@@ -273,10 +275,12 @@ const mdToHTML = lineText => {
 		if (line.charAt(i) == '[') insideLink = true;
 	}
 
+	if (line == "---") line = "";
+
 	if (lineText.charAt(0) === ' ')
 		elem.style.paddingLeft = "10px";
 
-		line.replaceAll('*', '');
+	line.replaceAll('*', '');
 
 	elem.appendChild(document.createTextNode(line));
 
