@@ -1,0 +1,49 @@
+.logo-section {
+	border-radius: 9px;
+    text-align: center;
+    margin: 0 15px;
+    margin-bottom: 20px;
+    background-color: var(--default-color);
+    padding: 22px;
+    color: white;
+}
+
+.logo-section > p {
+	font-size: 18px;
+    font-weight: bold;
+}
+
+.api-key-form > div:first-child {
+    margin-bottom: 10px;
+    margin-left: 10px;
+    font-size: 16px;
+}
+
+.api-key-form .input-wrapper {
+    width: 100%;
+    margin-right: 5px;
+}
+
+#submit {
+    text-align: center;
+    margin: 5px 0;
+}
+
+.bottom-link {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 11px;
+}
+
+#version {
+    text-align: center;
+    color: silver;
+    margin-top: 5px;
+}
+
+#message {
+	margin-top: 5px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+}

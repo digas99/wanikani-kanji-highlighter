@@ -1,0 +1,28 @@
+.apiKeyStep-wrapper {
+    margin-top: 45px;
+    padding: 5px 10px;
+}
+
+.apiKeyStep-wrapper > div:not(.apiKeyStep) {
+    margin-top: 6px;
+}
+
+.apiKeyStep,
+.apiKeyStep img {
+    margin-top: 6px;
+}
+
+.apiKeyStep img {
+    width: 100%;
+}
+
+.apiKeyStep {
+	background-color: var(--default-color);
+    color: white;
+    padding: 6px;
+	border-radius: 5px;
+}
+
+.apiKeyStep > p {
+    padding: 3px;
+}

@@ -1,0 +1,48 @@
+.topNav {
+    position: fixed;
+    background-color: var(--default-color);
+    border-top: 5px solid var(--wanikani);
+    top: 0;
+    width: 100%;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    color: white;
+    margin-left: -8px;
+    z-index: 10;
+    border-bottom: 2px solid white;
+}
+
+.topNav > a {
+    margin: 2px;
+    cursor: pointer;
+}
+
+.topNav > a * {
+    pointer-events: none;
+}
+
+.topNav > a > div {
+    display: flex;
+    align-items: center;
+}
+
+.topNav > a > div > i {
+    border-color: white;
+    padding: 4px;
+}
+
+.topNav > a > div > div {
+    margin-left: 10px;
+    color: white;
+}
+
+.topNav .star {
+    position: absolute;
+    right: 70px;
+    filter: invert(1);
+}
+
+.topNav .star > img {
+    width: 20px;
+}

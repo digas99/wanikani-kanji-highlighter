@@ -1,7 +1,11 @@
-# [Changelog v0.6.7]()
+# [Changelog v1.0.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.0)
+
+### - Manifest v3
 
 ## Popup
 - Added navbar to Changelogs list in the About page
+
+---
 
 # [Changelog v0.6.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.6)
 Released on 11/08/2022

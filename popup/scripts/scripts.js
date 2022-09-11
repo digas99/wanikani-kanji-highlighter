@@ -1,0 +1,1 @@
+const errorHandling = error => console.log(error);

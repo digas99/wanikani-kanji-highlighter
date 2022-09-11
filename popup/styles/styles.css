@@ -1,0 +1,189 @@
+:root {
+	--body-base-width: 400px;
+	--default-color: #2a2d48;
+	--radical-tag-color: #65b6ae;
+	--radical-tag-color-font: #000000;
+	--kanji-tag-color: #e7e485;
+	--kanji-tag-color-font: #000000;
+	--vocab-tag-color: #fc759b;
+	--vocab-tag-color-font: #000000;
+	--highlight-default-color: #2c5091;
+	--highlight-default-color-font: #000000;
+	--notLearned-color: #a32727;
+	--notLearned-color-font: #000000;
+	--wanikani: #f100a1;
+	--dark-back: #383838;
+	--reviews-color: #2c7080;
+	--int-color: #c0c0c0;
+	--int-color-font: #000000;
+	--ap1-color: #84bedb;
+	--ap1-color-font: #000000;
+	--ap2-color: #58afdb;
+	--ap2-color-font: #000000;
+	--ap3-color: #2ca2de;
+	--ap3-color-font: #000000;
+	--ap4-color: #0093de;
+	--ap4-color-font: #000000;
+	--gr1-color: #65ab63;
+	--gr1-color-font: #000000;
+	--gr2-color: #2dad2a;
+	--gr2-color-font: #000000;
+	--mst-color: #bd772f;
+	--mst-color-font: #000000;
+	--enl-color: #b255bd;
+	--enl-color-font: #000000;
+	--brn-color: #b34b50;
+	--brn-color-font: #000000;
+	scroll-behavior: smooth;
+}
+
+body {
+	width: var(--body-base-width);
+	transition: 0.3s;
+	font-size: 13px;
+}
+
+a {
+	text-decoration: none;
+	color: #001681;
+	transition: 0.3s;
+}
+
+a:hover {
+	opacity: 0.5;
+}
+
+li {
+	list-style: none;
+}
+
+p,
+h2,
+input,
+li,
+ul {
+	padding: 0;
+	margin: 0;
+}
+
+input[type="text"],
+input[type="text"]:focus {
+	border: none;
+	outline: none;
+}
+
+label {
+	cursor: pointer;
+	transition: 0.2s;
+}
+
+label:hover {
+	opacity: 0.5;
+}
+
+input[type="checkbox"] { 
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #7c7c7c;
+    border-radius: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	outline: none;
+}
+
+input[type="checkbox"]:after {
+	content: '\2713';
+	font-weight: 900;
+	color: white;
+	font-size: 17px;
+	display: none;
+} 
+
+input[type="checkbox"]:checked {
+	background-color: var(--dark-back);
+}
+
+input[type="checkbox"]:checked:after {
+	display: block;
+}
+
+i {
+	border: solid black;
+	border-width: 0 3px 3px 0;
+	display: inline-block;
+	padding: 7px;
+}
+
+.down {
+	transform: translateY(-50%) rotate(45deg);
+	-webkit-transform: translateY(-50%) rotate(45deg);
+}
+
+.up {
+	transform: translateY(-50%) rotate(-135deg);
+	-webkit-transform: translateY(-50%) rotate(-135deg);
+}
+
+.right {
+	transform: rotate(-45deg);
+	-webkit-transform: rotate(-45deg);
+}
+
+.left {
+	transform: rotate(134deg);
+	-webkit-transform: rotate(134deg);
+}
+
+::-webkit-scrollbar, #reviewsMaterialList > ul::-webkit-scrollbar {
+	width: 15px;
+	height: 5px;
+}
+
+::-webkit-scrollbar-track, #reviewsMaterialList > ul::-webkit-scrollbar-track {
+	background:silver;
+}
+
+::-webkit-scrollbar-thumb, #reviewsMaterialList > ul::-webkit-scrollbar-thumb {
+	background-color: var(--default-color);        
+}
+
+.button {
+    background-color: var(--default-color);
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+    text-align: center;
+    border-radius: 9px;
+}
+
+.button:hover {
+	filter: brightness(1.5);
+}
+
+.textInputWrapper {
+	display: flex;
+    border: 1px solid silver;
+    border-radius: 17px;
+    padding: 4px 6px;
+	position: relative;
+	background-color: white;
+	height: 23px;
+    align-items: center;
+}
+
+.textInputWrapper input {
+	width: 100%;
+    margin-right: 8px;
+}
+
+.textInputIcon {
+    margin-right: 5px;
+    padding-right: 5px;
+    border-right: 1px solid #797979;
+    width: 14px;
+    height: 14px;
+	opacity: 0.7;
+}

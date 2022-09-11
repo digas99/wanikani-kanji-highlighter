@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">	
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width">
+	<title>WKHighlighter</title>
+	<link rel="stylesheet" href="styles/styles.css">
+	<link rel="stylesheet" href="styles/auth.css">
+</head>
+<body>
+	<div id="main">
+		<div class="logo-section">
+			<img src="../logo/logo.png" alt="logo">
+			<p>Wanikani Kanji Highlighter</p>
+		</div>
+
+		<div class="api-key-form">
+			<div>API Key: </div>
+			<div class="input-wrapper">
+				<div id="apiKeyInputWrapper" class="textInputWrapper">
+					<img class="textInputIcon" src="../images/key.png">
+					<input type="text" placeholder="Input the key here..." id="apiKeyInput">
+				</div>
+			</div>
+			<div class="button" id="submit">Submit</div>
+			<div class="bottom-link">
+				<a href="api_key.html">What is an API Key?</a>
+			</div>
+			<p id="version"></p>
+		</div>
+	</div>
+
+	<script src="scripts/time.js"></script>
+	<script src="scripts/fetch/data-fetch.js"></script>
+	<script src="scripts/fetch/wk-fetch.js"></script>
+	<script src="scripts/scripts.js"></script>
+	<script src="scripts/auth.js"></script>
+</body>
+</html>
