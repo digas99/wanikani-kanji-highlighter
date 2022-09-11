@@ -18,7 +18,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v065)
+1. [Latest Features](#changelog-v067)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -30,6 +30,25 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
+## Changelog v0.6.7
+
+### Popup
+- Added navbar to Changelogs list in the About page
+
+## Changelog v0.6.6
+
+Released on 11/08/2022
+
+### Popup
+- Added Copy to Clipboard button to API Key on About page
+
+### Content
+- Added Copy to Clipboard buttons to the main subject of lateral Details Popup and to each subject related to that main subject
+
+### Bug Fixes
+- Previous Subject arrow on lateral Details Popup now is always visible to prevent a bug where it wouldn't show up, even when there were previous subjects
+- Navbar on lateral Details Popup now scrolls to each section without affecting the main webpage (some webpages would react badly to url hash changes when using anchor links and reload the page) 
+
 ## Changelog v0.6.5
 
 Released on 10/03/2022
@@ -38,7 +57,7 @@ Released on 10/03/2022
 - Reduced loading times
 - Removed subject info when hovering on subjects in profile, while at Wanikani
 
-### Bug Fix
+### Bug Fixes
 - Fixed issue where highlighted kanji would show on extension popups opened in other tabs (not only on the popup opened on their tab)
 
 ## Changelog v0.6.4
@@ -75,7 +94,7 @@ Released on 25/02/2022
 - Added button to play sound of reading to the details popup of any vocabulary
 - Added real time color change to details popup, when changing it from the settings of the extension popup
 
-### Bug Fix
+### Bug Fixes
 - Clicking on a search result while on kana writing mode now searches for that result (before, it only worked while on romaji mode)
 - Fixed issue where list of highlighted kanji wouldn't show up if extension popup was opened too soon
 - Fixed issue where search on extension popup wouldn't load subjects when clicking to change type of input (from Romaji to Kana)
@@ -111,7 +130,7 @@ Released on 29/12/2021
 - Added slider to settings to set the opacity of the small details popup
 - Option to write with kana on webpage text inputs
 
-### Bug Fix
+### Bug Fixes
 - Fixed issue where subject data wasn't being loaded the first time the extension run
 - Notifications now show subjects numbers updated
 - Adjusted extension popup interactions when at wanikani.com
@@ -121,7 +140,7 @@ Released on 29/12/2021
 
 Released on 15/12/2021
 
-### Bug Fix
+### Bug Fixes
 
 - Assignment material shown in reviews/lessons list now match the real number of assigments (only showing up to 500 assignments before, due to a bug)
 

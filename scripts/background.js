@@ -218,65 +218,63 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 			thisUrl = tab.url;
 			if (url === thisUrl && !urlChecker.test(url)) {
 				if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {
-					chrome.storage.local.get(["wkhighlight_blacklist"], blacklist => {
+					chrome.storage.local.get(["wkhighlight_blacklist", "wkhighlight_apiKey"], blacklist => {
 						// check if the site is blacklisted
 						if (!blacklist["wkhighlight_blacklist"] || blacklist["wkhighlight_blacklist"].length === 0 || !blacklisted(blacklist["wkhighlight_blacklist"], url)) {
 							setSettings();
 	
-							chrome.storage.local.get(["wkhighlight_apiKey"], result => {
-								if (result["wkhighlight_apiKey"]) {
-									apiToken = result["wkhighlight_apiKey"];
+							if (result["wkhighlight_apiKey"]) {
+								apiToken = result["wkhighlight_apiKey"];
 
+								chrome.scripting.executeScript({
+									target: {tabId: thisTabId},
+									files: ["scripts/kana.js"]
+								}, () => tabs.sendMessage(thisTabId, {kanaWriting:kanaWriting}));
+
+								if (settings && settings["miscellaneous"] && settings["miscellaneous"]["kana_writing"]) {
 									chrome.scripting.executeScript({
 										target: {tabId: thisTabId},
-										files: ["scripts/kana.js"]
-									}, () => tabs.sendMessage(thisTabId, {kanaWriting:kanaWriting}));
-
-									if (settings && settings["miscellaneous"] && settings["miscellaneous"]["kana_writing"]) {
-										chrome.scripting.executeScript({
-											target: {tabId: thisTabId},
-											files: ["scripts/kana-inputs.js"]
-										});
-									}
-				
-									if (settings["extension_icon"]["kanji_counter"]) {
-										chrome.action.setBadgeText({text: "0", tabId:thisTabId});
-										chrome.action.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
-									}
-					
-									// get all assignments if there are none in storage or if they were modified
-									// see if all kanji is already saved in storage
-									setupAssignments(apiToken)
-										.then(() => {
-											setupRadicals(apiToken)
-												.then(radicals_dict => {
-													if (radicals_dict[1]) {
-														assignUponSubjects(radicals_dict[0]);
-														revStatsUponSubjects(apiToken, radicals_dict[0]);
-													}
-
-													setupVocab(apiToken)
-														.then(vocab_dict => {
-															if (vocab_dict[1]) {
-																assignUponSubjects(vocab_dict[0]);
-																revStatsUponSubjects(apiToken, vocab_dict[0]);
-															}
-
-															// setup kanji last to make sure scripts run with all subjects
-															setupKanji(apiToken)
-																.then(kanji_dict => {
-																	if (kanji_dict[1]) {
-																		assignUponSubjects(kanji_dict[0]);
-																		revStatsUponSubjects(apiToken, kanji_dict[0]);
-																	}
-																	allKanjiList = kanji_dict[0];
-																	setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", kanji_dict[0]);
-																});
-														});
-												});
-										});
+										files: ["scripts/kana-inputs.js"]
+									});
 								}
-							});
+			
+								if (settings["extension_icon"]["kanji_counter"]) {
+									chrome.action.setBadgeText({text: "0", tabId:thisTabId});
+									chrome.action.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
+								}
+				
+								// get all assignments if there are none in storage or if they were modified
+								// see if all kanji is already saved in storage
+								setupAssignments(apiToken)
+									.then(() => {
+										setupRadicals(apiToken)
+											.then(radicals_dict => {
+												if (radicals_dict[1]) {
+													assignUponSubjects(radicals_dict[0]);
+													revStatsUponSubjects(apiToken, radicals_dict[0]);
+												}
+
+												setupVocab(apiToken)
+													.then(vocab_dict => {
+														if (vocab_dict[1]) {
+															assignUponSubjects(vocab_dict[0]);
+															revStatsUponSubjects(apiToken, vocab_dict[0]);
+														}
+
+														// setup kanji last to make sure scripts run with all subjects
+														setupKanji(apiToken)
+															.then(kanji_dict => {
+																if (kanji_dict[1]) {
+																	assignUponSubjects(kanji_dict[0]);
+																	revStatsUponSubjects(apiToken, kanji_dict[0]);
+																}
+																allKanjiList = kanji_dict[0];
+																setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", kanji_dict[0]);
+															});
+													});
+											});
+									});
+							}
 						}
 						else {
 							chrome.action.setBadgeText({text: '!', tabId:thisTabId});
