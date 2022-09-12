@@ -207,7 +207,7 @@ const clearCache = () => {
 				keysToRemove.push(key);
 			}
 		});
-		if (window)
+		if (typeof window !== 'undefined')
 			window.location.reload();
 		chrome.storage.local.remove(keysToRemove);
 		localStorage.clear("db_subjects");
@@ -222,7 +222,7 @@ const clearSubjects = () => {
 				keysToRemove.push(key);
 			}
 		});
-		if (window)
+		if (typeof window !== 'undefined')
 			window.location.reload();
 		chrome.storage.local.remove(keysToRemove);
 		localStorage.clear("db_subjects");

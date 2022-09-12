@@ -1,9 +1,12 @@
-importScripts("/scripts/fetch/data-fetch.js",
+importScripts(
+	"/scripts/fetch/data-fetch.js",
 	"/scripts/fetch/wk-fetch.js",
+	"/scripts/database.js",
 	"/scripts/functions.js",
 	"/scripts/static.js",
 	"/scripts/kana.js",
-	"/lib/localstoragedb.min.js");
+	"/lib/localstoragedb.min.js"
+);
 
 const tabs = chrome.tabs;
 let thisTabId, apiToken;
@@ -68,6 +71,25 @@ const setSettings = () => {
 	});
 }
 setSettings();
+
+const customerData = [
+	{ ssn: "444-44-4444", name: "Bill", age: 35, email: "bill@company.com" },
+	{ ssn: "555-55-5555", name: "Donna", age: 32, email: "donna@home.org" }
+];
+const table = "customer";
+
+const db = new Database("Test");
+db.create(table, "email")
+	.then(created => {
+		if (created) {
+			db.count(table).then(value => console.log("count:", value));
+			db.insert(table, customerData).then(inserted => {
+				if (inserted) {
+					db.get(table, "donna@home.org").then(result => console.log(result));
+				}
+			});
+		}
+	});
 
 const fetchReviewedKanjiID = async (apiToken, page) => {
 	//fetch all reviewed kanji
