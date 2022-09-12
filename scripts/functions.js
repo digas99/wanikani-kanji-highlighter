@@ -210,7 +210,6 @@ const clearCache = () => {
 		if (typeof window !== 'undefined')
 			window.location.reload();
 		chrome.storage.local.remove(keysToRemove);
-		localStorage.clear("db_subjects");
 	});
 }
 
@@ -225,7 +224,6 @@ const clearSubjects = () => {
 		if (typeof window !== 'undefined')
 			window.location.reload();
 		chrome.storage.local.remove(keysToRemove);
-		localStorage.clear("db_subjects");
 	});
 }
 
@@ -354,7 +352,6 @@ const assignUponSubjects = list => {
 			if (allAssignments) {
 				console.log(`Associating assignments with ${type} ...`);
 
-				const lib = new localStorageDB("subjects", localStorage);
 				allAssignments.forEach(assignment => {
 					const data = assignment["data"];
 					const subjectId = data["subject_id"];
@@ -376,21 +373,12 @@ const assignUponSubjects = list => {
 						subject["hidden"] = data["hidden"];
 						progress[data["srs_stage"]]++;
 
-						lib.update(type, {id:subjectId}, row => {
-							row.srs_stage = data["srs_stage"];
-							row.hidden = data["hidden"];
-							row.passed_at = data["passed_at"];
-							row.available_at = data["available_at"];
-							return row;
-						});
-
 						if (!data["passed_at"] && !levelsInProgress.includes(subject["level"]))
 							levelsInProgress.push(subject["level"]);
 					}
 				});
 
 				console.log("commit from assignments");
-				console.log(lib.commit());
 
 				let storageId;
 				switch(type) {

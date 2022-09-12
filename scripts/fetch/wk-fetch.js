@@ -5,104 +5,90 @@ const setupKanji = (apiToken, callback) =>
 			modifiedSince(apiToken, kanjiUpdated, "https://api.wanikani.com/v2/subjects?types=kanji")
 				.then(modified => {
 					if (!result['wkhighlight_allkanji'] || modified) {
-						let lib = new localStorageDB("subjects", localStorage);
-						const tableExists = lib.tableExists("kanji");
-						if (!tableExists)
-							lib.createTable("kanji", ["amalgamation_subject_ids", "characters", "component_subject_ids", "level", "meanings", "readings", "visually_similar_subject_ids", "id", "subject_type", "hidden_at", "srs_stage", "hidden", "passed_at", "available_at"]);
-						fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=kanji")
-							.then(kanji_data => {
-								const kanji_dict = {};
-								const kanji_assoc = {};
-								const levels = {};
-								kanji_data.map(content => content.data)
-									.flat(1)
-									.forEach(kanji => {
-										const data = kanji.data;
-										if (!levels["wkhighlight_kanji_level"+data.level])
-											levels["wkhighlight_kanji_level"+data.level] = {};
+						const db = new Database("wanikani");
+						db.create("subjects", "id", ["level"]).then(created => {
+							if (created) {								
+								fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=kanji")
+									.then(kanji_data => {
+										const kanji_dict = {};
+										const kanji_assoc = {};
+										const levels = {};
+										const db_records = [];
+										kanji_data.map(content => content.data)
+											.flat(1)
+											.forEach(kanji => {
+												const data = kanji.data;
+												if (!levels["wkhighlight_kanji_level"+data.level])
+													levels["wkhighlight_kanji_level"+data.level] = {};
+		
+												kanji_dict[kanji.id] = {
+													"amalgamation_subject_ids" : data.amalgamation_subject_ids,
+													"characters" : data.characters,
+													"component_subject_ids" : data.component_subject_ids,
+													"document_url" : data.document_url,
+													"level" : data.level,
+													"meaning_hint" : data.meaning_hint,
+													"meaning_mnemonic" : data.meaning_mnemonic,
+													"meanings" : data.meanings.map(data => data.meaning),
+													"reading_hint" : data.reading_hint,
+													"reading_mnemonic" : data.reading_mnemonic,
+													"readings" : data.readings,
+													"visually_similar_subject_ids" : data.visually_similar_subject_ids,
+													"slug": data.slug,
+													"id":kanji.id,
+													"subject_type":kanji.object,
+													"hidden_at":data.hidden_at
+												};
+		
+												db_records.push({
+													"amalgamation_subject_ids" : data.amalgamation_subject_ids,
+													"characters" : data.characters,
+													"component_subject_ids" : data.component_subject_ids,
+													"level" : data.level,
+													"meanings" : data.meanings.map(data => data.meaning),
+													"readings" : data.readings,
+													"visually_similar_subject_ids" : data.visually_similar_subject_ids,
+													"id" : kanji.id,
+													"subject_type" : kanji.object,
+													"hidden_at" : data.hidden_at,
+													"srs_stage" : null,
+													"hidden" : null,
+													"passed_at" : null
+												});
 
-										kanji_dict[kanji.id] = {
-											"amalgamation_subject_ids" : data.amalgamation_subject_ids,
-											"characters" : data.characters,
-											"component_subject_ids" : data.component_subject_ids,
-											"document_url" : data.document_url,
-											"level" : data.level,
-											"meaning_hint" : data.meaning_hint,
-											"meaning_mnemonic" : data.meaning_mnemonic,
-											"meanings" : data.meanings.map(data => data.meaning),
-											"reading_hint" : data.reading_hint,
-											"reading_mnemonic" : data.reading_mnemonic,
-											"readings" : data.readings,
-											"visually_similar_subject_ids" : data.visually_similar_subject_ids,
-											"slug": data.slug,
-											"id":kanji.id,
-											"subject_type":kanji.object,
-											"hidden_at":data.hidden_at
-										};
+												kanji_assoc[data.slug] = kanji.id;
+												levels["wkhighlight_kanji_level"+data.level][kanji.id] = {
+													"characters" : data.characters,
+													"id":kanji.id,
+													"meanings" : data.meanings.map(data => data.meaning),
+													"readings" : data.readings,
+													"subject_type":kanji.object,
+													"hidden_at":data.hidden_at
+												};
+											});
+		
+										db.insert("subjects", db_records);
 
-										if (!tableExists)
-											lib.insert("kanji", {
-												"amalgamation_subject_ids" : data.amalgamation_subject_ids,
-												"characters" : data.characters,
-												"component_subject_ids" : data.component_subject_ids,
-												"level" : data.level,
-												"meanings" : data.meanings.map(data => data.meaning),
-												"readings" : data.readings,
-												"visually_similar_subject_ids" : data.visually_similar_subject_ids,
-												"id" : kanji.id,
-												"subject_type" : kanji.object,
-												"hidden_at" : data.hidden_at,
-												"srs_stage" : null,
-												"hidden" : null,
-												"passed_at" : null
-											});
-										else {
-											lib.update("kanji", {id: kanji.id}, row => {
-												row.amalgamation_subject_ids = data.amalgamation_subject_ids;
-												row.characters = data.characters;
-												row.component_subject_ids = data.component_subject_ids;
-												row.level = data.level;
-												row.meanings = data.meanings.map(data => data.meaning);
-												row.readings = data.readings;
-												row.visually_similar_subject_ids = data.visually_similar_subject_ids;
-												row.id = kanji.id;
-												row.subject_type = kanji.object;
-												row.hidden_at = data.hidden_at;
-												return row;
-											});
+										// add jlpt info to kanjis
+										for (const n in jlpt) {
+											jlpt[n].forEach(kanji => kanji_dict[kanji_assoc[kanji]]["jlpt"] = n.toUpperCase());
 										}
-
-										kanji_assoc[data.slug] = kanji.id;
-										levels["wkhighlight_kanji_level"+data.level][kanji.id] = {
-											"characters" : data.characters,
-											"id":kanji.id,
-											"meanings" : data.meanings.map(data => data.meaning),
-											"readings" : data.readings,
-											"subject_type":kanji.object,
-											"hidden_at":data.hidden_at
-										};
-									});
-
-								// add jlpt info to kanjis
-								for (const n in jlpt) {
-									jlpt[n].forEach(kanji => kanji_dict[kanji_assoc[kanji]]["jlpt"] = n.toUpperCase());
-								}
-
-								// add joyo info to kanjis
-								for (const n in joyo) {
-									joyo[n].forEach(kanji => kanji_dict[kanji_assoc[kanji]]["joyo"] = "Grade "+n.charAt(1));
-								}
-								// saving all kanji
-								chrome.storage.local.set({...{"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc, "wkhighlight_allkanji_updated": formatDate(new Date()), "wkhighlight_allkanji_size":kanji_data[0]["total_count"]}, ...levels}, () => {
-									console.log("Setup Kanji...");
-									resolve([kanji_dict, true]);
-									if (callback)
-										callback(kanji_dict, true);	
-								});
-
-								console.log(lib.commit());
-							})
-							.catch(reject);
+		
+										// add joyo info to kanjis
+										for (const n in joyo) {
+											joyo[n].forEach(kanji => kanji_dict[kanji_assoc[kanji]]["joyo"] = "Grade "+n.charAt(1));
+										}
+										// saving all kanji
+										chrome.storage.local.set({...{"wkhighlight_allkanji": kanji_dict, "wkhighlight_kanji_assoc": kanji_assoc, "wkhighlight_allkanji_updated": formatDate(new Date()), "wkhighlight_allkanji_size":kanji_data[0]["total_count"]}, ...levels}, () => {
+											console.log("Setup Kanji...");
+											resolve([kanji_dict, true]);
+											if (callback)
+												callback(kanji_dict, true);	
+										});		
+									})
+									.catch(reject);
+							}
+						});
 					}
 					else {
 						resolve([result['wkhighlight_allkanji'], false]);
@@ -120,79 +106,69 @@ const setupRadicals = (apiToken, callback) =>
 			modifiedSince(apiToken, radicalsUpdated, "https://api.wanikani.com/v2/subjects?types=radical")
 				.then(modified => {
 					if (!result['wkhighlight_allradicals'] || modified) {
-						let lib = new localStorageDB("subjects", localStorage);
-						const tableExists = lib.tableExists("radical");
-						if (!tableExists)
-							lib.createTable("radical", ["characters", "character_images", "level", "id", "meanings", "subject_type", "hidden_at", "srs_stage", "hidden", "passed_at", "available_at"]);
-						fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=radical")
-							.then(radical_data => {
-								const radical_dict = {};
-								const levels = {};
-								radical_data.map(content => content.data)
-									.flat(1)
-									.forEach(radical => {
-										const data = radical.data;
-										if (!levels["wkhighlight_radical_level"+data.level])
-											levels["wkhighlight_radical_level"+data.level] = {};
-
-										radical_dict[radical.id] = {
-											"characters" : data.characters,
-											"character_images" : data.character_images,
-											"document_url" : data.document_url,
-											"level" : data.level,
-											"id":radical.id,
-											"meanings": data.meanings.map(data => data.meaning),
-											"subject_type":radical.object,
-											"hidden_at":data.hidden_at
-										};
-
-										if (!tableExists)
-											lib.insert("radical", {
-												"characters" : data.characters,
-												"character_images" : data.character_images,
-												"level" : data.level,
-												"id":radical.id,
-												"meanings": data.meanings.map(data => data.meaning),
-												"subject_type":radical.object,
-												"hidden_at":data.hidden_at,
-												"srs_stage" : null,
-												"hidden" : null,
-												"passed_at" : null,
-												"available_at" : null
+						const db = new Database("wanikani");
+						db.create("subjects", "id", ["level"]).then(created => {
+							if (created) {		
+								fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=radical")
+									.then(radical_data => {
+										const radical_dict = {};
+										const levels = {};
+										const db_records = [];
+										radical_data.map(content => content.data)
+											.flat(1)
+											.forEach(radical => {
+												const data = radical.data;
+												if (!levels["wkhighlight_radical_level"+data.level])
+													levels["wkhighlight_radical_level"+data.level] = {};
+		
+												radical_dict[radical.id] = {
+													"characters" : data.characters,
+													"character_images" : data.character_images,
+													"document_url" : data.document_url,
+													"level" : data.level,
+													"id":radical.id,
+													"meanings": data.meanings.map(data => data.meaning),
+													"subject_type":radical.object,
+													"hidden_at":data.hidden_at
+												};
+		
+												db_records.push({
+													"characters" : data.characters,
+													"character_images" : data.character_images,
+													"level" : data.level,
+													"id":radical.id,
+													"meanings": data.meanings.map(data => data.meaning),
+													"subject_type":radical.object,
+													"hidden_at":data.hidden_at,
+													"srs_stage" : null,
+													"hidden" : null,
+													"passed_at" : null,
+													"available_at" : null
+												});
+		
+												levels["wkhighlight_radical_level"+data.level][radical.id] = {
+													"characters" : data.characters,
+													"character_images" : data.character_images,
+													"id":radical.id,
+													"meanings": data.meanings.map(data => data.meaning),
+													"subject_type":radical.object,
+													"hidden_at":data.hidden_at
+												};
 											});
-										else {
-											lib.update("radical", {id: radical.id}, row => {
-												row.characters = data.characters;
-												row.character_images = data.character_images;
-												row.level = data.level;
-												row.id = radical.id;
-												row.meanings = data.meanings.map(data => data.meaning);
-												row.subject_type = radical.object;
-												row.hidden_at = data.hidden_at;
-												return row;
-											});
-										}
 
-										levels["wkhighlight_radical_level"+data.level][radical.id] = {
-											"characters" : data.characters,
-											"character_images" : data.character_images,
-											"id":radical.id,
-											"meanings": data.meanings.map(data => data.meaning),
-											"subject_type":radical.object,
-											"hidden_at":data.hidden_at
-										};
-									});
-								// saving all radical
-								chrome.storage.local.set({...{"wkhighlight_allradicals": radical_dict, "wkhighlight_allradicals_updated": formatDate(new Date()), "wkhighlight_allradicals_size":radical_data[0]["total_count"]}, ...levels}, () => {
-									console.log("Setup Radicals...");
-									resolve([radical_dict, true]);
-									if (callback)
-										callback(radical_dict, true);
-								});
+										db.insert("subjects", db_records);
 
-								console.log(lib.commit());
-							})
-							.catch(reject);
+										// saving all radical
+										chrome.storage.local.set({...{"wkhighlight_allradicals": radical_dict, "wkhighlight_allradicals_updated": formatDate(new Date()), "wkhighlight_allradicals_size":radical_data[0]["total_count"]}, ...levels}, () => {
+											console.log("Setup Radicals...");
+											resolve([radical_dict, true]);
+											if (callback)
+												callback(radical_dict, true);
+										});
+									})
+									.catch(reject);
+							}
+						});
 					}
 					else {
 						resolve([result['wkhighlight_allradicals'], false]);
@@ -210,91 +186,83 @@ const setupVocab = (apiToken, callback) =>
 			modifiedSince(apiToken, vocabUpdates, "https://api.wanikani.com/v2/subjects?types=vocabulary")
 				.then(modified => {
 					if (!result['wkhighlight_allvocab'] || modified) {
-						const lib = new localStorageDB("subjects", localStorage);
-						const tableExists = lib.tableExists("vocabulary");
-						if (!tableExists)
-							lib.createTable("vocabulary", ["characters", "component_subject_ids", "level", "meanings", "readings", "id", "subject_type", "hidden_at", "srs_stage", "hidden", "passed_at", "available_at"]);
+						const db = new Database("wanikani");
+						db.create("subjects", "id", ["level"]).then(created => {
+							if (created) {
+								fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=vocabulary")
+									.then(vocab_data => {
+										const vocab_dict = {};
+										const vocab_assoc = {};
+										const levels = {};
+										const db_records = [];
+										vocab_data.map(content => content.data)
+											.flat(1)
+											.forEach(vocab => {
+												const data = vocab.data;
+												if (!levels["wkhighlight_vocabulary_level"+data.level])
+													levels["wkhighlight_vocabulary_level"+data.level] = {};
+		
+												vocab_dict[vocab.id] = {
+													"characters" : data.characters,
+													"component_subject_ids" : data.component_subject_ids, 
+													"context_sentences" : data.context_sentences,
+													"document_url" : data.document_url,
+													"level" : data.level,
+													"meaning_mnemonic" : data.meaning_mnemonic,
+													"meanings" : data.meanings.map(data => data.meaning),
+													"parts_of_speech" : data.parts_of_speech,
+													"reading_mnemonic" : data.reading_mnemonic,
+													"readings" : data.readings.map(data => data.reading),
+													"pronunciation_audios" : data.pronunciation_audios,
+													"id":vocab.id,
+													"subject_type":vocab.object,
+													"hidden_at":data.hidden_at
+												};
 
-						fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=vocabulary")
-							.then(vocab_data => {
-								const vocab_dict = {};
-								const vocab_assoc = {};
-								const levels = {};
-								vocab_data.map(content => content.data)
-									.flat(1)
-									.forEach(vocab => {
-										const data = vocab.data;
-										if (!levels["wkhighlight_vocabulary_level"+data.level])
-											levels["wkhighlight_vocabulary_level"+data.level] = {};
-
-										vocab_dict[vocab.id] = {
-											"characters" : data.characters,
-											"component_subject_ids" : data.component_subject_ids, 
-											"context_sentences" : data.context_sentences,
-											"document_url" : data.document_url,
-											"level" : data.level,
-											"meaning_mnemonic" : data.meaning_mnemonic,
-											"meanings" : data.meanings.map(data => data.meaning),
-											"parts_of_speech" : data.parts_of_speech,
-											"reading_mnemonic" : data.reading_mnemonic,
-											"readings" : data.readings.map(data => data.reading),
-											"pronunciation_audios" : data.pronunciation_audios,
-											"id":vocab.id,
-											"subject_type":vocab.object,
-											"hidden_at":data.hidden_at
-										};
-
-										if (!tableExists)
-											lib.insert("vocabulary", {
-												"characters" : data.characters,
-												"component_subject_ids" : data.component_subject_ids, 
-												"level" : data.level,
-												"meanings" : data.meanings.map(data => data.meaning),
-												"readings" : data.readings.map(data => data.reading),
-												"id":vocab.id,
-												"subject_type":vocab.object,
-												"hidden_at":data.hidden_at,
-												"srs_stage" : null,
-												"hidden" : null,
-												"passed_at" : null,
-												"available_at" : null
+												db_records.push({
+													"characters" : data.characters,
+													"component_subject_ids" : data.component_subject_ids, 
+													"level" : data.level,
+													"meanings" : data.meanings.map(data => data.meaning),
+													"readings" : data.readings.map(data => data.reading),
+													"id":vocab.id,
+													"subject_type":vocab.object,
+													"hidden_at":data.hidden_at,
+													"srs_stage" : null,
+													"hidden" : null,
+													"passed_at" : null,
+													"available_at" : null
+												});
+			
+												vocab_assoc[data.characters] = vocab.id;
+												levels["wkhighlight_vocabulary_level"+data.level][vocab.id] = {
+													"characters" : data.characters,
+													"id":vocab.id,
+													"meanings": data.meanings.map(data => data.meaning),
+													"readings" : data.readings.map(data => data.reading),
+													"pronunciation_audios" : data.pronunciation_audios,
+													"subject_type":vocab.object,
+													"hidden_at":data.hidden_at
+												};
 											});
-										else {
-											lib.update("vocabulary", {id: vocab.id}, row => {
-												row.characters = data.characters;
-												row.component_subject_ids = data.component_subject_ids;
-												row.level = data.level;
-												row.meanings = data.meanings.map(data => data.meaning);
-												row.readings = data.readings.map(data => data.reading);
-												row.id = vocab.id;
-												row.subject_type = vocab.object;
-												row.hidden_at = data.hidden_at;
-												return row;
-											});
-										}
-	
-										vocab_assoc[data.characters] = vocab.id;
-										levels["wkhighlight_vocabulary_level"+data.level][vocab.id] = {
-											"characters" : data.characters,
-											"id":vocab.id,
-											"meanings": data.meanings.map(data => data.meaning),
-											"readings" : data.readings.map(data => data.reading),
-											"pronunciation_audios" : data.pronunciation_audios,
-											"subject_type":vocab.object,
-											"hidden_at":data.hidden_at
-										};
-									});
-								// saving all vocabulary
-								chrome.storage.local.set({...{'wkhighlight_allvocab':vocab_dict, "wkhighlight_vocab_assoc": vocab_assoc, "wkhighlight_allvocab_updated": formatDate(new Date()), "wkhighlight_allvocab_size":vocab_data[0]["total_count"]}, ...levels}, () => {
-									console.log("Setup Vocabulary...");
-									resolve([vocab_dict, true]);
-									if (callback)
-										callback(vocab_dict, true);
-								});
 
-								console.log(lib.commit());
-							})
-							.catch(reject);
+										db.insert("subjects", db_records).then(inserted => {
+											if (inserted) {
+												db.getAll("subjects", "level", 3).then(result => console.log("subjects: ", result));
+											}
+										});
+
+										// saving all vocabulary
+										chrome.storage.local.set({...{'wkhighlight_allvocab':vocab_dict, "wkhighlight_vocab_assoc": vocab_assoc, "wkhighlight_allvocab_updated": formatDate(new Date()), "wkhighlight_allvocab_size":vocab_data[0]["total_count"]}, ...levels}, () => {
+											console.log("Setup Vocabulary...");
+											resolve([vocab_dict, true]);
+											if (callback)
+												callback(vocab_dict, true);
+										});
+									})
+									.catch(reject);
+							}
+						});
 					}
 					else {
 						resolve([result['wkhighlight_allvocab'], false]);

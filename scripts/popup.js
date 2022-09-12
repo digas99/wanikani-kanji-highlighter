@@ -824,8 +824,6 @@ window.onload = () => {
 
 											return menuIcons;
 										}
-
-										const lib = new localStorageDB("subjects", localStorage);
 										
 										const levelSubjectsWrapper = document.createElement("div");
 										const allTitle = document.createElement("p");
@@ -853,128 +851,135 @@ window.onload = () => {
 										subjectsDisplay.style.backgroundColor = "white";
 										subjectsDisplay.style.border = "10px solid var(--default-color)";
 										let allSubjects = 0, allPassedSubjects = 0;
-										["radical", "kanji", "vocab"].forEach(type => {
-											const subjects = lib.queryAll(type == "vocab" ? "vocabulary" : type, {
-												query: {level:levelValue}
-											}).filter(subject => !subject["hidden_at"]);
-											const passedSubjects = subjects.filter(subject => subject.passed_at != null);
-											allSubjects += subjects.length;
-											allPassedSubjects += passedSubjects.length;
 
-											if (type == "kanji") {
-												const progressBar = document.createElement("div");
-												levelProgressBar.appendChild(progressBar);
-												const percentage = passedSubjects.length / subjects.length * 100;
-												progressBar.style.width = (percentage >= 1 ? percentage : 100)+"%";
-												if (percentage > 8.1 || percentage < 1) {
-													const barLabel = document.createElement("p");
-													progressBar.appendChild(barLabel);
-													barLabel.appendChild(document.createTextNode(percentage.toFixed(percentage > 12 ? 1 : 0)+"%"));
-													if (percentage < 1) {
-														progressBar.style.backgroundColor = "white";
-														barLabel.style.color = "black";
-													}
-												}
-
-												if (percentage < 81 && percentage >= 1) {
-													const progressValues = document.createElement("span");
-													levelProgress.appendChild(progressValues);
-													progressValues.appendChild(document.createTextNode(passedSubjects.length + " / " + subjects.length));
-												}
-												progressBar.classList.add("clickable");
-												progressBar.title = "Passed Kanji: "+passedSubjects.length+" / "+percentage.toFixed(1)+"%";
+										const db = new Database("wanikani");
+										db.create("subjects").then(created => {
+											if (created) {
+												db.getAll("subjects", "level", levelValue)
+												.then(results => {
+													["radical", "kanji", "vocab"].forEach(type => {
+														const subjects = results.filter(subject => subject["subject_type"] === (type == "vocab" ? "vocabulary" : type) && !subject["hidden_at"]);
+														const passedSubjects = subjects.filter(subject => subject.passed_at != null);
+														allSubjects += subjects.length;
+														allPassedSubjects += passedSubjects.length;
+			
+														if (type == "kanji") {
+															const progressBar = document.createElement("div");
+															levelProgressBar.appendChild(progressBar);
+															const percentage = passedSubjects.length / subjects.length * 100;
+															progressBar.style.width = (percentage >= 1 ? percentage : 100)+"%";
+															if (percentage > 8.1 || percentage < 1) {
+																const barLabel = document.createElement("p");
+																progressBar.appendChild(barLabel);
+																barLabel.appendChild(document.createTextNode(percentage.toFixed(percentage > 12 ? 1 : 0)+"%"));
+																if (percentage < 1) {
+																	progressBar.style.backgroundColor = "white";
+																	barLabel.style.color = "black";
+																}
+															}
+			
+															if (percentage < 81 && percentage >= 1) {
+																const progressValues = document.createElement("span");
+																levelProgress.appendChild(progressValues);
+																progressValues.appendChild(document.createTextNode(passedSubjects.length + " / " + subjects.length));
+															}
+															progressBar.classList.add("clickable");
+															progressBar.title = "Passed Kanji: "+passedSubjects.length+" / "+percentage.toFixed(1)+"%";
+														}
+			
+														const subjectsWrapper = document.createElement("div");
+														subjectsDisplay.appendChild(subjectsWrapper);
+														subjectsWrapper.style.position = "relative";
+														subjectsWrapper.style.marginBottom = "10px";
+														const title = document.createElement("p");
+														subjectsWrapper.appendChild(title);
+														title.appendChild(document.createTextNode(type.charAt(0).toUpperCase()+(type == "vocab" ? "vocabulary" : type).substring(1)+(type == "radical" ? "s" : "")));
+														title.style.color = "white";
+														title.style.position = "relative";
+														title.style.padding = "5px";
+														title.style.backgroundColor = "var(--default-color)";
+														title.style.paddingLeft = "10px";
+														title.style.display = "flex";
+														title.style.alignItems = "center";
+														const progress = document.createElement("span");
+														title.appendChild(progress);
+														progress.appendChild(document.createTextNode(passedSubjects.length+"/"+subjects.length));
+														progress.style.fontSize = "12px";
+														progress.style.marginLeft = "10px";
+														progress.style.color = "silver";
+														const subjectsListWrapper = document.createElement("div");
+														title.appendChild(createMenuIcons(["sort", "filter", "menu"], type == "vocab" ? "vocabulary" : type, subjectsWrapper, subjectsListWrapper));
+														subjectsWrapper.appendChild(subjectsListWrapper);
+														subjectsListWrapper.classList.add("simple-grid");
+														const subjectsList = document.createElement("ul");
+														subjectsListWrapper.appendChild(subjectsList);
+														subjectsList.style.padding = "5px";
+														subjects.forEach(subject => {
+															const subjectWrapper = document.createElement("li");
+															subjectsList.appendChild(subjectWrapper);
+															const characters = subject["characters"] ? subject["characters"]  : `<img height="22px" style="margin-top:-3px;margin-bottom:-4px;padding-top:8px" src="${subject["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`;
+															subjectWrapper.classList.add(type+"_back");
+															if (!atWanikani)
+																subjectWrapper.title = subject["meanings"][0];
+															subjectWrapper.style.position = "relative";
+															if (type !== "radical") {
+																subjectWrapper.classList.add("clickable", "kanjiDetails");
+																subjectWrapper.setAttribute("data-item-id", subject["id"]);
+																if (!atWanikani) {
+																	if (subject["readings"][0]["reading"])
+																		subjectWrapper.title += " | "+subject["readings"].filter(reading => reading["primary"])[0]["reading"];
+																	else
+																		subjectWrapper.title += " | "+subject["readings"][0];
+																}
+															}
+															let backColor = hexToRGB(getComputedStyle(document.body).getPropertyValue(`--${type}-tag-color`));
+															subjectWrapper.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
+															if (characters !== "L")
+																subjectWrapper.innerHTML = characters;
+															else {
+																const wrapperForLi = document.createElement("div");
+																subjectWrapper.appendChild(wrapperForLi);
+																wrapperForLi.style.marginTop = "5px";
+																wrapperForLi.appendChild(document.createTextNode(characters));
+															}
+															if (characters !== "L" && subjectWrapper.children.length > 0 && subjectWrapper.style.color == "rgb(255, 255, 255)")
+																subjectWrapper.children[0].style.filter = "invert(1)";
+														
+															if (subject["passed_at"]) {
+																const check = document.createElement("img");
+																subjectWrapper.appendChild(check);
+																check.src = "../images/check.png";
+																check.classList.add("passed-subject-check", "reviews-info");
+																// fix issues with radicals that are images
+																if (subjectWrapper.firstChild.tagName == "IMG") {
+																	subjectWrapper.firstChild.style.marginTop = "unset";
+																}
+															}
+															else if(subject["available_at"]) {
+																if (new Date(subject["available_at"]) - new Date() < 0) {
+																	const time = document.createElement("div");
+																	subjectWrapper.appendChild(time);
+																	time.appendChild(document.createTextNode("now"));
+																	time.classList.add("time-next-review-subject", "reviews-info");
+																}
+															}
+			
+															if (subject["available_at"])
+																subjectWrapper.setAttribute("data-available_at", subject["available_at"]);
+															
+			
+															if (subject["srs_stage"] !== null) {
+																subjectWrapper.title += " \x0D"+srsStages[subject["srs_stage"]]["name"];
+																subjectWrapper.setAttribute("data-srs", subject["srs_stage"]);
+															}
+															else {
+																subjectWrapper.title += " \x0D"+"Locked";
+																subjectWrapper.setAttribute("data-srs", -1);
+															}
+														});
+													});
+												});
 											}
-
-											const subjectsWrapper = document.createElement("div");
-											subjectsDisplay.appendChild(subjectsWrapper);
-											subjectsWrapper.style.position = "relative";
-											subjectsWrapper.style.marginBottom = "10px";
-											const title = document.createElement("p");
-											subjectsWrapper.appendChild(title);
-											title.appendChild(document.createTextNode(type.charAt(0).toUpperCase()+(type == "vocab" ? "vocabulary" : type).substring(1)+(type == "radical" ? "s" : "")));
-											title.style.color = "white";
-											title.style.position = "relative";
-											title.style.padding = "5px";
-											title.style.backgroundColor = "var(--default-color)";
-											title.style.paddingLeft = "10px";
-											title.style.display = "flex";
-											title.style.alignItems = "center";
-											const progress = document.createElement("span");
-											title.appendChild(progress);
-											progress.appendChild(document.createTextNode(passedSubjects.length+"/"+subjects.length));
-											progress.style.fontSize = "12px";
-											progress.style.marginLeft = "10px";
-											progress.style.color = "silver";
-											const subjectsListWrapper = document.createElement("div");
-											title.appendChild(createMenuIcons(["sort", "filter", "menu"], type == "vocab" ? "vocabulary" : type, subjectsWrapper, subjectsListWrapper));
-											subjectsWrapper.appendChild(subjectsListWrapper);
-											subjectsListWrapper.classList.add("simple-grid");
-											const subjectsList = document.createElement("ul");
-											subjectsListWrapper.appendChild(subjectsList);
-											subjectsList.style.padding = "5px";
-											subjects.forEach(subject => {
-												const subjectWrapper = document.createElement("li");
-												subjectsList.appendChild(subjectWrapper);
-												const characters = subject["characters"] ? subject["characters"]  : `<img height="22px" style="margin-top:-3px;margin-bottom:-4px;padding-top:8px" src="${subject["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`;
-												subjectWrapper.classList.add(type+"_back");
-												if (!atWanikani)
-													subjectWrapper.title = subject["meanings"][0];
-												subjectWrapper.style.position = "relative";
-												if (type !== "radical") {
-													subjectWrapper.classList.add("clickable", "kanjiDetails");
-													subjectWrapper.setAttribute("data-item-id", subject["id"]);
-													if (!atWanikani) {
-														if (subject["readings"][0]["reading"])
-															subjectWrapper.title += " | "+subject["readings"].filter(reading => reading["primary"])[0]["reading"];
-														else
-															subjectWrapper.title += " | "+subject["readings"][0];
-													}
-												}
-												let backColor = hexToRGB(getComputedStyle(document.body).getPropertyValue(`--${type}-tag-color`));
-												subjectWrapper.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
-												if (characters !== "L")
-													subjectWrapper.innerHTML = characters;
-												else {
-													const wrapperForLi = document.createElement("div");
-													subjectWrapper.appendChild(wrapperForLi);
-													wrapperForLi.style.marginTop = "5px";
-													wrapperForLi.appendChild(document.createTextNode(characters));
-												}
-												if (characters !== "L" && subjectWrapper.children.length > 0 && subjectWrapper.style.color == "rgb(255, 255, 255)")
-													subjectWrapper.children[0].style.filter = "invert(1)";
-											
-												if (subject["passed_at"]) {
-													const check = document.createElement("img");
-													subjectWrapper.appendChild(check);
-													check.src = "../images/check.png";
-													check.classList.add("passed-subject-check", "reviews-info");
-													// fix issues with radicals that are images
-													if (subjectWrapper.firstChild.tagName == "IMG") {
-														subjectWrapper.firstChild.style.marginTop = "unset";
-													}
-												}
-												else if(subject["available_at"]) {
-													if (new Date(subject["available_at"]) - new Date() < 0) {
-														const time = document.createElement("div");
-														subjectWrapper.appendChild(time);
-														time.appendChild(document.createTextNode("now"));
-														time.classList.add("time-next-review-subject", "reviews-info");
-													}
-												}
-
-												if (subject["available_at"])
-													subjectWrapper.setAttribute("data-available_at", subject["available_at"]);
-												
-
-												if (subject["srs_stage"] !== null) {
-													subjectWrapper.title += " \x0D"+srsStages[subject["srs_stage"]]["name"];
-													subjectWrapper.setAttribute("data-srs", subject["srs_stage"]);
-												}
-												else {
-													subjectWrapper.title += " \x0D"+"Locked";
-													subjectWrapper.setAttribute("data-srs", -1);
-												}
-											});
 										});
 										
 										allProgress.appendChild(document.createTextNode(allPassedSubjects+"/"+allSubjects));

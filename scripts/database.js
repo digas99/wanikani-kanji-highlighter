@@ -5,7 +5,7 @@
     }
 
     Database.prototype = {
-        create: function(table, key) {
+        create: function(table, key, indexes) {
             const request = indexedDB.open(this.name, 1);
 
             const that = this;
@@ -19,7 +19,9 @@
                     that.db = e.target.result;
 
                     let objectStore = that.db.createObjectStore(table, {keyPath: key});
-            
+                    if (indexes)
+                        indexes.forEach(index => objectStore.createIndex(index, [index], {unique: false}));
+
                     objectStore.transaction.oncomplete = () => console.log("Table created", that.db);
                 }
 
@@ -97,14 +99,11 @@
                         resolve(false);
                     }
             
-                    records.forEach(record => {
-                        const request = objectStore.put(record);
-                        request.onsuccess = () => console.log("Added: ", record);
-                    });
+                    records.forEach(record => objectStore.put(record));
                 });
             }
         },
-        get: function(table, email) {
+        get: function(table, value) {
             if (this.db) {
                 const transaction = this.db.transaction(table, "readonly");
                 const objectStore = transaction.objectStore(table);
@@ -117,11 +116,30 @@
                         resolve(false);
                     }
             
-                    let request = objectStore.get(email);
+                    let request = objectStore.get(value);
             
                     request.onsuccess = () => resolve(request.result);
                 });
             }
+        },
+        getAll: function(table, index, value) {
+            if (this.db) {
+                const transaction = this.db.transaction(table, "readonly");
+                const objectStore = transaction.objectStore(table);
+        
+                return new Promise((resolve, reject) => {
+                    transaction.oncomplete = () => console.log("All GET transactions were complete.");
+            
+                    transaction.onerror = () => {
+                        console.log("Problem getting records.", e.target.error);
+                        resolve(false);
+                    }
+                    
+                    const request = objectStore.index(index).getAll([value]);
+
+                    request.onsuccess = () => resolve(request.result);
+                });
+            } 
         },
         update: function(table, record) {
             if (this.db) {
