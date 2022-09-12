@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">	
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width">
+	<title>WKHighlighter</title>
+	<link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="styles/navbar.css">
+    <link rel="stylesheet" href="styles/search.css">
+    <link rel="stylesheet" href="styles/items-list.css">
+	<link rel="stylesheet" href="styles/home.css">
+</head>
+<body>
+	<div id="main">
+        <div id="userInfoWrapper">
+            <!-- SCRIPTS UPTIME -->
+            <div title="Scripts Uptime Status" id="scriptsUptime">
+                <ul>
+                    <li>Highlighter<div></div></li>
+                    <li>Details Popup<div></div></li>
+                </ul>
+            </div>
+            <!-- SEARCH AREA -->
+            <div class="searchArea" title="Search subjects">
+                <div id="kanjiSearchInputWrapper" class="textInputWrapper">
+                    <img class="textInputIcon" src="../images/search.png">
+                    <input type="text" placeholder="Gold / 金 / 5" id="kanjiSearchInput">
+                    <div class="kanjiSearchTypeWrapper" title="Kana" id="kanjiSearchTypeKana">
+                        <span id="kanjiSearchType">あ</span>
+                    </div>
+                </div>
+            </div>
+            <!-- KANJI HIGHLIGHTED ON PAGE -->
+            <div class="resizable highlightedKanjiContainer userInfoWrapper-wrapper" data-settings="sizes-highlighted_kanji_height" style="max-height: 150px;">
+                <div class="resizable-s"></div>
+                <div id="nmrKanjiHighlighted" class="userInfoWrapper-title">
+                    <span id="nmrKanjiIndicator">Kanji</span>: <strong></strong> (in the page)
+                </div>
+                <div class="items-list-bar"></div>
+                <div id="kanjiHighlightedList" class="simple-grid">
+                    <ul>
+                    </ul>
+                </div>
+            </div>
+            <!-- LESSONS AND REVIEWS -->
+            <div class="userInfoWrapper-wrapper" style="text-align: center;">
+                <ul style="display: inline-flex; width: 100%;">
+                    <li style="width: 100%; color: white;">
+                        <div class="summaryTitle userInfoWrapper-title" title="Lessons in WaniKani">
+                            <a href="https://www.wanikani.com/lesson" target="_blank" style="color: white;">Lessons</a>
+                        </div>
+                        <a href="lessons.html" class="summaryValue clickable" id="summaryLessons" style="background-color: rgb(79, 123, 97);"></a>
+                    </li>
+                    <li style="width: 100%; color: white;">
+                        <div class="summaryTitle userInfoWrapper-title" title="Reviews in WaniKani">
+                            <a href="https://www.wanikani.com/review" target="_blank" style="color: white;">Reviews</a>
+                        </div>
+                        <a href="reviews.html" class="summaryValue clickable" id="summaryReviews" style="background-color: rgb(44, 112, 128);"></a>
+                    </li>
+                </ul>
+                <p style="padding: 3px 0px; color: rgb(116, 116, 116);"><b></b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b></b></p>
+                <p style="padding: 3px 0px; color: rgb(116, 116, 116);"></p>
+            </div>
+            <!-- OVERALL PROGRESSION BAR -->
+            <div class="userInfoWrapper-wrapper">
+                <p class="userInfoWrapper-title">Overall Progression Bar</p>
+                <ul style="height: 25px; display: flex; flex-direction: row;">
+                </ul>
+            </div>
+            <!-- OVERALL PROGRESSION STATS -->
+            <div class="userInfoWrapper-wrapper">
+                <p class="userInfoWrapper-title">Overall Progression Stats</p>
+                <ul class="overall-progress">
+                </ul>
+            </div>
+            <!-- LEVELS IN PROGRESS -->
+            <div class="userInfoWrapper-wrapper" style="width: 86%;">
+                <p class="userInfoWrapper-title">Levels In Progress</p>
+        </div>
+	</div>
+    
+    <!-- SIDEBAR -->
+    <div class="side-panel">
+        <div class="clickable" id="profile">
+            <div style="margin-top: 10px;">
+                <img style="border-radius: 50%; border: 3px solid white; width: 26px;">
+            </div>
+            <p title="Level" id="user-level" style="font-weight: bold; color: rgb(204, 204, 204);"></p>
+        </div>
+        <ul>
+            <li class="clickable" style="position: relative;">
+                <a href="settings.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="settings" src="../images/settings.png" title="Settings" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="search" src="../images/search.png" title="Search" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative; padding-right: 3px;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="blacklist" src="../images/blacklist.png" title="Blacklist" style="width: 20px;">
+                    <span class="side-panel-info-alert" style="background-color: red; color: white; filter: invert(1);">0</span>
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="about.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="about" src="../images/about.png" title="About" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="random" src="../images/random.png" title="Random" data-item-id="rand" class="kanjiDetails" style="width: 20px;">
+                    <span id="random-subject-type" class="side-panel-info-alert">A</span>
+                </a>
+            </li>
+            <li class="clickable" style="position: relative; padding-left: 3px;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="exit" src="../images/exit.png" title="Exit" style="width: 20px;">
+                </a>
+            </li>
+        </ul>
+        <div id="side-panel-logo" class="clickable" title="Wanikani Kanji Highlighter">
+            <img src="../logo/logo.png" style="pointer-events: none;">
+        </div>
+    </div>
+
+	<script src="scripts/scripts.js"></script>
+	<script src="scripts/home.js"></script>
+</body>
+</html>

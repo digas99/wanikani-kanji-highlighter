@@ -1,0 +1,62 @@
+body {
+    width: var(--body-base-width);
+    transition: 0.3s;
+    font-size: 13px;
+    padding-right: 40px;
+    min-height: 365px;
+}
+
+#userInfoWrapper {
+	margin: 0px 7px;
+	padding-top: 5px;
+	position: relative;
+}
+
+#userInfoWrapper > div {
+	margin-bottom: 10px;
+	overflow: hidden;
+}
+
+.userInfoWrapper-title {
+	text-align: center;
+    background-color: var(--default-color);
+    color: white;
+    padding: 7px;
+    font-size: 14px;
+}
+
+.userInfoWrapper-wrapper {
+	border: 1px solid silver;
+    border-radius: 0px 0px 5px 5px;
+}
+
+#scriptsUptime {
+    background-color: #2a2d48;
+    color: white;
+    padding: 6px;
+    border-radius: 4px;
+}
+
+#scriptsUptime > ul {
+	display: flex;
+}
+
+#scriptsUptime > ul > li {
+	display: flex;
+	margin: auto;
+}
+
+#scriptsUptime > ul > li > div {
+	display: flex;
+    width: 13px;
+    height: 13px;
+	background-color: #ff6d6d;
+    border-radius: 15px;
+    margin-left: 10px;
+}
+
+.summaryValue {
+	font-size: 35px;
+    padding: 7px 17px;
+    display: block;
+}

@@ -162,28 +162,3 @@ i {
 .button:hover {
 	filter: brightness(1.5);
 }
-
-.textInputWrapper {
-	display: flex;
-    border: 1px solid silver;
-    border-radius: 17px;
-    padding: 4px 6px;
-	position: relative;
-	background-color: white;
-	height: 23px;
-    align-items: center;
-}
-
-.textInputWrapper input {
-	width: 100%;
-    margin-right: 8px;
-}
-
-.textInputIcon {
-    margin-right: 5px;
-    padding-right: 5px;
-    border-right: 1px solid #797979;
-    width: 14px;
-    height: 14px;
-	opacity: 0.7;
-}

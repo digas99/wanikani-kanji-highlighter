@@ -9,7 +9,7 @@ chrome.storage.local.get(["wkhighlight_apiKey"], ({wkhighlight_apiKey}) => {
             submit.addEventListener("click", submitAction);
     }
     else {
-        window.location.href = "../home.html";
+        window.location.href = "home.html";
     }
 });
 
@@ -46,7 +46,7 @@ const submitAction = () => {
             if (apiInputWrapper)
                 apiInputWrapper.remove();
 
-            window.location.href = "../home.html";
+            window.location.href = "home.html";
         }
         else {
             const submitMessage = document.createElement("p");

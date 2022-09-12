@@ -218,9 +218,9 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 			thisUrl = tab.url;
 			if (url === thisUrl && !urlChecker.test(url)) {
 				if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {
-					chrome.storage.local.get(["wkhighlight_blacklist", "wkhighlight_apiKey"], blacklist => {
+					chrome.storage.local.get(["wkhighlight_blacklist", "wkhighlight_apiKey"], result => {
 						// check if the site is blacklisted
-						if (!blacklist["wkhighlight_blacklist"] || blacklist["wkhighlight_blacklist"].length === 0 || !blacklisted(blacklist["wkhighlight_blacklist"], url)) {
+						if (!result["wkhighlight_blacklist"] || result["wkhighlight_blacklist"].length === 0 || !blacklisted(result["wkhighlight_blacklist"], url)) {
 							setSettings();
 	
 							if (result["wkhighlight_apiKey"]) {
