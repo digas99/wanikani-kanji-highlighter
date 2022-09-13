@@ -38,9 +38,11 @@
 }
 
 body {
-	width: var(--body-base-width);
-	transition: 0.3s;
-	font-size: 13px;
+    width: var(--body-base-width);
+    transition: 0.3s;
+    font-size: 13px;
+    padding-right: 40px;
+    min-height: 365px;
 }
 
 a {
@@ -161,4 +163,50 @@ i {
 
 .button:hover {
 	filter: brightness(1.5);
+}
+
+.clickable { 
+	cursor: pointer;
+	transition: 0.2s;
+}
+
+.clickable:hover {
+	opacity: 0.7;
+}
+
+.hidden {
+	display: none;
+}
+
+#sec-page {
+	margin-top: 45px;
+}
+
+.radical_back {
+	background-color: var(--radical-tag-color) !important;
+}
+
+.kanji_back {
+	background-color: var(--kanji-tag-color) !important;
+}
+
+.vocab_back {
+	background-color: var(--vocab-tag-color) !important;
+}
+
+.bellow-border {
+	border-bottom: 1px solid silver;
+    border-left: 1px solid silver;
+    border-right: 1px solid silver;
+}
+
+.simple-grid > ul > li {
+	margin: 1px;
+    padding: 2px 6px;
+    display: inline-block;
+	margin: 2px;
+	text-shadow: -1px 1px 0px #727272;
+	box-shadow: -1px 2px 0px 1px var(--default-color);
+    border-radius: 6px;
+
 }

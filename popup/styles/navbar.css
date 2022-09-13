@@ -178,3 +178,18 @@
 	background-color: #997474;
     color: black;
 }
+
+#profile > div {
+    margin-top: 10px;
+}
+
+#profile img {
+    border-radius: 50%;
+    border: 3px solid white;
+    width: 26px;
+}
+
+#profile p {
+    font-weight: bold;
+    color: rgb(204, 204, 204);
+}

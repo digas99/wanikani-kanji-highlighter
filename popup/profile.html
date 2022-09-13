@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">	
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width">
+	<title>WKHighlighter</title>
+	<link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="styles/navbar.css">
+	<link rel="stylesheet" href="styles/profile.css">
+</head>
+<body>
+    <!-- TOP NAVBAR -->
+    <div class="topNav">
+        <a href="home.html" title="Go back" class="clickable">
+            <div>
+                <i class="left"></i>
+                <div>Profile</div>
+            </div>
+        </a>
+        <div class="clickable star" title="Make this the Home Page">
+            <img src="../images/star.png">
+        </div>
+    </div>
+
+    <!-- PAGE CONTENT -->
+    <div id="sec-page">
+        <div class="levels-chooser-wrapper">
+            <div class="levels-chooser-cover"></div>
+            <div id="profile-pic">
+                <a target="_blank"><img></a>
+            </div>
+            <div id="username"></div>
+            <div id="edit"><a href="https://www.wanikani.com/settings/profile" target="_blank" title="https://www.wanikani.com/settings/profile"><img src="/images/edit.png"></a></div>
+            <ul class="levels-chooser" style="padding-top: 175px;"></ul>
+            <div id="level-progress">
+                <p>Level Progress</p>
+                <div class="level-progress-bar">
+                    <div class="clickable" title="Passed Kanji: 0 / 0%" style="width: 0%"><p></p></div>
+                    <span></span>
+                </div>
+            </div>
+            <div class="clickable scroll-down" title="Scroll Down"><i class="down"></i></div>
+            
+            <!-- SUBJECTS -->
+            <div>
+                <div class="subject-tab" style="border-top: 2px solid white;" >
+                    <div>All</div><span></span>
+                    <div class="menu-icons">
+                        <img src="/images/sort.png" class="clickable" title="Sort" alt="sort">
+                        <img src="/images/filter.png" class="clickable" title="Filter" alt="filter">
+                        <img src="/images/menu.png" class="clickable" title="Menu" alt="menu">
+                        <div class="clickable" title="Close">
+                            <i class="up"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="subject-types">
+                    <div id="radical-container">
+                        <div class="subject-tab" style="border-top: 2px solid white;" >
+                            <div>Radicals</div><span></span>
+                            <div class="menu-icons">
+                                <img src="/images/sort.png" class="clickable" title="Sort" alt="sort">
+                                <img src="/images/filter.png" class="clickable" title="Filter" alt="filter">
+                                <img src="/images/menu.png" class="clickable" title="Menu" alt="menu">
+                                <div class="clickable" title="Close">
+                                    <i class="up"></i>
+                                </div>
+                            </div>
+                            <div class="menu-popup hidden">
+                                <p></p>
+                                <ul></ul>
+                            </div>
+                        </div>
+                        <div class="subject-container simple-grid"><ul></ul></div>
+                        <div class="menu-popup hidden">
+                            <p></p>
+                            <ul></ul>
+                        </div>
+                    </div>
+                    <div id="kanji-container">
+                        <div class="subject-tab" style="border-top: 2px solid white;" >
+                            <div>Kanji</div><span></span>
+                            <div class="menu-icons">
+                                <img src="/images/sort.png" class="clickable" title="Sort" alt="sort">
+                                <img src="/images/filter.png" class="clickable" title="Filter" alt="filter">
+                                <img src="/images/menu.png" class="clickable" title="Menu" alt="menu">
+                                <div class="clickable" title="Close">
+                                    <i class="up"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subject-container simple-grid"><ul></ul></div>
+                        <div class="menu-popup hidden">
+                            <p></p>
+                            <ul></ul>
+                        </div>
+                    </div>
+                    <div id="vocab-container">
+                        <div class="subject-tab" style="border-top: 2px solid white;" >
+                            <div>Vocabulary</div><span></span>
+                            <div class="menu-icons">
+                                <img src="/images/sort.png" class="clickable" title="Sort" alt="sort">
+                                <img src="/images/filter.png" class="clickable" title="Filter" alt="filter">
+                                <img src="/images/menu.png" class="clickable" title="Menu" alt="menu">
+                                <div class="clickable" title="Close">
+                                    <i class="up"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subject-container simple-grid"><ul></ul></div>
+                        <div class="menu-popup hidden">
+                            <p></p>
+                            <ul></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+	</div>
+
+    <!-- SIDEBAR -->
+    <div class="side-panel">
+        <a href="profile.html" class="clickable" id="profile">
+            <div>
+                <img src="/images/wanikani-default.png">
+            </div>
+            <p title="Level"></p>
+        </a>
+        <ul>
+            <li class="clickable" style="position: relative;">
+                <a href="settings.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="settings" src="../images/settings.png" title="Settings" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="search" src="../images/search.png" title="Search" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative; padding-right: 3px;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="blacklist" src="../images/blacklist.png" title="Blacklist" style="width: 20px;">
+                    <span class="side-panel-info-alert" style="background-color: red; color: white; filter: invert(1);">0</span>
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="about.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="about" src="../images/about.png" title="About" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="random" src="../images/random.png" title="Random" data-item-id="rand" class="kanjiDetails" style="width: 20px;">
+                    <span id="random-subject-type" class="side-panel-info-alert">A</span>
+                </a>
+            </li>
+            <li class="clickable" style="position: relative; padding-left: 3px;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="exit" src="../images/exit.png" title="Exit" style="width: 20px;">
+                </a>
+            </li>
+        </ul>
+        <div id="side-panel-logo" class="clickable" title="Wanikani Kanji Highlighter">
+            <img src="../logo/logo.png" style="pointer-events: none;">
+        </div>
+    </div>
+
+    <script src="/scripts/fetch/data-fetch.js"></script>
+    <script src="/scripts/fetch/wk-fetch.js"></script>
+    <script src="/scripts/functions.js"></script>
+    <script src="/scripts/database.js"></script>
+    <script src="scripts/navbar.js"></script>
+	<script src="scripts/profile.js"></script>
+</body>
+</html>

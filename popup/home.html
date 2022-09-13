@@ -81,12 +81,12 @@
     
     <!-- SIDEBAR -->
     <div class="side-panel">
-        <div class="clickable" id="profile">
-            <div style="margin-top: 10px;">
-                <img style="border-radius: 50%; border: 3px solid white; width: 26px;">
+        <a href="profile.html" class="clickable" id="profile">
+            <div>
+                <img src="/images/wanikani-default.png">
             </div>
-            <p title="Level" id="user-level" style="font-weight: bold; color: rgb(204, 204, 204);"></p>
-        </div>
+            <p title="Level"></p>
+        </a>
         <ul>
             <li class="clickable" style="position: relative;">
                 <a href="settings.html" class="navbar_icon" style="padding: 0px 5px;">
@@ -126,7 +126,10 @@
         </div>
     </div>
 
-	<script src="scripts/scripts.js"></script>
+    <script src="/scripts/fetch/data-fetch.js"></script>
+    <script src="/scripts/fetch/wk-fetch.js"></script>
+    <script src="/scripts/functions.js"></script>
+    <script src="scripts/navbar.js"></script>
 	<script src="scripts/home.js"></script>
 </body>
 </html>
