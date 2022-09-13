@@ -272,55 +272,65 @@ const flipArrow = (arrow, sourceDir, destDir, paddingValue) => {
 const assignUponSubjects = list => {
 	const type = list[Object.keys(list)[0]]["subject_type"];
 	if (list && type) {
-		chrome.storage.local.get("wkhighlight_assignments", result => {
-			const allAssignments = result["wkhighlight_assignments"]["all"];
-			const progress = Object.fromEntries(Object.keys(srsStages).map(stage => [stage, 0]));
-			const levelsInProgress = [];
-			if (allAssignments) {
-				console.log(`Associating assignments with ${type} ...`);
+		const db = new Database("wanikani");
+		db.create("subjects").then(created => {
+			if (created) {
+				chrome.storage.local.get("wkhighlight_assignments", result => {
+					const allAssignments = result["wkhighlight_assignments"]["all"];
+					const progress = Object.fromEntries(Object.keys(srsStages).map(stage => [stage, 0]));
+					const levelsInProgress = [];
+					if (allAssignments) {
+						console.log(`Associating assignments with ${type} ...`);
+		
+						allAssignments.forEach(assignment => {
+							const data = assignment["data"];
+							const subjectId = data["subject_id"];
+							if (subjectId && list[subjectId]) {
+								const subject = list[subjectId];
+		
+								const timestamps = {
+									data_updated_at: assignment["data_updated_at"],
+									available_at: data["available_at"],
+									burned_at: data["burned_at"],
+									created_at: data["created_at"],
+									passed_at: data["passed_at"],
+									resurrected_at: data["resurrected_at"],
+									started_at: data["started_at"],
+									unlocked_at: data["unlocked_at"]
+								}
+								subject["timestamps"] = timestamps;
+								subject["srs_stage"] = data["srs_stage"];
+								subject["hidden"] = data["hidden"];
+								progress[data["srs_stage"]]++;
 
-				allAssignments.forEach(assignment => {
-					const data = assignment["data"];
-					const subjectId = data["subject_id"];
-					if (subjectId && list[subjectId]) {
-						const subject = list[subjectId];
-
-						const timestamps = {
-							data_updated_at: assignment["data_updated_at"],
-							available_at: data["available_at"],
-							burned_at: data["burned_at"],
-							created_at: data["created_at"],
-							passed_at: data["passed_at"],
-							resurrected_at: data["resurrected_at"],
-							started_at: data["started_at"],
-							unlocked_at: data["unlocked_at"]
+								db.get("subjects", subjectId).then(result => {
+									if (result) {
+										["srs_stage", "hidden", "passed_at", "available_at"].forEach(key => result[key] = data[key]);
+										db.update("subjects", result);
+									}
+								});
+		
+								if (!data["passed_at"] && !levelsInProgress.includes(subject["level"]))
+									levelsInProgress.push(subject["level"]);
+							}
+						});
+		
+						let storageId;
+						switch(type) {
+							case "radical":
+								storageId = "wkhighlight_allradicals";
+								break;
+							case "kanji":
+								storageId = "wkhighlight_allkanji";
+								break;
+							case "vocabulary":
+								storageId = "wkhighlight_allvocab";
+								break;
 						}
-						subject["timestamps"] = timestamps;
-						subject["srs_stage"] = data["srs_stage"];
-						subject["hidden"] = data["hidden"];
-						progress[data["srs_stage"]]++;
-
-						if (!data["passed_at"] && !levelsInProgress.includes(subject["level"]))
-							levelsInProgress.push(subject["level"]);
+						if (storageId)
+							chrome.storage.local.set({...{[storageId]:list, ["wkhighlight_"+type+"_progress"]: progress, ["wkhighlight_"+type+"_levelsInProgress"]: levelsInProgress}});
 					}
 				});
-
-				console.log("commit from assignments");
-
-				let storageId;
-				switch(type) {
-					case "radical":
-						storageId = "wkhighlight_allradicals";
-						break;
-					case "kanji":
-						storageId = "wkhighlight_allkanji";
-						break;
-					case "vocabulary":
-						storageId = "wkhighlight_allvocab";
-						break;
-				}
-				if (storageId)
-					chrome.storage.local.set({...{[storageId]:list, ["wkhighlight_"+type+"_progress"]: progress, ["wkhighlight_"+type+"_levelsInProgress"]: levelsInProgress}});
 			}
 		});
 	}

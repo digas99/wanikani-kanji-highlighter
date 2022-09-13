@@ -1,4 +1,5 @@
 importScripts(
+	"/scripts/time.js",
 	"/scripts/fetch/data-fetch.js",
 	"/scripts/fetch/wk-fetch.js",
 	"/scripts/database.js",

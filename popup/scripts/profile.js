@@ -115,12 +115,20 @@ const updateLevelProgressBar = (progressBarWrapper, passedSubjects, allSubjects)
             progressBar.style.backgroundColor = "white";
             barLabel.style.color = "black";
         }
+        else {
+            progressBar.style.removeProperty("background-color");
+            barLabel.style.removeProperty("color");
+        }
     }
 
+    const progressValues = progressBarWrapper.querySelector("span");
     if (percentage < 81 && percentage >= 1) {
-        const progressValues = progressBarWrapper.querySelector("span");
+        progressValues.classList.remove("hidden");
         progressValues.appendChild(document.createTextNode(passedSubjects + " / " + allSubjects));
     }
+    else
+        progressValues.classList.add("hidden");
+
     progressBar.classList.add("clickable");
     progressBar.title = "Passed Kanji: "+passedSubjects+" / "+percentage.toFixed(1)+"%";
 }

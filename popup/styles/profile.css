@@ -263,3 +263,17 @@
 .subject-container > ul > li {
     position: relative;
 }
+
+.time-next-review-subject {
+	font-size: 10px;
+    background-color: #42f541;
+    text-align: center;
+    padding: 2px;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    color: black;
+    border-radius: 5px;
+	box-shadow: 0px 0px 2px black;
+	z-index: 1;
+}
