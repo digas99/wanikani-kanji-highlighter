@@ -1,52 +1,62 @@
 let initialSetup = true;
+let subjectsData, menuSettings;
 
-chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_userInfo_updated"], result => {
+chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_userInfo_updated", "wkhighlight_settings"], result => {
     const date = result["wkhighlight_userInfo_updated"] ? result["wkhighlight_userInfo_updated"] : formatDate(new Date());
+    menuSettings = result["wkhighlight_settings"] && result["wkhighlight_settings"]["profile_menus"] ? result["wkhighlight_settings"]["profile_menus"] : defaultSettings["profile_menus"];
 
-    modifiedSince(result["wkhighlight_apiKey"], date, "https://api.wanikani.com/v2/user")
-        .then(modified => {
-            const userInfo = result["wkhighlight_userInfo"]["data"];
+    const db = new Database("wanikani");
+    db.create("subjects").then(created => {
+        if (created) {
+            db.getAll("subjects").then(data => {
+                subjectsData = data.filter(subject => !subject["hidden_at"]);
 
-            // if user info has been updated in wanikani, then update cache
-            if (!userInfo || modified)
-                fetchUserInfo(apiKey);
-            
-            if (userInfo) {
-                const avatar = document.querySelector("#profile-pic img");
-                const link = "https://www.wanikani.com/users/"+userInfo["username"];
-                // get user avatar
-                if (!userInfo["avatar"]) {
-                    fetch(link)
-                        .then(result => result.text())
-                        .then(content => {
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(content, 'text/html');
-                            const avatarElem = doc.getElementsByClassName("avatar user-avatar-default")[0];
-                            const avatarSrc = "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0];
-                            userInfo["avatar"] = avatarSrc;
-                            avatar.src = userInfo["avatar"];
-                            chrome.storage.local.set({"wkhighlight_userInfo":result["wkhighlight_userInfo"]});
-                        });
-                }
-                else
-                    avatar.src = userInfo["avatar"];
+                modifiedSince(result["wkhighlight_apiKey"], date, "https://api.wanikani.com/v2/user")
+                    .then(modified => {
+                        const userInfo = result["wkhighlight_userInfo"]["data"];
 
-                avatar.parentElement.href = link;
-                avatar.parentElement.title = link;
+                        // if user info has been updated in wanikani, then update cache
+                        if (!userInfo || modified)
+                            fetchUserInfo(apiKey);
+                        
+                        if (userInfo) {
+                            const avatar = document.querySelector("#profile-pic img");
+                            const link = "https://www.wanikani.com/users/"+userInfo["username"];
+                            // get user avatar
+                            if (!userInfo["avatar"]) {
+                                fetch(link)
+                                    .then(result => result.text())
+                                    .then(content => {
+                                        const parser = new DOMParser();
+                                        const doc = parser.parseFromString(content, 'text/html');
+                                        const avatarElem = doc.getElementsByClassName("avatar user-avatar-default")[0];
+                                        const avatarSrc = "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0];
+                                        userInfo["avatar"] = avatarSrc;
+                                        avatar.src = userInfo["avatar"];
+                                        chrome.storage.local.set({"wkhighlight_userInfo":result["wkhighlight_userInfo"]});
+                                    });
+                            }
+                            else
+                                avatar.src = userInfo["avatar"];
 
-                // username
-                const username = document.querySelector("#username");
-                username.appendChild(document.createTextNode(userInfo["username"]));
+                            avatar.parentElement.href = link;
+                            avatar.parentElement.title = link;
 
-                // scroll down arrow
-                const goDownArrowWrapper = document.querySelector(".scroll-down");
-                if (goDownArrowWrapper)
-                    goDownArrowWrapper.addEventListener("click", () => window.scroll(0, 420));
+                            // username
+                            const username = document.querySelector("#username");
+                            username.appendChild(document.createTextNode(userInfo["username"]));
 
-                updateLevelData(Number(userInfo["level"]));
-            }
+                            // scroll down arrow
+                            const goDownArrowWrapper = document.querySelector(".scroll-down");
+                            if (goDownArrowWrapper)
+                                goDownArrowWrapper.addEventListener("click", () => window.scroll(0, 420));
 
-        });
+                            updateLevelData(Number(userInfo["level"]));
+                        }
+                    });
+            });
+        }
+    });
 });
 
 const updateLevelData = (level, clear) => {
@@ -55,53 +65,29 @@ const updateLevelData = (level, clear) => {
     if (!clear)
         levelsChooser(level, document.querySelector(".levels-chooser"));
 
-    const db = new Database("wanikani");
-    db.create("subjects").then(created => {
-        if (created) {
-            db.getAll("subjects", "level", level)
-                .then(results => {
-                    const allSubjects = results.filter(subject => !subject["hidden_at"]);
-                    const allPassedSubjects = allSubjects.filter(subject => subject.passed_at != null);
+    const allSubjects = subjectsData.filter(subject => subject["level"] === level);
+    const allPassedSubjects = allSubjects.filter(subject => subject.passed_at != null);
 
-                    // add clicking events and animation to levels
-                    if (!clear)
-                        levelsChooserAction(document.querySelector(".levels-chooser"));
+    // add clicking events and animation to levels
+    if (!clear)
+        levelsChooserAction(document.querySelector(".levels-chooser"));
 
-                    // all subjects progress
-                    const allTab = document.querySelector(".subject-tab");
-                    allTab.querySelector("span").appendChild(document.createTextNode(`${allPassedSubjects.length} / ${allSubjects.length}`));
-                    
-                    // subject types containers
-                    ["radical", "kanji", "vocab"].forEach(type => {
-                        const subjects = allSubjects.filter(subject => subject["subject_type"] === (type == "vocab" ? "vocabulary" : type));
-                        const passedSubjects = subjects.filter(subject => subject.passed_at != null);
+    // all subjects progress
+    const allTab = document.querySelector(".subject-tab");
+    allTab.querySelector("span").appendChild(document.createTextNode(`${allPassedSubjects.length} / ${allSubjects.length}`));
+    
+    // subject types containers
+    ["radical", "kanji", "vocab"].forEach(type => {
+        const subjects = allSubjects.filter(subject => subject["subject_type"] === (type == "vocab" ? "vocabulary" : type));
+        const passedSubjects = subjects.filter(subject => subject.passed_at != null);
 
-                        // level progress bar
-                        if (type == "kanji")
-                            updateLevelProgressBar(document.querySelector(".level-progress-bar"), passedSubjects.length, subjects.length);
+        // level progress bar
+        if (type == "kanji")
+            updateLevelProgressBar(document.querySelector(".level-progress-bar"), passedSubjects.length, subjects.length);
 
-                        // subject tiles lists
-                        updateTypeContainer(type, document.querySelector(`#${type}-container`), subjects);
-                    });
-                });
-        }
+        // subject tiles lists
+        updateTypeContainer(type, document.querySelector(`#${type}-container`), subjects);
     });
-}
-
-const levelsChooser = (levelValue, wrapper) => {
-    [
-        levelValue > 1 ? levelValue-1 : " ",
-        levelValue,
-        levelValue < 60 ? levelValue+1 : " "
-    ].forEach((level, i) => {
-        const levelWrapper = document.createElement("li");
-        wrapper.appendChild(levelWrapper);
-        const levelContent = document.createElement("div");
-        levelWrapper.appendChild(levelContent);
-        levelContent.appendChild(document.createTextNode(level));
-        levelContent.style.width = "100%";
-        levelWrapper.title = i == 0 ? "Previous" : i == 2 ? "Next" : "";
-    });	
 }
 
 const updateLevelProgressBar = (progressBarWrapper, passedSubjects, allSubjects) => {
@@ -207,6 +193,22 @@ const subjectTile = (type, subject) => {
     return subjectWrapper;
 }
 
+const levelsChooser = (levelValue, wrapper) => {
+    [
+        levelValue > 1 ? levelValue-1 : " ",
+        levelValue,
+        levelValue < 60 ? levelValue+1 : " "
+    ].forEach((level, i) => {
+        const levelWrapper = document.createElement("li");
+        wrapper.appendChild(levelWrapper);
+        const levelContent = document.createElement("div");
+        levelWrapper.appendChild(levelContent);
+        levelContent.appendChild(document.createTextNode(level));
+        levelContent.style.width = "100%";
+        levelWrapper.title = i == 0 ? "Previous" : i == 2 ? "Next" : "";
+    });	
+}
+
 const levelsChooserAction = levelsList => {
     Array.from(levelsList.querySelectorAll("li")).forEach((levelWrapper, i) => {
         const level = Number(levelWrapper.innerText);
@@ -285,4 +287,309 @@ const clearData = () => {
         container.querySelector(".subject-container > ul").remove();
         container.querySelector(".subject-container").appendChild(document.createElement("ul"));
     });
+}
+
+document.addEventListener("click", e => {
+    const target = e.target;
+
+    // open/close subjects container
+    if (target.closest("div[title='Close']")) {
+        const arrow = target.closest("div[title='Close']").querySelector("i");
+        const subjectsContainer = arrow.closest(".subject-tab").nextElementSibling;
+        if (subjectsContainer) {
+            if (!subjectsContainer.classList.contains("hidden")) {
+                arrow.classList.replace("up", "down");
+                subjectsContainer.classList.add("hidden");
+            }
+            else {
+                arrow.classList.replace("down", "up");
+                subjectsContainer.classList.remove("hidden");
+            }
+        }
+    }
+
+    // checkbox action
+    if (target.closest(".checkbox_wrapper")) {
+        const checkbox = target.closest(".checkbox_wrapper"); 
+        const input = checkbox.querySelector("input[type='checkbox']");
+        
+        if (!input.checked)
+            checkbox.classList.remove("checkbox-enabled");
+        else
+            checkbox.classList.add("checkbox-enabled");
+        
+        input.click();
+    }
+
+    // open/close menus
+    if(target.closest(".menu-icons img")) {
+        const menu =  target.closest(".subject-tab").querySelector(".menu-popup");
+        if (menu) {
+            // hide all other menus
+            Array.from(document.querySelectorAll(".menu-popup")).forEach(otherMenu => {
+                if (!otherMenu.isEqualNode(menu)) {
+                    otherMenu.classList.add("hidden");
+                    clearMenu(otherMenu);
+                }
+            });
+
+            if (menu.classList.contains("hidden"))
+                menu.classList.remove("hidden");
+
+            const title = target.closest(".menu-icons img").title;
+            if (menu.querySelector("p").innerText === title) {
+                menu.classList.add("hidden");
+                clearMenu(menu);
+            }
+            else {
+                const sectionWrapper = clearMenu(menu);
+                menu.querySelector("p").innerText = title;
+                switch(title) {
+                    case "Sort":
+                        sortMenu(sectionWrapper);
+                        break;
+                    case "Filter":
+                        filterMenu(sectionWrapper);
+                        break;
+                    case "Menu":
+                        menuMenu(sectionWrapper);
+                        break;
+                }
+            }
+        }
+    }
+});
+
+document.addEventListener("input", e => {
+    const target = e.target;
+
+    // menu actions
+    if (target.closest(".menu-popup")) {
+        const menu = target.closest(".menu-popup");
+        const tab = menu.closest(".subject-tab");
+
+        // settings key
+        const title = tab.firstElementChild.innerText;
+        const key = Object.keys(menuSettings).filter(k => title.toLowerCase().includes(k))[0];
+
+        const property = (target.previousElementSibling || target.parentElement.previousElementSibling).innerText;
+        let containers, subjects;
+        switch(target.closest(".menu-popup").querySelector("p").innerText) {
+            case "Sort":
+                containers = [tab.nextElementSibling.querySelector("ul")];
+                if (title === "All")
+                    containers = document.querySelectorAll(".subject-container > ul");  
+
+                switch(property) {
+                    case "Type":
+                        sortings(containers, target.value, menuSettings[key]["sort"]["direction"]);
+                        menuSettings[key]["sort"]["type"] = target.value;
+                        break;
+                    case "Direction":
+                        sortings(containers, menuSettings[key]["sort"]["type"], target.value);
+                        menuSettings[key]["sort"]["direction"] = target.value;
+                        break;
+                }
+                break;
+            case "Filter":
+                subjects = tab.nextElementSibling.querySelectorAll("li");
+                if (title === "All")
+                    subjects = document.querySelectorAll(".subject-container > ul > li");
+
+                // reset tiles
+                Array.from(document.querySelectorAll(".subject-container > ul > li")).forEach(subject => subject.classList.remove("hidden"));
+                
+                switch(property) {    
+                    case "SRS Stage":
+                        filters(subjects, target.value, menuSettings[key]["filter"]["state"]);
+                        menuSettings[key]["filter"]["srs_stage"] = target.value;
+                        break;
+                    case "State":
+                        filters(subjects, menuSettings[key]["filter"]["srs_stage"], target.value);
+                        menuSettings[key]["filter"]["state"] = target.value;
+                        break;
+                }
+                break;
+            case "Menu":
+                subjects = tab.nextElementSibling.querySelectorAll("li");
+                if (title === "All")
+                    subjects = document.querySelectorAll(".subject-container > ul > li");
+
+                // reset tiles
+                Array.from(document.querySelectorAll(".subject-container > ul > li")).forEach(subject => subject.style.removeProperty("color"));
+
+                switch(property) {    
+                    case "Color by":
+                        colorings(subjects, target.value);
+                        menuSettings[key]["menu"]["color_by"] = target.value;
+                        break;
+                    case "Reviews info":
+                        reviewsInfo(subjects, target.checked);
+                        break;
+                }
+                break;
+        }
+    }
+});
+
+const clearMenu = menu => {
+    menu.querySelector("p").innerText = "";
+    menu.querySelector("ul").remove();
+    const ul = document.createElement("ul");
+    menu.appendChild(ul);
+    return ul;
+}
+
+const selector = (title, options, defaultValue) => {
+    const wrapper = document.createElement("li");
+    const label = document.createElement("label");
+    wrapper.appendChild(label);
+    label.appendChild(document.createTextNode(title));
+    const select = document.createElement("select");
+    wrapper.appendChild(select);
+    select.classList.add("select");
+    select.style.width = "auto";
+    options.forEach(option => {
+        const optionElem = document.createElement("option");
+        select.appendChild(optionElem);
+        optionElem.appendChild(document.createTextNode(option));
+    });
+    if (defaultValue)
+        select.value = defaultValue;
+
+    return wrapper;
+}
+
+const checkbox = (title, checked) => {
+    const wrapper = document.createElement("li");
+    const label = document.createElement("label");
+    wrapper.appendChild(label);
+    label.appendChild(document.createTextNode(title));
+    const inputDiv = document.createElement("div");
+    inputDiv.classList.add("checkbox_wrapper", "checkbox-enabled", "clickable");
+    wrapper.appendChild(inputDiv);
+    const checkbox = document.createElement("input");
+    inputDiv.appendChild(checkbox);
+    checkbox.type = "checkbox";
+    checkbox.style.display = "none";
+    checkbox.checked = true;
+    const customCheckboxBall = document.createElement("div");
+    inputDiv.appendChild(customCheckboxBall);
+    customCheckboxBall.classList.add("custom-checkbox-ball");
+    const customCheckboxBack = document.createElement("div");
+    inputDiv.appendChild(customCheckboxBack);
+    customCheckboxBack.classList.add("custom-checkbox-back");
+    
+    return wrapper;
+}
+
+// MENU MENU
+
+const menuMenu = (wrapper, defaults) => {
+    // color by
+    wrapper.appendChild(selector("Color by", ["Subject Type", "SRS Stage"], defaults ? defaults["Color by"] : null));
+
+    // show reviews info
+    wrapper.appendChild(checkbox("Reviews info", true));	
+}
+
+const colorings = (subjects, type) => {
+    switch(type) {
+        case "Subject Type":
+            subjects.forEach(elem => elem.style.removeProperty("background-color"));
+            break;
+        case "SRS Stage":
+            subjects.forEach(elem => {
+                if (elem.getAttribute("data-srs")) {
+                    let backColor;
+                    if (elem.getAttribute("data-srs") == "-1") {
+                        backColor = "#000000";
+                        elem.style.setProperty("background-color", backColor, "important");
+                    }
+                    else {
+                        backColor = settings && settings["appearance"] ? settings["appearance"][srsStages[elem.getAttribute("data-srs")]["short"].toLowerCase()+"_color"] : srsStages[elem.getAttribute("data-srs")]["color"];
+                        elem.style.setProperty("background-color", backColor, "important");
+                    }
+                    backColor = hexToRGB(backColor);
+                    elem.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
+                }
+            });
+            break;
+    }
+}
+
+const reviewsInfo = (subjects, checked) => {
+    if (!checked) {
+        subjects.forEach(elem => {
+            if (elem.getElementsByClassName("reviews-info")[0])
+                elem.getElementsByClassName("reviews-info")[0].style.display = "none"; 
+        });
+    }
+    else {
+        subjects.forEach(elem => {
+            if (elem.getElementsByClassName("reviews-info")[0])
+                elem.getElementsByClassName("reviews-info")[0].style.removeProperty("display"); 
+        });
+    }
+}
+
+// FILTERS MENU
+
+const filterMenu = (wrapper, defaults) => {
+    // srs stage
+    wrapper.appendChild(selector("SRS Stage", [...["None", "Locked"], ...Object.values(srsStages).map(value => value.name)], defaults ? defaults["SRS Stage"] : null));
+
+    // state
+    wrapper.appendChild(selector("State", ["None", "Passed", "Not Passed"], defaults ? defaults["State"] : null));
+}
+
+const filters = (subjects, srs, state) => {
+    if (srs !== "None") {
+        Array.from(subjects).forEach(elem => {
+            const srsChecker = srs !== "None" && (elem.getAttribute("data-srs") == "-1" && srs !== "Locked" || elem.getAttribute("data-srs") !== "-1" && srs !== srsStages[elem.getAttribute("data-srs")]["name"]);
+            if (srsChecker)
+                elem.classList.add("hidden");
+        });
+    }
+
+    if (state !== "None") {
+        Array.from(subjects).forEach(elem => {
+            const stateChecker = state !== "None" && (state !== (elem.getElementsByClassName("passed-subject-check").length > 0 ? "Passed" : "Not Passed"));
+            if (stateChecker)
+                elem.classList.add("hidden");
+        });
+    }
+}
+
+// SORTS MENU
+
+const sortMenu = (wrapper, defaults) => {
+    // types
+    wrapper.appendChild(selector("Type", ["None", "SRS Stage", "Next Review"], defaults ? defaults["Type"] : null));
+
+    // direction
+    wrapper.appendChild(selector("Direction", ["Ascending", "Descending"], defaults ? defaults["Direction"] : null));
+}
+
+const sortings = (containers, value, direction) => {
+    switch(value) {
+        case "SRS Stage":
+            containers.forEach(wrapper => {
+                Array.from(wrapper.getElementsByTagName("LI")).sort((a, b) => Number((direction == "Descending" ? b : a).getAttribute("data-srs")) - Number((direction == "Descending" ? a : b).getAttribute("data-srs")))
+                    .forEach(elem => wrapper.appendChild(elem));
+            });
+            break;
+        case "Next Review":
+            containers.forEach(wrapper => {
+                Array.from(wrapper.getElementsByTagName("LI"))
+                    .filter(elem => elem.getAttribute("data-available_at"))
+                    .sort((a, b) => new Date((direction == "Descending" ? b : a).getAttribute("data-available_at")) - new Date((direction == "Descending" ? a : b).getAttribute("data-available_at")))
+                    .forEach(elem => wrapper.appendChild(elem));
+                
+                Array.from(wrapper.getElementsByTagName("LI"))
+                    .filter(elem => !elem.getAttribute("data-available_at"))
+                    .forEach(elem => wrapper.appendChild(elem));
+            });
+            break;
+    }
 }

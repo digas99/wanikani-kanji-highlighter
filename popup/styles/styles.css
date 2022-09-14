@@ -175,7 +175,7 @@ i {
 }
 
 .hidden {
-	display: none;
+	display: none !important;
 }
 
 #sec-page {

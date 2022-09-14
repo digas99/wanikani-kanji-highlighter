@@ -1,0 +1,41 @@
+.select {
+	background: #2a2d48;
+	color: white;
+	width: 100px;
+	padding: 2px 6px;
+}
+
+.checkbox_wrapper {
+	text-align: right;
+	position: relative;
+}
+
+.checkbox_wrapper > div {
+	pointer-events: none;
+}
+
+.custom-checkbox-back {
+	width: 35px;
+    height: 16px;
+    border-radius: 10px;
+    background-color: #cbc9c9;
+}
+
+.custom-checkbox-ball {
+	width: 20px;
+    height: 20px;
+    background-color: gray;
+    border-radius: 10px;
+    position: absolute;
+    top: -2px;
+	transition: 0.4s;
+}
+
+.checkbox-enabled > .custom-checkbox-back {
+	background-color: #636375;
+}
+
+.checkbox-enabled > .custom-checkbox-ball {
+    margin-left: 16px;
+    background-color: var(--default-color);
+}

@@ -135,7 +135,11 @@
                         resolve(false);
                     }
                     
-                    const request = objectStore.index(index).getAll([value]);
+                    let request;
+                    if (!index)
+                        request = objectStore.getAll();
+                    else
+                        request = objectStore.index(index).getAll([value]);
 
                     request.onsuccess = () => resolve(request.result);
                 });
