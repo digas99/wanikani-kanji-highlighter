@@ -1,9 +1,9 @@
-let initialSetup = true;
-let subjectsData, menuSettings;
+let subjectsData, settings, menuSettings;
 
 chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_userInfo_updated", "wkhighlight_settings"], result => {
     const date = result["wkhighlight_userInfo_updated"] ? result["wkhighlight_userInfo_updated"] : formatDate(new Date());
-    menuSettings = result["wkhighlight_settings"] && result["wkhighlight_settings"]["profile_menus"] ? result["wkhighlight_settings"]["profile_menus"] : defaultSettings["profile_menus"];
+    settings = result["wkhighlight_settings"];
+    menuSettings = settings && settings["profile_menus"] ? settings["profile_menus"] : defaultSettings["profile_menus"];
 
     const db = new Database("wanikani");
     db.create("subjects").then(created => {
@@ -52,6 +52,9 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighl
                                 goDownArrowWrapper.addEventListener("click", () => window.scroll(0, 420));
 
                             updateLevelData(Number(userInfo["level"]));
+
+                            // apply previously saved changes to subject tiles
+                            applyChanges();
                         }
                     });
             });
@@ -213,10 +216,7 @@ const levelsChooserAction = levelsList => {
     Array.from(levelsList.querySelectorAll("li")).forEach((levelWrapper, i) => {
         const level = Number(levelWrapper.innerText);
         if (!isNaN(level) && i !== 1) {
-            console.log(level);
-            levelWrapper.addEventListener("click", () => {
-                initialSetup = true;
-                                
+            levelWrapper.addEventListener("click", () => {                                
                 const newLevelsChooser = document.createElement("ul");
                 newLevelsChooser.classList.add("levels-chooser");
                 levelsChooser(level, newLevelsChooser);
@@ -226,6 +226,8 @@ const levelsChooserAction = levelsList => {
                 levelsChooserAction(newLevelsChooser);
 
                 updateLevelData(level, true);
+
+                applyChanges();
             });
 
             let smallLevel;
@@ -268,8 +270,6 @@ const levelsChooserAction = levelsList => {
         
         if (i == 1) middleLevel = levelWrapper;
     });
-
-    initialSetup = false;
 }
 
 const clearData = () => {
@@ -295,17 +295,26 @@ document.addEventListener("click", e => {
     // open/close subjects container
     if (target.closest("div[title='Close']")) {
         const arrow = target.closest("div[title='Close']").querySelector("i");
-        const subjectsContainer = arrow.closest(".subject-tab").nextElementSibling;
+        const tab = arrow.closest(".subject-tab");
+        const title = tab.firstElementChild.innerText;
+        let key = Object.keys(menuSettings).filter(k => title.toLowerCase().includes(k))[0];
+
+        const subjectsContainer = tab.nextElementSibling;
         if (subjectsContainer) {
             if (!subjectsContainer.classList.contains("hidden")) {
                 arrow.classList.replace("up", "down");
                 subjectsContainer.classList.add("hidden");
+                menuSettings[key]["opened"] = false;
             }
             else {
                 arrow.classList.replace("down", "up");
                 subjectsContainer.classList.remove("hidden");
+                menuSettings[key]["opened"] = true;
             }
         }
+
+        // save changes
+        chrome.storage.local.set({"wkhighlight_settings": settings});
     }
 
     // checkbox action
@@ -323,7 +332,8 @@ document.addEventListener("click", e => {
 
     // open/close menus
     if(target.closest(".menu-icons img")) {
-        const menu =  target.closest(".subject-tab").querySelector(".menu-popup");
+        const tab = target.closest(".subject-tab");
+        const menu =  tab.querySelector(".menu-popup");
         if (menu) {
             // hide all other menus
             Array.from(document.querySelectorAll(".menu-popup")).forEach(otherMenu => {
@@ -342,17 +352,18 @@ document.addEventListener("click", e => {
                 clearMenu(menu);
             }
             else {
+                const key = Object.keys(menuSettings).filter(k => tab.firstElementChild.innerText.toLowerCase().includes(k))[0];
                 const sectionWrapper = clearMenu(menu);
                 menu.querySelector("p").innerText = title;
                 switch(title) {
                     case "Sort":
-                        sortMenu(sectionWrapper);
+                        sortMenu(sectionWrapper, menuSettings[key]["sort"]);
                         break;
                     case "Filter":
-                        filterMenu(sectionWrapper);
+                        filterMenu(sectionWrapper, menuSettings[key]["filter"]);
                         break;
                     case "Menu":
-                        menuMenu(sectionWrapper);
+                        menuMenu(sectionWrapper, menuSettings[key]["menu"]);
                         break;
                 }
             }
@@ -367,70 +378,113 @@ document.addEventListener("input", e => {
     if (target.closest(".menu-popup")) {
         const menu = target.closest(".menu-popup");
         const tab = menu.closest(".subject-tab");
-
-        // settings key
         const title = tab.firstElementChild.innerText;
-        const key = Object.keys(menuSettings).filter(k => title.toLowerCase().includes(k))[0];
+        const menuTitle = target.closest(".menu-popup").querySelector("p").innerText;
+
+        let keys = [Object.keys(menuSettings).filter(k => title.toLowerCase().includes(k))[0]];
+        if (title === "All")
+            keys = Object.keys(menuSettings);
 
         const property = (target.previousElementSibling || target.parentElement.previousElementSibling).innerText;
-        let containers, subjects;
-        switch(target.closest(".menu-popup").querySelector("p").innerText) {
-            case "Sort":
-                containers = [tab.nextElementSibling.querySelector("ul")];
-                if (title === "All")
-                    containers = document.querySelectorAll(".subject-container > ul");  
+        const value = target.checked == undefined ? target.value : target.checked;
 
-                switch(property) {
-                    case "Type":
-                        sortings(containers, target.value, menuSettings[key]["sort"]["direction"]);
-                        menuSettings[key]["sort"]["type"] = target.value;
-                        break;
-                    case "Direction":
-                        sortings(containers, menuSettings[key]["sort"]["type"], target.value);
-                        menuSettings[key]["sort"]["direction"] = target.value;
-                        break;
-                }
-                break;
-            case "Filter":
-                subjects = tab.nextElementSibling.querySelectorAll("li");
-                if (title === "All")
-                    subjects = document.querySelectorAll(".subject-container > ul > li");
+        menuActions(tab, title, menuTitle, property, keys, value);
 
-                // reset tiles
-                Array.from(document.querySelectorAll(".subject-container > ul > li")).forEach(subject => subject.classList.remove("hidden"));
-                
-                switch(property) {    
-                    case "SRS Stage":
-                        filters(subjects, target.value, menuSettings[key]["filter"]["state"]);
-                        menuSettings[key]["filter"]["srs_stage"] = target.value;
-                        break;
-                    case "State":
-                        filters(subjects, menuSettings[key]["filter"]["srs_stage"], target.value);
-                        menuSettings[key]["filter"]["state"] = target.value;
-                        break;
-                }
-                break;
-            case "Menu":
-                subjects = tab.nextElementSibling.querySelectorAll("li");
-                if (title === "All")
-                    subjects = document.querySelectorAll(".subject-container > ul > li");
-
-                // reset tiles
-                Array.from(document.querySelectorAll(".subject-container > ul > li")).forEach(subject => subject.style.removeProperty("color"));
-
-                switch(property) {    
-                    case "Color by":
-                        colorings(subjects, target.value);
-                        menuSettings[key]["menu"]["color_by"] = target.value;
-                        break;
-                    case "Reviews info":
-                        reviewsInfo(subjects, target.checked);
-                        break;
-                }
-                break;
-        }
+        // save changes to menu settings
+        chrome.storage.local.set({"wkhighlight_settings": settings});
     }
 });
+
+const applyChanges = () => {
+    Object.keys(menuSettings).forEach(type => {
+        const tab = Array.from(document.querySelectorAll(".subject-tab")).filter(tab => tab.firstElementChild.innerText.toLowerCase().includes(type))[0];
+        if (tab) {
+            // apply changes to those settings that are different from default
+            Object.keys(menuSettings[type]).forEach(key => {
+                if (key === "opened") {
+                    if (menuSettings[type][key] == false) {
+                        const closeArrow = tab.querySelector("div[title='Close']");
+                        closeArrow.click();
+                    }
+                }
+                else {
+                    Object.keys(menuSettings[type][key]).forEach(property => {
+                        if (menuSettings[type][key][property] !== defaultSettings["profile_menus"][type][key][property]) {                                                
+                            const title = type.charAt(0).toUpperCase()+type.slice(1);
+                            let keys = [Object.keys(menuSettings).filter(k => title.toLowerCase().includes(k))[0]];
+                            if (title === "All")
+                                keys = Object.keys(menuSettings);
+                    
+                            menuActions(tab, title, key.charAt(0).toUpperCase()+key.slice(1), property, keys, menuSettings[type][key][property]);
+                        }
+                    });
+                }
+            });
+        }
+    });
+}
+
+const menuActions = (tab, subjectsType, menuTitle, property, keys, value) => {
+    property = property.toLowerCase().replaceAll(" ", "_");
+
+    let containers, subjects;
+    switch(menuTitle) {
+        case "Sort":
+            containers = [tab.nextElementSibling.querySelector("ul")];
+            if (subjectsType === "All")
+                containers = document.querySelectorAll(".subject-container > ul");  
+
+            switch(property) {
+                case "type":
+                    sortings(containers, value, menuSettings[keys[0]]["sort"]["direction"]);
+                    keys.forEach(key => menuSettings[key]["sort"]["type"] = value);
+                    break;
+                case "direction":
+                    sortings(containers, menuSettings[keys[0]]["sort"]["type"], value);
+                    keys.forEach(key => menuSettings[key]["sort"]["direction"] = value);
+                    break;
+            }
+            break;
+        case "Filter":
+            subjects = tab.nextElementSibling.querySelectorAll("li");
+            if (subjectsType === "All")
+                subjects = document.querySelectorAll(".subject-container > ul > li");
+
+            // reset tiles
+            Array.from(document.querySelectorAll(".subject-container > ul > li")).forEach(subject => subject.classList.remove("hidden"));
+            
+            switch(property) {    
+                case "srs_stage":
+                    filters(subjects, value, menuSettings[keys[0]]["filter"]["state"]);
+                    keys.forEach(key => menuSettings[key]["filter"]["srs_stage"] = value);
+                    break;
+                case "state":
+                    filters(subjects, menuSettings[keys[0]]["filter"]["srs_stage"], value);
+                    keys.forEach(key => menuSettings[key]["filter"]["state"] = value);
+                    break;
+            }
+            break;
+        case "Menu":
+            subjects = tab.nextElementSibling.querySelectorAll("li");
+            if (subjectsType === "All")
+                subjects = document.querySelectorAll(".subject-container > ul > li");
+
+            // reset tiles
+            Array.from(document.querySelectorAll(".subject-container > ul > li")).forEach(subject => subject.style.removeProperty("color"));
+
+            switch(property) {    
+                case "color_by":
+                    colorings(subjects, value);
+                    keys.forEach(key => menuSettings[key]["menu"]["color_by"] = value);
+                    break;
+                case "reviews_info":
+                    reviewsInfo(subjects, value);
+                    keys.forEach(key => menuSettings[key]["menu"]["reviews_info"] = value);
+                    break;
+            }
+            break;
+    }
+}
 
 const clearMenu = menu => {
     menu.querySelector("p").innerText = "";
@@ -466,13 +520,15 @@ const checkbox = (title, checked) => {
     wrapper.appendChild(label);
     label.appendChild(document.createTextNode(title));
     const inputDiv = document.createElement("div");
-    inputDiv.classList.add("checkbox_wrapper", "checkbox-enabled", "clickable");
+    inputDiv.classList.add("checkbox_wrapper", "clickable");
+    if (checked)
+        inputDiv.classList.add("checkbox-enabled");
     wrapper.appendChild(inputDiv);
     const checkbox = document.createElement("input");
     inputDiv.appendChild(checkbox);
     checkbox.type = "checkbox";
     checkbox.style.display = "none";
-    checkbox.checked = true;
+    checkbox.checked = checked;
     const customCheckboxBall = document.createElement("div");
     inputDiv.appendChild(customCheckboxBall);
     customCheckboxBall.classList.add("custom-checkbox-ball");
@@ -487,10 +543,10 @@ const checkbox = (title, checked) => {
 
 const menuMenu = (wrapper, defaults) => {
     // color by
-    wrapper.appendChild(selector("Color by", ["Subject Type", "SRS Stage"], defaults ? defaults["Color by"] : null));
+    wrapper.appendChild(selector("Color by", ["Subject Type", "SRS Stage"], defaults ? defaults["color_by"] : null));
 
     // show reviews info
-    wrapper.appendChild(checkbox("Reviews info", true));	
+    wrapper.appendChild(checkbox("Reviews info", defaults["reviews_info"]));	
 }
 
 const colorings = (subjects, type) => {
@@ -537,10 +593,10 @@ const reviewsInfo = (subjects, checked) => {
 
 const filterMenu = (wrapper, defaults) => {
     // srs stage
-    wrapper.appendChild(selector("SRS Stage", [...["None", "Locked"], ...Object.values(srsStages).map(value => value.name)], defaults ? defaults["SRS Stage"] : null));
+    wrapper.appendChild(selector("SRS Stage", [...["None", "Locked"], ...Object.values(srsStages).map(value => value.name)], defaults ? defaults["srs_stage"] : null));
 
     // state
-    wrapper.appendChild(selector("State", ["None", "Passed", "Not Passed"], defaults ? defaults["State"] : null));
+    wrapper.appendChild(selector("State", ["None", "Passed", "Not Passed"], defaults ? defaults["state"] : null));
 }
 
 const filters = (subjects, srs, state) => {
@@ -565,10 +621,10 @@ const filters = (subjects, srs, state) => {
 
 const sortMenu = (wrapper, defaults) => {
     // types
-    wrapper.appendChild(selector("Type", ["None", "SRS Stage", "Next Review"], defaults ? defaults["Type"] : null));
+    wrapper.appendChild(selector("Type", ["None", "SRS Stage", "Next Review"], defaults ? defaults["type"] : null));
 
     // direction
-    wrapper.appendChild(selector("Direction", ["Ascending", "Descending"], defaults ? defaults["Direction"] : null));
+    wrapper.appendChild(selector("Direction", ["Ascending", "Descending"], defaults ? defaults["direction"] : null));
 }
 
 const sortings = (containers, value, direction) => {
