@@ -11,22 +11,7 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighl
             
             if (userInfo) {
                 const avatar = document.querySelector("#profile img");
-                // get user avatar
-                if (!userInfo["avatar"]) {
-                    fetch("https://www.wanikani.com/users/"+userInfo["username"])
-                        .then(result => result.text())
-                        .then(content => {
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(content, 'text/html');
-                            const avatarElem = doc.getElementsByClassName("avatar user-avatar-default")[0];
-                            const avatarSrc = "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0];
-                            userInfo["avatar"] = avatarSrc;
-                            avatar.src = userInfo["avatar"];
-                            chrome.storage.local.set({"wkhighlight_userInfo":result["wkhighlight_userInfo"]});
-                        });
-                }
-                else
-                    avatar.src = userInfo["avatar"];
+                setAvatar(avatar, userInfo["avatar"]);
 
                 const level = document.querySelector("#profile p");
                 if (level && userInfo["level"])
@@ -35,3 +20,21 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighl
 
         });
 });
+
+const setAvatar = (elem, avatar) => {
+    if (!avatar) {
+        fetch("https://www.wanikani.com/users/"+userInfo["username"])
+            .then(result => result.text())
+            .then(content => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(content, 'text/html');
+                const avatarElem = doc.getElementsByClassName("avatar user-avatar-default")[0];
+                const avatarSrc = "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0];
+                userInfo["avatar"] = avatarSrc;
+                elem.src = userInfo["avatar"];
+                chrome.storage.local.set({"wkhighlight_userInfo":result["wkhighlight_userInfo"]});
+            });
+    }
+    else
+        elem.src = avatar;
+}

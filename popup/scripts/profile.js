@@ -1,4 +1,4 @@
-let subjectsData, settings, menuSettings;
+let settings, menuSettings;
 
 chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_userInfo_updated", "wkhighlight_settings"], result => {
     const date = result["wkhighlight_userInfo_updated"] ? result["wkhighlight_userInfo_updated"] : formatDate(new Date());
@@ -9,7 +9,7 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighl
     db.create("subjects").then(created => {
         if (created) {
             db.getAll("subjects").then(data => {
-                subjectsData = data.filter(subject => !subject["hidden_at"]);
+                const subjectsData = data.filter(subject => !subject["hidden_at"]);
 
                 modifiedSince(result["wkhighlight_apiKey"], date, "https://api.wanikani.com/v2/user")
                     .then(modified => {
@@ -21,24 +21,9 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighl
                         
                         if (userInfo) {
                             const avatar = document.querySelector("#profile-pic img");
-                            const link = "https://www.wanikani.com/users/"+userInfo["username"];
-                            // get user avatar
-                            if (!userInfo["avatar"]) {
-                                fetch(link)
-                                    .then(result => result.text())
-                                    .then(content => {
-                                        const parser = new DOMParser();
-                                        const doc = parser.parseFromString(content, 'text/html');
-                                        const avatarElem = doc.getElementsByClassName("avatar user-avatar-default")[0];
-                                        const avatarSrc = "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0];
-                                        userInfo["avatar"] = avatarSrc;
-                                        avatar.src = userInfo["avatar"];
-                                        chrome.storage.local.set({"wkhighlight_userInfo":result["wkhighlight_userInfo"]});
-                                    });
-                            }
-                            else
-                                avatar.src = userInfo["avatar"];
+                            setAvatar(avatar, userInfo["avatar"]);
 
+                            const link = "https://www.wanikani.com/users/"+userInfo["username"];
                             avatar.parentElement.href = link;
                             avatar.parentElement.title = link;
 
@@ -51,7 +36,7 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighl
                             if (goDownArrowWrapper)
                                 goDownArrowWrapper.addEventListener("click", () => window.scroll(0, 420));
 
-                            updateLevelData(Number(userInfo["level"]));
+                            updateLevelData(Number(userInfo["level"]), subjectsData);
 
                             // apply previously saved changes to subject tiles
                             applyChanges();
@@ -62,18 +47,18 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighl
     });
 });
 
-const updateLevelData = (level, clear) => {
+const updateLevelData = (level, data, clear) => {
     if (clear) clearData();
     
     if (!clear)
         levelsChooser(level, document.querySelector(".levels-chooser"));
 
-    const allSubjects = subjectsData.filter(subject => subject["level"] === level);
+    const allSubjects = data.filter(subject => subject["level"] === level);
     const allPassedSubjects = allSubjects.filter(subject => subject.passed_at != null);
 
     // add clicking events and animation to levels
     if (!clear)
-        levelsChooserAction(document.querySelector(".levels-chooser"));
+        levelsChooserAction(document.querySelector(".levels-chooser"), data);
 
     // all subjects progress
     const allTab = document.querySelector(".subject-tab");
@@ -212,7 +197,7 @@ const levelsChooser = (levelValue, wrapper) => {
     });	
 }
 
-const levelsChooserAction = levelsList => {
+const levelsChooserAction = (levelsList, data) => {
     Array.from(levelsList.querySelectorAll("li")).forEach((levelWrapper, i) => {
         const level = Number(levelWrapper.innerText);
         if (!isNaN(level) && i !== 1) {
@@ -223,9 +208,9 @@ const levelsChooserAction = levelsList => {
                 document.querySelector(".levels-chooser-wrapper").replaceChild(newLevelsChooser, levelsList);
                 newLevelsChooser.style.paddingTop = "175px";
 
-                levelsChooserAction(newLevelsChooser);
+                levelsChooserAction(newLevelsChooser, data);
 
-                updateLevelData(level, true);
+                updateLevelData(level, data, true);
 
                 applyChanges();
             });
@@ -278,14 +263,25 @@ const clearData = () => {
     levelProgressBar.querySelector("div > p").innerText = "";
     levelProgressBar.querySelector("span").innerText = "";
 
-    // all
+    // subjects progress from "All"
     document.querySelector(".subject-tab > span").innerText = "";
+    // close arrow from "All"
+    let closeArrow = document.querySelector(".subject-tab > .menu-icons > div[title='Close']");
+    if (closeArrow.querySelector("i").classList.contains("down"))
+        closeArrowAction(closeArrow, document.querySelector(".subject-types"));
 
     // subjects
     Array.from(document.querySelectorAll(".subject-types > div")).forEach(container => {
+        // subjects progress
         container.querySelector(".subject-tab > span").innerText = "";
+        // subjects tiles
         container.querySelector(".subject-container > ul").remove();
         container.querySelector(".subject-container").appendChild(document.createElement("ul"));
+        // subjects close arrow
+        closeArrow = container.querySelector(".menu-icons > div[title='Close']");
+        if (closeArrow.querySelector("i").classList.contains("down"))
+            closeArrowAction(closeArrow, container.querySelector(".subject-container"));
+        
     });
 }
 
@@ -299,19 +295,7 @@ document.addEventListener("click", e => {
         const title = tab.firstElementChild.innerText;
         let key = Object.keys(menuSettings).filter(k => title.toLowerCase().includes(k))[0];
 
-        const subjectsContainer = tab.nextElementSibling;
-        if (subjectsContainer) {
-            if (!subjectsContainer.classList.contains("hidden")) {
-                arrow.classList.replace("up", "down");
-                subjectsContainer.classList.add("hidden");
-                menuSettings[key]["opened"] = false;
-            }
-            else {
-                arrow.classList.replace("down", "up");
-                subjectsContainer.classList.remove("hidden");
-                menuSettings[key]["opened"] = true;
-            }
-        }
+        closeArrowAction(arrow, tab.nextElementSibling, key);
 
         // save changes
         chrome.storage.local.set({"wkhighlight_settings": settings});
@@ -371,6 +355,23 @@ document.addEventListener("click", e => {
     }
 });
 
+const closeArrowAction = (arrow, subjectsContainer, key) => {
+    const opened = !subjectsContainer.classList.contains("hidden");
+    if (subjectsContainer) {
+        if (opened) {
+            arrow.classList.replace("up", "down");
+            subjectsContainer.classList.add("hidden");
+        }
+        else {
+            arrow.classList.replace("down", "up");
+            subjectsContainer.classList.remove("hidden");
+        }
+
+        if (key)
+            menuSettings[key]["opened"] = !opened;
+    } 
+}
+
 document.addEventListener("input", e => {
     const target = e.target;
 
@@ -395,11 +396,11 @@ document.addEventListener("input", e => {
     }
 });
 
+// apply changes to those settings that are different from default
 const applyChanges = () => {
     Object.keys(menuSettings).forEach(type => {
         const tab = Array.from(document.querySelectorAll(".subject-tab")).filter(tab => tab.firstElementChild.innerText.toLowerCase().includes(type))[0];
         if (tab) {
-            // apply changes to those settings that are different from default
             Object.keys(menuSettings[type]).forEach(key => {
                 if (key === "opened") {
                     if (menuSettings[type][key] == false) {
