@@ -244,3 +244,27 @@ i {
     width: fit-content;
     height: fit-content;
 }
+
+.goTop {
+    position: fixed;
+    top: 56px;
+    z-index: 5;
+    background-color: var(--default-color);
+    border: 3px solid white;
+    border-radius: 50%;
+    height: 30px;
+    width: 30px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    box-shadow: 0px 1px 4px 0px black;
+	transition: 0.3s;
+	text-align: center;
+	padding: 2px;
+}
+
+.goTop i {
+	margin-bottom: -18px;
+    border-color: white;
+    padding: 5px;
+}

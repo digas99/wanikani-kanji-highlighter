@@ -246,10 +246,7 @@ const setupVocab = (apiToken, callback) =>
 												};
 											});
 
-										db.insert("subjects", db_records).then(inserted => {
-											if (inserted)
-												db.getAll("subjects", "level", 3);
-										});
+										db.insert("subjects", db_records);
 
 										// saving all vocabulary
 										chrome.storage.local.set({...{'wkhighlight_allvocab':vocab_dict, "wkhighlight_vocab_assoc": vocab_assoc, "wkhighlight_allvocab_updated": formatDate(new Date()), "wkhighlight_allvocab_size":vocab_data[0]["total_count"]}, ...levels}, () => {

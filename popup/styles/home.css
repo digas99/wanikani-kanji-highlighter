@@ -126,3 +126,39 @@
     text-align: left;
 	padding: 7px;
 }
+
+#levels-progress > ul {
+    display: flex;
+    margin: 1px 0px;
+}
+
+#levels-progress > ul > li {
+    height: 25px;
+    overflow: hidden;
+}
+
+#levels-progress > ul > li > div {
+    text-align: center;
+    margin-top: 5px;
+}
+
+#levels-progress > ul > span {
+    position: absolute;
+    right: 0px;
+    background-color: var(--default-color);
+    color: white;
+    padding: 5px;
+    width: 42px;
+}
+
+.levelup-marker {
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+    height: 25px;
+}
+
+.levelup-marker > div {
+	border-right: 2px solid black;
+    height: 25px;
+}

@@ -12,16 +12,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 });
 
-let settings, apiKey, lastReviewsValue = 0, lastLessonsValue = 0;
+let settings, apiKey, userInfo, lastReviewsValue = 0, lastLessonsValue = 0;
 const ASSIGNMENTS = ["wkhighlight_reviews", "wkhighlight_lessons"];
-const PROGRESS = ["wkhighlight_radical_progress", "wkhighlight_kanji_progress", "wkhighlight_vocabulary_progress", "wkhighlight_allradicals_size", "wkhighlight_allkanji_size", "wkhighlight_allvocab_size"];
+const PROGRESS = ["wkhighlight_radical_progress", "wkhighlight_kanji_progress", "wkhighlight_vocabulary_progress", "wkhighlight_allradicals_size", "wkhighlight_allkanji_size", "wkhighlight_allvocab_size", "wkhighlight_radical_levelsInProgress", "wkhighlight_kanji_levelsInProgress", "wkhighlight_vocabulary_levelsInProgress"];
 
 const loadingData = popupLoading("Loading data...");
 document.body.appendChild(loadingData);
 
-chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings", ...ASSIGNMENTS , ...PROGRESS], result => {
+chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings", "wkhighlight_userInfo", ...ASSIGNMENTS , ...PROGRESS], result => {
 	loadingData.remove();
 	
+	userInfo = result["wkhighlight_userInfo"]["data"];
 	apiKey = result["wkhighlight_apiKey"];
 	if (apiKey) {
 		settings = result["wkhighlight_settings"] ? result["wkhighlight_settings"] : defaultSettings;
@@ -67,6 +68,41 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings", ...ASSIG
 		
 		if (settings["extension_popup_interface"]["overall_progression_stats"])
 			progressionStats(document.querySelector("#progression-stats"), srsStages, progresses, settings["appearance"]);
+	
+		if (settings["extension_popup_interface"]["levels_in_progress"]) {
+			const radicalsLevelInProgress = result["wkhighlight_radical_levelsInProgress"] ? result["wkhighlight_radical_levelsInProgress"] : [];
+			const kanjiLevelInProgress = result["wkhighlight_kanji_levelsInProgress"] ? result["wkhighlight_kanji_levelsInProgress"] : [];
+			const vocabularyLevelInProgress = result["wkhighlight_vocabulary_levelsInProgress"] ? result["wkhighlight_vocabulary_levelsInProgress"] : [];
+			const types = ["radical", "kanji", "vocabulary"];
+			const progressBarWrappers = [];
+			const db = new Database("wanikani");
+			db.create("subjects").then(created => {
+				if (created) {
+					[radicalsLevelInProgress, kanjiLevelInProgress, vocabularyLevelInProgress]
+						.forEach((levels, i) => {
+							progressBarWrappers.push(
+								new Promise((resolve, reject) => {
+									db.getAll("subjects", "level", levels).then(result => {	
+										const bars = [];							
+										levels.forEach(level => {
+											const values = result[level].filter(value => value["hidden_at"] == null && value["subject_type"] === types[i]);
+											bars.push(levelProgressBar(userInfo["level"], values, level, types[i], srsStages, settings["appearance"]));											
+										});
+										resolve(bars);
+									});
+								})
+							);
+						});
+
+					// put bars in correct order
+					const levelsInProgress = document.querySelector("#levels-progress");
+					Promise.all(progressBarWrappers).then(bars => {
+						bars.flat(1).sort((a,b) => Number(a.dataset.order) - Number(b.dataset.order))
+							.forEach(bar => levelsInProgress.appendChild(bar));
+					});
+				}
+			});
+		}
 	}
 	else
 		window.location.href = "auth.html";
@@ -267,4 +303,73 @@ const progressionMenu = (srsStages, stage, progresses, stageValue, stageColor, t
 	});
 
 	return infoMenu;
+}
+
+const levelProgressBar = (currentLevel, values, level, type, srsStages, colors) => {
+	const all = values.length;
+	const passed = values.filter(subject => subject["passed_at"]).length;
+	const notPassed = values.filter(subject => !subject["passed_at"]);
+	const locked = notPassed.filter(subject => subject["srs_stage"] == null).length;
+
+	const progressBarWrapper = document.createElement("ul");
+
+	// set order value
+	const levelValue = Number(level);
+	progressBarWrapper.setAttribute("data-order", levelValue);
+
+	// bar for passed
+	progressBarWrapper.appendChild(levelProgressBarSlice(passed, all, {background: "black", text: "white"}, "Passed: "+passed));
+
+	// traverse from initiate until apprentice IV
+	for (let i = 5; i >= 0; i--) {
+		const stageSubjects = notPassed.filter(subject => subject["srs_stage"] == i).length;
+		progressBarWrapper.appendChild(levelProgressBarSlice(stageSubjects, all, {background: colors[srsStages[i]["short"].toLowerCase()+"_color"], text: "white"}, srsStages[i]["name"]+": "+stageSubjects));
+	}
+
+	// bar for locked
+	progressBarWrapper.appendChild(levelProgressBarSlice(locked, all, {background: "white", text: "black"}, "Locked: "+locked));
+
+	// bar id
+	const barTitle = document.createElement("span");
+	progressBarWrapper.appendChild(barTitle);
+	barTitle.appendChild(document.createTextNode(levelValue+" "+type.charAt(0).toUpperCase()+type.substring(1, 3)));
+
+	// levelup marker
+	if (type == "kanji" && levelValue == currentLevel)
+		progressBarWrapper.appendChild(levelUpMarker(all));
+
+	return progressBarWrapper;
+}
+
+const levelProgressBarSlice = (subjects, all, color, title) => {
+	const progressBarBar = document.createElement("li");
+	progressBarBar.classList.add("clickable");
+	const percentageValue = subjects/all*100;
+	progressBarBar.style.width = percentageValue+"%";
+	progressBarBar.style.backgroundColor = color["background"];
+	progressBarBar.style.color = color["text"];
+	progressBarBar.title = title;
+	if (percentageValue > 8.1) {
+		const percentage = document.createElement("div");
+		progressBarBar.appendChild(percentage);
+		percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
+	}
+	return progressBarBar;
+}
+
+const levelUpMarker = numberKanji => {
+	const levelupMarkerWrapper = document.createElement("div");
+	levelupMarkerWrapper.classList.add("levelup-marker");
+	levelupMarkerWrapper.style.width = "86%";
+	const levelupMarker = document.createElement("div");
+	levelupMarkerWrapper.appendChild(levelupMarker);
+	
+	// calculate number of kanji to get atleast 90%
+	let final = numberKanji;
+	for (let k = numberKanji; k > 0; k--) {
+		if (k/numberKanji*100 < 90) break;
+		final = k;
+	}
+	levelupMarker.style.width = final/numberKanji*100+"%";
+	return levelupMarkerWrapper;
 }

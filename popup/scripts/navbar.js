@@ -44,7 +44,45 @@ const setAvatar = (elem, url, avatar, userInfo) => {
 window.addEventListener("click", e => {
     const target = e.target;
 
-    if (target.id === "exit") {
+    if (target.id === "exit")
         chrome.storage.local.remove("wkhighlight_apiKey", () => window.location.href = "auth.html");
-    }
+
+    if (target.id === "side-panel-logo")
+        expandSideBar(document.querySelector(".side-panel"));
 });
+
+const expandSideBar = sidebar => {
+    if (sidebar) {
+        if (!sidebar.classList.contains("side-panel-focus")) {
+            sidebar.classList.add("side-panel-focus");
+            
+            Array.from(document.getElementsByClassName("navbar_icon"))
+                .filter(icon => icon.style.display !== "none")
+                .forEach(icon => {
+                    const label = document.createElement("p");
+                    icon.appendChild(label);
+                    label.style.pointerEvents = "none";
+                    label.appendChild(document.createTextNode(icon.getElementsByTagName("img")[0].title));
+                });
+            
+            Array.from(document.getElementsByClassName("side-panel-info-alert"))
+                .forEach(div => div.style.left = "19px");
+        }
+        else {
+            sidebar.classList.remove("side-panel-focus");
+            Array.from(document.getElementsByClassName("navbar_icon"))
+                .filter(icon => icon.style.display !== "none")
+                .forEach(icon => {
+                    icon.getElementsByTagName("p")[0].remove();
+                });
+
+            Array.from(document.getElementsByClassName("side-panel-info-alert"))
+                .forEach(div => {
+                    div.style.removeProperty("left");
+                    div.style.display = "none";
+                    setTimeout(() => div.style.removeProperty("display"), 300);
+                });
+            
+        }
+    }
+}

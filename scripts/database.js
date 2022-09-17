@@ -122,7 +122,7 @@
                 });
             }
         },
-        getAll: function(table, index, value) {
+        getAll: function(table, index, values, flat) {
             if (this.db) {
                 const transaction = this.db.transaction(table, "readonly");
                 const objectStore = transaction.objectStore(table);
@@ -138,10 +138,26 @@
                     let request;
                     if (!index)
                         request = objectStore.getAll();
-                    else
-                        request = objectStore.index(index).getAll([value]);
+                    else {
+                        // if single value
+                        if (!Array.isArray(values))
+                            request = objectStore.index(index).getAll([values]);
+                        else {
+                            const queries = values.map(value => this.getAll(table, index, value));
+                            Promise.all(queries).then(result => {
+                                let response;
+                                if (flat)
+                                    response = result.flat(1);
+                                else
+                                    response = result.reduce((acc, results, i) => ({...acc, [values[i]]: results}), {});
+                                
+                                resolve(response);
+                            });
+                        }
+                    }
 
-                    request.onsuccess = () => resolve(request.result);
+                    if (request)
+                        request.onsuccess = () => resolve(request.result);
                 });
             } 
         },

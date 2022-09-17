@@ -1,5 +1,10 @@
+const loadingData = popupLoading("Loading data...");
+document.body.appendChild(loadingData);
+
 chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings"], result => {
     if (!result["wkhighlight_apiKey"]) {
+        loadingData.remove();
+
         fetch("../../manifest.json")
             .then(response => response.json())
             .then(manifest => document.getElementById("version").innerText = `v${manifest["version"]}`);
