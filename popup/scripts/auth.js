@@ -1,23 +1,22 @@
-chrome.storage.local.get(["wkhighlight_apiKey"], ({wkhighlight_apiKey}) => {
-    if (!wkhighlight_apiKey) {
+chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings"], result => {
+    if (!result["wkhighlight_apiKey"]) {
         fetch("../../manifest.json")
             .then(response => response.json())
             .then(manifest => document.getElementById("version").innerText = `v${manifest["version"]}`);
     
         const submit = document.querySelector("#submit");
-        if (submit)
-            submit.addEventListener("click", submitAction);
+        if (submit) submit.addEventListener("click", submitAction);
     }
     else {
-        window.location.href = "home.html";
+        const page = result["wkhighlight_settings"]["home_page"]["page"];
+        window.location.href = `${page ? page.toLowerCase() : "home"}.html`;
     }
 });
 
 const submitAction = () => {
     let invalidKey = false;
     const msg = document.getElementById("message");
-    if (msg)
-        msg.remove();
+    if (msg) msg.remove();
 
     // check if key is valid
     const apiKey = document.getElementById("apiKeyInput").value.trim();
@@ -34,27 +33,30 @@ const submitAction = () => {
     }
 
     const main = document.getElementById("main");
+    const form = main.querySelector(".api-key-form"); 
+    if (!invalidKey) {
+        const loadingUser = popupLoading("Loading user...");
+        document.body.appendChild(loadingUser);
+        fetchUserInfo(apiKey, user => {
+            if (user && user.code != 401) {
+                chrome.storage.local.set({"wkhighlight_apiKey":apiKey, "wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
+                window.location.href = "home.html";
+            }
+            else {
+                main.insertBefore(message("The API key doesn't exist!", "red"), form);
+                loadingUser.remove();
+            }
+        });
+    }
+    else
+        main.insertBefore(message("The API key is invalid!", "red"), form);
+}
 
-    fetchUserInfo(apiKey, user => {
-        if (!invalidKey && user.code != 401) {
-            let msg, color;
-            chrome.storage.local.set({"wkhighlight_apiKey":apiKey, "wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
-            msg = "The API key was accepted!";
-            color = "green";
-
-            const apiInputWrapper = document.getElementsByClassName("apiKey_wrapper")[0];
-            if (apiInputWrapper)
-                apiInputWrapper.remove();
-
-            window.location.href = "home.html";
-        }
-        else {
-            const submitMessage = document.createElement("p");
-            main.appendChild(submitMessage);
-            submitMessage.id = "message";
-            submitMessage.style.marginTop = "5px";	
-            submitMessage.style.color = "red";
-            submitMessage.appendChild(document.createTextNode("The API key is invalid!"));
-        }
-    });
+const message = (msg, color) => {
+    const submitMessage = document.createElement("p");
+    submitMessage.id = "message";
+    submitMessage.style.marginTop = "5px";	
+    submitMessage.style.color = color;
+    submitMessage.appendChild(document.createTextNode(msg));
+    return submitMessage;
 }

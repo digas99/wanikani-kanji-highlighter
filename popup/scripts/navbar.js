@@ -40,3 +40,11 @@ const setAvatar = (elem, url, avatar, userInfo) => {
     else
         elem.src = avatar;
 }
+
+window.addEventListener("click", e => {
+    const target = e.target;
+
+    if (target.id === "exit") {
+        chrome.storage.local.remove("wkhighlight_apiKey", () => window.location.href = "auth.html");
+    }
+});

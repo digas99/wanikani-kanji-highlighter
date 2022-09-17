@@ -279,7 +279,7 @@ const fetchUserInfo = (apiToken, callback) => {
 			if (callback)
 				callback(user);
 		})
-		.catch(errorHandling);
+		.catch(() => callback(null));
 }
 
 const setupAssignments = (apiToken, callback) => 

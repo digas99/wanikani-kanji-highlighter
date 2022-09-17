@@ -1,3 +1,7 @@
+body {
+    padding-right: unset !important;
+}
+
 .logo-section {
 	border-radius: 9px;
     text-align: center;

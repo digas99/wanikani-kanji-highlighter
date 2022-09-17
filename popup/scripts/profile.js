@@ -1,5 +1,8 @@
 let settings, menuSettings;
 
+const loadingData = popupLoading("Loading data...");
+document.body.appendChild(loadingData);
+
 chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_userInfo_updated", "wkhighlight_settings"], result => {
     const date = result["wkhighlight_userInfo_updated"] ? result["wkhighlight_userInfo_updated"] : formatDate(new Date());
     settings = result["wkhighlight_settings"];
@@ -13,6 +16,8 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighl
 
                 modifiedSince(result["wkhighlight_apiKey"], date, "https://api.wanikani.com/v2/user")
                     .then(modified => {
+                        loadingData.remove();
+
                         const userInfo = result["wkhighlight_userInfo"]["data"];
 
                         // if user info has been updated in wanikani, then update cache

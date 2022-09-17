@@ -16,7 +16,12 @@ let settings, apiKey, lastReviewsValue = 0, lastLessonsValue = 0;
 const ASSIGNMENTS = ["wkhighlight_reviews", "wkhighlight_lessons"];
 const PROGRESS = ["wkhighlight_radical_progress", "wkhighlight_kanji_progress", "wkhighlight_vocabulary_progress", "wkhighlight_allradicals_size", "wkhighlight_allkanji_size", "wkhighlight_allvocab_size"];
 
+const loadingData = popupLoading("Loading data...");
+document.body.appendChild(loadingData);
+
 chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings", ...ASSIGNMENTS , ...PROGRESS], result => {
+	loadingData.remove();
+	
 	apiKey = result["wkhighlight_apiKey"];
 	if (apiKey) {
 		settings = result["wkhighlight_settings"] ? result["wkhighlight_settings"] : defaultSettings;
