@@ -6,6 +6,8 @@
 
     Database.prototype = {
         create: function(table, key, indexes) {
+            this.key = key;
+
             const request = indexedDB.open(this.name, 1);
 
             const that = this;
@@ -17,6 +19,8 @@
 
                 request.onupgradeneeded = e => {
                     that.db = e.target.result;
+
+                    console.log("upgrading");
 
                     let objectStore = that.db.createObjectStore(table, {keyPath: key});
                     if (indexes)
@@ -99,7 +103,11 @@
                         resolve(false);
                     }
             
-                    records.forEach(record => objectStore.put(record));
+                    records.forEach(record => {
+                        console.log(record);
+                        objectStore.put(record);
+                    });
+                        
                 });
             }
         },

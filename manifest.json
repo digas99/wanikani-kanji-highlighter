@@ -18,6 +18,7 @@
             "js": ["scripts/essentials.js",
                     "scripts/functions.js",
                     "scripts/static.js",
+                    "scripts/time.js",
                     "lib/localstoragedb.min.js"]
         }
     ],

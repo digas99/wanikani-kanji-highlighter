@@ -6,7 +6,7 @@ const setupKanji = (apiToken, callback) =>
 				.then(modified => {
 					if (!result['wkhighlight_allkanji'] || modified) {
 						const db = new Database("wanikani");
-						db.create("subjects", "id", ["level"]).then(created => {
+						db.create("subjects").then(created => {
 							if (created) {								
 								fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=kanji")
 									.then(kanji_data => {
@@ -107,7 +107,7 @@ const setupRadicals = (apiToken, callback) =>
 				.then(modified => {
 					if (!result['wkhighlight_allradicals'] || modified) {
 						const db = new Database("wanikani");
-						db.create("subjects", "id", ["level"]).then(created => {
+						db.create("subjects").then(created => {
 							if (created) {		
 								fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=radical")
 									.then(radical_data => {
@@ -187,7 +187,7 @@ const setupVocab = (apiToken, callback) =>
 				.then(modified => {
 					if (!result['wkhighlight_allvocab'] || modified) {
 						const db = new Database("wanikani");
-						db.create("subjects", "id", ["level"]).then(created => {
+						db.create("subjects").then(created => {
 							if (created) {
 								fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=vocabulary")
 									.then(vocab_data => {

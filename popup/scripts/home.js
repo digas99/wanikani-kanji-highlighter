@@ -38,6 +38,9 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings", "wkhighl
 			});
 		}
 		
+		// SEARCH
+		const type = document.getElementById("kanjiSearchType").innerText;
+		document.querySelector("#kanjiSearchInput").addEventListener("click", () => window.location.href = "search.html"+(type ? `?type=${type}` : ""));
 
 		if (settings["extension_popup_interface"]["lessons_and_reviews"]) {
 			// LESSONS AND REVIEWS

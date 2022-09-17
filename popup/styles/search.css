@@ -252,3 +252,13 @@
     padding-right: 9px;
 	opacity: 0.5;
 }
+
+#nmrKanjiFound { 
+	width: 100%;
+	margin: auto;
+	font-size: 13px;
+}
+
+#nmrKanjiFound > span {
+	vertical-align: middle;
+}

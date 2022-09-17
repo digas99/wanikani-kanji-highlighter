@@ -33,6 +33,9 @@ chrome.runtime.onInstalled.addListener(details => {
 		clearSubjects();
 });
 
+const db = new Database("wanikani");
+db.create("subjects", "id", ["level", "subject_type"]);
+
 let settings;
 // set settings
 const setSettings = () => {

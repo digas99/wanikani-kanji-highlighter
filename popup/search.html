@@ -6,7 +6,7 @@
 	<title>WKHighlighter</title>
 	<link rel="stylesheet" href="styles/styles.css">
     <link rel="stylesheet" href="styles/navbar.css">
-	<link rel="stylesheet" href="styles/profile.css">
+	<link rel="stylesheet" href="styles/search.css">
 </head>
 <body>
     <!-- TOP NAVBAR -->
@@ -14,7 +14,7 @@
         <a href="home.html" title="Go back" class="clickable">
             <div>
                 <i class="left"></i>
-                <div>Profile</div>
+                <div>Search</div>
             </div>
         </a>
         <div class="clickable star" title="Make this the Home Page">
@@ -23,9 +23,30 @@
     </div>
 
     <!-- PAGE CONTENT -->
-    <div class="sec-page">
-
-    </div>
+    <div id="sec-page">
+        <!-- SEARCH AREA -->
+        <div style="margin-top: 55px;" class="searchArea" title="Search subjects">
+            <div id="kanjiSearchInputWrapper" class="textInputWrapper">
+                <img class="textInputIcon" src="../images/search.png">
+                <input type="text" placeholder="Gold / 金 / 5" id="kanjiSearchInput">
+                <div class="kanjiSearchTypeWrapper" title="Kana" id="kanjiSearchTypeKana">
+                    <span id="kanjiSearchType">あ</span>
+                </div>
+            </div>
+            <div id="searchResultWrapper">
+                <div id="searchResultNavbar">
+                    <div id="nmrKanjiFound"><span>Found <strong>0</strong> items<span></span></span></div>
+                    <div class="searchResultNavbarOptionsWrapper" style="display: flex;">
+                        <div class="searchResultNavbarTarget clickable" title="Precise Search"><img src="../images/target.png"></div>
+                        <ul style="display: flex;">
+                            <li class="searchResultNavbarOption clickable full_opacity" title="List" id="searchResultOptionlist"><img src="../images/list.png"></li>
+                            <li class="searchResultNavbarOption clickable" title="Big Grid" id="searchResultOptionbig-grid"><img src="../images/big-grid.png"></li>
+                            <li class="searchResultNavbarOption clickable" title="Small Grid" id="searchResultOptionsmall-grid"><img src="../images/small-grid.png"></li>
+                        </ul>
+                    </div>
+                </div><ul id="searchResultItemWrapper"></ul></div>
+        </div>
+	</div>
 
     <!-- SIDEBAR -->
     <div class="side-panel">
@@ -41,8 +62,8 @@
                     <img id="settings" src="../images/settings.png" title="Settings" style="width: 20px;">
                 </a>
             </li>
-            <li class="clickable" style="position: relative;">
-                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+            <li style="position: relative;">
+                <a href="#" class="navbar_icon disabled" style="padding: 0px 5px;">
                     <img id="search" src="../images/search.png" title="Search" style="width: 20px;">
                 </a>
             </li>
@@ -74,9 +95,14 @@
         </div>
     </div>
 
+    <script src="/scripts/static.js"></script>
     <script src="/scripts/fetch/data-fetch.js"></script>
     <script src="/scripts/fetch/wk-fetch.js"></script>
+    <script src="/scripts/functions.js"></script>
+    <script src="/scripts/database.js"></script>
+    <script src="/scripts/kana.js"></script>
+    <script src="scripts/scripts.js"></script>
     <script src="scripts/navbar.js"></script>
-	<script src="scripts/profile.js"></script>
+	<script src="scripts/search.js"></script>
 </body>
 </html>
