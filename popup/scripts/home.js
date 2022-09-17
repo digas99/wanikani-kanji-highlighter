@@ -12,15 +12,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 });
 
-// scripts uptime
-chrome.tabs.query({currentWindow: true, active: true}, tabs => {
-	["Highlighter", "Details Popup"].forEach((script, i) => {
-		chrome.tabs.sendMessage(tabs[0].id, {uptime: script}, response => {
-			if (response) document.querySelectorAll("#scriptsUptime div")[i].style.backgroundColor = "#80fd80";
-		});
-	});
-});
-
 let settings, apiKey, lastReviewsValue = 0, lastLessonsValue = 0;
 const ASSIGNMENTS = ["wkhighlight_reviews", "wkhighlight_lessons"];
 const PROGRESS = ["wkhighlight_radical_progress", "wkhighlight_kanji_progress", "wkhighlight_vocabulary_progress", "wkhighlight_allradicals_size", "wkhighlight_allkanji_size", "wkhighlight_allvocab_size"];
@@ -30,18 +21,29 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings", ...ASSIG
 	if (apiKey) {
 		settings = result["wkhighlight_settings"] ? result["wkhighlight_settings"] : defaultSettings;
 
-		// LESSONS AND REVIEWS
-		// get all assignments if there are none in storage or if they were modified
-		setupAssignments(apiKey, () => setupAvailableAssignments(apiKey, setupSummary));
-	
-		const reviews = result["wkhighlight_reviews"];
-		const lessons = result["wkhighlight_lessons"];
+		if (settings["extension_popup_interface"]["scripts_status"]) {
+			// SCRIPTS UPTIME
+			chrome.tabs.query({currentWindow: true, active: true}, tabs => {
+				["Highlighter", "Details Popup"].forEach((script, i) => {
+					chrome.tabs.sendMessage(tabs[0].id, {uptime: script}, response => {
+						if (response) document.querySelectorAll("#scriptsUptime div")[i].style.backgroundColor = "#80fd80";
+					});
+				});
+			});
+		}
 		
-		// put in interface whatever values are in cache
-		setupSummary(reviews, lessons);
-	
-		// update values and update interface
-		setupAvailableAssignments(apiKey, setupSummary);
+
+		if (settings["extension_popup_interface"]["lessons_and_reviews"]) {
+			// LESSONS AND REVIEWS
+			// get all assignments if there are none in storage or if they were modified
+			setupAssignments(apiKey, () => setupAvailableAssignments(apiKey, setupSummary));
+		
+			// update values and update interface
+			setupAvailableAssignments(apiKey, setupSummary);
+
+			// put in interface whatever values are in cache
+			setupSummary(result["wkhighlight_reviews"], result["wkhighlight_lessons"]);
+		}
 
 
 		// PROGRESSIONS
@@ -55,10 +57,11 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings", ...ASSIG
 			"vocabulary": result["wkhighlight_vocabulary_progress"]
 		};
 
-		progressionBar(document.querySelector("#progression-bar"), srsStages, progresses, allSize, result["wkhighlight_settings"]["appearance"]);
-
-		const typeColors = result["wkhighlight_settings"] && result["wkhighlight_settings"]["appearance"] ? result["wkhighlight_settings"]["appearance"] : defaultSettings["miscellaneous"];
-		progressionStats(document.querySelector("#progression-stats"), srsStages, progresses, result["wkhighlight_settings"]["appearance"], typeColors);
+		if (settings["extension_popup_interface"]["overall_progression_bar"])
+			progressionBar(document.querySelector("#progression-bar"), srsStages, progresses, allSize, settings["appearance"]);
+		
+		if (settings["extension_popup_interface"]["overall_progression_stats"])
+			progressionStats(document.querySelector("#progression-stats"), srsStages, progresses, settings["appearance"]);
 	}
 	else
 		window.location.href = "auth.html";
@@ -191,7 +194,7 @@ const progressionBar = (wrapper, srsStages, progresses, size, colors) => {
 	}
 }
 
-const progressionStats = (wrapper, srsStages, progresses, colors, typeColors) => {
+const progressionStats = (wrapper, srsStages, progresses, colors) => {
 	let row, stageValue, stageColor;
 
 	Object.keys(srsStages).forEach(stage => {
@@ -207,14 +210,17 @@ const progressionStats = (wrapper, srsStages, progresses, colors, typeColors) =>
 			wrapper.appendChild(row);
 		}
 
-		const stageSquare = document.createElement("li");
-		stageSquare.style.backgroundColor = stageColor;
-		row.appendChild(stageSquare);
+		const stageSquareWrapper = document.createElement("li");
+		row.appendChild(stageSquareWrapper);
+		const stageSquare = document.createElement("div");
+		stageSquareWrapper.appendChild(stageSquare);
+		stageSquare.classList.add("clickable");
 		stageSquare.appendChild(document.createTextNode(stageValue));
 		stageSquare.title = srsStages[stage]["name"];
+		stageSquare.style.backgroundColor = stageColor;
 
-		const infoMenu = progressionMenu(srsStages, stage, progresses, stageColor, typeColors, stageValue);
-		stageSquare.appendChild(infoMenu);
+		const infoMenu = progressionMenu(srsStages, stage, progresses, stageValue, stageColor, colors);
+		stageSquareWrapper.appendChild(infoMenu);
 		
 		if (stage < 5)
 			infoMenu.style.top = "35px";
@@ -222,12 +228,12 @@ const progressionStats = (wrapper, srsStages, progresses, colors, typeColors) =>
 		if (stage % 5 == 0)
 			infoMenu.style.left = "20px";
 
-		stageSquare.addEventListener("mouseover", () => infoMenu.classList.remove("hidden"));
-		stageSquare.addEventListener("mouseout", () => infoMenu.classList.add("hidden"));
+		stageSquareWrapper.addEventListener("mouseover", () => infoMenu.classList.remove("hidden"));
+		stageSquareWrapper.addEventListener("mouseout", () => infoMenu.classList.add("hidden"));
 	});
 }
 
-const progressionMenu = (srsStages, stage, progresses, stageColor, typeColors, stageValue) => {
+const progressionMenu = (srsStages, stage, progresses, stageValue, stageColor, typeColors) => {
 	const infoMenu = document.createElement("div");
 	infoMenu.classList.add("progression-menu", "hidden");
 	const infoMenuTitle = document.createElement("p");
