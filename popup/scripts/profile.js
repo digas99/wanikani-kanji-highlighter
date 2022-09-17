@@ -20,10 +20,11 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighl
                             fetchUserInfo(apiKey);
                         
                         if (userInfo) {
-                            const avatar = document.querySelector("#profile-pic img");
-                            setAvatar(avatar, userInfo["avatar"]);
-
                             const link = "https://www.wanikani.com/users/"+userInfo["username"];
+
+                            const avatar = document.querySelector("#profile-pic img");
+                            setAvatar(avatar, link, userInfo["avatar"]);
+
                             avatar.parentElement.href = link;
                             avatar.parentElement.title = link;
 

@@ -70,3 +70,15 @@ const nextExactHour = (date, hours) => {
 const changeDay = (date, days) => {
 	return new Date(new Date(date).setDate((new Date(date).getDate())+days));
 }
+
+// create interval delay
+// 10% of a day are 8640000 milliseconds
+// 10% of an hour are 360000 milliseconds
+// 10% of a minute are 6000 milliseconds
+// 10% of a second are 100 milliseconds
+const time_delays = {
+	"Days":8640000,
+	"Hrs":360000,
+	"Min":6000,
+	"Sec":100
+}

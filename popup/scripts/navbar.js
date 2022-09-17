@@ -7,11 +7,11 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighl
 
             // if user info has been updated in wanikani, then update cache
             if (!userInfo || modified)
-                fetchUserInfo(apiKey);
+                fetchUserInfo(result["wkhighlight_apiKey"]);
             
             if (userInfo) {
                 const avatar = document.querySelector("#profile img");
-                setAvatar(avatar, userInfo["avatar"]);
+                setAvatar(avatar, "https://www.wanikani.com/users/"+userInfo["username"], userInfo["avatar"], result["wkhighlight_userInfo"]);
 
                 const level = document.querySelector("#profile p");
                 if (level && userInfo["level"])
@@ -21,18 +21,20 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighl
         });
 });
 
-const setAvatar = (elem, avatar) => {
+const setAvatar = (elem, url, avatar, userInfo) => {
     if (!avatar) {
-        fetch("https://www.wanikani.com/users/"+userInfo["username"])
+        fetch(url)
             .then(result => result.text())
             .then(content => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(content, 'text/html');
                 const avatarElem = doc.getElementsByClassName("avatar user-avatar-default")[0];
                 const avatarSrc = "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0];
-                userInfo["avatar"] = avatarSrc;
-                elem.src = userInfo["avatar"];
-                chrome.storage.local.set({"wkhighlight_userInfo":result["wkhighlight_userInfo"]});
+                userInfo["data"]["avatar"] = avatarSrc;
+                elem.src = avatarSrc;
+
+                if (userInfo)
+                    chrome.storage.local.set({"wkhighlight_userInfo": userInfo});
             });
     }
     else

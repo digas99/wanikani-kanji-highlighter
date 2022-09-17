@@ -247,9 +247,8 @@ const setupVocab = (apiToken, callback) =>
 											});
 
 										db.insert("subjects", db_records).then(inserted => {
-											if (inserted) {
-												db.getAll("subjects", "level", 3).then(result => console.log("subjects: ", result));
-											}
+											if (inserted)
+												db.getAll("subjects", "level", 3);
 										});
 
 										// saving all vocabulary
