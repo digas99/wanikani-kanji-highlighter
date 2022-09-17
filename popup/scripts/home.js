@@ -44,18 +44,21 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings", ...ASSIG
 		setupAvailableAssignments(apiKey, setupSummary);
 
 
-		// OVERALL PROGRESS
-		const radicalProgress = response["wkhighlight_radical_progress"];
-		const kanjiProgress = response["wkhighlight_kanji_progress"];
-		const vocabularyProgress = response["wkhighlight_vocabulary_progress"];
-		if (radicalProgress || kanjiProgress || vocabularyProgress) {
-			const radicalsSize = response["wkhighlight_allradicals_size"];
-			const kanjiSize = response["wkhighlight_allkanji_size"];
-			const vocabularySize = response["wkhighlight_allvocab_size"];
-			if (radicalsSize || kanjiSize || vocabularySize) {
-				
-			}
-		}
+		// PROGRESSIONS
+		const allSize = (result["wkhighlight_allradicals_size"] ? result["wkhighlight_allradicals_size"] : 0)
+			+ (result["wkhighlight_allkanji_size"] ? result["wkhighlight_allkanji_size"] : 0)
+			+ (result["wkhighlight_allvocab_size"] ? result["wkhighlight_allvocab_size"] : 0);
+	
+		const progresses = {
+			"radical": result["wkhighlight_radical_progress"],
+			"kanji": result["wkhighlight_kanji_progress"],
+			"vocabulary": result["wkhighlight_vocabulary_progress"]
+		};
+
+		progressionBar(document.querySelector("#progression-bar"), srsStages, progresses, allSize, result["wkhighlight_settings"]["appearance"]);
+
+		const typeColors = result["wkhighlight_settings"] && result["wkhighlight_settings"]["appearance"] ? result["wkhighlight_settings"]["appearance"] : defaultSettings["miscellaneous"];
+		progressionStats(document.querySelector("#progression-stats"), srsStages, progresses, result["wkhighlight_settings"]["appearance"], typeColors);
 	}
 	else
 		window.location.href = "auth.html";
@@ -144,4 +147,113 @@ const timeStampRefresher = (moreReviews, timeStampInterval,thisDate, timeUnit, r
 
 	// refresh time stamp
 	moreReviews.getElementsByTagName("B")[1].innerText = newTimeStamp;
+}
+
+const progressionBar = (wrapper, srsStages, progresses, size, colors) => {
+	let unlockedSize = 0, stageValue, stageColor;
+
+	Object.keys(srsStages).forEach(stage => {
+		stageValue = (progresses["radical"] && progresses["radical"][stage] ? progresses["radical"][stage] : 0)
+			+ (progresses["kanji"] && progresses["kanji"][stage] ? progresses["kanji"][stage] : 0)
+			+ (progresses["vocabulary"] && progresses["vocabulary"][stage] ? progresses["vocabulary"][stage] : 0);
+		
+		stageColor = colors ? colors[srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
+		unlockedSize += stageValue;
+
+		// add bar to progress bar
+		if (wrapper && size) {
+			const progressBarBar = document.createElement("li");
+			wrapper.appendChild(progressBarBar);
+			progressBarBar.classList.add("clickable");
+			const percentageValue = stageValue/size*100;
+			progressBarBar.style.width = percentageValue+"%";
+			progressBarBar.style.backgroundColor = stageColor;
+			progressBarBar.title = srsStages[stage]["name"]+": "+stageValue+" / "+percentageValue.toFixed(1)+"%";
+			if (percentageValue > 8.1) {
+				const percentage = document.createElement("div");
+				progressBarBar.appendChild(percentage);
+				percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
+			}
+		}
+	});
+
+	// add locked subjects bar
+	const lockedSubjectsBar = document.createElement("li");
+	wrapper.appendChild(lockedSubjectsBar);
+	const percentageValue = (size-unlockedSize)/size*100
+	lockedSubjectsBar.style.width = percentageValue+"%";
+	lockedSubjectsBar.classList.add("clickable");
+	lockedSubjectsBar.title = "Locked: "+(size-unlockedSize)+" / "+percentageValue.toFixed(1)+"%";
+	if (percentageValue > 8.1) {
+		const percentage = document.createElement("div");
+		lockedSubjectsBar.appendChild(percentage);
+		percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
+	}
+}
+
+const progressionStats = (wrapper, srsStages, progresses, colors, typeColors) => {
+	let row, stageValue, stageColor;
+
+	Object.keys(srsStages).forEach(stage => {
+		stageValue = (progresses["radical"] && progresses["radical"][stage] ? progresses["radical"][stage] : 0)
+			+ (progresses["kanji"] && progresses["kanji"][stage] ? progresses["kanji"][stage] : 0)
+			+ (progresses["vocabulary"] && progresses["vocabulary"][stage] ? progresses["vocabulary"][stage] : 0);
+	
+		stageColor = colors ? colors[srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
+		
+		// add square to progression stats
+		if (stage % 5 == 0) {
+			row = document.createElement("ul");
+			wrapper.appendChild(row);
+		}
+
+		const stageSquare = document.createElement("li");
+		stageSquare.style.backgroundColor = stageColor;
+		row.appendChild(stageSquare);
+		stageSquare.appendChild(document.createTextNode(stageValue));
+		stageSquare.title = srsStages[stage]["name"];
+
+		const infoMenu = progressionMenu(srsStages, stage, progresses, stageColor, typeColors, stageValue);
+		stageSquare.appendChild(infoMenu);
+		
+		if (stage < 5)
+			infoMenu.style.top = "35px";
+
+		if (stage % 5 == 0)
+			infoMenu.style.left = "20px";
+
+		stageSquare.addEventListener("mouseover", () => infoMenu.classList.remove("hidden"));
+		stageSquare.addEventListener("mouseout", () => infoMenu.classList.add("hidden"));
+	});
+}
+
+const progressionMenu = (srsStages, stage, progresses, stageColor, typeColors, stageValue) => {
+	const infoMenu = document.createElement("div");
+	infoMenu.classList.add("progression-menu", "hidden");
+	const infoMenuTitle = document.createElement("p");
+	infoMenu.appendChild(infoMenuTitle);
+	infoMenuTitle.appendChild(document.createTextNode(srsStages[stage]["name"]));
+	infoMenuTitle.style.color = stageColor;
+	const infoMenuBar = document.createElement("div");
+	infoMenu.appendChild(infoMenuBar);
+	const infoMenuListing = document.createElement("ul");
+	infoMenu.appendChild(infoMenuListing);
+	["Radical", "Kanji", "Vocabulary"].forEach(type => {
+		let typeProgress = progresses[type.toLowerCase()];
+
+		const bar = document.createElement("div");
+		infoMenuBar.appendChild(bar);
+		bar.style.width = (typeProgress && typeProgress[stage] ? typeProgress[stage] / stageValue *100 : 0)+"%";
+		const colorId = (type == "Radical" ? "radical" : type == "Kanji" ? "kanji" : "vocab")+"_color";
+		bar.style.backgroundColor = typeColors[colorId];
+
+		const infoMenuType = document.createElement("li");
+		infoMenuListing.appendChild(infoMenuType);
+		const typeTitle = document.createElement("b");
+		infoMenuType.appendChild(typeTitle);
+		typeTitle.appendChild(document.createTextNode(type+": "));
+		infoMenuType.appendChild(document.createTextNode(typeProgress && typeProgress[stage] ? typeProgress[stage] : 0));
+	});
+
+	return infoMenu;
 }

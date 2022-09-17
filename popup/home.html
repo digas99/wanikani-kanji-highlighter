@@ -64,14 +64,13 @@
             <!-- OVERALL PROGRESSION BAR -->
             <div class="userInfoWrapper-wrapper">
                 <p class="userInfoWrapper-title">Overall Progression Bar</p>
-                <ul style="height: 25px; display: flex; flex-direction: row;">
+                <ul id="progression-bar">
                 </ul>
             </div>
             <!-- OVERALL PROGRESSION STATS -->
-            <div class="userInfoWrapper-wrapper">
+            <div>
                 <p class="userInfoWrapper-title">Overall Progression Stats</p>
-                <ul class="overall-progress">
-                </ul>
+                <div id="progression-stats"></div>
             </div>
             <!-- LEVELS IN PROGRESS -->
             <div class="userInfoWrapper-wrapper" style="width: 86%;">
@@ -126,6 +125,7 @@
         </div>
     </div>
 
+    <script src="/scripts/static.js"></script>
     <script src="/scripts/time.js"></script>
     <script src="/scripts/fetch/data-fetch.js"></script>
     <script src="/scripts/fetch/wk-fetch.js"></script>
