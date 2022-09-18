@@ -1,5 +1,6 @@
 # WaniKani Kanji Highlighter
 
+[![Manifest](https://img.shields.io/github/manifest-json/v/digas99/wanikani-kanji-highlighter?color=yellow&filename=shieldio%2Fmanifest.json&label=manifest)](https://github.com/digas99/wanikani-kanji-highlighter/blob/master/manifest.json)
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/pdbjikelneighjgjojikkmhiehpcokjm.svg?style=flat-square&color=orange)](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm)
 [![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/pdbjikelneighjgjojikkmhiehpcokjm.svg?style=flat-square&color=orange)](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm)
 [![Mozilla Addons](https://img.shields.io/amo/v/wanikani-kanji-highlighter.svg?style=flat-square&color=blue)](https://addons.mozilla.org/en-US/firefox/addon/wanikani-kanji-highlighter/)
