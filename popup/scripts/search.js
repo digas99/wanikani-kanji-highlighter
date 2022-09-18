@@ -25,9 +25,13 @@ if (searchBar) {
         typeWrapper.addEventListener("click", () => {
             if (typeWrapper.innerText === "A") changeInput(inputWrapper, "あ");
             else changeInput(inputWrapper, "A");
+
+            inputWrapper.querySelector("#kanjiSearchInput").focus();
         });
     });
 }
+
+const urlParams = new URLSearchParams(window.location.search);
 
 const changeInput = (inputWrapper, type) => {
     const typeWrapper = inputWrapper.querySelector(".kanjiSearchTypeWrapper");
@@ -45,9 +49,9 @@ const changeInput = (inputWrapper, type) => {
         typeSpan.innerText = "あ";
         input.placeholder = "Gold / 金 / 5";
     }
+    urlParams.set('type', type);
 }
 
-const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('type'))
     changeInput(document.querySelector("#kanjiSearchInputWrapper"), urlParams.get('type'));
 
@@ -96,14 +100,9 @@ const searchSubject = (kanji, vocabulary, input, searchType, targeted, display) 
                 filteredKanji[0]["amalgamation_subject_ids"].forEach(id => filteredVocab.push(vocabulary.filter(subject => id == subject.id)));
             }
 
-            filteredVocab = filteredVocab.concat(vocabulary.filter(subject => value == subject.characters));
-
-            filteredVocab = filteredVocab.flat();
-
-            if (filteredVocab.length > 0) {
-                console.log(filteredVocab);
+            filteredVocab = filteredVocab.concat(vocabulary.filter(subject => value == subject.characters)).flat();
+            if (filteredVocab.length > 0)
                 filteredVocab[0]["component_subject_ids"].forEach(id => filteredKanji.push(kanji.filter(subject => id == subject.id)));
-            }
         }
         // if is number check for level
         else if (!isNaN(value)) {
@@ -142,93 +141,11 @@ const searchSubject = (kanji, vocabulary, input, searchType, targeted, display) 
         if (nmrItemsFound) 
             nmrItemsFound.innerHTML = `<span>Found <strong>${filteredContent.length}</strong> items<span>`;
 
-        for (const index in filteredContent) {
-            const data = filteredContent[index];
-            const type = data["subject_type"];
-            const chars = data["characters"];
+        let index = 0, offset = 100;
+        displayResults(searchResultUL, filteredContent, index, index+offset, display);
 
-            const kanjiAlike = type == "kanji" || chars.length == 1;
-            const vocabAlike = type == "vocabulary" && chars.length > 1;	
-            
-            const li = document.createElement("li");
-            li.classList.add("searchResultItemLine"); 
-            searchResultUL.appendChild(li);
-            li.setAttribute('data-item-id', data["id"]);
-            if (data["hidden_at"]) {
-                li.style.borderLeft = "4px solid yellow";
-                li.style.opacity = "0.4";
-                li.title = "This subject no longer shows up in lessons or reviews, since "+data["hidden_at"].split("T")[0]+".";
-            }
-            else if (data["srs_stage"]) {
-                li.style.borderLeft = `4px solid var(--${srsStages[data["srs_stage"]]["short"].toLowerCase()}-color)`;
-                li.title = srsStages[data["srs_stage"]]["name"];
-            }
-
-            const itemSpan = document.createElement("span");
-            itemSpan.classList.add("searchResultItem");
-
-            li.appendChild(itemSpan);
-            itemSpan.appendChild(document.createTextNode(chars));
-
-            if (vocabAlike)
-                li.style.display = "inherit";
-
-            const itemInfoWrapper = document.createElement("div");
-            itemInfoWrapper.classList.add("searchResultItemInfo");
-            li.appendChild(itemInfoWrapper);
-            if (kanjiAlike)
-                itemInfoWrapper.style.width = "100%";
-            const level = document.createElement("span");
-            itemInfoWrapper.appendChild(level);
-            level.classList.add("searchResultItemLevel");
-            level.appendChild(document.createTextNode(data["level"]));
-            const meaning = document.createElement("span");
-            itemInfoWrapper.appendChild(meaning);
-            meaning.classList.add("searchResultItemTitle");
-            meaning.appendChild(document.createTextNode(data["meanings"].join(", ")));
-
-            if (type == "kanji") {
-                const on = document.createElement("span");
-                itemInfoWrapper.appendChild(on); 
-                on.appendChild(document.createTextNode("on: "));
-                on.appendChild(document.createTextNode(data["readings"].filter(reading => reading.type == "onyomi").map(kanji => kanji.reading).join(", ")));
-                const kun = document.createElement("span");
-                itemInfoWrapper.appendChild(kun); 
-                kun.appendChild(document.createTextNode("kun: "));
-                kun.appendChild(document.createTextNode(data["readings"].filter(reading => reading.type == "kunyomi").map(kanji => kanji.reading).join(", ")));
-            }
-
-            if (type == "vocabulary") {
-                const read = document.createElement("span");
-                itemInfoWrapper.appendChild(read);
-                read.appendChild(document.createTextNode(data["readings"].join(", ")));
-            }
-
-            // subject type
-            const subjectType = document.createElement("div");
-            li.appendChild(subjectType);
-            let colorClass;
-            if (type == "kanji")
-                colorClass = "kanji_back";
-            else if (type == "vocabulary")
-                colorClass = "vocab_back";
-            subjectType.classList.add("searchResultItemType", colorClass);
-            
-            // if it is not in list type
-            if (display != "searchResultOptionlist") {
-                if (display == "searchResultOptionbig-grid") {
-                    li.classList.add("searchResultItemSquare");
-                    subjectType.classList.add("searchResultItemType-small");
-                }
-                else if (display == "searchResultOptionsmall-grid") {
-                    li.classList.add("searchResultItemSquareSmall");
-                    subjectType.classList.add("searchResultItemType-tiny");
-                }
-                itemInfoWrapper.style.display = "none";
-            }
-            else
-                subjectType.classList.add("searchResultItemType-normal");
-        }
+        // add load more button
+        loadMoreButton(index, offset, searchResultUL, filteredContent, display);
 
         if (display != "searchResultOptionlist")
             document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(630, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
@@ -276,4 +193,110 @@ const matchesReadings = (input, readings, precise) => {
 		}
 	}
 	return false;
+}
+
+const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
+    for (let index = lowerIndex; index < upperIndex && index < results.length; index++) {
+        const data = results[index];
+        const type = data["subject_type"];
+        const chars = data["characters"];
+
+        const kanjiAlike = type == "kanji" || chars.length == 1;
+        const vocabAlike = type == "vocabulary" && chars.length > 1;	
+        
+        const li = document.createElement("li");
+        li.classList.add("searchResultItemLine"); 
+        wrapper.appendChild(li);
+        li.setAttribute('data-item-id', data["id"]);
+        if (data["hidden_at"]) {
+            li.style.borderLeft = "4px solid yellow";
+            li.style.opacity = "0.4";
+            li.title = "This subject no longer shows up in lessons or reviews, since "+data["hidden_at"].split("T")[0]+".";
+        }
+        else if (data["srs_stage"]) {
+            li.style.borderLeft = `4px solid var(--${srsStages[data["srs_stage"]]["short"].toLowerCase()}-color)`;
+            li.title = srsStages[data["srs_stage"]]["name"];
+        }
+
+        const itemSpan = document.createElement("span");
+        itemSpan.classList.add("searchResultItem");
+
+        li.appendChild(itemSpan);
+        itemSpan.appendChild(document.createTextNode(chars));
+
+        if (vocabAlike)
+            li.style.display = "inherit";
+
+        const itemInfoWrapper = document.createElement("div");
+        itemInfoWrapper.classList.add("searchResultItemInfo");
+        li.appendChild(itemInfoWrapper);
+        if (kanjiAlike)
+            itemInfoWrapper.style.width = "100%";
+        const level = document.createElement("span");
+        itemInfoWrapper.appendChild(level);
+        level.classList.add("searchResultItemLevel");
+        level.appendChild(document.createTextNode(data["level"]));
+        const meaning = document.createElement("span");
+        itemInfoWrapper.appendChild(meaning);
+        meaning.classList.add("searchResultItemTitle");
+        meaning.appendChild(document.createTextNode(data["meanings"].join(", ")));
+
+        if (type == "kanji") {
+            const on = document.createElement("span");
+            itemInfoWrapper.appendChild(on); 
+            on.appendChild(document.createTextNode("on: "));
+            on.appendChild(document.createTextNode(data["readings"].filter(reading => reading.type == "onyomi").map(kanji => kanji.reading).join(", ")));
+            const kun = document.createElement("span");
+            itemInfoWrapper.appendChild(kun); 
+            kun.appendChild(document.createTextNode("kun: "));
+            kun.appendChild(document.createTextNode(data["readings"].filter(reading => reading.type == "kunyomi").map(kanji => kanji.reading).join(", ")));
+        }
+
+        if (type == "vocabulary") {
+            const read = document.createElement("span");
+            itemInfoWrapper.appendChild(read);
+            read.appendChild(document.createTextNode(data["readings"].join(", ")));
+        }
+
+        // subject type
+        const subjectType = document.createElement("div");
+        li.appendChild(subjectType);
+        let colorClass;
+        if (type == "kanji")
+            colorClass = "kanji_back";
+        else if (type == "vocabulary")
+            colorClass = "vocab_back";
+        subjectType.classList.add("searchResultItemType", colorClass);
+        
+        // if it is not in list type
+        if (display != "searchResultOptionlist") {
+            if (display == "searchResultOptionbig-grid") {
+                li.classList.add("searchResultItemSquare");
+                subjectType.classList.add("searchResultItemType-small");
+            }
+            else if (display == "searchResultOptionsmall-grid") {
+                li.classList.add("searchResultItemSquareSmall");
+                subjectType.classList.add("searchResultItemType-tiny");
+            }
+            itemInfoWrapper.style.display = "none";
+        }
+        else
+            subjectType.classList.add("searchResultItemType-normal");
+    }
+}
+
+const loadMoreButton = (index, offset, searchResultsWrapper, content, display) => {
+    if (index+offset < content.length) {
+        const loadMore = document.createElement("div");
+        searchResultsWrapper.appendChild(loadMore);
+        loadMore.classList.add("loadMore", "clickable");
+        loadMore.appendChild(document.createTextNode("Load more..."));
+        index += offset;
+        loadMore.addEventListener("click", () => {
+            displayResults(searchResultsWrapper, content, index, index+offset, display);
+            loadMore.remove();
+            
+            loadMoreButton(index, offset, searchResultsWrapper, content, display);
+        });
+    }
 }

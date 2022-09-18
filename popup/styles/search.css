@@ -262,3 +262,11 @@
 #nmrKanjiFound > span {
 	vertical-align: middle;
 }
+
+.loadMore {
+	padding: 10px;
+    border: 1px solid silver;
+    border-radius: 6px;
+    background-color: var(--default-color);
+    color: white;
+}
