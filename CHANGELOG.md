@@ -1,9 +1,15 @@
 # [Changelog v1.0.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.0)
 
-### - Manifest v3
+### - Migration to Manifest v3
+
+## Technicalities
+- Changed background from Page to Service Worker
+- Window.localStorage not accessible on Service Worker so changed it to IndexedDB
+- Popup is no longer entirely created with Javascript (it is now more organized and with each page on a different HTML file)
 
 ## Popup
 - Added navbar to Changelogs list in the About page
+- Added "load more" button to Search Results to limit the number of results and reduce lag while writing on search bar
 
 ---
 

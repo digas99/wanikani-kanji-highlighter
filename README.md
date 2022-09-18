@@ -18,7 +18,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v067)
+1. [Latest Features](#changelog-v100)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -30,10 +30,18 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
-## Changelog v1.0.0
+## [Changelog v1.0.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.0)
+
+#### - Migration to Manifest v3
+
+### Technicalities
+- Changed background from Page to Service Worker
+- Window.localStorage not accessible on Service Worker so changed it to IndexedDB
+- Popup is no longer entirely created with Javascript (it is now more organized and with each page on a different HTML file)
 
 ### Popup
 - Added navbar to Changelogs list in the About page
+- Added "load more" button to Search Results to limit the number of results and reduce lag while writing on search bar
 
 #### [(All changelogs)](CHANGELOG.md)
 
