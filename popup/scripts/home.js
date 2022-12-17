@@ -1,115 +1,168 @@
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	// scripts uptime
-	if (request.uptimeDetailsPopup || request.uptimeHighlight) {
-		const uptimeSignals = document.querySelectorAll("#scriptsUptime div");
-		if (uptimeSignals) {
-			if (request.uptimeHighlight) 
-				uptimeSignals[0].style.backgroundColor = "#80fd80";
-
-			if (request.uptimeDetailsPopup) 
-				uptimeSignals[1].style.backgroundColor = "#80fd80";
-		}
-	}
-});
-
 let settings, apiKey, userInfo, lastReviewsValue = 0, lastLessonsValue = 0;
 const ASSIGNMENTS = ["wkhighlight_reviews", "wkhighlight_lessons"];
 const PROGRESS = ["wkhighlight_radical_progress", "wkhighlight_kanji_progress", "wkhighlight_vocabulary_progress", "wkhighlight_allradicals_size", "wkhighlight_allkanji_size", "wkhighlight_allvocab_size", "wkhighlight_radical_levelsInProgress", "wkhighlight_kanji_levelsInProgress", "wkhighlight_vocabulary_levelsInProgress"];
+const HIGHLIGHTED = ["wkhighlight_kanji_assoc", "wkhighlight_allHighLightedKanji"];
+
+let activeTab;
 
 const loadingData = popupLoading("Loading data...");
 document.body.appendChild(loadingData);
 
-chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings", "wkhighlight_userInfo", ...ASSIGNMENTS , ...PROGRESS], result => {
-	loadingData.remove();
+chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings", "wkhighlight_userInfo", ...HIGHLIGHTED, ...ASSIGNMENTS , ...PROGRESS], result => {
+	chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+		loadingData.remove();
+		
+		activeTab = tabs[0];
 	
-	userInfo = result["wkhighlight_userInfo"]["data"];
-	apiKey = result["wkhighlight_apiKey"];
-	if (apiKey) {
-		settings = result["wkhighlight_settings"] ? result["wkhighlight_settings"] : defaultSettings;
+		userInfo = result["wkhighlight_userInfo"]["data"];
+		apiKey = result["wkhighlight_apiKey"];
+		if (apiKey) {
+			settings = result["wkhighlight_settings"] ? result["wkhighlight_settings"] : defaultSettings;
 
-		if (settings["extension_popup_interface"]["scripts_status"]) {
+
 			// SCRIPTS UPTIME
-			chrome.tabs.query({currentWindow: true, active: true}, tabs => {
-				["Highlighter", "Details Popup"].forEach((script, i) => {
-					chrome.tabs.sendMessage(tabs[0].id, {uptime: script}, response => {
-						if (response) document.querySelectorAll("#scriptsUptime div")[i].style.backgroundColor = "#80fd80";
+			if (settings["extension_popup_interface"]["scripts_status"]) {
+				chrome.tabs.query({currentWindow: true, active: true}, tabs => {
+					["Highlighter", "Details Popup"].forEach((script, i) => {
+						chrome.tabs.sendMessage(tabs[0].id, {uptime: script}, response => {
+							if (response) document.querySelectorAll("#scriptsUptime div")[i].style.backgroundColor = "#80fd80";
+						});
 					});
 				});
-			});
-		}
-		
-		// SEARCH
-		const type = document.getElementById("kanjiSearchType").innerText;
-		document.querySelector("#kanjiSearchInput").addEventListener("click", () => window.location.href = "search.html"+(type ? `?type=${type}` : ""));
+			}
 
-		if (settings["extension_popup_interface"]["lessons_and_reviews"]) {
-			// LESSONS AND REVIEWS
-			// get all assignments if there are none in storage or if they were modified
-			setupAssignments(apiKey, () => setupAvailableAssignments(apiKey, setupSummary));
-		
-			// update values and update interface
-			setupAvailableAssignments(apiKey, setupSummary);
-
-			// put in interface whatever values are in cache
-			setupSummary(result["wkhighlight_reviews"], result["wkhighlight_lessons"]);
-		}
+			
+			// SEARCH
+			const type = document.getElementById("kanjiSearchType").innerText;
+			document.querySelector("#kanjiSearchInput").addEventListener("click", () => window.location.href = "search.html"+(type ? `?type=${type}` : ""));
 
 
-		// PROGRESSIONS
-		const allSize = (result["wkhighlight_allradicals_size"] ? result["wkhighlight_allradicals_size"] : 0)
-			+ (result["wkhighlight_allkanji_size"] ? result["wkhighlight_allkanji_size"] : 0)
-			+ (result["wkhighlight_allvocab_size"] ? result["wkhighlight_allvocab_size"] : 0);
-	
-		const progresses = {
-			"radical": result["wkhighlight_radical_progress"],
-			"kanji": result["wkhighlight_kanji_progress"],
-			"vocabulary": result["wkhighlight_vocabulary_progress"]
-		};
-
-		if (settings["extension_popup_interface"]["overall_progression_bar"])
-			progressionBar(document.querySelector("#progression-bar"), srsStages, progresses, allSize, settings["appearance"]);
-		
-		if (settings["extension_popup_interface"]["overall_progression_stats"])
-			progressionStats(document.querySelector("#progression-stats"), srsStages, progresses, settings["appearance"]);
-	
-		if (settings["extension_popup_interface"]["levels_in_progress"]) {
-			const radicalsLevelInProgress = result["wkhighlight_radical_levelsInProgress"] ? result["wkhighlight_radical_levelsInProgress"] : [];
-			const kanjiLevelInProgress = result["wkhighlight_kanji_levelsInProgress"] ? result["wkhighlight_kanji_levelsInProgress"] : [];
-			const vocabularyLevelInProgress = result["wkhighlight_vocabulary_levelsInProgress"] ? result["wkhighlight_vocabulary_levelsInProgress"] : [];
-			const types = ["radical", "kanji", "vocabulary"];
-			const progressBarWrappers = [];
-			const db = new Database("wanikani");
-			db.create("subjects").then(created => {
-				if (created) {
-					[radicalsLevelInProgress, kanjiLevelInProgress, vocabularyLevelInProgress]
-						.forEach((levels, i) => {
-							progressBarWrappers.push(
-								new Promise((resolve, reject) => {
-									db.getAll("subjects", "level", levels).then(result => {	
-										const bars = [];							
-										levels.forEach(level => {
-											const values = result[level].filter(value => value["hidden_at"] == null && value["subject_type"] === types[i]);
-											bars.push(levelProgressBar(userInfo["level"], values, level, types[i], srsStages, settings["appearance"]));											
-										});
-										resolve(bars);
-									});
-								})
-							);
-						});
-
-					// put bars in correct order
-					const levelsInProgress = document.querySelector("#levels-progress");
-					Promise.all(progressBarWrappers).then(bars => {
-						bars.flat(1).sort((a,b) => Number(a.dataset.order) - Number(b.dataset.order))
-							.forEach(bar => levelsInProgress.appendChild(bar));
+			// HIGHLIGHTED KANJI
+			if (settings["extension_popup_interface"]["highlighted_kanji"]) {
+				const kanjiAssoc = result["wkhighlight_kanji_assoc"];
+				
+				chrome.tabs.query({currentWindow: true, active: true}, tabs => {
+					chrome.tabs.sendMessage(tabs[0].id, {nmrKanjiHighlighted:"popup"}, ({learned, notLearned}) => {
+						kanjiListUpdate(learned, notLearned, kanjiAssoc);
 					});
-				}
-			});
+				});
+			}
+
+
+			// LESSONS AND REVIEWS
+			if (settings["extension_popup_interface"]["lessons_and_reviews"]) {
+				// get all assignments if there are none in storage or if they were modified
+				setupAssignments(apiKey, () => setupAvailableAssignments(apiKey, setupSummary));
+			
+				// update values and update interface
+				setupAvailableAssignments(apiKey, setupSummary);
+
+				// put in interface whatever values are in cache
+				setupSummary(result["wkhighlight_reviews"], result["wkhighlight_lessons"]);
+			}
+
+
+			// PROGRESSIONS
+			const allSize = (result["wkhighlight_allradicals_size"] ? result["wkhighlight_allradicals_size"] : 0)
+				+ (result["wkhighlight_allkanji_size"] ? result["wkhighlight_allkanji_size"] : 0)
+				+ (result["wkhighlight_allvocab_size"] ? result["wkhighlight_allvocab_size"] : 0);
+		
+			const progresses = {
+				"radical": result["wkhighlight_radical_progress"],
+				"kanji": result["wkhighlight_kanji_progress"],
+				"vocabulary": result["wkhighlight_vocabulary_progress"]
+			};
+
+			if (settings["extension_popup_interface"]["overall_progression_bar"])
+				progressionBar(document.querySelector("#progression-bar"), srsStages, progresses, allSize, settings["appearance"]);
+			
+			if (settings["extension_popup_interface"]["overall_progression_stats"])
+				progressionStats(document.querySelector("#progression-stats"), srsStages, progresses, settings["appearance"]);
+		
+			if (settings["extension_popup_interface"]["levels_in_progress"]) {
+				const radicalsLevelInProgress = result["wkhighlight_radical_levelsInProgress"] ? result["wkhighlight_radical_levelsInProgress"] : [];
+				const kanjiLevelInProgress = result["wkhighlight_kanji_levelsInProgress"] ? result["wkhighlight_kanji_levelsInProgress"] : [];
+				const vocabularyLevelInProgress = result["wkhighlight_vocabulary_levelsInProgress"] ? result["wkhighlight_vocabulary_levelsInProgress"] : [];
+				const types = ["radical", "kanji", "vocabulary"];
+				const progressBarWrappers = [];
+				const db = new Database("wanikani");
+				db.create("subjects").then(created => {
+					if (created) {
+						[radicalsLevelInProgress, kanjiLevelInProgress, vocabularyLevelInProgress]
+							.forEach((levels, i) => {
+								progressBarWrappers.push(
+									new Promise((resolve, reject) => {
+										db.getAll("subjects", "level", levels).then(result => {	
+											const bars = [];							
+											levels.forEach(level => {
+												const values = result[level].filter(value => value["hidden_at"] == null && value["subject_type"] === types[i]);
+												bars.push(levelProgressBar(userInfo["level"], values, level, types[i], srsStages, settings["appearance"]));											
+											});
+											resolve(bars);
+										});
+									})
+								);
+							});
+
+						// put bars in correct order
+						const levelsInProgress = document.querySelector("#levels-progress");
+						Promise.all(progressBarWrappers).then(bars => {
+							bars.flat(1).sort((a,b) => Number(a.dataset.order) - Number(b.dataset.order))
+								.forEach(bar => levelsInProgress.appendChild(bar));
+						});
+					}
+				});
+			}
 		}
-	}
-	else
-		window.location.href = "auth.html";
+		else
+			window.location.href = "auth.html";	
+	});
 });
+
+const kanjiListUpdate = (learned, notLearned, kanjiAssoc) => {
+	// fill number of kanji
+	document.querySelector("#nmrKanjiHighlighted strong").innerText = learned.length + notLearned.length;
+
+	// fill progress bar of kanji
+	const barData = [
+		{
+			link: "learnedKanji",
+			color: "var(--highlight-default-color)",
+			value: learned.length
+		},
+		{
+			link: "notLearnedKanji",
+			color: "var(--notLearned-color)",
+			value: notLearned.length
+		}
+	];
+	const kanjiFoundBar = document.querySelector(".items-list-bar");
+	kanjiFoundBar.parentElement.replaceChild(itemsListBar(barData), kanjiFoundBar);
+
+	// fill table
+	const oldKanjiList = document.querySelector("#kanjiHighlightedList").querySelector("ul");
+	const highlightedKanjiList = document.createElement("ul");
+	oldKanjiList.parentElement.replaceChild(highlightedKanjiList, oldKanjiList);
+	const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned"];
+	if (learned.length > 0 || notLearned.length > 0) {
+		document.querySelector(".not-found")?.remove();
+		[learned, notLearned].forEach((kanjiList, i) => {
+			kanjiList.forEach(kanji => {
+				const li = document.createElement("li");
+				li.classList.add("clickable", "kanjiDetails", classes[i]);
+				li.appendChild(document.createTextNode(kanji));
+				highlightedKanjiList.appendChild(li);
+			});
+		});
+
+		// add data attribute
+		highlightedKanjiList.querySelectorAll("li").forEach(li => {
+			const kanji = li.innerText;
+			if (kanjiAssoc && kanjiAssoc[kanji])
+				li.setAttribute("data-item-id", kanjiAssoc[kanji]);
+		});
+	}
+}
 
 const setupSummary = (reviews, lessons) => {
 	if (reviews) {
@@ -376,3 +429,27 @@ const levelUpMarker = numberKanji => {
 	levelupMarker.style.width = final/numberKanji*100+"%";
 	return levelupMarkerWrapper;
 }
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	// scripts uptime
+	if (request.uptimeDetailsPopup || request.uptimeHighlight) {
+		const uptimeSignals = document.querySelectorAll("#scriptsUptime div");
+		if (uptimeSignals) {
+			if (request.uptimeHighlight) 
+				uptimeSignals[0].style.backgroundColor = "#80fd80";
+
+			if (request.uptimeDetailsPopup) 
+				uptimeSignals[1].style.backgroundColor = "#80fd80";
+		}
+	}
+
+	// update highlighted kanji list
+	if (request.kanjiHighlighted && document.getElementById("kanjiHighlightedList") && sender.tab.id == activeTab.id) {
+		chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
+			const kanjiAssoc = result["wkhighlight_kanji_assoc"];
+			const {learned, notLearned} = request.kanjiHighlighted;
+			if (learned.length > 0 || notLearned.length > 0)
+				kanjiListUpdate(learned, notLearned, kanjiAssoc);
+		});
+	}
+});

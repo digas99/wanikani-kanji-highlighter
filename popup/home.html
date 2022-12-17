@@ -31,14 +31,18 @@
                 </div>
             </div>
             <!-- KANJI HIGHLIGHTED ON PAGE -->
-            <div class="resizable highlightedKanjiContainer userInfoWrapper-wrapper" data-settings="sizes-highlighted_kanji_height" style="max-height: 150px;">
+            <div class="resizable highlightedKanjiContainer userInfoWrapper-wrapper" data-settings="sizes-highlighted_kanji_height" style="max-height: 200px;">
                 <div class="resizable-s"></div>
                 <div id="nmrKanjiHighlighted" class="userInfoWrapper-title">
-                    <span id="nmrKanjiIndicator">Kanji</span>: <strong></strong> (in the page)
+                    <span id="nmrKanjiIndicator">Kanji</span>: <strong>0</strong> (in the page)
                 </div>
                 <div class="items-list-bar"></div>
                 <div id="kanjiHighlightedList" class="simple-grid">
                     <ul>
+                        <div class="not-found">
+                            <p>金</p>
+                            <p>No Kanji found in the current page!</p>
+                        </div>
                     </ul>
                 </div>
             </div>
@@ -127,6 +131,7 @@
     </div>
 
     <script src="/scripts/static.js"></script>
+    <script src="/scripts/items-list.js"></script>
     <script src="/scripts/time.js"></script>
     <script src="/scripts/database.js"></script>
     <script src="/scripts/fetch/data-fetch.js"></script>
