@@ -1,4 +1,5 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	console.log("[from content script]", request);
 
 	if (request.reloadPage)
 		window.location.reload();
@@ -15,6 +16,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 	if (request.windowLocation === "origin"){
 		sendResponse({windowLocation:window.location.origin});
+		return true;
+	}
+
+	// handle wanikani data setup completion
+	if (request.setup) {
+		// send this to popup.js
+		chrome.runtime.sendMessage({setup: request.setup});
 		return true;
 	}
 

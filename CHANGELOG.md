@@ -10,6 +10,7 @@
 ## Popup
 - Added navbar to Changelogs list in the About page
 - Added "load more" button to Search Results to limit the number of results and reduce lag while writing on search bar
+- Added loading feedback popup for the user to understand the loading stages of data from wanikani
 
 ---
 

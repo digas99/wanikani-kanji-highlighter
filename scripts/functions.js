@@ -269,6 +269,102 @@ const flipArrow = (arrow, sourceDir, destDir, paddingValue) => {
 	}
 }
 
+// get all assignments if there are none in storage or if they were modified
+// see if all kanji is already saved in storage
+const loadData = (apiToken, tabId, callback) => {
+	setupAssignments(apiToken)
+		.then(result => {
+			const assignments = result[0];
+			const fetched = result[1];
+
+			console.log("[DONE] Assignments setup");
+			if (fetched) {
+				const message = {
+					message: "Loaded Assignments data.",
+					progress: 0.25
+				}
+				if (tabId)
+					chrome.tabs.sendMessage(tabId, {setup: message});
+				else
+					chrome.runtime.sendMessage({setup: message});
+			}
+
+			setupRadicals(apiToken)
+				.then(result => {
+					const radicals_dict = result[0];
+					const fetched = result[1];
+
+					console.log("[DONE] Radicals setup");
+					if (fetched) {
+						const message = {
+							message: "Loaded Radicals data.",
+							progress: 0.5
+						}
+						if (tabId)
+							chrome.tabs.sendMessage(tabId, {setup: message});
+						else
+							chrome.runtime.sendMessage({setup: message});
+
+						assignUponSubjects(radicals_dict);
+						revStatsUponSubjects(apiToken, radicals_dict);
+					}
+
+
+					setupVocab(apiToken)
+						.then(result => {
+							const vocab_dict = result[0];
+							const fetched = result[1];
+
+							console.log("[DONE] Vocab setup");
+							if (fetched) {
+								const message = {
+									message: "Loaded Vocabulary data.",
+									progress: 0.75
+								}
+								if (tabId)
+									chrome.tabs.sendMessage(tabId, {setup: message});
+								else
+									chrome.runtime.sendMessage({setup: message});
+
+								assignUponSubjects(vocab_dict);
+								revStatsUponSubjects(apiToken, vocab_dict);
+							}
+
+							// setup kanji last to make sure scripts run with all subjects
+							setupKanji(apiToken)
+								.then(result => {
+									const kanji_dict = result[0];
+									const fetched = result[1];
+
+									console.log("[DONE] Kanji setup");
+									if (fetched) {
+										const message = {
+											message: "Loaded Kanji data.",
+											progress: 1
+										}
+										if (tabId)
+											chrome.tabs.sendMessage(tabId, {setup: message});
+										else
+											chrome.runtime.sendMessage({setup: message});		
+
+										assignUponSubjects(kanji_dict);
+										revStatsUponSubjects(apiToken, kanji_dict);
+									}
+
+									if (callback) {
+										callback({
+											assignments: assignments,
+											radicals: radicals_dict,
+											vocab: vocab_dict,
+											kanji: kanji_dict
+										});
+									}
+								});
+						});
+				});
+		});
+}
+
 const assignUponSubjects = list => {
 	const type = list[Object.keys(list)[0]]["subject_type"];
 	if (list && type) {

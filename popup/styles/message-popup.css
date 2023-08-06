@@ -1,0 +1,56 @@
+
+.popup-loading > div:nth-child(1) {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    background-color: black;
+    opacity: 0.5;
+    left: 0;
+    top: 0;
+	z-index: 6;
+}
+
+.popup-loading > div:nth-child(2) {
+    position: fixed;
+    background-color: white;
+    width: 70%;
+    height: 90px;
+    left: 0;
+    top: 0;
+    margin: auto;
+    right: 0;
+    bottom: 0;
+    box-shadow: 0px 0px 6px -2px black;
+	z-index: 6;
+}
+
+.popup-loading > div:nth-child(2) > div:nth-child(1) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: auto;
+    right: 0;
+    bottom: 0;
+    width: fit-content;
+    height: fit-content;
+}
+
+.popup-loading .popup-loading-bar {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+.popup-loading .popup-loading-bar > div {
+    position: absolute;
+    width: 99%;
+    bottom: 0;
+    height: 8px;
+    transition: 0.3s;
+    margin: 2px;
+}
+
+.popup-loading .popup-loading-bar > div > div {
+	background-color: var(--default-color);
+	height: 100%;
+}

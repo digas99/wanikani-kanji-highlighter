@@ -28,6 +28,10 @@ let allKanjiList;
 chrome.runtime.onConnect.addListener(port => externalPort = port);
 
 chrome.runtime.onInstalled.addListener(details => {
+	console.log("Extension installed");
+
+	chrome.storage.local.set({"wkhighlight_initialFetch": true});
+
 	// clear all subjects on extension update
 	if (details.reason == "update")
 		clearSubjects();
@@ -250,37 +254,9 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 									chrome.action.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 								}
 				
-								// get all assignments if there are none in storage or if they were modified
-								// see if all kanji is already saved in storage
-								setupAssignments(apiToken)
-									.then(() => {
-										setupRadicals(apiToken)
-											.then(radicals_dict => {
-												if (radicals_dict[1]) {
-													assignUponSubjects(radicals_dict[0]);
-													revStatsUponSubjects(apiToken, radicals_dict[0]);
-												}
-
-												setupVocab(apiToken)
-													.then(vocab_dict => {
-														if (vocab_dict[1]) {
-															assignUponSubjects(vocab_dict[0]);
-															revStatsUponSubjects(apiToken, vocab_dict[0]);
-														}
-
-														// setup kanji last to make sure scripts run with all subjects
-														setupKanji(apiToken)
-															.then(kanji_dict => {
-																if (kanji_dict[1]) {
-																	assignUponSubjects(kanji_dict[0]);
-																	revStatsUponSubjects(apiToken, kanji_dict[0]);
-																}
-																allKanjiList = kanji_dict[0];
-																setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", kanji_dict[0]);
-															});
-													});
-											});
-									});
+								loadData(apiToken, thisTabId, result => {
+									setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", result["kanji"]);
+								});
 							}
 						}
 						else {

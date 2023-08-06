@@ -296,17 +296,17 @@ const setupAssignments = (apiToken, callback) =>
 									"future":allFutureAssignments,
 									"past":allAvailableReviews
 								}, "wkhighlight_assignments_updated":formatDate(new Date())}, () => {
-									resolve(data);
+									resolve(data, true);
 									if (callback)
-										callback(data);
+										callback(data, true);
 								});
 							})
 							.catch(reject);
 					}
 					else {
-						resolve("No fetch");
+						resolve(assignments, false);
 						if (callback)
-							callback();
+							callback(assignments, false);
 					}
 				});
 		});

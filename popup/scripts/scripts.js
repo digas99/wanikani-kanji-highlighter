@@ -8,10 +8,20 @@ const popupLoading = text => {
     // add popup
     const textWrapper = document.createElement("div");
     wrapper.appendChild(textWrapper);
-    const textNode = document.createElement("div");
+	textWrapper.classList.add("content");
+	// text
+	const textNode = document.createElement("div");
     textWrapper.appendChild(textNode);
     textNode.appendChild(document.createTextNode(text));
-    
+	// loading bar
+	const loadingBarWrapper = document.createElement("div");
+	textWrapper.appendChild(loadingBarWrapper);
+	loadingBarWrapper.classList.add("popup-loading-bar");
+	const loadingBar = document.createElement("div");
+	loadingBarWrapper.appendChild(loadingBar);
+	const loadingBarProgress = document.createElement("div");
+	loadingBar.appendChild(loadingBarProgress);
+
     return wrapper;
 }
 
@@ -37,3 +47,49 @@ window.onscroll = () => {
 		}
 	}
 }
+
+let messagePopup;
+window.onload = () => {
+	messagePopup = new MessagePopup(document.body);
+
+	chrome.storage.local.get(["wkhighlight_initialFetch", "wkhighlight_apiKey"], result => {
+		if (result["wkhighlight_initialFetch"]) {
+			messagePopup.create("Fetching subject data from Wanikani...");
+			messagePopup.loadingBar();
+
+			loadData(result["wkhighlight_apiKey"]);
+		}
+	});
+}
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	console.log("[from content script]", request);
+
+	// catch wanikani data setup completion
+	if (request.setup) {
+		if (messagePopup) {
+			if (!messagePopup.exists()) {
+				messagePopup.create("Fetching subject data from Wanikani...");
+				messagePopup.loadingBar();
+			}
+
+			const setup = request.setup;
+	
+			console.log("setup", setup);
+			// update loading popup
+			messagePopup.loading(setup.progress);
+			messagePopup.update(setup.message);
+	
+			if (setup.progress == 1) {
+				console.log("setup complete");
+				chrome.storage.local.set({"wkhighlight_initialFetch": false});
+
+				setTimeout(() => {
+					messagePopup.remove();
+					window.location.reload();
+				}, 500);
+
+			}
+		}
+	}
+});
