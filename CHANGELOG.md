@@ -11,6 +11,7 @@
 - Added navbar to Changelogs list in the About page
 - Added "load more" button to Search Results to limit the number of results and reduce lag while writing on search bar
 - Added loading feedback popup for the user to understand the loading stages of data from wanikani
+- Loading data from Wanikani is now also being done from the extension Popup (no need to browse a web page)
 
 ---
 
