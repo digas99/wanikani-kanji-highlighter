@@ -9,7 +9,7 @@ const setupKanji = (apiToken, callback) =>
 						db.create("subjects").then(created => {
 							if (created) {								
 								fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=kanji")
-									.then(kanji_data => {
+									.then(async kanji_data => {
 										const kanji_dict = {};
 										const kanji_assoc = {};
 										const levels = {};
@@ -67,7 +67,7 @@ const setupKanji = (apiToken, callback) =>
 												};
 											});
 		
-										db.insert("subjects", db_records);
+										await db.insert("subjects", db_records);
 
 										// add jlpt info to kanjis
 										for (const n in jlpt) {
@@ -110,7 +110,7 @@ const setupRadicals = (apiToken, callback) =>
 						db.create("subjects").then(created => {
 							if (created) {		
 								fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=radical")
-									.then(radical_data => {
+									.then(async radical_data => {
 										const radical_dict = {};
 										const levels = {};
 										const db_records = [];
@@ -156,7 +156,7 @@ const setupRadicals = (apiToken, callback) =>
 												};
 											});
 
-										db.insert("subjects", db_records);
+										await db.insert("subjects", db_records);
 
 										// saving all radical
 										chrome.storage.local.set({...{"wkhighlight_allradicals": radical_dict, "wkhighlight_allradicals_updated": formatDate(new Date()), "wkhighlight_allradicals_size":radical_data[0]["total_count"]}, ...levels}, () => {
@@ -190,7 +190,7 @@ const setupVocab = (apiToken, callback) =>
 						db.create("subjects").then(created => {
 							if (created) {
 								fetchAllPages(apiToken, "https://api.wanikani.com/v2/subjects?types=vocabulary")
-									.then(vocab_data => {
+									.then(async vocab_data => {
 										const vocab_dict = {};
 										const vocab_assoc = {};
 										const levels = {};
@@ -246,7 +246,7 @@ const setupVocab = (apiToken, callback) =>
 												};
 											});
 
-										db.insert("subjects", db_records);
+										await db.insert("subjects", db_records);
 
 										// saving all vocabulary
 										chrome.storage.local.set({...{'wkhighlight_allvocab':vocab_dict, "wkhighlight_vocab_assoc": vocab_assoc, "wkhighlight_allvocab_updated": formatDate(new Date()), "wkhighlight_allvocab_size":vocab_data[0]["total_count"]}, ...levels}, () => {

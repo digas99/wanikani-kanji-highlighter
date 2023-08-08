@@ -1,30 +1,3 @@
-const popupLoading = text => {
-    const wrapper = document.createElement("div");
-    wrapper.classList.add("popup-loading");
-
-    // add gray back
-    wrapper.appendChild(document.createElement("div"));
-
-    // add popup
-    const textWrapper = document.createElement("div");
-    wrapper.appendChild(textWrapper);
-	textWrapper.classList.add("content");
-	// text
-	const textNode = document.createElement("div");
-    textWrapper.appendChild(textNode);
-    textNode.appendChild(document.createTextNode(text));
-	// loading bar
-	const loadingBarWrapper = document.createElement("div");
-	textWrapper.appendChild(loadingBarWrapper);
-	loadingBarWrapper.classList.add("popup-loading-bar");
-	const loadingBar = document.createElement("div");
-	loadingBarWrapper.appendChild(loadingBar);
-	const loadingBarProgress = document.createElement("div");
-	loadingBar.appendChild(loadingBarProgress);
-
-    return wrapper;
-}
-
 window.onscroll = () => {
 	let goTop = document.querySelector(".goTop");
 	if (document.documentElement.scrollTop > 500) {
@@ -46,20 +19,6 @@ window.onscroll = () => {
 			setTimeout(() => goTop.remove(), 200);
 		}
 	}
-}
-
-let messagePopup;
-window.onload = () => {
-	messagePopup = new MessagePopup(document.body);
-
-	chrome.storage.local.get(["wkhighlight_initialFetch", "wkhighlight_apiKey"], result => {
-		if (result["wkhighlight_initialFetch"]) {
-			messagePopup.create("Fetching subject data from Wanikani...");
-			messagePopup.loadingBar();
-
-			loadData(result["wkhighlight_apiKey"]);
-		}
-	});
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -87,9 +46,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				setTimeout(() => {
 					messagePopup.remove();
 					window.location.reload();
-				}, 500);
+				}, 1000);
 
 			}
 		}
 	}
 });
+
+let messagePopup;
+window.onload = () => {
+	messagePopup = new MessagePopup(document.body);
+	
+	chrome.storage.local.get(["wkhighlight_initialFetch", "wkhighlight_apiKey"], result => {
+		if (result["wkhighlight_initialFetch"] || result["wkhighlight_initialFetch"] == undefined) {
+			messagePopup.create("Fetching subject data from Wanikani...");
+			messagePopup.loadingBar();
+
+			loadData(result["wkhighlight_apiKey"]);
+		}
+	});
+}

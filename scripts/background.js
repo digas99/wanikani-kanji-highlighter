@@ -280,6 +280,8 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 let highlightUpdateFunction;
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	console.log("from background", request);
+
 	// sends to the content script information about key pressing and the reference to the highlight update function
 	if (request.key)
 		tabs.sendMessage(thisTabId, {key: request.key, intervalFunction: highlightUpdateFunction});
@@ -311,6 +313,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 	if (request.kanaWriting)
 		kanaWriting = request.kanaWriting;
+
+	// drive the setup progress back to the popup
+	if (request.setup) {
+		chrome.runtime.sendMessage({setup: request.setup});
+	}
 });
 
 const contextMenuItem = {

@@ -1,7 +1,10 @@
 let settings, menuSettings;
 
-const loadingData = popupLoading("Loading data...");
-document.body.appendChild(loadingData);
+let popupLoading;
+if (!messagePopup) {
+	popupLoading = new MessagePopup(document.body);
+	popupLoading.create("Loading data...");
+}
 
 chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_userInfo_updated", "wkhighlight_settings"], result => {
     const date = result["wkhighlight_userInfo_updated"] ? result["wkhighlight_userInfo_updated"] : formatDate(new Date());
@@ -16,7 +19,7 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighl
 
                 modifiedSince(result["wkhighlight_apiKey"], date, "https://api.wanikani.com/v2/user")
                     .then(modified => {
-                        loadingData.remove();
+                		if (popupLoading) popupLoading.remove();
 
                         const userInfo = result["wkhighlight_userInfo"]["data"];
 

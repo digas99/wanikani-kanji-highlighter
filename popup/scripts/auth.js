@@ -1,9 +1,9 @@
-const loadingData = popupLoading("Loading data...");
-document.body.appendChild(loadingData);
+const popupLoading = new MessagePopup(document.body);
+popupLoading.create("Loading data...");
 
 chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings"], result => {
     if (!result["wkhighlight_apiKey"]) {
-        loadingData.remove();
+        popupLoading.remove();
 
         fetch("../../manifest.json")
             .then(response => response.json())
@@ -13,7 +13,7 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings"], result 
         if (submit) submit.addEventListener("click", submitAction);
     }
     else {
-        const page = result["wkhighlight_settings"]["home_page"]["page"];
+        const page = result["wkhighlight_settings"] ? result["wkhighlight_settings"]["home_page"]["page"] : "home";
         window.location.href = `${page ? page.toLowerCase() : "home"}.html`;
     }
 });
@@ -40,8 +40,7 @@ const submitAction = () => {
     const main = document.getElementById("main");
     const form = main.querySelector(".api-key-form"); 
     if (!invalidKey) {
-        const loadingUser = popupLoading("Loading user...");
-        document.body.appendChild(loadingUser);
+        popupLoading.create("Loading user info...");
         fetchUserInfo(apiKey, user => {
             if (user && user.code != 401) {
                 chrome.storage.local.set({"wkhighlight_apiKey":apiKey, "wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
@@ -49,7 +48,7 @@ const submitAction = () => {
             }
             else {
                 main.insertBefore(message("The API key doesn't exist!", "red"), form);
-                loadingUser.remove();
+                popupLoading.remove();
             }
         });
     }

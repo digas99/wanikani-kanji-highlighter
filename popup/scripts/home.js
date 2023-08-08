@@ -5,12 +5,15 @@ const HIGHLIGHTED = ["wkhighlight_kanji_assoc", "wkhighlight_allHighLightedKanji
 
 let activeTab;
 
-const loadingData = popupLoading("Loading data...");
-document.body.appendChild(loadingData);
+let popupLoading;
+if (!messagePopup) {
+	popupLoading = new MessagePopup(document.body);
+	popupLoading.create("Loading data...");
+}
 
 chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings", "wkhighlight_userInfo", ...HIGHLIGHTED, ...ASSIGNMENTS , ...PROGRESS], result => {
 	chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-		loadingData.remove();
+		if (popupLoading) popupLoading.remove();
 		
 		activeTab = tabs[0];
 	
