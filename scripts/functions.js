@@ -280,7 +280,7 @@ const loadData = (apiToken, tabId, callback) => {
 			console.log("[DONE] Assignments setup");
 			if (fetched) {
 				const message = {
-					message: "Loaded Assignments data.",
+					message: "✔ Loaded Assignments data.",
 					progress: 0.25
 				}
 				if (tabId)
@@ -290,65 +290,66 @@ const loadData = (apiToken, tabId, callback) => {
 			}
 
 			setupRadicals(apiToken)
-				.then(result => {
+				.then(async result => {
 					const radicals_dict = result[0];
 					const fetched = result[1];
 
 					console.log("[DONE] Radicals setup");
 					if (fetched) {
+						await assignUponSubjects(radicals_dict);
+						await revStatsUponSubjects(apiToken, radicals_dict);
+
 						const message = {
-							message: "Loaded Radicals data.",
+							message: "✔ Loaded Radicals data.",
 							progress: 0.5
 						}
 						if (tabId)
 							chrome.tabs.sendMessage(tabId, {setup: message});
 						else
 							chrome.runtime.sendMessage({setup: message});
-
-						assignUponSubjects(radicals_dict);
-						revStatsUponSubjects(apiToken, radicals_dict);
 					}
 
 
 					setupVocab(apiToken)
-						.then(result => {
+						.then(async result => {
 							const vocab_dict = result[0];
 							const fetched = result[1];
 
 							console.log("[DONE] Vocab setup");
 							if (fetched) {
+								await assignUponSubjects(vocab_dict);
+								await revStatsUponSubjects(apiToken, vocab_dict);
+
 								const message = {
-									message: "Loaded Vocabulary data.",
+									message: "✔ Loaded Vocabulary data.",
 									progress: 0.75
 								}
 								if (tabId)
 									chrome.tabs.sendMessage(tabId, {setup: message});
 								else
 									chrome.runtime.sendMessage({setup: message});
-
-								assignUponSubjects(vocab_dict);
-								revStatsUponSubjects(apiToken, vocab_dict);
 							}
 
 							// setup kanji last to make sure scripts run with all subjects
 							setupKanji(apiToken)
-								.then(result => {
+								.then(async result => {
 									const kanji_dict = result[0];
 									const fetched = result[1];
 
 									console.log("[DONE] Kanji setup");
 									if (fetched) {
+										await assignUponSubjects(kanji_dict);
+										await revStatsUponSubjects(apiToken, kanji_dict);
+
 										const message = {
-											message: "Loaded Kanji data.",
+											message: "✔ Loaded Kanji data.",
 											progress: 1
 										}
+
 										if (tabId)
 											chrome.tabs.sendMessage(tabId, {setup: message});
 										else
 											chrome.runtime.sendMessage({setup: message});		
-
-										assignUponSubjects(kanji_dict);
-										revStatsUponSubjects(apiToken, kanji_dict);
 									}
 
 									if (callback) {
@@ -365,11 +366,11 @@ const loadData = (apiToken, tabId, callback) => {
 		});
 }
 
-const assignUponSubjects = list => {
+const assignUponSubjects = async list => {
 	const type = list[Object.keys(list)[0]]["subject_type"];
 	if (list && type) {
 		const db = new Database("wanikani");
-		db.create("subjects").then(created => {
+		await db.create("subjects").then(created => {
 			if (created) {
 				chrome.storage.local.get("wkhighlight_assignments", result => {
 					const allAssignments = result["wkhighlight_assignments"]["all"];
@@ -432,11 +433,11 @@ const assignUponSubjects = list => {
 	}
 }
 
-const revStatsUponSubjects = (apiToken, list) => {
+const revStatsUponSubjects = async (apiToken, list) => {
 	const type = list[Object.keys(list)[0]]["subject_type"];
 	if (list && type) {
 		console.log(`Associating review statistics with ${type} ...`);
-		fetchAllPages(apiToken, "https://api.wanikani.com/v2/review_statistics")
+		await fetchAllPages(apiToken, "https://api.wanikani.com/v2/review_statistics")
 			.then(stats => {
 				stats.map(coll => coll["data"])
 					.flat(1)

@@ -29,7 +29,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		if (messagePopup) {
 			if (!messagePopup.exists()) {
 				messagePopup.create("Fetching subject data from Wanikani...");
-				messagePopup.loadingBar();
+				messagePopup.setLoading();
 			}
 
 			const setup = request.setup;
@@ -46,7 +46,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				setTimeout(() => {
 					messagePopup.remove();
 					window.location.reload();
-				}, 1000);
+				}, 500);
 
 			}
 		}
@@ -59,8 +59,8 @@ window.onload = () => {
 	
 	chrome.storage.local.get(["wkhighlight_initialFetch", "wkhighlight_apiKey"], result => {
 		if (result["wkhighlight_initialFetch"] || result["wkhighlight_initialFetch"] == undefined) {
-			messagePopup.create("Fetching subject data from Wanikani...");
-			messagePopup.loadingBar();
+			messagePopup.create("Fetching subject data from Wanikani...", "Please, don't close the extension.");
+			messagePopup.setLoading();
 
 			loadData(result["wkhighlight_apiKey"]);
 		}

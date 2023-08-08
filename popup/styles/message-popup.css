@@ -1,5 +1,5 @@
 
-.popup-loading > div:nth-child(1) {
+.message-popup > div:nth-child(1) {
     width: 100%;
     height: 100%;
     position: fixed;
@@ -10,7 +10,7 @@
 	z-index: 6;
 }
 
-.popup-loading > div:nth-child(2) {
+.message-popup > div:nth-child(2) {
     position: fixed;
     background-color: white;
     width: 70%;
@@ -24,7 +24,7 @@
 	z-index: 6;
 }
 
-.popup-loading > div:nth-child(2) > div:nth-child(1) {
+.message-popup > div:nth-child(2) > div:nth-child(1) {
     position: absolute;
     left: 0;
     top: 0;
@@ -35,13 +35,23 @@
     height: fit-content;
 }
 
-.popup-loading .popup-loading-bar {
+.message-popup .subtext {
+    padding: 6px 0;
+    font-size: 10px;
+    top: 0;
+    position: absolute;
+    color: #7b7b7b;
+    text-align: center;
+    width: 100%;
+}
+
+.message-popup .message-popup-bar {
 	position: relative;
 	width: 100%;
 	height: 100%;
 }
 
-.popup-loading .popup-loading-bar > div {
+.message-popup .message-popup-bar > div {
     position: absolute;
     width: 99%;
     bottom: 0;
@@ -50,7 +60,35 @@
     margin: 2px;
 }
 
-.popup-loading .popup-loading-bar > div > div {
+.message-popup .message-popup-bar > div > div {
 	background-color: var(--default-color);
 	height: 100%;
+}
+
+.message-popup .loading-icon {
+    position: absolute;
+    top: 0;
+    text-align: center;
+    width: 35px;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    background-color: var(--default-color);
+    left: -35px;
+}
+
+.message-popup .loading-icon > img {
+    width: 15px;
+    animation: rotateAnimation 2s linear infinite;
+    filter: invert(1);
+}
+
+@keyframes rotateAnimation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
