@@ -6,9 +6,9 @@ if (!messagePopup) {
 	popupLoading.create("Loading data...");
 }
 
-chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_userInfo_updated", "wkhighlight_settings"], result => {
-    const date = result["wkhighlight_userInfo_updated"] ? result["wkhighlight_userInfo_updated"] : formatDate(new Date());
-    settings = result["wkhighlight_settings"];
+chrome.storage.local.get(["apiKey", "userInfo", "userInfo_updated", "settings"], result => {
+    const date = result["userInfo_updated"] ? result["userInfo_updated"] : formatDate(new Date());
+    settings = result["settings"];
     menuSettings = settings && settings["profile_menus"] ? settings["profile_menus"] : defaultSettings["profile_menus"];
 
     const db = new Database("wanikani");
@@ -17,11 +17,11 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighl
             db.getAll("subjects").then(data => {
                 const subjectsData = data.filter(subject => !subject["hidden_at"]);
 
-                modifiedSince(result["wkhighlight_apiKey"], date, "https://api.wanikani.com/v2/user")
+                modifiedSince(result["apiKey"], date, "https://api.wanikani.com/v2/user")
                     .then(modified => {
                 		if (popupLoading) popupLoading.remove();
 
-                        const userInfo = result["wkhighlight_userInfo"]["data"];
+                        const userInfo = result["userInfo"]["data"];
 
                         // if user info has been updated in wanikani, then update cache
                         if (!userInfo || modified)
@@ -309,7 +309,7 @@ document.addEventListener("click", e => {
         closeArrowAction(arrow, tab.nextElementSibling, key);
 
         // save changes
-        chrome.storage.local.set({"wkhighlight_settings": settings});
+        chrome.storage.local.set({"settings": settings});
     }
 
     // checkbox action
@@ -403,7 +403,7 @@ document.addEventListener("input", e => {
         menuActions(tab, title, menuTitle, property, keys, value);
 
         // save changes to menu settings
-        chrome.storage.local.set({"wkhighlight_settings": settings});
+        chrome.storage.local.set({"settings": settings});
     }
 });
 

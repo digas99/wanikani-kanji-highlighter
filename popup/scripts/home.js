@@ -1,7 +1,7 @@
 let settings, apiKey, userInfo, lastReviewsValue = 0, lastLessonsValue = 0;
-const ASSIGNMENTS = ["wkhighlight_reviews", "wkhighlight_lessons"];
-const PROGRESS = ["wkhighlight_radical_progress", "wkhighlight_kanji_progress", "wkhighlight_vocabulary_progress", "wkhighlight_allradicals_size", "wkhighlight_allkanji_size", "wkhighlight_allvocab_size", "wkhighlight_radical_levelsInProgress", "wkhighlight_kanji_levelsInProgress", "wkhighlight_vocabulary_levelsInProgress"];
-const HIGHLIGHTED = ["wkhighlight_kanji_assoc", "wkhighlight_allHighLightedKanji"];
+const ASSIGNMENTS = ["reviews", "lessons"];
+const PROGRESS = ["radical_progress", "kanji_progress", "vocabulary_progress", "allradicals_size", "allkanji_size", "allvocab_size", "radical_levelsInProgress", "kanji_levelsInProgress", "vocabulary_levelsInProgress"];
+const HIGHLIGHTED = ["kanji_assoc", "allHighLightedKanji"];
 
 let activeTab;
 
@@ -11,16 +11,16 @@ if (!messagePopup) {
 	popupLoading.create("Loading data...");
 }
 
-chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings", "wkhighlight_userInfo", ...HIGHLIGHTED, ...ASSIGNMENTS , ...PROGRESS], result => {
+chrome.storage.local.get(["apiKey", "settings", "userInfo", ...HIGHLIGHTED, ...ASSIGNMENTS , ...PROGRESS], result => {
 	chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 		if (popupLoading) popupLoading.remove();
 		
 		activeTab = tabs[0];
 	
-		userInfo = result["wkhighlight_userInfo"]["data"];
-		apiKey = result["wkhighlight_apiKey"];
+		userInfo = result["userInfo"]["data"];
+		apiKey = result["apiKey"];
 		if (apiKey) {
-			settings = result["wkhighlight_settings"] ? result["wkhighlight_settings"] : defaultSettings;
+			settings = result["settings"] ? result["settings"] : defaultSettings;
 
 
 			// SCRIPTS UPTIME
@@ -42,7 +42,7 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings", "wkhighl
 
 			// HIGHLIGHTED KANJI
 			if (settings["extension_popup_interface"]["highlighted_kanji"]) {
-				const kanjiAssoc = result["wkhighlight_kanji_assoc"];
+				const kanjiAssoc = result["kanji_assoc"];
 				
 				chrome.tabs.query({currentWindow: true, active: true}, tabs => {
 					chrome.tabs.sendMessage(tabs[0].id, {nmrKanjiHighlighted:"popup"}, ({learned, notLearned}) => {
@@ -61,19 +61,19 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings", "wkhighl
 				setupAvailableAssignments(apiKey, setupSummary);
 
 				// put in interface whatever values are in cache
-				setupSummary(result["wkhighlight_reviews"], result["wkhighlight_lessons"]);
+				setupSummary(result["reviews"], result["lessons"]);
 			}
 
 
 			// PROGRESSIONS
-			const allSize = (result["wkhighlight_allradicals_size"] ? result["wkhighlight_allradicals_size"] : 0)
-				+ (result["wkhighlight_allkanji_size"] ? result["wkhighlight_allkanji_size"] : 0)
-				+ (result["wkhighlight_allvocab_size"] ? result["wkhighlight_allvocab_size"] : 0);
+			const allSize = (result["allradicals_size"] ? result["allradicals_size"] : 0)
+				+ (result["allkanji_size"] ? result["allkanji_size"] : 0)
+				+ (result["allvocab_size"] ? result["allvocab_size"] : 0);
 		
 			const progresses = {
-				"radical": result["wkhighlight_radical_progress"],
-				"kanji": result["wkhighlight_kanji_progress"],
-				"vocabulary": result["wkhighlight_vocabulary_progress"]
+				"radical": result["radical_progress"],
+				"kanji": result["kanji_progress"],
+				"vocabulary": result["vocabulary_progress"]
 			};
 
 			if (settings["extension_popup_interface"]["overall_progression_bar"])
@@ -83,9 +83,9 @@ chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_settings", "wkhighl
 				progressionStats(document.querySelector("#progression-stats"), srsStages, progresses, settings["appearance"]);
 		
 			if (settings["extension_popup_interface"]["levels_in_progress"]) {
-				const radicalsLevelInProgress = result["wkhighlight_radical_levelsInProgress"] ? result["wkhighlight_radical_levelsInProgress"] : [];
-				const kanjiLevelInProgress = result["wkhighlight_kanji_levelsInProgress"] ? result["wkhighlight_kanji_levelsInProgress"] : [];
-				const vocabularyLevelInProgress = result["wkhighlight_vocabulary_levelsInProgress"] ? result["wkhighlight_vocabulary_levelsInProgress"] : [];
+				const radicalsLevelInProgress = result["radical_levelsInProgress"] ? result["radical_levelsInProgress"] : [];
+				const kanjiLevelInProgress = result["kanji_levelsInProgress"] ? result["kanji_levelsInProgress"] : [];
+				const vocabularyLevelInProgress = result["vocabulary_levelsInProgress"] ? result["vocabulary_levelsInProgress"] : [];
 				const types = ["radical", "kanji", "vocabulary"];
 				const progressBarWrappers = [];
 				const db = new Database("wanikani");
@@ -448,8 +448,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 	// update highlighted kanji list
 	if (request.kanjiHighlighted && document.getElementById("kanjiHighlightedList") && sender.tab.id == activeTab.id) {
-		chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
-			const kanjiAssoc = result["wkhighlight_kanji_assoc"];
+		chrome.storage.local.get(["kanji_assoc"], result => {
+			const kanjiAssoc = result["kanji_assoc"];
 			const {learned, notLearned} = request.kanjiHighlighted;
 			if (learned.length > 0 || notLearned.length > 0)
 				kanjiListUpdate(learned, notLearned, kanjiAssoc);

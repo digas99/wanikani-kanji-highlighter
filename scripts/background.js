@@ -30,7 +30,7 @@ chrome.runtime.onConnect.addListener(port => externalPort = port);
 chrome.runtime.onInstalled.addListener(details => {
 	console.log("Extension installed");
 
-	chrome.storage.local.set({"wkhighlight_initialFetch": true});
+	chrome.storage.local.set({"initialFetch": true});
 
 	// clear all subjects on extension update
 	if (details.reason == "update")
@@ -43,8 +43,8 @@ db.create("subjects", "id", ["level", "subject_type"]);
 let settings;
 // set settings
 const setSettings = () => {
-	chrome.storage.local.get(["wkhighlight_settings"], result => {
-		settings = result["wkhighlight_settings"];
+	chrome.storage.local.get(["settings"], result => {
+		settings = result["settings"];
 		
 		if (!settings)
 			settings = defaultSettings;
@@ -70,7 +70,7 @@ const setSettings = () => {
 			notStored.forEach(id => settings[id[0]][id[1]] = defaultSettings[id[0]][id[1]]);
 		}
 
-		chrome.storage.local.set({"wkhighlight_settings":settings});
+		chrome.storage.local.set({"settings":settings});
 
 		// setup highlighting class value from settings
 		highlightingClass = settings["highlight_style"]["learned"];
@@ -98,7 +98,7 @@ const fetchReviewedKanjiID = async (apiToken, page) => {
 const setupLearnedKanji = async (apiToken, page, kanji) => {
 	const IDs = await fetchReviewedKanjiID(apiToken, page);
 	const learnedKanji = IDs.map(id => kanji[id].slug);
-	chrome.storage.local.set({"wkhighlight_learnedKanji": learnedKanji, "wkhighlight_learnedKanji_updated":formatDate(new Date())});
+	chrome.storage.local.set({"learnedKanji": learnedKanji, "learnedKanji_updated":formatDate(new Date())});
 	return learnedKanji;
 }
 
@@ -106,15 +106,15 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	console.log("Setting up content scripts...");
 
 	// setup all learnable kanji if not yet
-	chrome.storage.local.get(["wkhighlight_allLearnableKanji"], result => {
-		let allLearnableKanji = result["wkhighlight_allLearnableKanji"];
+	chrome.storage.local.get(["allLearnableKanji"], result => {
+		let allLearnableKanji = result["allLearnableKanji"];
 		const kanjiList = [];
 		if (!allLearnableKanji) {
 			allLearnableKanji = allkanji;
 			for (let kanjiId in allLearnableKanji) {
 				kanjiList.push(allLearnableKanji[kanjiId]["slug"]);
 			}
-			chrome.storage.local.set({"wkhighlight_allLearnableKanji":kanjiList});
+			chrome.storage.local.set({"allLearnableKanji":kanjiList});
 		}
 	});
 
@@ -146,11 +146,11 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 				files: ['scripts/highlighter/highlight-setup.js']
 			}, () => injectedHighlighter = true);
 
-			chrome.storage.local.get(["wkhighlight_allLearnableKanji"], result => {
-				const allKanji = result["wkhighlight_allLearnableKanji"];
+			chrome.storage.local.get(["allLearnableKanji"], result => {
+				const allKanji = result["allLearnableKanji"];
 				const notLearnedKanji = allKanji.filter(k => !kanji.includes(k));
 				if (allKanji) {
-					chrome.storage.local.set({"wkhighlight_highlight_setup": {
+					chrome.storage.local.set({"highlight_setup": {
 						functionDelay: functionDelay, 
 						learned: kanji,
 						notLearned: notLearnedKanji,
@@ -163,18 +163,18 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 		});
 	}
 
-	chrome.storage.local.get(["wkhighlight_learnedKanji", "wkhighlight_learnedKanji_updated"], response => {
-		const date = response["wkhighlight_learnedKanji_updated"] ? response["wkhighlight_learnedKanji_updated"] : formatDate(new Date());
+	chrome.storage.local.get(["learnedKanji", "learnedKanji_updated"], response => {
+		const date = response["learnedKanji_updated"] ? response["learnedKanji_updated"] : formatDate(new Date());
 		modifiedSince(apiToken, date, learnedKanjiSource)
 			.then(modified => {
 				// even if not modified, fetch if learnedKanji not found in storage
-				if (!response["wkhighlight_learnedKanji"] || modified) {
+				if (!response["learnedKanji"] || modified) {
 					setupLearnedKanji(apiToken, learnedKanjiSource, allkanji)
 						.then(kanji => scripts(kanji))
 						.catch(errorHandling);
 				}
 				else {
-					scripts(response["wkhighlight_learnedKanji"]);
+					scripts(response["learnedKanji"]);
 				}
 			})
 			.catch(errorHandling);
@@ -195,9 +195,9 @@ tabs.onActivated.addListener(activeInfo => {
 						
 						if (!response) {
 							// highlighter not injected because of some error
-							chrome.storage.local.get(["wkhighlight_blacklist"], blacklist => {
+							chrome.storage.local.get(["blacklist"], blacklist => {
 								// check if the site is blacklisted
-								if (!blacklist["wkhighlight_blacklist"] || blacklist["wkhighlight_blacklist"].length === 0 || !blacklisted(blacklist["wkhighlight_blacklist"], thisUrl))
+								if (!blacklist["blacklist"] || blacklist["blacklist"].length === 0 || !blacklisted(blacklist["blacklist"], thisUrl))
 									setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", allKanjiList);
 								else {
 									chrome.action.setBadgeText({text: '!', tabId:thisTabId});
@@ -229,13 +229,13 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 			thisUrl = tab.url;
 			if (url === thisUrl && !urlChecker.test(url)) {
 				if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {
-					chrome.storage.local.get(["wkhighlight_blacklist", "wkhighlight_apiKey"], result => {
+					chrome.storage.local.get(["blacklist", "apiKey"], result => {
 						// check if the site is blacklisted
-						if (!result["wkhighlight_blacklist"] || result["wkhighlight_blacklist"].length === 0 || !blacklisted(result["wkhighlight_blacklist"], url)) {
+						if (!result["blacklist"] || result["blacklist"].length === 0 || !blacklisted(result["blacklist"], url)) {
 							setSettings();
 	
-							if (result["wkhighlight_apiKey"]) {
-								apiToken = result["wkhighlight_apiKey"];
+							if (result["apiKey"]) {
+								apiToken = result["apiKey"];
 
 								chrome.scripting.executeScript({
 									target: {tabId: thisTabId},
@@ -332,11 +332,11 @@ chrome.contextMenus.onClicked.addListener(data => {
 	let selectedText = data["selectionText"];
 	if (data["menuItemId"] == "wkhighlighterSearchKanji" && selectedText) {
 		selectedText = selectedText.trim();
-		chrome.storage.local.set({wkhighlight_contextMenuSelectedText:selectedText});
+		chrome.storage.local.set({contextMenuSelectedText:selectedText});
 		chrome.action.setBadgeText({text: '\u2B06', tabId:thisTabId});
 		chrome.action.setBadgeBackgroundColor({color: "green", tabId:thisTabId});
-		chrome.storage.local.get(["wkhighlight_settings"], result => {
-			const settings = result["wkhighlight_settings"];
+		chrome.storage.local.get(["settings"], result => {
+			const settings = result["settings"];
 			if (settings && settings["notifications"]["searching_a_webpage_word"]) {
 				chrome.notifications.create({
 					type: "basic",
@@ -354,7 +354,7 @@ const setNextReviewsBundle = next_reviews => {
 	const next_date = new Date(Math.min.apply(null, next_revs_dates));
 	const next_revs = filterAssignmentsByTime(next_reviews, new Date(), next_date);
 
-	chrome.storage.local.set({"wkhighlight_next-reviews-bundle":next_revs});
+	chrome.storage.local.set({"next-reviews-bundle":next_revs});
 
 	return {
 		date: next_date,
@@ -387,25 +387,25 @@ const setupPracticeAlarm = time => {
 	}
 }
 
-chrome.storage.local.get(["wkhighlight_settings"], result => {
-	const settings = result["wkhighlight_settings"];
+chrome.storage.local.get(["settings"], result => {
+	const settings = result["settings"];
 	if (settings) {
 		// new reviews notifications
 		chrome.alarms.getAll(alarms => {
 			// if there isn't an alarm for next reviews
 			if (alarms.filter(alarm => alarm.name === 'next-reviews').length == 0 && settings["notifications"]["new_reviews"])
-				chrome.storage.local.get(["wkhighlight_reviews"], result => setupReviewsAlarm(result["wkhighlight_reviews"]));
+				chrome.storage.local.get(["reviews"], result => setupReviewsAlarm(result["reviews"]));
 
 			if (alarms.filter(alarm => alarm.name === 'practice').length == 0 && settings["notifications"]["practice_reminder"])
-				chrome.storage.local.get(["wkhighlight_practice_timestamp"], result => setupPracticeAlarm(result["wkhighlight_practice_timestamp"]));
+				chrome.storage.local.get(["practice_timestamp"], result => setupPracticeAlarm(result["practice_timestamp"]));
 		});
 	}
 });
 
 chrome.alarms.onAlarm.addListener(alarm => {
 	if (alarm.name === "next-reviews") {
-		chrome.storage.local.get(["wkhighlight_next-reviews-bundle", "wkhighlight_apiKey"], result => {
-			const reviews_bundle = result["wkhighlight_next-reviews-bundle"];
+		chrome.storage.local.get(["next-reviews-bundle", "apiKey"], result => {
+			const reviews_bundle = result["next-reviews-bundle"];
 			if (reviews_bundle && reviews && reviews["count"]) {
 				// notify user
 				chrome.notifications.create({
@@ -417,13 +417,13 @@ chrome.alarms.onAlarm.addListener(alarm => {
 			}
 
 			// setup new alarm
-			setupAvailableAssignments(result["wkhighlight_apiKey"], setupReviewsAlarm);
+			setupAvailableAssignments(result["apiKey"], setupReviewsAlarm);
 		});	
 	}
 
 	if (alarm.name === "practice") {
-		chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_practice_timestamp"], result => {
-			setupAvailableAssignments(result["wkhighlight_apiKey"], (reviews, lessons) => {
+		chrome.storage.local.get(["apiKey", "practice_timestamp"], result => {
+			setupAvailableAssignments(result["apiKey"], (reviews, lessons) => {
 				if (lessons!==undefined && reviews!==undefined) {
 					chrome.notifications.create({
 						type: "basic",
@@ -434,7 +434,7 @@ chrome.alarms.onAlarm.addListener(alarm => {
 				}
 	
 				// setup new alarm
-				setupPracticeAlarm(result["wkhighlight_practice_timestamp"]);
+				setupPracticeAlarm(result["practice_timestamp"]);
 			});
 		});
 	}

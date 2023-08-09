@@ -5,15 +5,15 @@
 	let blacklistedSite = false;
 	let url = window.location.href;
 
-	chrome.storage.local.get(["wkhighlight_highlight_setup", "wkhighlight_blacklist"], result => {
+	chrome.storage.local.get(["highlight_setup", "blacklist"], result => {
 		atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url);
-		blacklistedSite = blacklisted(result["wkhighlight_blacklist"], url);
+		blacklistedSite = blacklisted(result["blacklist"], url);
 		
 		if (!atWanikani && !blacklistedSite) {
 		//if (true) {
 			chrome.runtime.sendMessage({uptimeHighlight:true});
 
-			result = result["wkhighlight_highlight_setup"];
+			result = result["highlight_setup"];
 
 			// youtube temporary fix
 			window.addEventListener('yt-page-data-updated', () => {
@@ -61,7 +61,7 @@
 						totalHighlighted = learned.size() + notLearned.size();
 						contentHighlighted = {learned:learned.highlightedSet(), notLearned:notLearned.highlightedSet()};
 						chrome.runtime.sendMessage({badge:totalHighlighted, nmrKanjiHighlighted:totalHighlighted, kanjiHighlighted:contentHighlighted});
-						chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlighted, "wkhighlight_allHighLightedKanji":contentHighlighted});
+						chrome.storage.local.set({"nmrHighLightedKanji":totalHighlighted, "allHighLightedKanji":contentHighlighted});
 					}, delay);
 
 					// only delay the first time

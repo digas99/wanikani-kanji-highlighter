@@ -130,7 +130,7 @@ const clearCache = () => {
 	chrome.storage.local.get(null, data => {
 		let keysToRemove = [];
 		Object.keys(data).forEach(key => {
-			if (/^wkhighlight_.*/g.test(key)) {
+			if (/^.*/g.test(key)) {
 				keysToRemove.push(key);
 			}
 		});
@@ -144,7 +144,7 @@ const clearSubjects = () => {
 	chrome.storage.local.get(null, data => {
 		let keysToRemove = [];
 		Object.keys(data).forEach(key => {
-			if (/^wkhighlight_all.*/g.test(key)) {
+			if (/^all.*/g.test(key)) {
 				keysToRemove.push(key);
 			}
 		});
@@ -544,10 +544,10 @@ const assignUponSubjects = async list => {
 
         if (created) {
             const result = await new Promise(resolve => {
-                chrome.storage.local.get("wkhighlight_assignments", resolve);
+                chrome.storage.local.get("assignments", resolve);
             });
 
-            const allAssignments = result["wkhighlight_assignments"]["all"];
+            const allAssignments = result["assignments"]["all"];
             const progress = Object.fromEntries(Object.keys(srsStages).map(stage => [stage, 0]));
             const levelsInProgress = [];
 
@@ -594,21 +594,21 @@ const assignUponSubjects = async list => {
                 let storageId;
                 switch (type) {
                     case "radical":
-                        storageId = "wkhighlight_allradicals";
+                        storageId = "allradicals";
                         break;
                     case "kanji":
-                        storageId = "wkhighlight_allkanji";
+                        storageId = "allkanji";
                         break;
                     case "vocabulary":
-                        storageId = "wkhighlight_allvocab";
+                        storageId = "allvocab";
                         break;
                 }
 
                 if (storageId) {
                     const storageData = {
                         [storageId]: list,
-                        ["wkhighlight_" + type + "_progress"]: progress,
-                        ["wkhighlight_" + type + "_levelsInProgress"]: levelsInProgress
+                        ["" + type + "_progress"]: progress,
+                        ["" + type + "_levelsInProgress"]: levelsInProgress
                     };
                     await new Promise(resolve => {
                         chrome.storage.local.set(storageData, resolve);
@@ -648,13 +648,13 @@ const revStatsUponSubjects = async (apiToken, list) => {
 					let storageId;
 					switch(type) {
 						case "radical":
-							storageId = "wkhighlight_allradicals";
+							storageId = "allradicals";
 							break;
 						case "kanji":
-							storageId = "wkhighlight_allkanji";
+							storageId = "allkanji";
 							break;
 						case "vocabulary":
-							storageId = "wkhighlight_allvocab";
+							storageId = "allvocab";
 							break;
 					}
 					if (storageId)

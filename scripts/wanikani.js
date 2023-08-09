@@ -1,14 +1,14 @@
 (() => {
-	chrome.storage.local.get(["wkhighlight_allkanji", "wkhighlight_allradicals", "wkhighlight_allvocab", "wkhighlight_kanji_assoc", "wkhighlight_vocab_assoc"], result => {
+	chrome.storage.local.get(["allkanji", "allradicals", "allvocab", "kanji_assoc", "vocab_assoc"], result => {
 		chrome.runtime.sendMessage({uptimeWanikani:true});
 
 		const atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(window.location.origin);
 		
-		const allKanji = result["wkhighlight_allkanji"];
-		const allRadicals = result["wkhighlight_allradicals"];
-		const allVocab = result["wkhighlight_allvocab"];
-		const kanjiAssoc = result["wkhighlight_kanji_assoc"];
-		const vocabAssoc = result["wkhighlight_vocab_assoc"]
+		const allKanji = result["allkanji"];
+		const allRadicals = result["allradicals"];
+		const allVocab = result["allvocab"];
+		const kanjiAssoc = result["kanji_assoc"];
+		const vocabAssoc = result["vocab_assoc"]
 
 		const wrapper = document.getElementById("question");
 		

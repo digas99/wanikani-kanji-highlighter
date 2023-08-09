@@ -408,11 +408,11 @@ const RADICAL_SETUP = {
 	name: "radicals",
 	endpoint: "https://api.wanikani.com/v2/subjects?types=radical",
 	storage: {
-		id: "wkhighlight_allradicals",
-		updated: "wkhighlight_allradicals_updated",
-		level: "wkhighlight_radical_level",
-		association: "wkhighlight_radical_assoc",
-		size: "wkhighlight_allradicals_size"
+		id: "allradicals",
+		updated: "allradicals_updated",
+		level: "radical_level",
+		association: "radical_assoc",
+		size: "allradicals_size"
 	},
 };
 
@@ -420,11 +420,11 @@ const VOCAB_SETUP = {
 	name: "vocabulary",
 	endpoint: "https://api.wanikani.com/v2/subjects?types=vocabulary",
 	storage: {
-		id: "wkhighlight_allvocab",
-		updated: "wkhighlight_allvocab_updated",
-		level: "wkhighlight_vocab_level",
-		association: "wkhighlight_vocab_assoc",
-		size: "wkhighlight_allvocab_size"
+		id: "allvocab",
+		updated: "allvocab_updated",
+		level: "vocab_level",
+		association: "vocab_assoc",
+		size: "allvocab_size"
 	},
 };
 
@@ -432,11 +432,11 @@ const KANA_VOCAB_SETUP = {
 	name: "kana vocab",
 	endpoint: "https://api.wanikani.com/v2/subjects?types=kana_vocabulary",
 	storage: {
-		id: "wkhighlight_allkanavocab",
-		updated: "wkhighlight_allkanavocab_updated",
-		level: "wkhighlight_kanavocab_level",
-		association: "wkhighlight_kanavocab_assoc",
-		size: "wkhighlight_allkanavocab_size"
+		id: "allkanavocab",
+		updated: "allkanavocab_updated",
+		level: "kanavocab_level",
+		association: "kanavocab_assoc",
+		size: "allkanavocab_size"
 	},
 };
 
@@ -444,11 +444,11 @@ const KANJI_SETUP = {
 	name: "kanji",
 	endpoint: "https://api.wanikani.com/v2/subjects?types=kanji",
 	storage: {
-		id: "wkhighlight_allkanji",
-		updated: "wkhighlight_allkanji_updated",
-		level: "wkhighlight_kanji_level",
-		association: "wkhighlight_kanji_assoc",
-		size: "wkhighlight_allkanji_size"
+		id: "allkanji",
+		updated: "allkanji_updated",
+		level: "kanji_level",
+		association: "kanji_assoc",
+		size: "allkanji_size"
 	},
 	jlpt: true,
 	joyo: true
@@ -457,6 +457,6 @@ const KANJI_SETUP = {
 const ASSIGNMENTS_SETUP = {
 	endpoint: "https://api.wanikani.com/v2/assignments",
 	storage: {
-		updated: "wkhighlight_assignments_updated"
+		updated: "assignments_updated"
 	}
 };

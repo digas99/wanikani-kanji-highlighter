@@ -4,8 +4,8 @@ const searchBar = document.querySelector("#kanjiSearchInput");
 if (searchBar) {
     searchBar.focus();
 
-    chrome.storage.local.get(["wkhighlight_settings"], result => {
-        settings = result["wkhighlight_settings"];
+    chrome.storage.local.get(["settings"], result => {
+        settings = result["settings"];
 
         // add search action to search bar
         const db = new Database("wanikani");

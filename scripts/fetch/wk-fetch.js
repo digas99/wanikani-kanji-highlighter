@@ -57,7 +57,7 @@ const setupSubjects = (apiToken, setup, build, callback) =>
 const fetchUserInfo = (apiToken, callback) => {
 	fetchPage(apiToken, "https://api.wanikani.com/v2/user")
 		.then(user => {
-			chrome.storage.local.set({"wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
+			chrome.storage.local.set({"userInfo":user, "userInfo_updated":formatDate(new Date())});
 			if (callback)
 				callback(user);
 		})
@@ -66,9 +66,9 @@ const fetchUserInfo = (apiToken, callback) => {
 
 const setupAssignments = (apiToken, callback) => 
 	new Promise((resolve, reject) => {
-		chrome.storage.local.get(["wkhighlight_assignments", "wkhighlight_assignments_updated"], result => {
-			const assignments = result["wkhighlight_assignments"];
-			modifiedSince(apiToken, result["wkhighlight_assignments_updated"], "https://api.wanikani.com/v2/assignments")
+		chrome.storage.local.get(["assignments", "assignments_updated"], result => {
+			const assignments = result["assignments"];
+			modifiedSince(apiToken, result["assignments_updated"], "https://api.wanikani.com/v2/assignments")
 				.then(modified => {
 					if (!assignments || modified) {
 						fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments")
@@ -76,11 +76,11 @@ const setupAssignments = (apiToken, callback) =>
 								const allAssignments = data.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
 								const allFutureAssignments = filterAssignmentsByTime(allAssignments, new Date(), null);
 								const allAvailableReviews = filterAssignmentsByTime(allAssignments, new Date(), changeDay(new Date(), -1000));
-								chrome.storage.local.set({"wkhighlight_assignments":{
+								chrome.storage.local.set({"assignments":{
 									"all":allAssignments,
 									"future":allFutureAssignments,
 									"past":allAvailableReviews
-								}, "wkhighlight_assignments_updated":formatDate(new Date())}, () => {
+								}, "assignments_updated":formatDate(new Date())}, () => {
 									resolve(data, true);
 									if (callback)
 										callback(data, true);
@@ -108,8 +108,8 @@ const setupAvailableAssignments = (apiToken, callback) => {
 					// get all assigments into one array
 					reviews = Array.prototype.concat.apply([], reviews.map(assignments => assignments["data"]))
 					lessons = Array.prototype.concat.apply([], lessons.map(assignments => assignments["data"]))
-					chrome.storage.local.get(["wkhighlight_assignments"], result => {
-						const assignments = result["wkhighlight_assignments"];
+					chrome.storage.local.get(["assignments"], result => {
+						const assignments = result["assignments"];
 						if (lessons && reviews && assignments) {
 							const updatedReviews = {
 								"count":countReviews,
@@ -120,7 +120,7 @@ const setupAvailableAssignments = (apiToken, callback) => {
 								"count":countLessons,
 								"data":lessons
 							};
-							chrome.storage.local.set({"wkhighlight_reviews": updatedReviews, "wkhighlight_lessons": updatedLessons}, () => {
+							chrome.storage.local.set({"reviews": updatedReviews, "lessons": updatedLessons}, () => {
 								if (callback)
 									callback(updatedReviews, updatedLessons);
 							});

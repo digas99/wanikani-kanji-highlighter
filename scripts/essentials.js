@@ -40,8 +40,8 @@ window.onbeforeunload = () => {
 }
 
 // setup css vars
-chrome.storage.local.get("wkhighlight_settings", result => {
-	const settings = result["wkhighlight_settings"];
+chrome.storage.local.get("settings", result => {
+	const settings = result["settings"];
 	if (settings) {
 		const appearance = settings["appearance"];
 		const documentStyle = document.documentElement.style;

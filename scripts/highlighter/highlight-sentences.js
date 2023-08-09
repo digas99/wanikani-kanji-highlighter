@@ -26,9 +26,9 @@
 		return finalVocabList;
 	}
 
-	chrome.storage.local.get(["wkhighlight_allvocab", "wkhighlight_allLearnableKanji"], result => {
-		let allVocab = result["wkhighlight_allvocab"];
-		const values = result["wkhighlight_allLearnableKanji"];
+	chrome.storage.local.get(["allvocab", "allLearnableKanji"], result => {
+		let allVocab = result["allvocab"];
+		const values = result["allLearnableKanji"];
 		if (allVocab && values) {
 			allVocab = Object.keys(allVocab).map(key => allVocab[key]["characters"]);
 

@@ -158,11 +158,11 @@
 				}
 
 				if (node.id == "sd-detailsPopupKeyBindings") {
-					chrome.storage.local.get(["wkhighlight_settings"], result => {
-						const settings = result["wkhighlight_settings"];
+					chrome.storage.local.get(["settings"], result => {
+						const settings = result["settings"];
 						if (settings) {
 							settings["kanji_details_popup"]["key_bindings"] = !settings["kanji_details_popup"]["key_bindings"];
-							chrome.storage.local.set({"wkhighlight_settings":settings});
+							chrome.storage.local.set({"settings":settings});
 						}
 					});
 				}
@@ -675,8 +675,8 @@
 				wrapper.appendChild(img);
 			}
 
-			chrome.storage.local.get(["wkhighlight_settings"], result => {
-				const settings = result["wkhighlight_settings"];
+			chrome.storage.local.get(["settings"], result => {
+				const settings = result["settings"];
 				const keyBindingsButton = document.getElementById("sd-detailsPopupKeyBindings");
 				if (settings && keyBindingsButton) {
 					const keyBindingsActive = settings["kanji_details_popup"] ? settings["kanji_details_popup"]["key_bindings"] : defaultSettings["kanji_details_popup"]["key_bindings"];

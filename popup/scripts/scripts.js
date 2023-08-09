@@ -40,7 +40,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	
 			if (setup.progress == 1) {
 				console.log("setup complete");
-				chrome.storage.local.set({"wkhighlight_initialFetch": false});
+				chrome.storage.local.set({"initialFetch": false});
 
 				setTimeout(() => {
 					messagePopup.remove();
@@ -56,13 +56,13 @@ let messagePopup;
 window.onload = () => {
 	messagePopup = new MessagePopup(document.body);
 	
-	chrome.storage.local.get(["wkhighlight_initialFetch", "wkhighlight_apiKey"], result => {
-		if (result["wkhighlight_initialFetch"] || result["wkhighlight_initialFetch"] == undefined) {
+	chrome.storage.local.get(["initialFetch", "apiKey"], result => {
+		if (result["initialFetch"] || result["initialFetch"] == undefined) {
 			messagePopup.create("Fetching subject data from Wanikani...", "Please, don't close the extension.");
 			messagePopup.setLoading();
 
 		}
 
-		loadData(result["wkhighlight_apiKey"]);
+		loadData(result["apiKey"]);
 	});
 }

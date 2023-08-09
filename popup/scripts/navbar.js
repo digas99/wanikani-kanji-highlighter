@@ -1,17 +1,17 @@
-chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_userInfo_updated"], result => {
-    const date = result["wkhighlight_userInfo_updated"] ? result["wkhighlight_userInfo_updated"] : formatDate(new Date());
+chrome.storage.local.get(["apiKey", "userInfo", "userInfo_updated"], result => {
+    const date = result["userInfo_updated"] ? result["userInfo_updated"] : formatDate(new Date());
 
-    modifiedSince(result["wkhighlight_apiKey"], date, "https://api.wanikani.com/v2/user")
+    modifiedSince(result["apiKey"], date, "https://api.wanikani.com/v2/user")
         .then(modified => {
-            const userInfo = result["wkhighlight_userInfo"]["data"];
+            const userInfo = result["userInfo"]["data"];
 
             // if user info has been updated in wanikani, then update cache
             if (!userInfo || modified)
-                fetchUserInfo(result["wkhighlight_apiKey"]);
+                fetchUserInfo(result["apiKey"]);
             
             if (userInfo) {
                 const avatar = document.querySelector("#profile img");
-                setAvatar(avatar, "https://www.wanikani.com/users/"+userInfo["username"], userInfo["avatar"], result["wkhighlight_userInfo"]);
+                setAvatar(avatar, "https://www.wanikani.com/users/"+userInfo["username"], userInfo["avatar"], result["userInfo"]);
 
                 const level = document.querySelector("#profile p");
                 if (level && userInfo["level"])
@@ -34,7 +34,7 @@ const setAvatar = (elem, url, avatar, userInfo) => {
                 elem.src = avatarSrc;
 
                 if (userInfo)
-                    chrome.storage.local.set({"wkhighlight_userInfo": userInfo});
+                    chrome.storage.local.set({"userInfo": userInfo});
             });
     }
     else
@@ -45,7 +45,7 @@ window.addEventListener("click", e => {
     const target = e.target;
 
     if (target.id === "exit")
-        chrome.storage.local.remove("wkhighlight_apiKey", () => window.location.href = "auth.html");
+        chrome.storage.local.remove("apiKey", () => window.location.href = "auth.html");
 
     if (target.id === "side-panel-logo")
         expandSideBar(document.querySelector(".side-panel"));

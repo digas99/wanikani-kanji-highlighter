@@ -109,13 +109,13 @@ window.onload = () => {
 	const loadingElem = loadingVal[0];
 	main.appendChild(loadingElem);
 
-	chrome.storage.local.get(["wkhighlight_apiKey", "wkhighlight_userInfo", "wkhighlight_blacklist", "wkhighlight_settings", "wkhighlight_userInfo_updated","wkhighlight_summary_updated", "wkhighlight_reviews", "wkhighlight_lessons", "wkhighlight_kanji_progress", "wkhighlight_kanji_levelsInProgress", "wkhighlight_radical_progress", "wkhighlight_radical_levelsInProgress", "wkhighlight_vocabulary_progress", "wkhighlight_vocabulary_levelsInProgress", "wkhighlight_settings", "wkhighlight_allkanji_size", "wkhighlight_allradicals_size", "wkhighlight_allvocab_size", "wkhighlight_blacklist", "wkhighlight_kanji_assoc"], response => {
+	chrome.storage.local.get(["apiKey", "userInfo", "blacklist", "settings", "userInfo_updated","summary_updated", "reviews", "lessons", "kanji_progress", "kanji_levelsInProgress", "radical_progress", "radical_levelsInProgress", "vocabulary_progress", "vocabulary_levelsInProgress", "settings", "allkanji_size", "allradicals_size", "allvocab_size", "blacklist", "kanji_assoc"], response => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			activeTab = tabs[0];
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, urlValue => {
 				const url = urlValue ? urlValue["windowLocation"] : "";
 
-				settings = response["wkhighlight_settings"];
+				settings = response["settings"];
 				if (settings && settings["miscellaneous"] && settings["miscellaneous"]["extension_popup_width"])
 					document.documentElement.style.setProperty('--body-base-width', settings["miscellaneous"]["extension_popup_width"]+"px");
 
@@ -124,9 +124,9 @@ window.onload = () => {
 
 				atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url);
 
-				blacklisted_site = blacklisted(response["wkhighlight_blacklist"], url);
+				blacklisted_site = blacklisted(response["blacklist"], url);
 
-				apiKey = response["wkhighlight_apiKey"];
+				apiKey = response["apiKey"];
 				// if the user did not add a key yet
 				if (!apiKey) {
 					// remove loading animation
@@ -207,7 +207,7 @@ window.onload = () => {
 						notStored.forEach(id => settings[id[0]][id[1]] = defaultSettings[id[0]][id[1]]);
 					}
 			
-					chrome.storage.local.set({"wkhighlight_settings":settings});
+					chrome.storage.local.set({"settings":settings});
 		
 					// setup css vars
 					const appearance = settings["appearance"];
@@ -221,11 +221,11 @@ window.onload = () => {
 						.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
 
 					document.body.style.cursor = "progress";
-					const date = response["wkhighlight_userInfo_updated"] ? response["wkhighlight_userInfo_updated"] : formatDate(new Date());
+					const date = response["userInfo_updated"] ? response["userInfo_updated"] : formatDate(new Date());
 
 					modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
 						.then(modified => {
-							const userInfo = response["wkhighlight_userInfo"]["data"];	
+							const userInfo = response["userInfo"]["data"];	
 							
 							// remove loading animation
 							loadingElem.remove();
@@ -245,7 +245,7 @@ window.onload = () => {
 								else if (blacklisted_site) userInfoWrapper.appendChild(enhancedWarning("Site blacklisted by you!", "red"));
 
 								// scripts uptime
-								if (response["wkhighlight_settings"] && response["wkhighlight_settings"]["extension_popup_interface"] ? response["wkhighlight_settings"]["extension_popup_interface"]["scripts_status"] : settingsInterface["extension_popup_interface"]["scripts_status"]) {
+								if (response["settings"] && response["settings"]["extension_popup_interface"] ? response["settings"]["extension_popup_interface"]["scripts_status"] : settingsInterface["extension_popup_interface"]["scripts_status"]) {
 									const scriptsUptimeWrapper = document.createElement("div");
 									userInfoWrapper.appendChild(scriptsUptimeWrapper);
 									scriptsUptimeWrapper.title = "Scripts Uptime Status";
@@ -302,7 +302,7 @@ window.onload = () => {
 											const avatarSrc = "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0];
 											userInfo["avatar"] = avatarSrc;
 											avatar.src = userInfo["avatar"];
-											chrome.storage.local.set({"wkhighlight_userInfo":response["wkhighlight_userInfo"]});
+											chrome.storage.local.set({"userInfo":response["userInfo"]});
 										});
 								}
 								else
@@ -518,7 +518,7 @@ window.onload = () => {
 
 																	sortings(value, menuIcons.getAttribute("data-sort-direction"));
 
-																	chrome.storage.local.set({"wkhighlight_settings":settings});
+																	chrome.storage.local.set({"settings":settings});
 																});
 																typeDefault = menuIcons.getAttribute("data-sort-type") ? menuIcons.getAttribute("data-sort-type") : settings_menus[id]["sort"]["type"];
 																if (typeDefault)
@@ -553,7 +553,7 @@ window.onload = () => {
 																	if (menuIcons.getAttribute("data-sort-type"))
 																		sortings(menuIcons.getAttribute("data-sort-type"), value);
 
-																	chrome.storage.local.set({"wkhighlight_settings":settings});
+																	chrome.storage.local.set({"settings":settings});
 																});
 																directionDefault = menuIcons.getAttribute("data-sort-direction") ? menuIcons.getAttribute("data-sort-direction") : settings_menus[id]["sort"]["direction"];
 																if (directionDefault)
@@ -613,7 +613,7 @@ window.onload = () => {
 
 																	filters(value, menuIcons.getAttribute("data-filter-state") ? menuIcons.getAttribute("data-filter-state") : "None");
 																	
-																	chrome.storage.local.set({"wkhighlight_settings":settings});
+																	chrome.storage.local.set({"settings":settings});
 																});
 																srsDefault = menuIcons.getAttribute("data-filter-srs_stage") ? menuIcons.getAttribute("data-filter-srs_stage") : settings_menus[id]["filter"]["srs_stage"];
 																if (srsDefault)
@@ -648,7 +648,7 @@ window.onload = () => {
 
 																	filters(menuIcons.getAttribute("data-filter-srs_stage") ? menuIcons.getAttribute("data-filter-srs_stage") : "None", value);
 																
-																	chrome.storage.local.set({"wkhighlight_settings":settings});
+																	chrome.storage.local.set({"settings":settings});
 																});
 																stateDefault = menuIcons.getAttribute("data-filter-state") ? menuIcons.getAttribute("data-filter-state") : settings_menus[id]["filter"]["state"];
 																if (stateDefault)
@@ -714,7 +714,7 @@ window.onload = () => {
 
 																	color_subjects(value);
 
-																	chrome.storage.local.set({"wkhighlight_settings":settings});
+																	chrome.storage.local.set({"settings":settings});
 																});
 																colorDefault = menuIcons.getAttribute("data-filter-color_by") ? menuIcons.getAttribute("data-filter-color_by") : settings_menus[id]["menu"]["color_by"];
 																if (colorDefault)
@@ -779,7 +779,7 @@ window.onload = () => {
 
 																	show_reviews_info(inputDiv, checkbox.checked);
 
-																	chrome.storage.local.set({"wkhighlight_settings":settings});
+																	chrome.storage.local.set({"settings":settings});
 																});
 																reviewsInfoDefault = menuIcons.getAttribute("data-filter-reviews_info") ? menuIcons.getAttribute("data-filter-reviews_info") : settings_menus[id]["menu"]["reviews_info"];
 
@@ -817,7 +817,7 @@ window.onload = () => {
 												}
 
 												settings_menus[id]["opened"] = arrow.classList.contains("up");
-												chrome.storage.local.set({"wkhighlight_settings":settings});
+												chrome.storage.local.set({"settings":settings});
 											});	
 											if (!settings_menus[id]["opened"])
 												arrowWrapper.click();
@@ -1104,7 +1104,7 @@ window.onload = () => {
 									link.appendChild(icon_img);
 
 									if (icon_img.title === "Blacklist") {
-										let blacklisted = response["wkhighlight_blacklist"];
+										let blacklisted = response["blacklist"];
 										const nmrBlacklisted = document.createElement("span");
 										link.appendChild(nmrBlacklisted);
 										nmrBlacklisted.classList.add("side-panel-info-alert");
@@ -1118,7 +1118,7 @@ window.onload = () => {
 										icon_img.setAttribute("data-item-id", "rand");
 										icon_img.classList.add("kanjiDetails");
 										
-										settings = response["wkhighlight_settings"];
+										settings = response["settings"];
 										if (settings && settings["kanji_details_popup"] && settings["kanji_details_popup"]["random_subject"]) {
 											const type = document.createElement("span");
 											link.appendChild(type);
@@ -1197,13 +1197,13 @@ window.onload = () => {
 									if (!blacklisted_site) {
 
 										// highlighted kanji
-										if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["highlighted_kanji"] : settingsInterface["extension_popup_interface"]["highlighted_kanji"]) {
+										if (response["settings"] ? response["settings"]["extension_popup_interface"]["highlighted_kanji"] : settingsInterface["extension_popup_interface"]["highlighted_kanji"]) {
 											const kanjiFoundWrapper = document.createElement("div");
 											userInfoWrapper.appendChild(kanjiFoundWrapper);
 											kanjiFoundWrapper.classList.add("resizable", "highlightedKanjiContainer", "userInfoWrapper-wrapper");
 											kanjiFoundWrapper.style.maxHeight = defaultSettings["sizes"]["highlighted_kanji_height"]+"px";
-											if (response["wkhighlight_settings"] && response["wkhighlight_settings"]["sizes"])
-												kanjiFoundWrapper.style.maxHeight = response["wkhighlight_settings"]["sizes"]["highlighted_kanji_height"]+"px";
+											if (response["settings"] && response["settings"]["sizes"])
+												kanjiFoundWrapper.style.maxHeight = response["settings"]["sizes"]["highlighted_kanji_height"]+"px";
 
 											kanjiFoundWrapper.setAttribute("data-settings", "sizes-highlighted_kanji_height");
 											const resizableS = document.createElement("div");
@@ -1250,7 +1250,7 @@ window.onload = () => {
 													const kanjiFoundUl = document.createElement("ul");
 													kanjiFoundList.appendChild(kanjiFoundUl);
 
-													const kanjiAssoc = response["wkhighlight_kanji_assoc"];
+													const kanjiAssoc = response["kanji_assoc"];
 													kanjiFound.innerHTML = `<span id="nmrKanjiIndicator">Kanji</span>: <strong>${result ? result["nmrKanjiHighlighted"] : 0}</strong> (in the page)`;
 
 													const lib = new localStorageDB("subjects", localStorage);
@@ -1292,8 +1292,8 @@ window.onload = () => {
 
 									const searchArea = textInput("kanjiSearch", "../images/search.png", "Gold / 金 / 5", searchSubject);
 									searchArea.title = "Search subjects";
-									chrome.storage.local.get(["wkhighlight_contextMenuSelectedText"], result => {
-										const selectedText = result["wkhighlight_contextMenuSelectedText"];
+									chrome.storage.local.get(["contextMenuSelectedText"], result => {
+										const selectedText = result["contextMenuSelectedText"];
 										if (selectedText) {
 											const input = [...searchArea.firstChild.childNodes].filter(child => child.tagName == "INPUT")[0];
 											input.value = selectedText;
@@ -1304,9 +1304,9 @@ window.onload = () => {
 											document.getElementById("kanjiSearchInput").click();
 											searchSubject(input);
 												
-											chrome.storage.local.remove(["wkhighlight_contextMenuSelectedText"]);
-											chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
-												chrome.action.setBadgeText({text: result["wkhighlight_nmrHighLightedKanji"].toString(), tabId:activeTab.id});
+											chrome.storage.local.remove(["contextMenuSelectedText"]);
+											chrome.storage.local.get(["nmrHighLightedKanji"], result => {
+												chrome.action.setBadgeText({text: result["nmrHighLightedKanji"].toString(), tabId:activeTab.id});
 												chrome.action.setBadgeBackgroundColor({color: "#4d70d1", tabId:activeTab.id});
 											});
 										}
@@ -1326,7 +1326,7 @@ window.onload = () => {
 								}
 
 								// lessons and reviews
-								if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["lessons_and_reviews"] : settingsInterface["extension_popup_interface"]["lessons_and_reviews"]) {
+								if (response["settings"] ? response["settings"]["extension_popup_interface"]["lessons_and_reviews"] : settingsInterface["extension_popup_interface"]["lessons_and_reviews"]) {
 									const summaryWrapper = document.createElement("div");
 									userInfoWrapper.appendChild(summaryWrapper);
 									summaryWrapper.style.textAlign = "center";
@@ -1401,7 +1401,7 @@ window.onload = () => {
 												if (reviewsForNextHour.length > 0) {
 													const remainingTime = msToTime(thisDate - currentTime);
 													moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
-													settings = response["wkhighlight_settings"];
+													settings = response["settings"];
 													let time = `${thisDate.getHours() < 10 ? "0"+thisDate.getHours() : thisDate.getHours()}:${thisDate.getMinutes() < 10 ? "0"+thisDate.getMinutes() : thisDate.getMinutes()}`;
 													if (settings && settings["miscellaneous"]["time_in_12h_format"])
 														time = time12h(time);
@@ -1472,8 +1472,8 @@ window.onload = () => {
 									}
 
 
-									reviews = response["wkhighlight_reviews"];
-									lessons = response["wkhighlight_lessons"];
+									reviews = response["reviews"];
+									lessons = response["lessons"];
 									
 									setupAvailableAssignments(apiKey, setupSummary);
 
@@ -1481,16 +1481,16 @@ window.onload = () => {
 								}
 
 								// overall progress
-								const radicalProgress = response["wkhighlight_radical_progress"];
-								const kanjiProgress = response["wkhighlight_kanji_progress"];
-								const vocabularyProgress = response["wkhighlight_vocabulary_progress"];
+								const radicalProgress = response["radical_progress"];
+								const kanjiProgress = response["kanji_progress"];
+								const vocabularyProgress = response["vocabulary_progress"];
 								let progressBarWrapper, allSize, progress, unlockedSize=0;
 								if (radicalProgress || kanjiProgress || vocabularyProgress) {
 									// progress bar
-									if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["overall_progression_bar"] : settingsInterface["extension_popup_interface"]["overall_progression_bar"]) {
-										const radicalsSize = response["wkhighlight_allradicals_size"];
-										const kanjiSize = response["wkhighlight_allkanji_size"];
-										const vocabularySize = response["wkhighlight_allvocab_size"];
+									if (response["settings"] ? response["settings"]["extension_popup_interface"]["overall_progression_bar"] : settingsInterface["extension_popup_interface"]["overall_progression_bar"]) {
+										const radicalsSize = response["allradicals_size"];
+										const kanjiSize = response["allkanji_size"];
+										const vocabularySize = response["allvocab_size"];
 										if (radicalsSize || kanjiSize || vocabularySize) {
 											allSize = (radicalsSize ? radicalsSize : 0) + (kanjiSize ? kanjiSize : 0) + (vocabularySize ? vocabularySize : 0);
 											
@@ -1512,7 +1512,7 @@ window.onload = () => {
 									}
 									
 									// progress stats
-									if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["overall_progression_stats"] : settingsInterface["extension_popup_interface"]["overall_progression_stats"]) {
+									if (response["settings"] ? response["settings"]["extension_popup_interface"]["overall_progression_stats"] : settingsInterface["extension_popup_interface"]["overall_progression_stats"]) {
 										progress = document.createElement("div");
 										userInfoWrapper.appendChild(progress);
 										const progressTitle = document.createElement("p");
@@ -1524,7 +1524,7 @@ window.onload = () => {
 									let wrapper;
 									Object.keys(srsStages).forEach(stage => {
 										const stageValue = (radicalProgress && radicalProgress[stage] ? radicalProgress[stage] : 0) + (kanjiProgress && kanjiProgress[stage] ? kanjiProgress[stage] : 0) + (vocabularyProgress && vocabularyProgress[stage] ? vocabularyProgress[stage] : 0);
-										const stageColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
+										const stageColor = response["settings"] && response["settings"]["appearance"] ? response["settings"]["appearance"][srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
 										unlockedSize+=stageValue;
 
 										// add bar to progress bar
@@ -1584,7 +1584,7 @@ window.onload = () => {
 												infoMenuBar.appendChild(bar);
 												bar.style.width = (typeProgress && typeProgress[stage] ? typeProgress[stage] / Number(stageSquare.innerText) *100 : 0)+"%";
 												const colorId = (type == "Radicals" ? "radical" : type == "Kanji" ? "kanji" : "vocab")+"_color";
-												bar.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][colorId] : defaultSettings["miscellaneous"][colorId];
+												bar.style.backgroundColor = response["settings"] && response["settings"]["appearance"] ? response["settings"]["appearance"][colorId] : defaultSettings["miscellaneous"][colorId];
 
 												const infoMenuType = document.createElement("li");
 												infoMenuListing.appendChild(infoMenuType);
@@ -1619,10 +1619,10 @@ window.onload = () => {
 								}
 
 								// Levels in progress
-								if (response["wkhighlight_settings"] ? response["wkhighlight_settings"]["extension_popup_interface"]["levels_in_progress"] : settingsInterface["extension_popup_interface"]["levels_in_progress"]) {
-									const radicalsLevelInProgress = response["wkhighlight_radical_levelsInProgress"];
-									const kanjiLevelInProgress = response["wkhighlight_kanji_levelsInProgress"];
-									const vocabularyLevelInProgress = response["wkhighlight_vocabulary_levelsInProgress"];
+								if (response["settings"] ? response["settings"]["extension_popup_interface"]["levels_in_progress"] : settingsInterface["extension_popup_interface"]["levels_in_progress"]) {
+									const radicalsLevelInProgress = response["radical_levelsInProgress"];
+									const kanjiLevelInProgress = response["kanji_levelsInProgress"];
+									const vocabularyLevelInProgress = response["vocabulary_levelsInProgress"];
 									if (radicalsLevelInProgress || kanjiLevelInProgress || vocabularyLevelInProgress) {
 										const levelsInProgress = document.createElement("div");
 										userInfoWrapper.appendChild(levelsInProgress);
@@ -1692,7 +1692,7 @@ window.onload = () => {
 														progressBarBar.style.height = "25px";
 														const percentageValue = stageSubjects/all*100;
 														progressBarBar.style.width = percentageValue+"%";
-														progressBarBar.style.backgroundColor = response["wkhighlight_settings"] && response["wkhighlight_settings"]["appearance"] ? response["wkhighlight_settings"]["appearance"][srsStages[i]["short"].toLowerCase()+"_color"] : srsStages[i]["color"];
+														progressBarBar.style.backgroundColor = response["settings"] && response["settings"]["appearance"] ? response["settings"]["appearance"][srsStages[i]["short"].toLowerCase()+"_color"] : srsStages[i]["color"];
 														progressBarBar.style.overflow = "hidden";
 														progressBarBar.style.color = "white";
 														progressBarBar.title = srsStages[i]["name"]+": "+stageSubjects;
@@ -1905,7 +1905,7 @@ const submitAction = () => {
 	fetchUserInfo(apiKey, user => {
 		if (!invalidKey && user.code != 401) {
 			let msg, color;
-			chrome.storage.local.set({"wkhighlight_apiKey":apiKey, "wkhighlight_userInfo":user, "wkhighlight_userInfo_updated":formatDate(new Date())});
+			chrome.storage.local.set({"apiKey":apiKey, "userInfo":user, "userInfo_updated":formatDate(new Date())});
 			msg = "The API key was accepted!";
 			color = "green";
 
@@ -1973,8 +1973,8 @@ const secondaryPage = (titleText, width) => {
 	const star = document.createElement("img");
 	starWrapper.appendChild(star);
 	star.style.width = "20px";
-	chrome.storage.local.get("wkhighlight_settings", result => {
-		homePage = result["wkhighlight_settings"]["home_page"]["page"];
+	chrome.storage.local.get("settings", result => {
+		homePage = result["settings"]["home_page"]["page"];
 
 		if (homePage == titleText) {
 			star.src = "../images/star-filled.png";
@@ -2001,7 +2001,7 @@ const secondaryPage = (titleText, width) => {
 				settings["home_page"]["page"] = null;
 			}
 
-			chrome.storage.local.set({"wkhighlight_settings":settings});
+			chrome.storage.local.set({"settings":settings});
 		});
 	});
 
@@ -2084,12 +2084,12 @@ document.addEventListener("click", e => {
 	if (targetElem.id === "goBack") {
 		window.scroll(0, 0);
 
-		chrome.storage.local.get("wkhighlight_settings", result => {
+		chrome.storage.local.get("settings", result => {
 			document.getElementById("secPageMain").remove();
 			document.getElementById("main").style.removeProperty("display");
 			
-			if (result && result["wkhighlight_settings"] && result["wkhighlight_settings"]["miscellaneous"])
-				document.documentElement.style.setProperty('--body-base-width', result["wkhighlight_settings"]["miscellaneous"]["extension_popup_width"]+"px");
+			if (result && result["settings"] && result["settings"]["miscellaneous"])
+				document.documentElement.style.setProperty('--body-base-width', result["settings"]["miscellaneous"]["extension_popup_width"]+"px");
 			else
 				document.documentElement.style.setProperty('--body-base-width', defaultWindowSize+"px");
 			
@@ -2117,11 +2117,11 @@ document.addEventListener("click", e => {
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "host"}, response => {
 				if (!window.chrome.runtime.lastError && response["windowLocation"]) {
 					const location = response["windowLocation"];
-					chrome.storage.local.get(["wkhighlight_blacklist"], data => {
-						let blacklisted = data["wkhighlight_blacklist"];
+					chrome.storage.local.get(["blacklist"], data => {
+						let blacklisted = data["blacklist"];
 						let index = blacklisted.indexOf(location.replace("www.", "").replace(".", "\\."));
 						blacklisted.splice(index,1);
-						chrome.storage.local.set({"wkhighlight_blacklist": blacklisted});
+						chrome.storage.local.set({"blacklist": blacklisted});
 						const main = document.getElementById("main");
 						if (main) {
 							main.replaceChild(reloadPage(`Extension ACTIVATED on <div class="locationDiv"><span>${location}</span></div>`, "green"),  document.getElementById("userInfoWrapper"));
@@ -2158,13 +2158,13 @@ document.addEventListener("click", e => {
 		blackListedlink.appendChild(document.createTextNode("Blacklisted sites"));
 		const arrow = document.createElement("i");
 		arrow.classList.add("down", "blacklisted_title_arrow", "arrow");
-		chrome.storage.local.get(["wkhighlight_blacklist"], result => {
-			blackListedlink.innerText += result["wkhighlight_blacklist"] ? ` (${result["wkhighlight_blacklist"].length})` : " (0)";
+		chrome.storage.local.get(["blacklist"], result => {
+			blackListedlink.innerText += result["blacklist"] ? ` (${result["blacklist"].length})` : " (0)";
 			blackListedlink.appendChild(arrow);
 		});
 
-		chrome.storage.local.get(["wkhighlight_settings"], data => {
-			settings = data["wkhighlight_settings"];
+		chrome.storage.local.get(["settings"], data => {
+			settings = data["settings"];
 			if (settings && settingsInterface) {
 				settingsInterface.forEach(section => {
 					const wrapper = document.createElement("div");
@@ -2202,19 +2202,19 @@ document.addEventListener("click", e => {
 					if (practiceReminderLabel) {
 						practiceReminderLabel.style.display = "flex";
 						practiceReminderLabel.style.flexDirection = "column";
-						chrome.storage.local.get(["wkhighlight_practice_timestamp"], result => {
+						chrome.storage.local.get(["practice_timestamp"], result => {
 							practiceReminderLabel.parentElement.style.setProperty("align-items", "unset", "important");
 							const input = document.createElement("input");
 							input.id = "practice-reminder-time";
 							input.type = "time";
-							input.value = result["wkhighlight_practice_timestamp"];
-							if (!result["wkhighlight_practice_timestamp"]) {
+							input.value = result["practice_timestamp"];
+							if (!result["practice_timestamp"]) {
 								input.value = defaultSettings["notifications"]["practice_reminder_timestamp"];
-								chrome.storage.local.set({"wkhighlight_practice_timestamp":input.value});
+								chrome.storage.local.set({"practice_timestamp":input.value});
 							}
 							practiceReminderLabel.appendChild(input);
 							input.addEventListener("input", e => {
-								chrome.storage.local.set({"wkhighlight_practice_timestamp":e.target.value});
+								chrome.storage.local.set({"practice_timestamp":e.target.value});
 								chrome.alarms.clear("practice");
 								chrome.runtime.connect();
 								chrome.runtime.sendMessage({onDisconnect:"reload"}, () => window.chrome.runtime.lastError);
@@ -2266,7 +2266,7 @@ document.addEventListener("click", e => {
 					});
 				});
 
-				chrome.storage.local.get(["wkhighlight_settings"], result => ["learned", "not_learned"].forEach(settigsIndex => document.querySelectorAll(`.${result["wkhighlight_settings"]["highlight_style"][settigsIndex]}`)[0].classList.add("full_opacity")));
+				chrome.storage.local.get(["settings"], result => ["learned", "not_learned"].forEach(settigsIndex => document.querySelectorAll(`.${result["settings"]["highlight_style"][settigsIndex]}`)[0].classList.add("full_opacity")));
 
 				// APPEARANCE
 				const appearanceWrapper = document.createElement("div");
@@ -2309,8 +2309,8 @@ document.addEventListener("click", e => {
 					appearanceWrapper.appendChild(colorInputWrapper);
 					Array.from(colorInputWrapper.getElementsByTagName("INPUT")).forEach(colorInput => {
 						colorInput.addEventListener("input", e => {
-							chrome.storage.local.get(["wkhighlight_settings"], data => {
-								settings = data["wkhighlight_settings"];
+							chrome.storage.local.get(["settings"], data => {
+								settings = data["settings"];
 								const color = e.target.value;
 								const id = colorInput.id.replace("settings-", "").split("-");
 
@@ -2340,7 +2340,7 @@ document.addEventListener("click", e => {
 								}
 
 								settings[id[0]][id[1]] = color;
-								chrome.storage.local.set({"wkhighlight_settings":settings});
+								chrome.storage.local.set({"settings":settings});
 							});
 						});
 					})
@@ -2356,7 +2356,7 @@ document.addEventListener("click", e => {
 				appearanceReset.addEventListener("click", () => {
 					if (window.confirm("Reset all colors?")) {
 						Object.keys(settings["appearance"]).forEach(key => settings["appearance"][key] = undefined);
-						chrome.storage.local.set({"wkhighlight_settings":settings}, () => window.location.reload());
+						chrome.storage.local.set({"settings":settings}, () => window.location.reload());
 					}
 				});
 				const appearanceWaniKani = document.createElement("div");
@@ -2368,7 +2368,7 @@ document.addEventListener("click", e => {
 				appearanceWaniKani.addEventListener("click", () => {
 					if (window.confirm("Change colors to WaniKani pattern?")) {
 						Object.keys(wanikaniPattern).forEach(key => settings["appearance"][key] = wanikaniPattern[key]);
-						chrome.storage.local.set({"wkhighlight_settings":settings}, () => window.location.reload());
+						chrome.storage.local.set({"settings":settings}, () => window.location.reload());
 					}
 				});
 				const appearanceFlamingDurtles = document.createElement("div");
@@ -2382,7 +2382,7 @@ document.addEventListener("click", e => {
 				appearanceFlamingDurtles.addEventListener("click", () => {
 					if (window.confirm("Change colors to Flaming Durtles pattern?")) {
 						Object.keys(flamingDurtlesPattern).forEach(key => settings["appearance"][key] = flamingDurtlesPattern[key]);
-						chrome.storage.local.set({"wkhighlight_settings":settings}, () => window.location.reload());
+						chrome.storage.local.set({"settings":settings}, () => window.location.reload());
 					}
 				});
 
@@ -2444,14 +2444,14 @@ document.addEventListener("click", e => {
 	if (sidePanelIconTargeted(targetElem, "blacklist")) {
 		if (document.getElementById("goBack")) document.getElementById("goBack").click();
 
-		chrome.storage.local.get(["wkhighlight_blacklist"], blacklist => {
-			let blacklistedUrls = blacklist["wkhighlight_blacklist"] ? blacklist["wkhighlight_blacklist"] : [];
+		chrome.storage.local.get(["blacklist"], blacklist => {
+			let blacklistedUrls = blacklist["blacklist"] ? blacklist["blacklist"] : [];
 			chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 				activeTab = tabs[0];
 				chrome.tabs.sendMessage(activeTab.id, {windowLocation: "host"}, response => {
 					if (!window.chrome.runtime.lastError && response["windowLocation"]) {
 						blacklistedUrls.push(response["windowLocation"].replace("www.", "").replace(".", "\\."));
-						chrome.storage.local.set({"wkhighlight_blacklist":blacklistedUrls});
+						chrome.storage.local.set({"blacklist":blacklistedUrls});
 						const main = document.getElementById("main");
 						if (main) {
 							main.replaceChild(reloadPage(`Extension DEACTIVATED on: <div class="locationDiv"><span>${response["windowLocation"]}</span></div>`, "green"),  document.getElementById("userInfoWrapper"));
@@ -2501,8 +2501,8 @@ document.addEventListener("click", e => {
 		apiKeyValueWrapper.style.columnGap = "10px";
 		const apiKeyValue = document.createElement("p");
 		apiKeyValueWrapper.appendChild(apiKeyValue);
-		chrome.storage.local.get(["wkhighlight_apiKey"], result => {
-			apiKeyValue.appendChild(document.createTextNode(result["wkhighlight_apiKey"]));
+		chrome.storage.local.get(["apiKey"], result => {
+			apiKeyValue.appendChild(document.createTextNode(result["apiKey"]));
 			// copy to clipboard button
 			const copyToClipboard = document.createElement("img");
 			apiKeyValueWrapper.appendChild(copyToClipboard);
@@ -2511,7 +2511,7 @@ document.addEventListener("click", e => {
 			copyToClipboard.style.width = "20px";
 			copyToClipboard.addEventListener("click", () => {
 				if (window.navigator.clipboard) {
-					window.navigator.clipboard.writeText(result["wkhighlight_apiKey"]).
+					window.navigator.clipboard.writeText(result["apiKey"]).
 						then(() => {
 							Array.from(document.getElementsByClassName("copiedMessage")).forEach(elem => elem.remove());
 							const copiedMessage = document.createElement("div");
@@ -2671,8 +2671,8 @@ document.addEventListener("click", e => {
 
 	// settings checkboxes
 	if (targetElem.classList.contains("settingsItemInput") && targetElem.type === "checkbox") {
-		chrome.storage.local.get(["wkhighlight_settings"], data => {
-			settings = data["wkhighlight_settings"];
+		chrome.storage.local.get(["settings"], data => {
+			settings = data["settings"];
 			if (!settings)
 				settings = {};
 			
@@ -2711,8 +2711,8 @@ document.addEventListener("click", e => {
 							let value = "";
 
 							if (targetElem.checked) {
-								chrome.storage.local.get(["wkhighlight_nmrHighLightedKanji"], result => {
-									value = (result && result["wkhighlight_nmrHighLightedKanji"] ? result["wkhighlight_nmrHighLightedKanji"] : 0).toString();
+								chrome.storage.local.get(["nmrHighLightedKanji"], result => {
+									value = (result && result["nmrHighLightedKanji"] ? result["nmrHighLightedKanji"] : 0).toString();
 									chrome.action.setBadgeText({text: value, tabId:activeTab.id});
 								});
 							}
@@ -2759,7 +2759,7 @@ document.addEventListener("click", e => {
 					break;
 			}
 			
-			chrome.storage.local.set({"wkhighlight_settings":settings});
+			chrome.storage.local.set({"settings":settings});
 		});
 	}
 
@@ -2779,8 +2779,8 @@ document.addEventListener("click", e => {
 			const blacklistedSitesList = document.createElement("div");
 			parent.appendChild(blacklistedSitesList);
 			blacklistedSitesList.id = "blacklistedSitesWrapper";
-			chrome.storage.local.get(["wkhighlight_blacklist"], result => {
-				const blacklisted = result["wkhighlight_blacklist"];
+			chrome.storage.local.get(["blacklist"], result => {
+				const blacklisted = result["blacklist"];
 				if (blacklisted) {
 					blacklisted.forEach(site => {
 						site = site.replace("\\.", ".");
@@ -2828,13 +2828,13 @@ document.addEventListener("click", e => {
 		targetElem.classList.add("full_opacity");
 		const targetClass = targetElem.classList[0];
 		const highlightTarget = targetClass.split("_")[1] == "highlighted" ? "learned" : "not_learned";
-		chrome.storage.local.get(["wkhighlight_settings"], data => {
-			settings = data["wkhighlight_settings"];
+		chrome.storage.local.get(["settings"], data => {
+			settings = data["settings"];
 			if (!settings)
 				settings = {};
 			
 			settings["highlight_style"][highlightTarget] = targetClass;
-			chrome.storage.local.set({"wkhighlight_settings":settings})
+			chrome.storage.local.set({"settings":settings})
 
 			// change highlight class immediately
 			chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
@@ -2845,11 +2845,11 @@ document.addEventListener("click", e => {
 
 	if (targetElem.classList.contains("bin_wrapper") || (targetElem.parentElement?.classList.contains("bin_wrapper"))) {
 		let site = (targetElem.id ? targetElem.id : targetElem.parentElement.id).replace("_", "\\.");
-		chrome.storage.local.get(["wkhighlight_blacklist"], data => {
-			let blacklisted = data["wkhighlight_blacklist"];
+		chrome.storage.local.get(["blacklist"], data => {
+			let blacklisted = data["blacklist"];
 			let index = blacklisted.indexOf(site);
 			blacklisted.splice(index,1);
-			chrome.storage.local.set({"wkhighlight_blacklist": blacklisted});
+			chrome.storage.local.set({"blacklist": blacklisted});
 
 			site = site.replace("\\.", ".");
 			for (let elem of document.querySelectorAll(".blacklisted_site_wrapper")) {
@@ -2904,8 +2904,8 @@ document.addEventListener("click", e => {
 			navbarOptions.classList.add("searchResultNavbarOptionsWrapper");
 			navbarOptions.style.display = "flex";
 
-			chrome.storage.local.get(["wkhighlight_settings"], result => {
-				settings = result["wkhighlight_settings"];
+			chrome.storage.local.get(["settings"], result => {
+				settings = result["settings"];
 				if (settings) {
 					navbarWrapper.appendChild(navbarOptions);
 					const targetDiv = document.createElement("div");
@@ -2949,9 +2949,9 @@ document.addEventListener("click", e => {
 		if (wrapper)
 			wrapper.remove();
 		
-		chrome.storage.local.get("wkhighlight_settings", result => {
-			if (result && result["wkhighlight_settings"] && result["wkhighlight_settings"]["miscellaneous"])
-				document.documentElement.style.setProperty('--body-base-width', result["wkhighlight_settings"]["miscellaneous"]["extension_popup_width"]+"px");
+		chrome.storage.local.get("settings", result => {
+			if (result && result["settings"] && result["settings"]["miscellaneous"])
+				document.documentElement.style.setProperty('--body-base-width', result["settings"]["miscellaneous"]["extension_popup_width"]+"px");
 			else
 				document.documentElement.style.setProperty('--body-base-width', defaultWindowSize+"px");
 		});
@@ -3018,11 +3018,11 @@ document.addEventListener("click", e => {
 		});
 		targetElem.classList.add("full_opacity");
 
-		chrome.storage.local.get(["wkhighlight_settings"], result => {
-			settings = result["wkhighlight_settings"];
+		chrome.storage.local.get(["settings"], result => {
+			settings = result["settings"];
 			if (settings && settings["search"])
 				settings["search"]["results_display"] = targetElem.id;
-			chrome.storage.local.set({"wkhighlight_settings":settings});
+			chrome.storage.local.set({"settings":settings});
 		});
 
 		const removeSquareClasses = elem => {
@@ -3061,9 +3061,9 @@ document.addEventListener("click", e => {
 			removeSquareClasses(elem);
 		});
 
-		chrome.storage.local.get("wkhighlight_settings", result => {
-			if (result && result["wkhighlight_settings"] && result["wkhighlight_settings"]["miscellaneous"])
-				document.documentElement.style.setProperty('--body-base-width', result["wkhighlight_settings"]["miscellaneous"]["extension_popup_width"]+"px");
+		chrome.storage.local.get("settings", result => {
+			if (result && result["settings"] && result["settings"]["miscellaneous"])
+				document.documentElement.style.setProperty('--body-base-width', result["settings"]["miscellaneous"]["extension_popup_width"]+"px");
 			else
 				document.documentElement.style.setProperty('--body-base-width', defaultWindowSize+"px");
 		});
@@ -3071,8 +3071,8 @@ document.addEventListener("click", e => {
 
 	// clicked in target icon
 	if (targetElem.classList.contains("searchResultNavbarTarget")) {
-		chrome.storage.local.get(["wkhighlight_settings"], result => {
-			settings = result["wkhighlight_settings"];
+		chrome.storage.local.get(["settings"], result => {
+			settings = result["settings"];
 			if (settings && settings["search"]) {
 				if (settings["search"]["targeted_search"]) {
 					targetElem.classList.remove("full_opacity");
@@ -3082,7 +3082,7 @@ document.addEventListener("click", e => {
 					targetElem.classList.add("full_opacity");
 					settings["search"]["targeted_search"] = true;
 				}
-				chrome.storage.local.set({"wkhighlight_settings":settings});
+				chrome.storage.local.set({"settings":settings});
 
 				searchSubject(document.getElementById("kanjiSearchInput"));
 			}
@@ -3106,12 +3106,12 @@ document.addEventListener("click", e => {
 			.sort((as1, as2) => new Date(as1["available_at"]).getTime() - new Date(as2["available_at"]).getTime())
 			.map(assignment => ({"srs_stage":assignment["srs_stage"], "subject_id":assignment["subject_id"], "subject_type":assignment["subject_type"]}));
 		
-		chrome.storage.local.get(["wkhighlight_settings"], result => {
+		chrome.storage.local.get(["settings"], result => {
 			const lib = new localStorageDB("subjects", localStorage);
 
 			if (loading) loading.remove();
 
-			settings = result["wkhighlight_settings"];
+			settings = result["settings"];
 			if (settings) {
 				const displaySettings = settings["assignments"]["srsMaterialsDisplay"];
 				// filter by srs stages
@@ -3184,7 +3184,7 @@ document.addEventListener("click", e => {
 								settings["assignments"]["srsMaterialsDisplay"][srsId] = false;
 								flipArrow(srsTitleArrow, "up", "down");
 							}
-							chrome.storage.local.set({"wkhighlight_settings":settings});
+							chrome.storage.local.set({"settings":settings});
 						});
 						const itemsListWrapper = document.createElement("div");
 						srsWrapper.appendChild(itemsListWrapper);
@@ -3279,8 +3279,8 @@ document.addEventListener("click", e => {
 	if (targetElem.id == "summaryReviews") {
 		const content = secondaryPage("Reviews", 470);
 
-		chrome.storage.local.get(["wkhighlight_reviews"], result => {
-			reviews = result["wkhighlight_reviews"] ? result["wkhighlight_reviews"] : reviews;
+		chrome.storage.local.get(["reviews"], result => {
+			reviews = result["reviews"] ? result["reviews"] : reviews;
 
 			const futureReviewsWrapper = document.createElement("div");
 			content.appendChild(futureReviewsWrapper);
@@ -3308,7 +3308,7 @@ document.addEventListener("click", e => {
 
 				// setup chart for the next reviews
 				if (reviews["next_reviews"]) {
-					chrome.storage.local.get(["wkhighlight_settings"], result => {
+					chrome.storage.local.get(["settings"], result => {
 						const futureReviewsCanvas = document.createElement("canvas");
 						futureReviewsChart.appendChild(futureReviewsCanvas);
 						futureReviewsCanvas.style.display = "none";
@@ -3341,7 +3341,7 @@ document.addEventListener("click", e => {
 						futureReviewsLabel.id = "reviewsPage-nmrReviews24hLabel";
 						futureReviewsLabel.innerHTML = "<b>0</b> more Reviews in the next 24 hours";
 
-						settings = result["wkhighlight_settings"];
+						settings = result["settings"];
 						if (settings) {
 							const time12h_format = settings["miscellaneous"]["time_in_12h_format"];
 							const days = 1;
@@ -3481,8 +3481,8 @@ document.addEventListener("click", e => {
 	if (targetElem.id == "summaryLessons") {
 		const content = secondaryPage("Lessons", 470);
 
-		chrome.storage.local.get(["wkhighlight_lessons"], result => {
-			lessons = result["wkhighlight_lessons"] ? result["wkhighlight_lessons"] : lessons;
+		chrome.storage.local.get(["lessons"], result => {
+			lessons = result["lessons"] ? result["lessons"] : lessons;
 			
 			const lessonsWrapper = document.createElement("div");
 			content.appendChild(lessonsWrapper);
@@ -3534,8 +3534,8 @@ document.addEventListener("input", e => {
 	if (target.classList.contains("settingsItemInput")) {
 		if (target.type === "select-one") {
 			const value = target.value;
-			chrome.storage.local.get(["wkhighlight_settings"], data => {
-				settings = data["wkhighlight_settings"];
+			chrome.storage.local.get(["settings"], data => {
+				settings = data["settings"];
 				if (!settings)
 					settings = {};
 				
@@ -3575,14 +3575,14 @@ document.addEventListener("input", e => {
 						break;
 				}
 	
-				chrome.storage.local.set({"wkhighlight_settings":settings});
+				chrome.storage.local.set({"settings":settings});
 			});
 		}
 
 		if (target.type === "range") {
 			const value = target.value;
-			chrome.storage.local.get(["wkhighlight_settings"], data => {
-				settings = data["wkhighlight_settings"];
+			chrome.storage.local.get(["settings"], data => {
+				settings = data["settings"];
 				if (!settings)
 					settings = {};
 				
@@ -3614,7 +3614,7 @@ document.addEventListener("input", e => {
 						}
 				}
 	
-				chrome.storage.local.set({"wkhighlight_settings":settings});
+				chrome.storage.local.set({"settings":settings});
 			});
 		}
 
@@ -3819,8 +3819,8 @@ const searchSubject = (event, searchType) => {
 
 	const lib = new localStorageDB("subjects", localStorage);
 
-	chrome.storage.local.get(["wkhighlight_settings"], result => {
-		settings = result["wkhighlight_settings"];
+	chrome.storage.local.get(["settings"], result => {
+		settings = result["settings"];
 		if (settings && settings["search"]) {
 			if (type == "A") {
 				input.value = convertToKana(input.value);
@@ -4068,9 +4068,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			document.getElementById("userInfoNavbar")?.insertBefore(kanjiFoundWrapper, document.getElementById("userInfoNavbar").childNodes[0]);
 			kanjiFoundWrapper.classList.add("resizable");
 			kanjiFoundWrapper.style.maxHeight = defaultSettings["sizes"]["highlighted_kanji_height"]+"px";
-			chrome.storage.local.get(["wkhighlight_settings"], result => {
-				if (result["wkhighlight_settings"] && result["wkhighlight_settings"]["sizes"])
-					kanjiFoundWrapper.style.maxHeight = result["wkhighlight_settings"]["sizes"]["highlighted_kanji_height"]+"px";
+			chrome.storage.local.get(["settings"], result => {
+				if (result["settings"] && result["settings"]["sizes"])
+					kanjiFoundWrapper.style.maxHeight = result["settings"]["sizes"]["highlighted_kanji_height"]+"px";
 			});
 			kanjiFoundWrapper.setAttribute("data-settings", "sizes-highlighted_kanji_height");
 			const resizableS = document.createElement("div");
@@ -4100,8 +4100,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 	
 	if (request.kanjiHighlighted && document.getElementById("kanjiHighlightedList") && sender.tab.id == activeTab.id) {
-		chrome.storage.local.get(["wkhighlight_kanji_assoc"], result => {
-			const kanjiAssoc = result["wkhighlight_kanji_assoc"];
+		chrome.storage.local.get(["kanji_assoc"], result => {
+			const kanjiAssoc = result["kanji_assoc"];
 			const kanjiHighlightedList = request.kanjiHighlighted;
 			const kanjiFoundList = document.getElementById("kanjiHighlightedList");
 			const parentMaxHeight = kanjiFoundList.parentElement.style.maxHeight;
@@ -4162,10 +4162,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 const setupSubjectsLists = (callback) => {
-	chrome.storage.local.get(["wkhighlight_allkanji", "wkhighlight_allvocab", "wkhighlight_allradicals"], result => {
-		const allKanji = result["wkhighlight_allkanji"];
-		const allVocab = result["wkhighlight_allvocab"];
-		const allRadicals = result["wkhighlight_allradicals"];
+	chrome.storage.local.get(["allkanji", "allvocab", "allradicals"], result => {
+		const allKanji = result["allkanji"];
+		const allVocab = result["allvocab"];
+		const allRadicals = result["allradicals"];
 
 		if (allKanji && kanjiList.length == 0) {
 			for (const index in allKanji) {
@@ -4230,11 +4230,11 @@ const setupSubjectsLists = (callback) => {
 }
 
 const loadItemsLists = callback => {
-	chrome.storage.local.get(["wkhighlight_allkanji", "wkhighlight_allvocab", "wkhighlight_allradicals"], result => {
+	chrome.storage.local.get(["allkanji", "allvocab", "allradicals"], result => {
 		setTimeout(() => {
-			const allKanji = result["wkhighlight_allkanji"];
-			const allVocab = result["wkhighlight_allvocab"];
-			const allRadicals = result["wkhighlight_allradicals"];
+			const allKanji = result["allkanji"];
+			const allVocab = result["allvocab"];
+			const allRadicals = result["allradicals"];
 	
 			if (!allRadicals || !allKanji || !allVocab) {
 				Promise.all([setupKanji(apiKey), setupRadicals(apiKey), setupVocab(apiKey)])
