@@ -336,6 +336,39 @@ const setupVocab = (vocabs, assocs, records, vocab) => {
 	assocs[data.characters] = vocab.id;
 }
 
+const setupKanaVocab = (vocabs, assocs, records, vocab) => {
+	const data = vocab["data"];
+
+	vocabs[vocab.id] = {
+		"characters" : data.characters,
+		"context_sentences" : data.context_sentences,
+		"document_url" : data.document_url,
+		"level" : data.level,
+		"meaning_mnemonic" : data.meaning_mnemonic,
+		"meanings" : data.meanings.map(data => data.meaning),
+		"parts_of_speech" : data.parts_of_speech,
+		"pronunciation_audios" : data.pronunciation_audios,
+		"id":vocab.id,
+		"subject_type":vocab.object,
+		"hidden_at":data.hidden_at
+	};
+
+	records.push({
+		"characters" : data.characters,
+		"level" : data.level,
+		"meanings" : data.meanings.map(data => data.meaning),
+		"id":vocab.id,
+		"subject_type":vocab.object,
+		"hidden_at":data.hidden_at,
+		"srs_stage" : null,
+		"hidden" : null,
+		"passed_at" : null,
+		"available_at" : null
+	});
+
+	assocs[data.characters] = vocab.id;
+}
+
 const setupKanji = (kanjis, assocs, records, kanji) => {
 	const data = kanji["data"];
 
@@ -402,7 +435,7 @@ const handleSubjectsResult = async (message, subjects, key) => {
 // see if all kanji is already saved in storage
 const loadData = async (apiToken, tabId, callback) => {
 	// get number of fetches that will be done
-	fetches = [RADICAL_SETUP, VOCAB_SETUP, KANJI_SETUP, ASSIGNMENTS_SETUP]
+	fetches = [RADICAL_SETUP, VOCAB_SETUP, KANA_VOCAB_SETUP, KANJI_SETUP, ASSIGNMENTS_SETUP]
 		.map(async setup => await modifiedSince(apiToken, setup.storage.updated, setup.endpoint))
 		.filter(Boolean).length;
 	
@@ -456,8 +489,22 @@ const loadData = async (apiToken, tabId, callback) => {
 				}, vocab, apiToken);
 			}
 		}),
-		// TODO: kana vocabulary
-		
+		// kana vocabulary
+		new Promise(async (resolve, reject) => {
+			const result = await setupSubjects(apiToken, KANA_VOCAB_SETUP, (subjects, assocs, records, subject) => setupKanaVocab(subjects, assocs, records, subject));
+			const [vocab, fetched] = result;
+
+			resolve(vocab);
+
+			const messageText = "✔ Loaded Kana Vocabulary data.";
+			console.log(messageText);
+			if (fetched) {
+				await handleSubjectsResult({
+					text: messageText,
+					tab: tabId
+				}, vocab, apiToken);
+			}
+		}),
 		// kanji
 		new Promise(async (resolve, reject) => {
 			const result = await setupSubjects(apiToken, KANJI_SETUP, (subjects, assocs, records, subject) => setupKanji(subjects, assocs, records, subject));
@@ -482,7 +529,8 @@ const loadData = async (apiToken, tabId, callback) => {
 				assignments: assignments,
 				radicals: results[0],
 				vocab: results[1],
-				kanji: results[2]
+				kana_vocab: results[2],
+				kanji: results[3]
 			});
 		}
 	});

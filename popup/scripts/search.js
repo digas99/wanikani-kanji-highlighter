@@ -11,9 +11,10 @@ if (searchBar) {
         const db = new Database("wanikani");
         db.create("subjects").then(created => {
             if (created) {
-                db.getAll("subjects", "subject_type", ["kanji", "vocabulary"]).then(data => {
+                db.getAll("subjects", "subject_type", ["kanji", "vocabulary", "kana_vocabulary"]).then(data => {
                     const kanji = data["kanji"];
-                    const vocabulary = data["vocabulary"];
+                    const vocabulary = [...data["vocabulary"], ...data["kana_vocabulary"]];
+                    console.log(data["vocabulary"], data["kana_vocabulary"], vocabulary);
 
                     searchBar.addEventListener("input", () => searchSubject(kanji, vocabulary, searchBar, null, settings["search"]["targeted_search"], settings["search"]["results_display"]));
                 });
@@ -87,7 +88,7 @@ const searchSubject = (kanji, vocabulary, input, searchType, targeted, display) 
         if (input.value.match(/[\u3040-\u309f]/)) {
             //const filterByReadings = (itemList, value) => itemList.filter(item => matchesReadings(value, item["readings"], targeted));
             filteredKanji = kanji.filter(subject => matchesReadings(input.value, subject.readings, targeted));
-            filteredVocab = vocabulary.filter(subject => matchesReadings(input.value, subject.readings, targeted));
+            filteredVocab = vocabulary.filter(subject => matchesReadings(input.value, subject.readings, targeted) || new RegExp(input.value, "g").test(subject.characters));
         }
     }
     else {
@@ -202,7 +203,7 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         const chars = data["characters"];
 
         const kanjiAlike = type == "kanji" || chars.length == 1;
-        const vocabAlike = type == "vocabulary" && chars.length > 1;	
+        const vocabAlike = type.includes("vocab") && chars.length > 1;	
         
         const li = document.createElement("li");
         li.classList.add("searchResultItemLine"); 
@@ -241,7 +242,7 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         meaning.classList.add("searchResultItemTitle");
         meaning.appendChild(document.createTextNode(data["meanings"].join(", ")));
 
-        if (type == "kanji") {
+        if (kanjiAlike) {
             const on = document.createElement("span");
             itemInfoWrapper.appendChild(on); 
             on.appendChild(document.createTextNode("on: "));
@@ -252,19 +253,26 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
             kun.appendChild(document.createTextNode(data["readings"].filter(reading => reading.type == "kunyomi").map(kanji => kanji.reading).join(", ")));
         }
 
+        // specifically for 'vocabulary'
         if (type == "vocabulary") {
             const read = document.createElement("span");
             itemInfoWrapper.appendChild(read);
             read.appendChild(document.createTextNode(data["readings"].join(", ")));
         }
 
+        //specifically for 'kana_vocabulary'
+        console.log(type);
+        if (type == "kana_vocabulary") {
+            meaning.style.borderBottom = "none";
+        }
+
         // subject type
         const subjectType = document.createElement("div");
         li.appendChild(subjectType);
         let colorClass;
-        if (type == "kanji")
+        if (kanjiAlike)
             colorClass = "kanji_back";
-        else if (type == "vocabulary")
+        else if (vocabAlike)
             colorClass = "vocab_back";
         subjectType.classList.add("searchResultItemType", colorClass);
         

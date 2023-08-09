@@ -428,6 +428,18 @@ const VOCAB_SETUP = {
 	},
 };
 
+const KANA_VOCAB_SETUP = {
+	name: "kana vocab",
+	endpoint: "https://api.wanikani.com/v2/subjects?types=kana_vocabulary",
+	storage: {
+		id: "wkhighlight_allkanavocab",
+		updated: "wkhighlight_allkanavocab_updated",
+		level: "wkhighlight_kanavocab_level",
+		association: "wkhighlight_kanavocab_assoc",
+		size: "wkhighlight_allkanavocab_size"
+	},
+};
+
 const KANJI_SETUP = {
 	name: "kanji",
 	endpoint: "https://api.wanikani.com/v2/subjects?types=kanji",

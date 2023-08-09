@@ -75,7 +75,7 @@ const updateLevelData = (level, data, clear) => {
     
     // subject types containers
     ["radical", "kanji", "vocab"].forEach(type => {
-        const subjects = allSubjects.filter(subject => subject["subject_type"] === (type == "vocab" ? "vocabulary" : type));
+        const subjects = allSubjects.filter(subject => subject["subject_type"].includes(type));
         const passedSubjects = subjects.filter(subject => subject.passed_at != null);
 
         // level progress bar
@@ -137,10 +137,12 @@ const subjectTile = (type, subject) => {
     if (type !== "radical") {
         subjectWrapper.classList.add("clickable", "kanjiDetails");
         subjectWrapper.setAttribute("data-item-id", subject["id"]);
-        if (subject["readings"][0]["reading"])
-            subjectWrapper.title += " | "+subject["readings"].filter(reading => reading["primary"])[0]["reading"];
-        else
-            subjectWrapper.title += " | "+subject["readings"][0];
+        if (subject["readings"]) {
+            if (subject["readings"][0]["reading"])
+                subjectWrapper.title += " | "+subject["readings"].filter(reading => reading["primary"])[0]["reading"];
+            else
+                subjectWrapper.title += " | "+subject["readings"][0];
+        }
     }
     let backColor = hexToRGB(getComputedStyle(document.body).getPropertyValue(`--${type}-tag-color`));
     subjectWrapper.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
