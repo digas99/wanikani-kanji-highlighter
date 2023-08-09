@@ -22,7 +22,7 @@ window.onscroll = () => {
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	console.log("[from content script]", request);
+	console.log("REQUESTS: ", request);
 
 	// catch wanikani data setup completion
 	if (request.setup) {
@@ -34,10 +34,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 			const setup = request.setup;
 	
-			console.log("setup", setup);
 			// update loading popup
 			messagePopup.loading(setup.progress);
-			messagePopup.update(setup.message);
+			messagePopup.update(setup.text);
 	
 			if (setup.progress == 1) {
 				console.log("setup complete");
@@ -62,7 +61,8 @@ window.onload = () => {
 			messagePopup.create("Fetching subject data from Wanikani...", "Please, don't close the extension.");
 			messagePopup.setLoading();
 
-			loadData(result["wkhighlight_apiKey"]);
 		}
+
+		loadData(result["wkhighlight_apiKey"]);
 	});
 }

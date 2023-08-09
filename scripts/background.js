@@ -255,7 +255,7 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 								}
 				
 								loadData(apiToken, thisTabId, result => {
-									setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", result["kanji"]);
+									setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", result.kanji);
 								});
 							}
 						}

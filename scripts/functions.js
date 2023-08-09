@@ -269,168 +269,306 @@ const flipArrow = (arrow, sourceDir, destDir, paddingValue) => {
 	}
 }
 
+const setupRadicals = (radicals, records, radical) => {
+	const data = radical["data"];
+
+	radicals[radical.id] = {
+		"characters" : data.characters,
+		"character_images" : data.character_images,
+		"document_url" : data.document_url,
+		"level" : data.level,
+		"id":radical.id,
+		"meanings": data.meanings.map(data => data.meaning),
+		"subject_type":radical.object,
+		"hidden_at":data.hidden_at
+	};
+
+	records.push({
+		"characters" : data.characters,
+		"character_images" : data.character_images,
+		"level" : data.level,
+		"id":radical.id,
+		"meanings": data.meanings.map(data => data.meaning),
+		"subject_type":radical.object,
+		"hidden_at":data.hidden_at,
+		"srs_stage" : null,
+		"hidden" : null,
+		"passed_at" : null,
+		"available_at" : null
+	});
+}
+
+const setupVocab = (vocabs, assocs, records, vocab) => {
+	const data = vocab["data"];
+
+	vocabs[vocab.id] = {
+		"characters" : data.characters,
+		"component_subject_ids" : data.component_subject_ids, 
+		"context_sentences" : data.context_sentences,
+		"document_url" : data.document_url,
+		"level" : data.level,
+		"meaning_mnemonic" : data.meaning_mnemonic,
+		"meanings" : data.meanings.map(data => data.meaning),
+		"parts_of_speech" : data.parts_of_speech,
+		"reading_mnemonic" : data.reading_mnemonic,
+		"readings" : data.readings.map(data => data.reading),
+		"pronunciation_audios" : data.pronunciation_audios,
+		"id":vocab.id,
+		"subject_type":vocab.object,
+		"hidden_at":data.hidden_at
+	};
+
+	records.push({
+		"characters" : data.characters,
+		"component_subject_ids" : data.component_subject_ids, 
+		"level" : data.level,
+		"meanings" : data.meanings.map(data => data.meaning),
+		"readings" : data.readings.map(data => data.reading),
+		"id":vocab.id,
+		"subject_type":vocab.object,
+		"hidden_at":data.hidden_at,
+		"srs_stage" : null,
+		"hidden" : null,
+		"passed_at" : null,
+		"available_at" : null
+	});
+
+	assocs[data.characters] = vocab.id;
+}
+
+const setupKanji = (kanjis, assocs, records, kanji) => {
+	const data = kanji["data"];
+
+	kanjis[kanji.id] = {
+		"amalgamation_subject_ids" : data.amalgamation_subject_ids,
+		"characters" : data.characters,
+		"component_subject_ids" : data.component_subject_ids,
+		"document_url" : data.document_url,
+		"level" : data.level,
+		"meaning_hint" : data.meaning_hint,
+		"meaning_mnemonic" : data.meaning_mnemonic,
+		"meanings" : data.meanings.map(data => data.meaning),
+		"reading_hint" : data.reading_hint,
+		"reading_mnemonic" : data.reading_mnemonic,
+		"readings" : data.readings,
+		"visually_similar_subject_ids" : data.visually_similar_subject_ids,
+		"slug": data.slug,
+		"id":kanji.id,
+		"subject_type":kanji.object,
+		"hidden_at":data.hidden_at
+	};
+	
+	records.push({
+		"amalgamation_subject_ids" : data.amalgamation_subject_ids,
+		"characters" : data.characters,
+		"component_subject_ids" : data.component_subject_ids,
+		"level" : data.level,
+		"meanings" : data.meanings.map(data => data.meaning),
+		"readings" : data.readings,
+		"visually_similar_subject_ids" : data.visually_similar_subject_ids,
+		"id" : kanji.id,
+		"subject_type" : kanji.object,
+		"hidden_at" : data.hidden_at,
+		"srs_stage" : null,
+		"hidden" : null,
+		"passed_at" : null
+	});
+
+	assocs[data.slug] = kanji.id;
+}
+
+let progress = 0, fetches = 0;
+
+const handleSubjectsResult = async (message, subjects, key) => {
+	if (subjects && key) {
+		await assignUponSubjects(subjects);
+		await revStatsUponSubjects(key, subjects);
+	}
+
+	progress++;
+	const messageData = {
+		setup: {
+			text: message.text,
+			progress: progress/fetches,
+		}
+	}
+	if (message.tab)
+		chrome.tabs.sendMessage(message.tab, messageData);
+	else
+		chrome.runtime.sendMessage(messageData);
+}
+
 // get all assignments if there are none in storage or if they were modified
 // see if all kanji is already saved in storage
-const loadData = (apiToken, tabId, callback) => {
-	setupAssignments(apiToken)
-		.then(result => {
-			const assignments = result[0];
-			const fetched = result[1];
-
-			console.log("[DONE] Assignments setup");
-			if (fetched) {
-				const message = {
-					message: "✔ Loaded Assignments data.",
-					progress: 0.25
-				}
-				if (tabId)
-					chrome.tabs.sendMessage(tabId, {setup: message});
-				else
-					chrome.runtime.sendMessage({setup: message});
-			}
-
-			setupRadicals(apiToken)
-				.then(async result => {
-					const radicals_dict = result[0];
-					const fetched = result[1];
-
-					console.log("[DONE] Radicals setup");
-					if (fetched) {
-						await assignUponSubjects(radicals_dict);
-						await revStatsUponSubjects(apiToken, radicals_dict);
-
-						const message = {
-							message: "✔ Loaded Radicals data.",
-							progress: 0.5
-						}
-						if (tabId)
-							chrome.tabs.sendMessage(tabId, {setup: message});
-						else
-							chrome.runtime.sendMessage({setup: message});
-					}
-
-
-					setupVocab(apiToken)
-						.then(async result => {
-							const vocab_dict = result[0];
-							const fetched = result[1];
-
-							console.log("[DONE] Vocab setup");
-							if (fetched) {
-								await assignUponSubjects(vocab_dict);
-								await revStatsUponSubjects(apiToken, vocab_dict);
-
-								const message = {
-									message: "✔ Loaded Vocabulary data.",
-									progress: 0.75
-								}
-								if (tabId)
-									chrome.tabs.sendMessage(tabId, {setup: message});
-								else
-									chrome.runtime.sendMessage({setup: message});
-							}
-
-							// setup kanji last to make sure scripts run with all subjects
-							setupKanji(apiToken)
-								.then(async result => {
-									const kanji_dict = result[0];
-									const fetched = result[1];
-
-									console.log("[DONE] Kanji setup");
-									if (fetched) {
-										await assignUponSubjects(kanji_dict);
-										await revStatsUponSubjects(apiToken, kanji_dict);
-
-										const message = {
-											message: "✔ Loaded Kanji data.",
-											progress: 1
-										}
-
-										if (tabId)
-											chrome.tabs.sendMessage(tabId, {setup: message});
-										else
-											chrome.runtime.sendMessage({setup: message});		
-									}
-
-									if (callback) {
-										callback({
-											assignments: assignments,
-											radicals: radicals_dict,
-											vocab: vocab_dict,
-											kanji: kanji_dict
-										});
-									}
-								});
-						});
-				});
+const loadData = async (apiToken, tabId, callback) => {
+	// get number of fetches that will be done
+	fetches = [RADICAL_SETUP, VOCAB_SETUP, KANJI_SETUP, ASSIGNMENTS_SETUP]
+		.map(async setup => await modifiedSince(apiToken, setup.storage.updated, setup.endpoint))
+		.filter(Boolean).length;
+	
+	console.log("fetches: ", fetches);
+		
+	// assignments
+	const result = await setupAssignments(apiToken);
+	const assignments = result[0];
+	const fetched = result[1];			
+	
+	const messageText = "✔ Loaded Assignments data.";
+	console.log(messageText);
+	if (fetched) {
+		await handleSubjectsResult({
+			text: messageText,
+			tab: tabId
 		});
+	}	
+	
+
+	const setups = [
+		// radicals
+		new Promise(async (resolve, reject) => {
+			const result = await setupSubjects(apiToken, RADICAL_SETUP, (subjects, assocs, records, subject) => setupRadicals(subjects, records, subject));
+			const [radicals, fetched] = result;
+			
+			resolve(radicals);
+
+			const messageText = "✔ Loaded Radicals data.";
+			console.log(messageText);
+			if (fetched) {
+				await handleSubjectsResult({
+					text: messageText,
+					tab: tabId
+				}, radicals, apiToken);
+			}
+		}),
+		// vocabulary
+		new Promise(async (resolve, reject) => {
+			const result = await setupSubjects(apiToken, VOCAB_SETUP, (subjects, assocs, records, subject) => setupVocab(subjects, assocs, records, subject));
+			const [vocab, fetched] = result;
+
+			resolve(vocab);
+
+			const messageText = "✔ Loaded Vocabulary data.";
+			console.log(messageText);
+			if (fetched) {
+				await handleSubjectsResult({
+					text: messageText,
+					tab: tabId
+				}, vocab, apiToken);
+			}
+		}),
+		// TODO: kana vocabulary
+		
+		// kanji
+		new Promise(async (resolve, reject) => {
+			const result = await setupSubjects(apiToken, KANJI_SETUP, (subjects, assocs, records, subject) => setupKanji(subjects, assocs, records, subject));
+			const [kanji, fetched] = result;
+
+			resolve(kanji);
+
+			const messageText = "✔ Loaded Kanji data.";
+			console.log(messageText);
+			if (fetched) {
+				await handleSubjectsResult({
+					text: messageText,
+					tab: tabId
+				}, kanji, apiToken);
+			}
+		})
+	];
+
+	Promise.all(setups).then(results => {
+		if (callback) {
+			callback({
+				assignments: assignments,
+				radicals: results[0],
+				vocab: results[1],
+				kanji: results[2]
+			});
+		}
+	});
 }
 
 const assignUponSubjects = async list => {
-	const type = list[Object.keys(list)[0]]["subject_type"];
-	if (list && type) {
-		const db = new Database("wanikani");
-		await db.create("subjects").then(created => {
-			if (created) {
-				chrome.storage.local.get("wkhighlight_assignments", result => {
-					const allAssignments = result["wkhighlight_assignments"]["all"];
-					const progress = Object.fromEntries(Object.keys(srsStages).map(stage => [stage, 0]));
-					const levelsInProgress = [];
-					if (allAssignments) {
-						console.log(`Associating assignments with ${type} ...`);
-		
-						allAssignments.forEach(assignment => {
-							const data = assignment["data"];
-							const subjectId = data["subject_id"];
-							if (subjectId && list[subjectId]) {
-								const subject = list[subjectId];
-		
-								const timestamps = {
-									data_updated_at: assignment["data_updated_at"],
-									available_at: data["available_at"],
-									burned_at: data["burned_at"],
-									created_at: data["created_at"],
-									passed_at: data["passed_at"],
-									resurrected_at: data["resurrected_at"],
-									started_at: data["started_at"],
-									unlocked_at: data["unlocked_at"]
-								}
-								subject["timestamps"] = timestamps;
-								subject["srs_stage"] = data["srs_stage"];
-								subject["hidden"] = data["hidden"];
-								progress[data["srs_stage"]]++;
+    const type = list[Object.keys(list)[0]]["subject_type"];
+    if (list && type) {
+        const db = new Database("wanikani");
+        const created = await db.create("subjects");
 
-								db.get("subjects", subjectId).then(result => {
-									if (result) {
-										["srs_stage", "hidden", "passed_at", "available_at"].forEach(key => result[key] = data[key]);
-										db.update("subjects", result);
-									}
-								});
-		
-								if (!data["passed_at"] && !levelsInProgress.includes(subject["level"]))
-									levelsInProgress.push(subject["level"]);
-							}
-						});
-		
-						let storageId;
-						switch(type) {
-							case "radical":
-								storageId = "wkhighlight_allradicals";
-								break;
-							case "kanji":
-								storageId = "wkhighlight_allkanji";
-								break;
-							case "vocabulary":
-								storageId = "wkhighlight_allvocab";
-								break;
+        if (created) {
+            const result = await new Promise(resolve => {
+                chrome.storage.local.get("wkhighlight_assignments", resolve);
+            });
+
+            const allAssignments = result["wkhighlight_assignments"]["all"];
+            const progress = Object.fromEntries(Object.keys(srsStages).map(stage => [stage, 0]));
+            const levelsInProgress = [];
+
+            if (allAssignments) {
+                console.log(`Associating assignments with ${type} ...`);
+
+                const updatePromises = allAssignments.map(assignment => {
+                    const data = assignment["data"];
+                    const subjectId = data["subject_id"];
+
+                    if (subjectId && list[subjectId]) {
+                        const subject = list[subjectId];
+
+                        const timestamps = {
+                            data_updated_at: assignment["data_updated_at"],
+                            available_at: data["available_at"],
+                            burned_at: data["burned_at"],
+                            created_at: data["created_at"],
+                            passed_at: data["passed_at"],
+                            resurrected_at: data["resurrected_at"],
+                            started_at: data["started_at"],
+                            unlocked_at: data["unlocked_at"]
+                        };
+                        subject["timestamps"] = timestamps;
+                        subject["srs_stage"] = data["srs_stage"];
+                        subject["hidden"] = data["hidden"];
+                        progress[data["srs_stage"]]++;
+					
+						if (!data["passed_at"] && !levelsInProgress.includes(subject["level"])) {
+							levelsInProgress.push(subject["level"]);
 						}
-						if (storageId)
-							chrome.storage.local.set({...{[storageId]:list, ["wkhighlight_"+type+"_progress"]: progress, ["wkhighlight_"+type+"_levelsInProgress"]: levelsInProgress}});
-					}
-				});
-			}
-		});
-	}
+
+                        return db.get("subjects", subjectId).then(result => {
+                            if (result) {
+                                ["srs_stage", "hidden", "passed_at", "available_at"].forEach(key => result[key] = data[key]);
+                                return db.update("subjects", result);
+                            }
+                        });
+                    }
+                });
+
+                await Promise.all(updatePromises);
+
+                let storageId;
+                switch (type) {
+                    case "radical":
+                        storageId = "wkhighlight_allradicals";
+                        break;
+                    case "kanji":
+                        storageId = "wkhighlight_allkanji";
+                        break;
+                    case "vocabulary":
+                        storageId = "wkhighlight_allvocab";
+                        break;
+                }
+
+                if (storageId) {
+                    const storageData = {
+                        [storageId]: list,
+                        ["wkhighlight_" + type + "_progress"]: progress,
+                        ["wkhighlight_" + type + "_levelsInProgress"]: levelsInProgress
+                    };
+                    await new Promise(resolve => {
+                        chrome.storage.local.set(storageData, resolve);
+                    });
+                }
+            }
+        }
+    }
 }
 
 const revStatsUponSubjects = async (apiToken, list) => {

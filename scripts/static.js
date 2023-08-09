@@ -403,3 +403,48 @@ const unwantedTags = ["html", "body", "head", "title", "style", "link", "meta", 
 const urlChecker = new RegExp("^(chrome|devtools)(-[a-zA-Z0-9]+)?:\/\/");
 
 const defaultWindowSize = 400;
+
+const RADICAL_SETUP = {
+	name: "radicals",
+	endpoint: "https://api.wanikani.com/v2/subjects?types=radical",
+	storage: {
+		id: "wkhighlight_allradicals",
+		updated: "wkhighlight_allradicals_updated",
+		level: "wkhighlight_radical_level",
+		association: "wkhighlight_radical_assoc",
+		size: "wkhighlight_allradicals_size"
+	},
+};
+
+const VOCAB_SETUP = {
+	name: "vocabulary",
+	endpoint: "https://api.wanikani.com/v2/subjects?types=vocabulary",
+	storage: {
+		id: "wkhighlight_allvocab",
+		updated: "wkhighlight_allvocab_updated",
+		level: "wkhighlight_vocab_level",
+		association: "wkhighlight_vocab_assoc",
+		size: "wkhighlight_allvocab_size"
+	},
+};
+
+const KANJI_SETUP = {
+	name: "kanji",
+	endpoint: "https://api.wanikani.com/v2/subjects?types=kanji",
+	storage: {
+		id: "wkhighlight_allkanji",
+		updated: "wkhighlight_allkanji_updated",
+		level: "wkhighlight_kanji_level",
+		association: "wkhighlight_kanji_assoc",
+		size: "wkhighlight_allkanji_size"
+	},
+	jlpt: true,
+	joyo: true
+};
+
+const ASSIGNMENTS_SETUP = {
+	endpoint: "https://api.wanikani.com/v2/assignments",
+	storage: {
+		updated: "wkhighlight_assignments_updated"
+	}
+};

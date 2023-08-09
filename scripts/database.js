@@ -104,7 +104,6 @@
                     }
             
                     records.forEach(record => {
-                        console.log(record);
                         objectStore.put(record);
                     });
                         

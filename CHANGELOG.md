@@ -13,6 +13,9 @@
 - Added loading feedback popup for the user to understand the loading stages of data from wanikani
 - Loading data from Wanikani is now also being done from the extension Popup (no need to browse a web page)
 
+## Data
+- Added new Kana Vocabulary from Wanikani
+
 ---
 
 # [Changelog v0.6.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.6)
