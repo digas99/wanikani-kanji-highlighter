@@ -206,7 +206,7 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         const vocabAlike = type.includes("vocab") && chars.length > 1;	
         
         const li = document.createElement("li");
-        li.classList.add("searchResultItemLine"); 
+        li.classList.add("searchResultItemLine", "kanjiDetails"); 
         wrapper.appendChild(li);
         li.setAttribute('data-item-id', data["id"]);
         if (data["hidden_at"]) {

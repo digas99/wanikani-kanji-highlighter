@@ -82,3 +82,9 @@ const time_delays = {
 	"Min":6000,
 	"Sec":100
 }
+
+const convertToISO8601 = (dateString) => {
+	const dateObj = new Date(dateString);
+	const isoString = dateObj.toISOString();
+	return isoString;
+  }

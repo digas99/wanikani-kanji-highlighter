@@ -22,8 +22,6 @@ window.onscroll = () => {
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	console.log("REQUESTS: ", request);
-
 	// catch wanikani data setup completion
 	if (request.setup) {
 		if (messagePopup) {
@@ -50,6 +48,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			}
 		}
 	}
+
+	// show db progress
+	if (request.db) {
+		messagePopup.update(null, `${request.db.saved} / ${request.db.total}`);
+	}
 });
 
 let messagePopup;
@@ -66,3 +69,15 @@ window.onload = () => {
 		loadData(result["apiKey"]);
 	});
 }
+
+document.addEventListener("click", e => {
+	const targetElem = e.target;
+	
+	// if clicked on a kanji that can generate detail info popup
+	if (targetElem.closest(".kanjiDetails")) {
+		console.log(targetElem);
+		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+			chrome.tabs.sendMessage(tabs[0].id, {infoPopupFromSearch:targetElem.closest(".kanjiDetails").getAttribute("data-item-id")}, () => window.chrome.runtime.lastError);
+		});
+	}
+});

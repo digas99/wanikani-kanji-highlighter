@@ -1,5 +1,5 @@
 (() => {
-	chrome.storage.local.get(["allkanji", "allradicals", "allvocab", "settings"], result => {
+	chrome.storage.local.get(["allkanji", "allradicals", "allvocab", "allkanavocab", "settings"], result => {
 		chrome.runtime.sendMessage({uptimeDetailsPopup:true});
 
 		const settings = result["settings"];
@@ -10,7 +10,7 @@
 		
 		const allKanji = result["allkanji"];
 		const allRadicals = result["allradicals"];
-		const allVocab = result["allvocab"];
+		const allVocab = {...result["allvocab"], ...result["allkanavocab"]};
 		if (allKanji && allRadicals && allVocab) {
 			const detailsPopup = new SubjectDisplay(allRadicals, allKanji, allVocab, 275, document.documentElement);
 			
@@ -25,6 +25,7 @@
 				// create kanji details popup coming from search
 				if (request.infoPopupFromSearch && !atWanikani)  {
 					let id = request.infoPopupFromSearch;
+					console.log(request);
 					if (id.split("-")[0] === "rand") {
 						let allSubjectsKeys = [Object.keys(allKanji), Object.keys(allVocab)].flat(1);
 						if (id.split("-")[1] === "kanji") allSubjectsKeys = Object.keys(allKanji);

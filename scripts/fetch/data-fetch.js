@@ -1,8 +1,15 @@
 // WANIKANI
 
 // fetch a single page from the WaniKani API
-const fetchPage = async (apiToken, page) => {				
+const fetchPage = async (apiToken, page, updated) => {				
 	const requestHeaders = new Headers({Authorization: `Bearer ${apiToken}`});
+	if (updated) {
+		requestHeaders.append('If-Modified-Since', updated);
+		// add updated_after to the url
+		page += page.includes("?") ? "&" : "?";
+		page += `updated_after=${convertToISO8601(updated)}`;
+	}
+
 	let apiEndpoint = new Request(page, {
 		method: 'GET',
 		headers: requestHeaders
@@ -12,25 +19,24 @@ const fetchPage = async (apiToken, page) => {
 		.then(response => response.json())
 		.then(responseBody => {
 			const result = responseBody;
+			if (result.error) {
+				console.log(result.error);
+			}
 			return result;
 		})
 		.catch(errorHandling);
 }
 
 // recursive function to fetch all pages that come after a given page (given page included)
-const fetchAllPages = async (apiToken, page) => {
+const fetchAllPages = async (apiToken, page, updated) => {
 	if (!page) return [];
 
-	const result = await fetchPage(apiToken, page);
+	const result = await fetchPage(apiToken, page, updated);
 	
-	// handle 429 error
-	if (result.error && result.code === 429) {
-		// discard
-		console.log("Too many requests, cutting short");
-		return [];
-	}
+	if (result.error)
+		return result;
 
-	return [result].concat(await fetchAllPages(apiToken, result.pages.next_url));
+	return [result].concat(await fetchAllPages(apiToken, result.pages.next_url, updated));
 }
 
 // check if the data in the endpoints has been modified since the given date
@@ -41,12 +47,12 @@ const modifiedSince = async (apiKey, date, url) => {
 	requestHeaders.append('If-Modified-Since', date);
 	var requestInit = { method: 'GET', headers: requestHeaders };
 	var endpoint = new Request(url, requestInit);
-
+	
 	return fetch(endpoint)
-		.then(response => {
-			const result = response.status !== 304;
-			console.log("MODIFIED: "+result);
-			return result;
+	.then(response => {
+		const result = response.status !== 304;
+		console.log("MODIFIED", date, url, result);
+		return result;
 	
 	})
 	.catch(errorHandling);

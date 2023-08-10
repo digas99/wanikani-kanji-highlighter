@@ -1,24 +1,19 @@
 chrome.storage.local.get(["apiKey", "userInfo", "userInfo_updated"], result => {
-    const date = result["userInfo_updated"] ? result["userInfo_updated"] : formatDate(new Date());
+    const date = result["userInfo_updated"];
+    const userInfo = result["userInfo"]["data"];
 
-    modifiedSince(result["apiKey"], date, "https://api.wanikani.com/v2/user")
-        .then(modified => {
-            const userInfo = result["userInfo"]["data"];
+    // if user info has been updated in wanikani, then update cache
+    if (!userInfo)
+        fetchUserInfo(result["apiKey"]);
+    
+    if (userInfo) {
+        const avatar = document.querySelector("#profile img");
+        setAvatar(avatar, "https://www.wanikani.com/users/"+userInfo["username"], userInfo["avatar"], result["userInfo"]);
 
-            // if user info has been updated in wanikani, then update cache
-            if (!userInfo || modified)
-                fetchUserInfo(result["apiKey"]);
-            
-            if (userInfo) {
-                const avatar = document.querySelector("#profile img");
-                setAvatar(avatar, "https://www.wanikani.com/users/"+userInfo["username"], userInfo["avatar"], result["userInfo"]);
-
-                const level = document.querySelector("#profile p");
-                if (level && userInfo["level"])
-                    level.appendChild(document.createTextNode(userInfo["level"]));
-            }
-
-        });
+        const level = document.querySelector("#profile p");
+        if (level && userInfo["level"])
+            level.appendChild(document.createTextNode(userInfo["level"]));
+    }
 });
 
 const setAvatar = (elem, url, avatar, userInfo) => {

@@ -34,8 +34,8 @@
 
 		// update text
 		update: function(text, subtext) {
-			if (text) this.textNode.innerText = text;
-			if (subtext) this.subtextNode.innerText = subtext;
+			if (text && this.textNode) this.textNode.innerText = text;
+			if (subtext && this.subtextNode) this.subtextNode.innerText = subtext;
 		},
 
 		// remove popup

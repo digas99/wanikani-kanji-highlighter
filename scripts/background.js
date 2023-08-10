@@ -1,10 +1,10 @@
 importScripts(
+	"/scripts/static.js",
 	"/scripts/time.js",
 	"/scripts/fetch/data-fetch.js",
 	"/scripts/fetch/wk-fetch.js",
 	"/scripts/database.js",
 	"/scripts/functions.js",
-	"/scripts/static.js",
 	"/scripts/kana.js",
 	"/lib/localstoragedb.min.js"
 );
@@ -81,17 +81,6 @@ const setSettings = () => {
 setSettings();
 
 const fetchReviewedKanjiID = async (apiToken, page) => {
-	if (!await canFetch()) {
-		// get from local storage instead
-		return new Promise((resolve, reject) => {
-			chrome.storage.local.get(["allkanji"], result => {
-				resolve(Object.values(result["allkanji"])
-					.filter(kanji => kanji.srs_stage > 0)
-					.map(kanji => kanji.id));
-			});
-		});
-	}
-
 	//fetch all reviewed kanji
 	return await fetchAllPages(apiToken, page)
 		.then(reviews => {
@@ -291,8 +280,6 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 let highlightUpdateFunction;
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	console.log("from background", request);
-
 	// sends to the content script information about key pressing and the reference to the highlight update function
 	if (request.key)
 		tabs.sendMessage(thisTabId, {key: request.key, intervalFunction: highlightUpdateFunction});
@@ -328,6 +315,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	// drive the setup progress back to the popup
 	if (request.setup) {
 		chrome.runtime.sendMessage({setup: request.setup});
+	}
+
+	// drive the database progress back to the popup
+	if (request.db) {
+		chrome.runtime.sendMessage({db: request.db});
 	}
 });
 

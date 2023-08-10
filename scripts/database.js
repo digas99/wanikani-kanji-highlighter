@@ -20,8 +20,6 @@
                 request.onupgradeneeded = e => {
                     that.db = e.target.result;
 
-                    console.log("upgrading");
-
                     let objectStore = that.db.createObjectStore(table, {keyPath: key});
                     if (indexes)
                         indexes.forEach(index => objectStore.createIndex(index, [index], {unique: false}));
@@ -31,8 +29,6 @@
 
                 request.onsuccess = e => {
                     that.db = e.target.result;
-            
-                    console.log("DB Opened", that.db);
             
                     that.db.onerror = e => {
                         console.log("Failed to open.", e.target.error);
@@ -95,16 +91,20 @@
                 return new Promise((resolve, reject) => {
                     transaction.oncomplete = () => {
                         console.log("All transactions were complete.");
+                        chrome.runtime.sendMessage({db: {method: "insert", table: table, saved: records.length, total: records.length}});
                         resolve(true);
                     }
             
                     transaction.onerror = e => {
                         console.log("Problem inserting records.", e.target.error);
+                        chrome.runtime.sendMessage({db: {method: "insert", table: table, saved: -1, total: records.length}});
                         resolve(false);
                     }
             
+                    let progress = 0;
                     records.forEach(record => {
                         objectStore.put(record);
+                        chrome.runtime.sendMessage({db: {method: "insert", table: table, saved: ++progress, total: records.length}});
                     });
                         
                 });

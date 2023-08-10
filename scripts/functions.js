@@ -443,14 +443,44 @@ const canFetch = async () => {
 	return !bulkFetch["bulk_fetch"] || new Date().getTime() - bulkFetch["bulk_fetch"] > 60000;
 }
 
+const sizeToFetch = async apiToken => {
+	return new Promise(resolve => {
+		chrome.storage.local.get([RADICAL_SETUP.storage.updated, VOCAB_SETUP.storage.updated, KANA_VOCAB_SETUP.storage.updated, KANJI_SETUP.storage.updated, ASSIGNMENTS_SETUP.storage.updated], async result => {
+			const fetches = await Promise.all(
+				[RADICAL_SETUP, VOCAB_SETUP, KANA_VOCAB_SETUP, KANJI_SETUP, ASSIGNMENTS_SETUP]
+				  .map(async setup => await modifiedSince(apiToken, result[setup.storage.updated], setup.endpoint))
+			);
+			console.log(fetches);
+	
+			const filteredFetches = fetches.filter(Boolean);
+			resolve(filteredFetches.length);
+		});
+	});
+}
+
 // get all assignments if there are none in storage or if they were modified
 // see if all subjects are already saved in storage
 const loadData = async (apiToken, tabId, callback) => {
-	// get number of fetches that will be done
-	fetches = [RADICAL_SETUP, VOCAB_SETUP, KANA_VOCAB_SETUP, KANJI_SETUP, ASSIGNMENTS_SETUP]
-		.map(async setup => await modifiedSince(apiToken, setup.storage.updated, setup.endpoint))
-		.filter(Boolean).length;
+	const returnObject = (assignments, radicals, vocab, kana_vocab, kanji) => ({
+			assignments: assignments,
+			radicals: radicals,
+			vocab: vocab,
+			kana_vocab: kana_vocab,
+			kanji: kanji
+	});
 	
+	if (!await canFetch()) {
+		// use data from storage
+		if (callback) {
+			chrome.storage.local.get([ASSIGNMENTS_SETUP.storage.id, RADICAL_SETUP.storage.id, VOCAB_SETUP.storage.id, KANA_VOCAB_SETUP.storage.id, KANJI_SETUP.storage.id], result => {
+				callback(returnObject(result[ASSIGNMENTS_SETUP.storage.id], result[RADICAL_SETUP.storage.id], result[VOCAB_SETUP.storage.id], result[KANA_VOCAB_SETUP.storage.id], result[KANJI_SETUP.storage.id]));
+			});
+		}
+		return;
+	}				
+
+	// get number of fetches that will be done
+	fetches = await sizeToFetch(apiToken); 
 	console.log("fetches: ", fetches);
 		
 	// assignments
@@ -540,13 +570,7 @@ const loadData = async (apiToken, tabId, callback) => {
 
 	Promise.all(setups).then(results => {
 		if (callback) {
-			callback({
-				assignments: assignments,
-				radicals: results[0],
-				vocab: results[1],
-				kana_vocab: results[2],
-				kanji: results[3]
-			});
+			callback(returnObject(assignments, results[0], results[1], results[2], results[3]));
 		}
 	});
 }
@@ -635,9 +659,6 @@ const assignUponSubjects = async list => {
 }
 
 const revStatsUponSubjects = async (apiToken, list) => {
-	// check if can fetch
-	if (!await canFetch()) return;
-
 	const type = list[Object.keys(list)[0]]["subject_type"];
 	if (list && type) {
 		console.log(`Associating review statistics with ${type} ...`);

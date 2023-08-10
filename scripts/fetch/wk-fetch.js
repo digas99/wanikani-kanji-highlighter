@@ -1,117 +1,121 @@
 const setupSubjects = (apiToken, setup, build, callback) =>
 	new Promise(async (resolve, reject) => {
 		chrome.storage.local.get([setup.storage.id, setup.storage.updated], async result => {
-			const updated = result[setup.storage.updated] ? result[setup.storage.updated] : formatDate(new Date());
-			const modified = await modifiedSince(apiToken, updated, setup.endpoint);
-			console.log(result);
-			if (await canFetch() && (!result[setup.storage.id] || modified)) {
-				const db = new Database("wanikani");
-				const created = await db.create("subjects");
-				if (created) {
-					fetchAllPages(apiToken, setup.endpoint)
-						.then(async data => {
-							const subjects = {};
-							const associations = {};
-							const db_records = [];
-							data.map(content => content.data)
-								.flat(1)
-								.forEach(subject => build(subjects, associations, db_records, subject));
+			const updated = result[setup.storage.updated];
+			const storage = result[setup.storage.id];
 
-							await db.insert("subjects", db_records);
+			const db = new Database("wanikani");
+			const created = await db.create("subjects");
+			if (created) {
+				fetchAllPages(apiToken, setup.endpoint, updated)
+					.then(async data => {
+						// too many requests or not modified
+						if (data.error) {
+							console.log(data);
+							resolve([storage, false]);
+							if (callback)
+								callback(storage, false);
+							return;
+						}
 
-							console.log("Inserted "+db_records.length+" records into database for "+setup.name);
+						const subjects = {};
+						const associations = {};
+						const db_records = [];
+						data.map(content => content.data)
+							.flat(1)
+							.forEach(subject => build(subjects, associations, db_records, subject));
 
-							// add jlpt info
-							if (setup.jlpt) {
-								for (const n in jlpt) {
-									jlpt[n].forEach(kanji => subjects[associations[kanji]]["jlpt"] = n.toUpperCase());
-								}
+						await db.insert("subjects", db_records);
+
+						console.log("Inserted "+db_records.length+" records into database for "+setup.name);
+
+						// add jlpt info
+						if (setup.jlpt) {
+							for (const n in jlpt) {
+								jlpt[n].forEach(kanji => subjects[associations[kanji]]["jlpt"] = n.toUpperCase());
 							}
+						}
 
-							// add joyo info
-							if (setup.joyo) {
-								for (const n in joyo) {
-									joyo[n].forEach(kanji => subjects[associations[kanji]]["joyo"] = "Grade "+n.charAt(1));
-								}
+						// add joyo info
+						if (setup.joyo) {
+							for (const n in joyo) {
+								joyo[n].forEach(kanji => subjects[associations[kanji]]["joyo"] = "Grade "+n.charAt(1));
 							}
-							
-							// saving all subjects
-							chrome.storage.local.set({...{[setup.storage.id]: subjects, [setup.storage.association]: associations, [setup.storage.updated]: formatDate(new Date()), [setup.storage.size]:data[0]["total_count"]}}, () => {
-								console.log("Setup "+setup.name+"...");
-								resolve([subjects, true]);
-								if (callback)
-									callback(subjects, true);
-							});
-						})
-						.catch(reject);
-				}
-			}
-			else {
-				resolve([result[setup.storage.id], false]);
-				if (callback)
-					callback(result[setup.storage.id], false);
+						}
+						
+						// saving all subjects
+						chrome.storage.local.set({...{[setup.storage.id]: subjects, [setup.storage.association]: associations, [setup.storage.updated]: formatDate(new Date()), [setup.storage.size]:data[0]["total_count"]}}, () => {
+							console.log("Setup "+setup.name+"...");
+							resolve([subjects, true]);
+							if (callback)
+								callback(subjects, true);
+						});
+					})
+					.catch(reject);
 			}
 		});
 	});
 
 const fetchUserInfo = async(apiToken, callback) => {
-	if (!await canFetch()) {
-		chrome.storage.local.get(["userInfo"], result => {
-			callback(result["userInfo"]);
-		});
-		return;
-	}
+	chrome.storage.local.get(["userInfo", "userInfo_updated"], async result => {
+		const updated = result["userInfo"];
+		const storage = result["userInfo_updated"];
 
-	fetchPage(apiToken, "https://api.wanikani.com/v2/user")
-		.then(user => {
-			chrome.storage.local.set({"userInfo":user, "userInfo_updated":formatDate(new Date())});
-			if (callback)
-				callback(user);
-		})
-		.catch(() => callback(null));
+		fetchPage(apiToken, "https://api.wanikani.com/v2/user", updated)
+			.then(user => {
+				// too many requests or not modified
+				if (user.error) {
+					console.log(user);
+					if (callback)
+						callback(storage);
+					return;
+				}
+
+				chrome.storage.local.set({"userInfo":user, "userInfo_updated":formatDate(new Date())});
+				if (callback)
+					callback(user);
+			});
+	});
 }
 
 const setupAssignments = async (apiToken, callback) => 
 	new Promise((resolve, reject) => {
-		chrome.storage.local.get(["assignments", "assignments_updated"], result => {
+		chrome.storage.local.get(["assignments", "assignments_updated"], async result => {
+			const updated = result["assignments_updated"];
 			const assignments = result["assignments"];
-			modifiedSince(apiToken, result["assignments_updated"], "https://api.wanikani.com/v2/assignments")
-				.then(async modified => {
-					if (await canFetch() && (!assignments || modified)) {
-						fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments")
-							.then(data => {
-								const allAssignments = data.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
-								const allFutureAssignments = filterAssignmentsByTime(allAssignments, new Date(), null);
-								const allAvailableReviews = filterAssignmentsByTime(allAssignments, new Date(), changeDay(new Date(), -1000));
-								chrome.storage.local.set({"assignments":{
-									"all":allAssignments,
-									"future":allFutureAssignments,
-									"past":allAvailableReviews
-								}, "assignments_updated":formatDate(new Date())}, () => {
-									resolve(data, true);
-									if (callback)
-										callback(data, true);
-								});
-							})
-							.catch(reject);
-					}
-					else {
-						resolve(assignments, false);
+
+			fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments", updated)
+				.then(data => {
+					// too many requests or not modified
+					if (data.error) {
+						console.log(data);
+						resolve([assignments, false]);
 						if (callback)
 							callback(assignments, false);
+						return;
 					}
-				});
+
+					const allAssignments = data.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
+					const allFutureAssignments = filterAssignmentsByTime(allAssignments, new Date(), null);
+					const allAvailableReviews = filterAssignmentsByTime(allAssignments, new Date(), changeDay(new Date(), -1000));
+					chrome.storage.local.set({"assignments":{
+						"all":allAssignments,
+						"future":allFutureAssignments,
+						"past":allAvailableReviews
+					}, "assignments_updated":formatDate(new Date())}, () => {
+						resolve([data, true]);
+						if (callback)
+							callback(data, true);
+					});
+				})
 		});
 	});
 
 const setupAvailableAssignments = async (apiToken, callback) => {
-	if (!await canFetch()) return;
-
 	fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments?immediately_available_for_lessons")
 		.then(lessons => {
 			fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments?immediately_available_for_review")
 				.then(reviews => {
-					console.log(lessons, reviews);
 					const countReviews = reviews[0]["total_count"];
 					const countLessons = lessons[0]["total_count"];
 
