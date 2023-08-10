@@ -457,6 +457,7 @@ const KANJI_SETUP = {
 const ASSIGNMENTS_SETUP = {
 	endpoint: "https://api.wanikani.com/v2/assignments",
 	storage: {
+		id: "assignments",
 		updated: "assignments_updated"
 	}
 };

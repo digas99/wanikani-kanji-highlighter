@@ -174,19 +174,10 @@ const mdToHTML = lineText => {
 	}
 
 	let elem;
-	if (hCounter == 1) {
+	if (hCounter == 1)
 		elem = document.createElement("p");
-		elem.style.fontSize = "14px";
-	}
-	else {
+	else
 		elem = document.createElement("h"+hCounter);
-		if (hCounter == 2) {
-			elem.style.marginTop = "20px";
-			elem.style.marginBottom = "5px";
-		}
-		
-		if (hCounter == 3) elem.style.fontSize = "16px";
-	}
 
 	// detect links headers
 	let insideLink = false;
@@ -199,7 +190,11 @@ const mdToHTML = lineText => {
 		
 		if (insideLink) newLine+=line.charAt(i);
 
-		if (line.charAt(i) == '[') insideLink = true;
+		if (line.charAt(i) == '[') {
+			if (i !== 1) break;
+
+			insideLink = true;
+		}
 	}
 
 	if (line == "---") line = "";
@@ -207,7 +202,12 @@ const mdToHTML = lineText => {
 	if (lineText.charAt(0) === ' ')
 		elem.style.paddingLeft = "10px";
 
-	line.replaceAll('*', '');
+	if (line.slice(0, 3) === "***") {
+		elem.classList.add("md-extra-highlighted");
+	}
+
+	line = line.replaceAll('*', '');
+
 
 	elem.appendChild(document.createTextNode(line));
 
@@ -412,6 +412,19 @@ const setupKanji = (kanjis, assocs, records, kanji) => {
 
 let progress = 0, fetches = 0;
 
+const sendSetupProgress = (text, progress, tab) => {
+	const messageData = {
+		setup: {
+			text: text,
+			progress: progress,
+		}
+	}
+	if (tab)
+		chrome.tabs.sendMessage(tab, messageData);
+	else
+		chrome.runtime.sendMessage(messageData);
+}
+
 const handleSubjectsResult = async (message, subjects, key) => {
 	if (subjects && key) {
 		await assignUponSubjects(subjects);
@@ -419,20 +432,19 @@ const handleSubjectsResult = async (message, subjects, key) => {
 	}
 
 	progress++;
-	const messageData = {
-		setup: {
-			text: message.text,
-			progress: progress/fetches,
-		}
-	}
-	if (message.tab)
-		chrome.tabs.sendMessage(message.tab, messageData);
-	else
-		chrome.runtime.sendMessage(messageData);
+	sendSetupProgress(message.text, progress/fetches, message.tab);
+}
+
+// check if bulk fetch was done less than 1 minute ago
+const canFetch = async () => {
+	const bulkFetch = await new Promise(resolve => {
+		chrome.storage.local.get(["bulk_fetch"], resolve);
+	});
+	return !bulkFetch["bulk_fetch"] || new Date().getTime() - bulkFetch["bulk_fetch"] > 60000;
 }
 
 // get all assignments if there are none in storage or if they were modified
-// see if all kanji is already saved in storage
+// see if all subjects are already saved in storage
 const loadData = async (apiToken, tabId, callback) => {
 	// get number of fetches that will be done
 	fetches = [RADICAL_SETUP, VOCAB_SETUP, KANA_VOCAB_SETUP, KANJI_SETUP, ASSIGNMENTS_SETUP]
@@ -511,6 +523,9 @@ const loadData = async (apiToken, tabId, callback) => {
 			const [kanji, fetched] = result;
 
 			resolve(kanji);
+
+			// add bulk fetch timestamp to storage
+			chrome.storage.local.set({bulk_fetch: new Date().getTime()});
 
 			const messageText = "✔ Loaded Kanji data.";
 			console.log(messageText);
@@ -620,6 +635,9 @@ const assignUponSubjects = async list => {
 }
 
 const revStatsUponSubjects = async (apiToken, list) => {
+	// check if can fetch
+	if (!await canFetch()) return;
+
 	const type = list[Object.keys(list)[0]]["subject_type"];
 	if (list && type) {
 		console.log(`Associating review statistics with ${type} ...`);

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">	
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width">
+	<title>WKHighlighter</title>
+	<link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="styles/navbar.css">
+    <link rel="stylesheet" href="styles/message-popup.css">
+	<link rel="stylesheet" href="styles/about.css">
+</head>
+<body>
+	<!-- TOP NAVBAR -->
+	<div class="topNav">
+		<a href="home.html" title="Go back" class="clickable">
+			<div>
+				<i class="left"></i>
+				<div>About</div>
+			</div>
+		</a>
+		<div class="clickable star" title="Make this the Home Page">
+			<img src="/images/star.png">
+		</div>
+    </div>
+
+	<!-- PAGE CONTENT -->
+	<div id="sec-page">
+		<!-- INFO -->
+		<div class="section">
+			<h2>Wanikani Kanji Highlighter</h2>
+			<h3 id="version">Version: </h3>
+			<p>Unofficial kanji highlighter, matching kanji learned with Wanikani.</p>
+		</div>
+		
+		<!-- API KEY -->
+		<div class="section">
+			<h3>API Key</h3>
+			<div class="api-key">
+				<p></p>
+				<img src="/images/copy.png" alt="copy" class="clickable">
+			</div>	
+		</div>
+		
+		<!-- USED LIBRARIES -->
+		<div class="section">
+			<h3>Used libraries</h3>
+			<ul class="libraries">
+				<li>
+					<a href="https://www.chartjs.org/" title="https://www.chartjs.org/" target="_blank">
+						<img src="/images/chart_js.svg" alt="chartjs">
+						<b>Chart.js</b>
+					</a>
+					<p>Creation of charts, used to show the number of future reviews per day</p>
+				</li>
+				<li>
+					<a href="https://chartjs-plugin-datalabels.netlify.app/" title="https://chartjs-plugin-datalabels.netlify.app/" target="_blank">
+						<img src="/images/chart_js_plugin_datalabels.svg" alt="chartjs plugin">
+						<b>chartjs-plugin-datalabels</b>
+					</a>
+					<p>Dynamic content in data labels of charts from Chart.js</p>
+				</li>
+				<li>
+					<a href="https://nadh.in/code/localstoragedb/" title="https://nadh.in/code/localstoragedb/" target="_blank">
+						<img src="/images/library.png" alt="localstoragedb" style="margin-left: 10px; width: 30px;">
+						<b>localStorageDB</b>
+					</a>
+					<p>Organize browser local storage for it to behave as a relational database, which allowed for minimal loading times in the Extension Popup</p>
+				</li>
+			</ul>
+		</div>
+		
+		<!-- CHANGELOG -->
+		<div class="changelog section"></div>
+		
+		<!-- FOOTER -->
+		<div class="section">
+			<p>
+				<span>Hi, my name is Diogo. I'm from Portugal and I'm a student at Universidade de Aveiro.</span>
+				<br>
+				<span>Building this project, I took huge inspiration from <a href="https://www.wanikani.com" target="_blank">WaniKani</a> (obviously) and from <a href="https://play.google.com/store/apps/details?id=com.the_tinkering.wk">Flaming Durtles</a>, an amazing app to user Wanikani on mobile.</span>
+			</p>
+			<div class="footer-icons" style="padding-top: 10px; text-align: center;">
+				<a href="https://github.com/digas99/wanikani-kanji-highlighter" target="_blank" title="Source Code">
+					<img src="/images/github-logo.png" alt="github">
+				</a>
+				<a href="https://www.wanikani.com" target="_blank" title="Wanikani">
+					<img src="/images/wanikani-logo.png" alt="wanikani">
+				</a>
+			</div>
+		</div>
+	</div>
+
+	   <!-- SIDEBAR -->
+	<div class="side-panel">
+        <a href="profile.html" class="clickable" id="profile">
+            <div>
+                <img src="/images/wanikani-default.png">
+            </div>
+            <p title="Level"></p>
+        </a>
+        <ul>
+            <li class="clickable" style="position: relative;">
+                <a href="settings.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="settings" src="../images/settings.png" title="Settings" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="search.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="search" src="../images/search.png" title="Search" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative; padding-right: 3px;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="blacklist" src="../images/blacklist.png" title="Blacklist" style="width: 20px;">
+                    <span class="side-panel-info-alert" style="background-color: red; color: white; filter: invert(1);">0</span>
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="about.html" class="navbar_icon disabled" style="padding: 0px 5px;">
+                    <img id="about" src="../images/about.png" title="About" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="random" src="../images/random.png" title="Random" data-item-id="rand" class="kanjiDetails" style="width: 20px;">
+                    <span id="random-subject-type" class="side-panel-info-alert">A</span>
+                </a>
+            </li>
+            <li class="clickable" style="position: relative; padding-left: 3px;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="exit" src="../images/exit.png" title="Exit" style="width: 20px;">
+                </a>
+            </li>
+        </ul>
+        <div id="side-panel-logo" class="clickable" title="Wanikani Kanji Highlighter">
+            <img src="../logo/logo.png" style="pointer-events: none;">
+        </div>
+    </div>
+
+	<script src="/scripts/static.js"></script>
+	<script src="/scripts/fetch/data-fetch.js"></script>
+    <script src="/scripts/fetch/wk-fetch.js"></script>
+	<script src="/scripts/functions.js"></script>
+    <script src="scripts/message-popup.js"></script>
+	<script src="scripts/scripts.js"></script>
+	<script src="scripts/navbar.js"></script>
+	<script src="scripts/about.js"></script>
+</body>

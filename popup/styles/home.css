@@ -177,6 +177,13 @@
 	font-size: 25.2px;
 }
 
+.not-found {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
 .not-found > p:first-child {
 	text-align: center;
     padding-bottom: 12px;

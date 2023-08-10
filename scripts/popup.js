@@ -1275,6 +1275,7 @@ window.onload = () => {
 														const notFound = document.createElement("div");
 														kanjiFoundUl.appendChild(notFound);
 														notFound.classList.add("not-found");
+														document.querySelector(".highlightedKanjiContainer").style.height = "160px";
 														const kanjiModel = document.createElement("p");
 														notFound.appendChild(kanjiModel);
 														const randHex = rand(parseInt("4e00", 16), parseInt("9faf", 16)).toString(16);
@@ -3253,6 +3254,7 @@ document.addEventListener("click", e => {
 					const notFound = document.createElement("div");
 					container.appendChild(notFound);
 					notFound.classList.add("not-found");
+					document.querySelector(".highlightedKanjiContainer").style.height = "160px";
 					const kanjiModel = document.createElement("p");
 					notFound.appendChild(kanjiModel);
 					const randHex = rand(parseInt("4e00", 16), parseInt("9faf", 16)).toString(16);
@@ -4135,6 +4137,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					const notFound = document.createElement("div");
 					kanjiFoundUl.appendChild(notFound);
 					notFound.classList.add("not-found");
+					document.querySelector(".highlightedKanjiContainer").style.height = "160px";
 					const kanjiModel = document.createElement("p");
 					notFound.appendChild(kanjiModel);
 					const randHex = rand(parseInt("4e00", 16), parseInt("9faf", 16)).toString(16);

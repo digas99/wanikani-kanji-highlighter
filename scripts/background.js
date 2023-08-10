@@ -81,6 +81,17 @@ const setSettings = () => {
 setSettings();
 
 const fetchReviewedKanjiID = async (apiToken, page) => {
+	if (!await canFetch()) {
+		// get from local storage instead
+		return new Promise((resolve, reject) => {
+			chrome.storage.local.get(["allkanji"], result => {
+				resolve(Object.values(result["allkanji"])
+					.filter(kanji => kanji.srs_stage > 0)
+					.map(kanji => kanji.id));
+			});
+		});
+	}
+
 	//fetch all reviewed kanji
 	return await fetchAllPages(apiToken, page)
 		.then(reviews => {
@@ -96,8 +107,8 @@ const fetchReviewedKanjiID = async (apiToken, page) => {
 
 // transform the kanji IDs into kanji characters
 const setupLearnedKanji = async (apiToken, page, kanji) => {
-	const IDs = await fetchReviewedKanjiID(apiToken, page);
-	const learnedKanji = IDs.map(id => kanji[id].slug);
+	const ids = await fetchReviewedKanjiID(apiToken, page);
+	const learnedKanji = ids.map(id => kanji[id].slug);
 	chrome.storage.local.set({"learnedKanji": learnedKanji, "learnedKanji_updated":formatDate(new Date())});
 	return learnedKanji;
 }

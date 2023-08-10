@@ -1,0 +1,101 @@
+#sec-page .section {
+	padding: 20px 10px;
+}
+
+#sec-page .section:not(:last-child) {
+	border-bottom: 1px solid silver;
+}
+
+.api-key {
+	display: flex;
+	align-items: center;
+	column-gap: 10px;
+}
+
+.api-key > img {
+	width: 20px;
+}
+
+.libraries > li:not(:last-child) {
+	margin-bottom: 10px;
+}
+
+.libraries > li > a {
+	display: flex;
+	align-items: center;
+	height: 40px;
+}
+
+.libraries > li > a > img {
+	width: 40px;
+	margin-right: 10px;
+}
+
+.libraries > li > p {
+	padding-left: 20px;
+	margin-top: 5px;
+}
+
+.readme-navbar {
+    display: flex;
+    font-size: 12px;
+    overflow: auto;
+    margin-bottom: 4px;
+    column-gap: 2px;
+    padding-bottom: 2px;
+}
+
+.readme-navbar > div {
+	padding: 5px;
+    border: 2px solid var(--default-color);
+    color: var(--default-color);
+	font-weight: bold;
+}
+
+.readme-navbar-selected, .readme-navbar > div:hover {
+    background-color: var(--default-color);
+	color: white !important;
+}
+
+.readme {
+    max-height: 300px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+.readme h2 {
+    margin-bottom: 20px;
+    background-color: var(--default-color);
+    padding: 8px;
+    color: white;
+}
+
+.readme h2:not(:first-child) {
+	margin-top: 10px;
+}
+
+.readme p {
+    font-size: 14px;
+}
+
+.readme h3 {
+    font-size: 16px;
+}
+
+.md-extra-highlighted {
+    font-weight: bold;
+    font-style: italic;
+}
+
+.footer-icons {
+	padding-top: 10px;
+	text-align: center;
+}
+
+.footer-icons > a:not(:last-child) {
+	margin-right: 10px;
+}
+
+.footer-icons > a > img {
+	width: 30px;
+}

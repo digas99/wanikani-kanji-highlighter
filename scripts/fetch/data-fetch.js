@@ -22,6 +22,14 @@ const fetchAllPages = async (apiToken, page) => {
 	if (!page) return [];
 
 	const result = await fetchPage(apiToken, page);
+	
+	// handle 429 error
+	if (result.error && result.code === 429) {
+		// discard
+		console.log("Too many requests, cutting short");
+		return [];
+	}
+
 	return [result].concat(await fetchAllPages(apiToken, result.pages.next_url));
 }
 

@@ -4,7 +4,7 @@ const setupSubjects = (apiToken, setup, build, callback) =>
 			const updated = result[setup.storage.updated] ? result[setup.storage.updated] : formatDate(new Date());
 			const modified = await modifiedSince(apiToken, updated, setup.endpoint);
 			console.log(result);
-			if (!result[setup.storage.id] || modified) {
+			if (await canFetch() && (!result[setup.storage.id] || modified)) {
 				const db = new Database("wanikani");
 				const created = await db.create("subjects");
 				if (created) {
@@ -54,7 +54,14 @@ const setupSubjects = (apiToken, setup, build, callback) =>
 		});
 	});
 
-const fetchUserInfo = (apiToken, callback) => {
+const fetchUserInfo = async(apiToken, callback) => {
+	if (!await canFetch()) {
+		chrome.storage.local.get(["userInfo"], result => {
+			callback(result["userInfo"]);
+		});
+		return;
+	}
+
 	fetchPage(apiToken, "https://api.wanikani.com/v2/user")
 		.then(user => {
 			chrome.storage.local.set({"userInfo":user, "userInfo_updated":formatDate(new Date())});
@@ -64,13 +71,13 @@ const fetchUserInfo = (apiToken, callback) => {
 		.catch(() => callback(null));
 }
 
-const setupAssignments = (apiToken, callback) => 
+const setupAssignments = async (apiToken, callback) => 
 	new Promise((resolve, reject) => {
 		chrome.storage.local.get(["assignments", "assignments_updated"], result => {
 			const assignments = result["assignments"];
 			modifiedSince(apiToken, result["assignments_updated"], "https://api.wanikani.com/v2/assignments")
-				.then(modified => {
-					if (!assignments || modified) {
+				.then(async modified => {
+					if (await canFetch() && (!assignments || modified)) {
 						fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments")
 							.then(data => {
 								const allAssignments = data.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
@@ -97,11 +104,14 @@ const setupAssignments = (apiToken, callback) =>
 		});
 	});
 
-const setupAvailableAssignments = (apiToken, callback) => {
+const setupAvailableAssignments = async (apiToken, callback) => {
+	if (!await canFetch()) return;
+
 	fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments?immediately_available_for_lessons")
 		.then(lessons => {
 			fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments?immediately_available_for_review")
 				.then(reviews => {
+					console.log(lessons, reviews);
 					const countReviews = reviews[0]["total_count"];
 					const countLessons = lessons[0]["total_count"];
 

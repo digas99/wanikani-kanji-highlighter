@@ -45,8 +45,11 @@ chrome.storage.local.get(["apiKey", "settings", "userInfo", ...HIGHLIGHTED, ...A
 				const kanjiAssoc = result["kanji_assoc"];
 				
 				chrome.tabs.query({currentWindow: true, active: true}, tabs => {
-					chrome.tabs.sendMessage(tabs[0].id, {nmrKanjiHighlighted:"popup"}, ({learned, notLearned}) => {
-						kanjiListUpdate(learned, notLearned, kanjiAssoc);
+					chrome.tabs.sendMessage(tabs[0].id, {nmrKanjiHighlighted:"popup"}, result => {
+						if (result) {
+							const {nmrKanjiHighlighted, learned, notLearned} = result;
+							kanjiListUpdate(learned, notLearned, kanjiAssoc);
+						}
 					});
 				});
 			}
@@ -149,6 +152,7 @@ const kanjiListUpdate = (learned, notLearned, kanjiAssoc) => {
 	const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned"];
 	if (learned.length > 0 || notLearned.length > 0) {
 		document.querySelector(".not-found")?.remove();
+		document.querySelector(".highlightedKanjiContainer").style.removeProperty("height");
 		[learned, notLearned].forEach((kanjiList, i) => {
 			kanjiList.forEach(kanji => {
 				const li = document.createElement("li");
