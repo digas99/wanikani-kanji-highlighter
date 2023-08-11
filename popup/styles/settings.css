@@ -1,9 +1,82 @@
-.select {
-	background: #2a2d48;
-	color: white;
-	width: 100px;
-	padding: 2px 6px;
+#settingsContent {
+    font-size: 16px;
+    display: grid;
+    max-height: 516px;
+	margin-bottom: 13px;
 }
+
+#settingsContent>div {
+	margin: 10px 0;
+}
+
+.settingsSection {
+	display: grid;
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+	background-color: white;
+    border-radius: 5px;
+    color: black;
+	border: 1px solid silver;
+}
+
+.settingsSection > div {
+    display: flex;
+	align-items: center;
+	flex-direction: row;
+    padding: 3px 5px;
+}
+
+.settingsSection > p {
+	text-align: center;
+	padding: 4px;
+    background-color: var(--default-color);
+    color: white;
+	margin-bottom: 4px;
+}
+
+	/* 10.1 BLACKLISTED SITES */
+
+#blacklistedSitesList {
+	font-weight: 900;
+}
+
+#blacklistedSitesWrapper {
+	padding: 5px;
+	display: grid;
+	max-height: 150px;
+	overflow: auto;
+	color: silver;
+}
+
+.blacklisted_site_wrapper {
+	display: inline-flex;
+    padding: 5px 0;
+}
+
+.bin_container {
+	text-align: right;
+	width: 100%;
+}
+
+.bin_wrapper {
+	cursor: pointer;
+	margin-right: 7px;
+	padding: 4px;
+}
+
+.bin_icon {
+	width: 17px;
+}
+
+.blacklisted_title_arrow {
+	padding: 3px;
+    border-color: white;
+    margin-bottom: -2px;
+	margin-left: 9px;
+	pointer-events: none;
+}
+
+	/* 10.2 SETTINGS OPTIONS */
 
 .checkbox_wrapper {
 	text-align: right;
@@ -38,4 +111,145 @@
 .checkbox-enabled > .custom-checkbox-ball {
     margin-left: 16px;
     background-color: var(--default-color);
+}
+
+.settings_highlight_style_option {
+	padding: 0px 3px;
+    border: 2px solid #7c7c7c;
+    border-radius: 4px;
+	opacity: 0.4;
+}
+
+.settings_highlight_style_option:hover {
+	opacity: 1 !important;
+}
+
+.settingsItemLabel {
+	width: 100%;
+	font-weight: bold;
+}
+
+.practice-reminder-time {
+	margin-top: 4px;
+    border: 0;
+    border-bottom: 1px solid black;
+    font-size: 16px;
+	width: 120px;
+}
+
+.slider {
+	display: flex;
+	align-items: center;
+}
+
+.slider > span {
+	margin-left: 5px;
+    background-color: #2a2d48;
+    color: white;
+    font-size: 12px;
+    padding: 4px;
+	min-width: 16px;
+	width: fit-content;
+    height: 14px;
+    text-align: center;
+}
+
+.slider > input[type="range"] {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 72px;
+	height: 9px;
+    background: #636375;
+    border-radius: 10px;
+}
+
+.slider > input[type="range"]::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 18px;
+    height: 18px;
+    background: #2a2d48;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.slider > input[type="range"]::-moz-range-thumb {
+	width: 18px;
+    height: 18px;
+    background: #2a2d48;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.select {
+	background: #2a2d48;
+	color: white;
+	width: 100px;
+	padding: 2px 6px;
+}
+
+	/* 10.3 DANGER ZONE */
+.dangerItem {
+	padding: 3px 10px !important;
+	display: unset !important;
+}
+
+.dangerItem>.button {
+    padding: 5px;
+}
+
+.dangerItemDescription {
+	background-color: var(--dark-back);
+    color: silver;
+    padding: 7px;
+    border-radius: 0px 0px 7px 7px;
+    font-size: 12px;
+}
+
+/* 11. HIGHLIGHTS */
+.wkhighlighter_highlighted,
+.wkhighlighter_highlighted_underlined,
+.wkhighlighter_highlighted_bold,
+.wkhighlighter_highlightedNotLearned{
+	font-size: 100% !important;
+}
+
+.wkhighlighter_highlighted, .wkhighlighter_highlightedNotLearned {
+	color: white !important;
+}
+
+.wkhighlighter_highlightedNotLearned {
+	background-color: var(--notLearned-color) !important;
+}
+
+.wkhighlighter_highlighted {
+	background-color: var(--highlight-default-color) !important;
+}
+
+.wkhighlighter_highlighted_underlined {
+    border-bottom: 3px solid var(--highlight-default-color) !important;
+}
+
+.wkhighlighter_highlighted_bold {	
+    color: var(--highlight-default-color) !important;
+}
+
+.wkhighlighter_highlightedNotLearned_underlined {
+	border-bottom: 3px solid var(--notLearned-color) !important;
+}
+
+.wkhighlighter_highlightedNotLearned_bold {
+	color: var(--notLearned-color) !important;
+}
+
+.wkhighlighter_highlighted_underlined, .wkhighlighter_highlightedNotLearned_underlined {
+    color: inherit !important;
+}
+
+.wkhighlighter_highlighted_bold, .wkhighlighter_highlightedNotLearned_bold {
+    font-weight: bold !important;
+}
+
+.wkhighlighter_picked {
+	opacity: 1 !important;
 }

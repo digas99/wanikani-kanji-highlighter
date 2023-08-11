@@ -702,6 +702,33 @@ const revStatsUponSubjects = async (apiToken, list) => {
 	}
 }
 
+const blacklist = async url => {
+	if (!url) {
+		url = await new Promise(resolve => {
+			chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+				activeTab = tabs[0];
+				chrome.tabs.sendMessage(activeTab.id, {windowLocation: "host"}, response => {
+					if (!window.chrome.runtime.lastError && response["windowLocation"])
+						resolve(response["windowLocation"]);
+					else
+						resolve(null);
+				});
+			});
+		});
+	}
+
+    const blacklistData = await new Promise(resolve => {
+        chrome.storage.local.get(["blacklist"], blacklist => {
+            resolve(blacklist);
+        });
+    });
+
+    let blacklistedUrls = blacklistData["blacklist"] ? blacklistData["blacklist"] : [];
+    blacklistedUrls.push(url.replace("www.", "").replace(".", "\\."));
+    
+    chrome.storage.local.set({"blacklist": [...new Set(blacklistedUrls)]});
+}
+
 const blacklisted = (blacklist, url) => {
 	if (blacklist && blacklist.length > 0) {
 		const regex = new RegExp(`^http(s)?:\/\/(www\.)?(${blacklist.join("|")})(\/)?([a-z]+.*)?`, "g");

@@ -55,18 +55,38 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 });
 
-let messagePopup;
+let messagePopup, blacklisted_site, atWanikani;
 window.onload = () => {
 	messagePopup = new MessagePopup(document.body);
 	
-	chrome.storage.local.get(["initialFetch", "apiKey"], result => {
-		if (result["initialFetch"] || result["initialFetch"] == undefined) {
-			messagePopup.create("Fetching subject data from Wanikani...", "Please, don't close the extension.");
-			messagePopup.setLoading();
+	chrome.storage.local.get(["initialFetch", "apiKey", "settings", "blacklist"], result => {
+		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+			activeTab = tabs[0];
+			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, url => {
+				url = url["windowLocation"];
+				atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url);
+				blacklisted_site = blacklisted(result["blacklist"], url);
 
-		}
-
-		loadData(result["apiKey"]);
+				// setup css vars
+				const appearance = result["settings"]["appearance"];
+				const documentStyle = document.documentElement.style;
+				documentStyle.setProperty('--highlight-default-color', appearance["highlight_learned"]);
+				documentStyle.setProperty('--notLearned-color', appearance["highlight_not_learned"]);
+				documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
+				documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
+				documentStyle.setProperty('--vocab-tag-color', appearance["vocab_color"]);
+				Object.values(srsStages).map(srs => srs["short"].toLowerCase())
+					.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
+		
+				if (result["initialFetch"] || result["initialFetch"] == undefined) {
+					messagePopup.create("Fetching subject data from Wanikani...", "Please, don't close the extension.");
+					messagePopup.setLoading();
+		
+				}
+		
+				loadData(result["apiKey"]);
+			});
+		});
 	});
 }
 

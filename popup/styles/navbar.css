@@ -97,7 +97,7 @@
 
 .side-panel {
 	height: 100%;
-	width: 40px;
+	width: 45px;
 	position: fixed;
 	right: 0;
 	top: 0;
@@ -141,13 +141,13 @@
 }
 
 .side-panel-focus {
-	width: 90px;
+	width: 100px;
 	box-shadow: 0px 0px 4px 0px black;
 }
 
 .side-panel-focus > ul {
 	text-align: left;
-	padding-left: 5px;
+	padding-left: 12px;
 }
 
 .side-panel-focus > ul > li > a {

@@ -1,10 +1,12 @@
-chrome.storage.local.get(["apiKey", "userInfo", "userInfo_updated"], result => {
-    const date = result["userInfo_updated"];
+chrome.storage.local.get(["apiKey", "userInfo", "settings", "blacklist"], result => {
+    const apiKey = result["apiKey"];
     const userInfo = result["userInfo"]["data"];
+    const settings = result["settings"];
+    const blacklist = result["blacklist"];
 
     // if user info has been updated in wanikani, then update cache
     if (!userInfo)
-        fetchUserInfo(result["apiKey"]);
+        fetchUserInfo(apiKey);
     
     if (userInfo) {
         const avatar = document.querySelector("#profile img");
@@ -14,7 +16,42 @@ chrome.storage.local.get(["apiKey", "userInfo", "userInfo_updated"], result => {
         if (level && userInfo["level"])
             level.appendChild(document.createTextNode(userInfo["level"]));
     }
+
+    // random subject type
+    setRandomSubjectType(settings["kanji_details_popup"]["random_subject"]);
+
+    // blacklist button
+    setTimeout(() => console.log(blacklisted_site, atWanikani), 1000);
+    if (blacklist) {
+        const blacklistNumber = document.querySelector("#blacklist").parentElement.querySelector(".side-panel-info-alert");
+        if (blacklistNumber)
+            blacklistNumber.innerText = blacklist.length;
+    }
 });
+
+const setRandomSubjectType = (value) => {
+    const randomSubjectType = document.querySelector("#random-subject-type");
+    if (randomSubjectType) {
+        randomSubjectType.innerText = value.charAt(0);
+
+        const img = randomSubjectType.parentElement.getElementsByTagName("img")[0];
+        if (value === "Any") {
+            img.setAttribute("data-item-id", "rand");
+            randomSubjectType.style.removeProperty("background-color");
+            randomSubjectType.style.removeProperty("filter");
+        }
+        else if (value === "Kanji") {
+            img.setAttribute("data-item-id", "rand-kanji");
+            randomSubjectType.style.backgroundColor = "var(--kanji-tag-color)";
+            randomSubjectType.style.filter = "invert(1)";
+        }
+        else if (value === "Vocabulary") {
+            img.setAttribute("data-item-id", "rand-vocab");
+            randomSubjectType.style.backgroundColor = "var(--vocab-tag-color)";
+            randomSubjectType.style.filter = "invert(1)";
+        }
+    }
+}
 
 const setAvatar = (elem, url, avatar, userInfo) => {
     if (!avatar) {
@@ -36,7 +73,7 @@ const setAvatar = (elem, url, avatar, userInfo) => {
         elem.src = avatar;
 }
 
-window.addEventListener("click", e => {
+window.addEventListener("click", async e => {
     const target = e.target;
 
     if (target.id === "exit")
@@ -44,6 +81,12 @@ window.addEventListener("click", e => {
 
     if (target.id === "side-panel-logo")
         expandSideBar(document.querySelector(".side-panel"));
+
+    if (target.id === "blacklist") {
+        await blacklist();
+        window.location.reload();
+    }
+
 });
 
 const expandSideBar = sidebar => {

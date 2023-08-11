@@ -8,6 +8,7 @@ if (!messagePopup) {
 
 chrome.storage.local.get(["apiKey", "userInfo", "userInfo_updated", "settings"], result => {
     const date = result["userInfo_updated"] ? result["userInfo_updated"] : formatDate(new Date());
+    const apiKey = result["apiKey"];
     settings = result["settings"];
     menuSettings = settings && settings["profile_menus"] ? settings["profile_menus"] : defaultSettings["profile_menus"];
 
@@ -17,7 +18,7 @@ chrome.storage.local.get(["apiKey", "userInfo", "userInfo_updated", "settings"],
             db.getAll("subjects").then(data => {
                 const subjectsData = data.filter(subject => !subject["hidden_at"]);
 
-                modifiedSince(result["apiKey"], date, "https://api.wanikani.com/v2/user")
+                modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
                     .then(modified => {
                 		if (popupLoading) popupLoading.remove();
 

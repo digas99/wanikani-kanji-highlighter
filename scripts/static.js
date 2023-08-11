@@ -370,6 +370,9 @@ const settingsInterface = [
 ];
 
 const wanikaniPattern = {
+	highlight_learned: "#2c5091",
+	highlight_not_learned: "#a32727",
+	details_popup: "#404040",
 	radical_color: "#00a1f1",
 	kanji_color: "#f100a1",
 	vocab_color: "#a100f1",
@@ -386,6 +389,12 @@ const wanikaniPattern = {
 };
 
 const flamingDurtlesPattern = {
+	highlight_learned: "#2c5091",
+	highlight_not_learned: "#a32727",
+	details_popup: "#404040",
+	radical_color: "#65b6ae",
+	kanji_color: "#e7e485",
+	vocab_color: "#fc759b",
 	ap1_color: "#7dc9fb",
 	ap2_color: "#5db9fa",
 	ap3_color: "#3da8f6",
