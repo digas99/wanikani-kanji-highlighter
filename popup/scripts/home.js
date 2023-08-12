@@ -460,3 +460,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		});
 	}
 });
+
+document.addEventListener("scriptsLoaded", () => {
+	const main = document.getElementById("main");
+	const userInfoWrapper = document.querySelector("#userInfoWrapper");
+
+	if (atWanikani) main.insertBefore(enhancedWarning("Limited features at wanikani, sorry!", "var(--wanikani)"), userInfoWrapper);
+	else if (blacklistedSite) main.insertBefore(enhancedWarning("Site blacklisted by you!", "red"), userInfoWrapper);
+});
+
+const enhancedWarning = (text, color) => {
+	const wrapper = document.createElement("div");
+	wrapper.appendChild(document.createTextNode(text));
+	wrapper.id = "enhancedMessage";
+	wrapper.style.borderBottom = "0px";
+	wrapper.style.borderLeft = "10px solid";
+	wrapper.style.color = color;
+	return wrapper;
+}

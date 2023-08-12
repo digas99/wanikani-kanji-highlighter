@@ -1,8 +1,7 @@
-chrome.storage.local.get(["apiKey", "userInfo", "settings", "blacklist"], result => {
+chrome.storage.local.get(["apiKey", "userInfo", "settings"], result => {
     const apiKey = result["apiKey"];
     const userInfo = result["userInfo"]["data"];
     const settings = result["settings"];
-    const blacklist = result["blacklist"];
 
     // if user info has been updated in wanikani, then update cache
     if (!userInfo)
@@ -19,13 +18,64 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings", "blacklist"], result
 
     // random subject type
     setRandomSubjectType(settings["kanji_details_popup"]["random_subject"]);
+});
 
-    // blacklist button
-    setTimeout(() => console.log(blacklisted_site, atWanikani), 1000);
-    if (blacklist) {
-        const blacklistNumber = document.querySelector("#blacklist").parentElement.querySelector(".side-panel-info-alert");
-        if (blacklistNumber)
-            blacklistNumber.innerText = blacklist.length;
+// when scripts.js has loaded
+document.addEventListener("scriptsLoaded", () => {
+    console.log(blacklistedSite, atWanikani);
+    
+    // if site is blacklisted
+    if (blacklistedSite) {
+        const blacklistButton = document.querySelector("#blacklist");
+        if (blacklistButton) {
+            // remove blacklist button and change it for run button
+            const wrapper = blacklistButton.parentElement;
+            blacklistButton.nextElementSibling.remove();
+            blacklistButton.remove();
+            wrapper.style.removeProperty("padding-right");
+            const runButton = document.createElement("img");
+            wrapper.appendChild(runButton);
+            runButton.id = "run";
+            runButton.src = "/images/run.png";
+            runButton.title = "Run";
+            runButton.style = "width: 20px;";            
+        }
+
+        // remove highlighted kanji container
+        const highlightedKanjiCounter = document.querySelector(".highlightedKanjiContainer");
+        if (highlightedKanjiCounter)
+            highlightedKanjiCounter.remove();
+    }
+
+    // if site is wanikani
+    if (atWanikani) {
+        // remove some buttons
+        const buttons = document.querySelectorAll("#search, #blacklist, #run, #random");
+        buttons.forEach(button => button?.parentElement.remove());
+
+        // remove search area
+        const searchArea = document.querySelector(".searchArea");
+        if (searchArea)
+            searchArea.remove();
+
+        // remove highlighted kanji container
+        const highlightedKanjiCounter = document.querySelector(".highlightedKanjiContainer");
+        if (highlightedKanjiCounter)
+            highlightedKanjiCounter.remove();
+
+    }
+    
+    if (!blacklistedSite && !atWanikani) {
+        chrome.storage.local.get(["blacklist"], result => {
+            const blacklist_data = result["blacklist"];
+    
+            // blacklist button
+            if (blacklist_data) {
+                const blacklistNumber = document.querySelector("#blacklist").parentElement.querySelector(".side-panel-info-alert");
+                if (blacklistNumber)
+                    blacklistNumber.innerText = blacklist_data.length;
+            }
+        });
     }
 });
 

@@ -212,3 +212,12 @@
 .kanjiHighlightedLearned, .kanjiHighlightedNotLearned {
 	color: white;
 }
+
+#enhancedMessage {
+    font-size: 14px;
+	border-radius: 4px;
+	text-align: center;
+	border-bottom: 4px solid;
+    background-color: var(--default-color);
+    padding: 7px;
+}

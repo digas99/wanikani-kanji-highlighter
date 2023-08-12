@@ -314,6 +314,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 	// drive the setup progress back to the popup
 	if (request.setup) {
+		console.log("BACKGROUND JS", request.setup);
 		chrome.runtime.sendMessage({setup: request.setup});
 	}
 

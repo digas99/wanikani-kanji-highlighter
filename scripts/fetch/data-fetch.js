@@ -24,7 +24,6 @@ const fetchPage = async (apiToken, page, updated) => {
 			}
 			return result;
 		})
-		.catch(errorHandling);
 }
 
 // recursive function to fetch all pages that come after a given page (given page included)
@@ -55,7 +54,6 @@ const modifiedSince = async (apiKey, date, url) => {
 		return result;
 	
 	})
-	.catch(errorHandling);
 }
 
 

@@ -140,17 +140,23 @@ const clearCache = () => {
 	});
 }
 
-const clearSubjects = () => {
-	chrome.storage.local.get(null, data => {
-		let keysToRemove = [];
-		Object.keys(data).forEach(key => {
-			if (/^all.*/g.test(key)) {
-				keysToRemove.push(key);
-			}
+const clearSubjects = async () => {
+	// get data to keep (it's easier than to pick the ones to remove)
+	chrome.storage.local.get(null, async data => {
+		const keysToKeep = ["apiKey", "settings", "userInfo", "userInfo_updated"];
+		let dataToKeep = {};
+		keysToKeep.forEach(key => dataToKeep[key] = data[key]);
+		chrome.storage.local.clear(async () => {
+			console.log("cleared");
+			chrome.storage.local.set(dataToKeep);
+
+			const db = new Database("wanikani");
+			await db.create("subjects");
+			await db.delete("subjects");
+
+			if (typeof window !== 'undefined')
+				window.location.reload();
 		});
-		if (typeof window !== 'undefined')
-			window.location.reload();
-		chrome.storage.local.remove(keysToRemove);
 	});
 }
 
@@ -456,6 +462,18 @@ const sizeToFetch = async apiToken => {
 			resolve(filteredFetches.length);
 		});
 	});
+}
+
+function getTab() {
+    return new Promise((resolve, reject) => {
+        chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
+            if (tabs && tabs.length > 0) {
+                resolve(tabs[0]);
+            } else {
+                reject(new Error("No active tab found."));
+            }
+        });
+    });
 }
 
 // get all assignments if there are none in storage or if they were modified

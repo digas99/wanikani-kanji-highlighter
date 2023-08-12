@@ -194,7 +194,7 @@ document.addEventListener('click', e => {
 			switch (target.id) {
 				case "clearSubjectsData":
 					if (window.confirm("Clear all subject data?")) {
-
+						clearSubjects();
 					}
 					break;
 				case "clearAll":
