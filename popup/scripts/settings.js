@@ -1,4 +1,4 @@
-chrome.storage.local.get(["settings"], data => {
+chrome.storage.local.get(["settings", "blacklist"], data => {
 	const settings = data["settings"];
 	if (settings) {
 		// INPUTS VALUE
@@ -35,7 +35,66 @@ chrome.storage.local.get(["settings"], data => {
 			}
 		}
 	}
+
+	// BLACKLIST
+	const blacklist_data = data["blacklist"];
+	const wrapper = document.querySelector("#blacklistedSitesWrapper");
+	if (blacklist_data) {
+		// title
+		const blacklistTitle = document.querySelector("#blacklistedSitesList").firstChild;
+		blacklistTitle.nodeValue = `Blacklisted sites (${blacklist_data.length})`;
+		
+		// list
+		blacklist_data.forEach(site => wrapper.appendChild(blacklistEntry(site)));
+	}
+	
+	if (!blacklist_data || blacklist_data.length === 0) {
+		const p = document.createElement("p");
+		wrapper.appendChild(p);
+		p.appendChild(document.createTextNode("There are no sites blacklisted!"));
+	}
 });
+
+const blacklistEntry = (site) => {
+	site = site.replace("\\.", ".");
+
+	const div = document.createElement("div");
+	div.classList.add("blacklisted_site_wrapper");
+
+	// site
+	const a = document.createElement("a");
+	div.appendChild(a);
+	a.target = "_black";
+	a.href = "https://www."+site;
+	a.style.width = "100%";
+	a.appendChild(document.createTextNode(site));
+
+	// bin
+	const binWrapper = document.createElement("div");
+	binWrapper.classList.add("bin_container");
+	binWrapper.title = "Run on "+site;
+	div.appendChild(binWrapper);
+	const span = document.createElement("span");
+	binWrapper.appendChild(span);
+	span.classList.add("bin_wrapper", "clickable");
+	span.addEventListener("click", async () => {
+		const size = await blacklistRemove(site);
+		div.remove();
+
+		// decrease counter in title and navbar
+		const blacklistTitle = document.querySelector("#blacklistedSitesList").firstChild;
+		blacklistTitle.nodeValue = `Blacklisted sites (${size})`;
+		const blacklistNavbar = document.querySelector("#blacklist");
+		if (blacklistNavbar)
+			blacklistNavbar.nextElementSibling.innerText = `${size}`;
+	});
+	const bin = document.createElement("img");
+	bin.src = "/images/trash.png";
+	bin.classList.add("bin_icon");
+	span.appendChild(bin);
+
+	return div;
+}
 
 const checkboxStyle = (checkbox, checked) => {
 	if (checked) {
@@ -163,6 +222,20 @@ document.addEventListener('click', e => {
 
 	// BUTTONS
 	if (target.closest(".settingsSection .button")) {
+		// BLACKLIST
+		if (target.closest("#blacklistedSitesList")) {
+			const blacklistWrapper = document.getElementById("blacklistedSitesWrapper");
+			const arrow = target.querySelector(".arrow");
+			if (arrow.classList.contains("down")) {
+				flipArrow(arrow, "down", "up");
+				blacklistWrapper.style.removeProperty("display");
+			}
+			else {
+				flipArrow(arrow, "up", "down");
+				blacklistWrapper.style.display = "none";
+			}
+		}
+		
 		// APPEARANCE BUTTONS
 		if (target.parentElement.classList.contains("appearence-buttons")) {
 			const updateColorSchema = (colors) => {

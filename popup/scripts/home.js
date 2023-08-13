@@ -28,7 +28,7 @@ chrome.storage.local.get(["apiKey", "settings", "userInfo", ...HIGHLIGHTED, ...A
 				chrome.tabs.query({currentWindow: true, active: true}, tabs => {
 					["Highlighter", "Details Popup"].forEach((script, i) => {
 						chrome.tabs.sendMessage(tabs[0].id, {uptime: script}, response => {
-							if (response) document.querySelectorAll("#scriptsUptime div")[i].style.backgroundColor = "#80fd80";
+							if (response) document.querySelectorAll("#scripts_status div")[i].style.backgroundColor = "#80fd80";
 						});
 					});
 				});
@@ -54,6 +54,7 @@ chrome.storage.local.get(["apiKey", "settings", "userInfo", ...HIGHLIGHTED, ...A
 				});
 			}
 
+			console.log("HERE");
 
 			// LESSONS AND REVIEWS
 			if (settings["extension_popup_interface"]["lessons_and_reviews"]) {
@@ -118,6 +119,11 @@ chrome.storage.local.get(["apiKey", "settings", "userInfo", ...HIGHLIGHTED, ...A
 						});
 					}
 				});
+			}
+
+			// remove sections hidden by the user
+			for (let [key, show] of Object.entries(settings["extension_popup_interface"])) {
+				if (!show) document.querySelector(`#${key}`)?.remove();
 			}
 		}
 		else
@@ -300,6 +306,7 @@ const progressionBar = (wrapper, srsStages, progresses, size, colors) => {
 
 const progressionStats = (wrapper, srsStages, progresses, colors) => {
 	let row, stageValue, stageColor;
+	console.log(progresses);
 
 	Object.keys(srsStages).forEach(stage => {
 		stageValue = (progresses["radical"] && progresses["radical"][stage] ? progresses["radical"][stage] : 0)
@@ -440,7 +447,7 @@ const levelUpMarker = numberKanji => {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	// scripts uptime
 	if (request.uptimeDetailsPopup || request.uptimeHighlight) {
-		const uptimeSignals = document.querySelectorAll("#scriptsUptime div");
+		const uptimeSignals = document.querySelectorAll("#scripts_status div");
 		if (uptimeSignals) {
 			if (request.uptimeHighlight) 
 				uptimeSignals[0].style.backgroundColor = "#80fd80";

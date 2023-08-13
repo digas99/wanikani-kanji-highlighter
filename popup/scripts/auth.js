@@ -42,12 +42,21 @@ const submitAction = () => {
     if (!invalidKey) {
         popupLoading.create("Loading user info...");
         fetchUserInfo(apiKey, user => {
-            if (user && user.code != 401) {
-                chrome.storage.local.set({"apiKey":apiKey, "userInfo":user, "userInfo_updated":formatDate(new Date())});
-                window.location.href = "home.html";
-            }
-            else {
-                main.insertBefore(message("The API key doesn't exist!", "red"), form);
+            if (user) {
+                if (user.code == 401) {
+                    main.insertBefore(message("The API key doesn't exist!", "red"), form);
+                    popupLoading.remove();
+                }
+                else if (user.code == 429) {
+                    main.insetBefore(message("Too many requests! Wait a few minutes and try again.", "red"), form);
+                    popupLoading.remove();
+                }
+                else {
+                    chrome.storage.local.set({"apiKey":apiKey, "userInfo":user, "userInfo_updated":formatDate(addHours(new Date(), -1))});
+                    window.location.href = "home.html";
+                }
+            } else {
+                main.insertBefore(message("Unexpected error!", "red"), form);
                 popupLoading.remove();
             }
         });

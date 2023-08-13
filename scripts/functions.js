@@ -432,6 +432,7 @@ const sendSetupProgress = (text, progress, tab) => {
 }
 
 const handleSubjectsResult = async (message, subjects, key) => {
+	console.log("SUBJECTS: ", subjects);
 	if (subjects && key) {
 		await assignUponSubjects(subjects);
 		await revStatsUponSubjects(key, subjects);
@@ -464,7 +465,7 @@ const sizeToFetch = async apiToken => {
 	});
 }
 
-function getTab() {
+const getTab = () => {
     return new Promise((resolve, reject) => {
         chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
             if (tabs && tabs.length > 0) {
@@ -486,7 +487,8 @@ const loadData = async (apiToken, tabId, callback) => {
 			kana_vocab: kana_vocab,
 			kanji: kanji
 	});
-	
+
+	/*
 	if (!await canFetch()) {
 		// use data from storage
 		if (callback) {
@@ -495,7 +497,8 @@ const loadData = async (apiToken, tabId, callback) => {
 			});
 		}
 		return;
-	}				
+	}	
+	*/			
 
 	// get number of fetches that will be done
 	fetches = await sizeToFetch(apiToken); 
@@ -571,10 +574,7 @@ const loadData = async (apiToken, tabId, callback) => {
 			const [kanji, fetched] = result;
 
 			resolve(kanji);
-
-			// add bulk fetch timestamp to storage
-			chrome.storage.local.set({bulk_fetch: new Date().getTime()});
-
+			
 			const messageText = "✔ Loaded Kanji data.";
 			console.log(messageText);
 			if (fetched) {
@@ -585,8 +585,11 @@ const loadData = async (apiToken, tabId, callback) => {
 			}
 		})
 	];
-
+	
 	Promise.all(setups).then(results => {
+		// add bulk fetch timestamp to storage
+		chrome.storage.local.set({bulk_fetch: new Date().getTime()});
+
 		if (callback) {
 			callback(returnObject(assignments, results[0], results[1], results[2], results[3]));
 		}
@@ -594,6 +597,7 @@ const loadData = async (apiToken, tabId, callback) => {
 }
 
 const assignUponSubjects = async list => {
+	console.log("Assigning subjects ...", list);
     const type = list[Object.keys(list)[0]]["subject_type"];
     if (list && type) {
         const db = new Database("wanikani");
@@ -682,6 +686,7 @@ const revStatsUponSubjects = async (apiToken, list) => {
 		console.log(`Associating review statistics with ${type} ...`);
 		await fetchAllPages(apiToken, "https://api.wanikani.com/v2/review_statistics")
 			.then(stats => {
+				console
 				stats.map(coll => coll["data"])
 					.flat(1)
 					.forEach(stat => {
@@ -745,6 +750,21 @@ const blacklist = async url => {
     blacklistedUrls.push(url.replace("www.", "").replace(".", "\\."));
     
     chrome.storage.local.set({"blacklist": [...new Set(blacklistedUrls)]});
+}
+
+const blacklistRemove = url => {
+	return new Promise(resolve => {
+		chrome.storage.local.get(["blacklist"], data => {
+			const blacklist = data["blacklist"];
+			const index = blacklist.indexOf(url.replace(".", "\\."));
+			if (index > -1) {
+				blacklist.splice(index, 1);
+				chrome.storage.local.set({"blacklist":blacklist});
+				resolve(blacklist.length);
+			} else
+				resolve(-1);
+		});
+	});
 }
 
 const blacklisted = (blacklist, url) => {

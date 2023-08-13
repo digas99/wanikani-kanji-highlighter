@@ -67,6 +67,10 @@ const nextExactHour = (date, hours) => {
 	return new Date(new Date(new Date(new Date(date).setHours(new Date(date).getHours()+hours)).setMinutes(0)).setSeconds(0));
 }
 
+const addHours = (date, hours) => {
+	return new Date(new Date(date).setHours(new Date(date).getHours()+hours));
+}
+
 const changeDay = (date, days) => {
 	return new Date(new Date(date).setDate((new Date(date).getDate())+days));
 }

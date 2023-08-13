@@ -70,6 +70,8 @@ const setSettings = () => {
 			notStored.forEach(id => settings[id[0]][id[1]] = defaultSettings[id[0]][id[1]]);
 		}
 
+		console.log("SETTINGS: ", settings);
+
 		chrome.storage.local.set({"settings":settings});
 
 		// setup highlighting class value from settings
@@ -98,7 +100,7 @@ const fetchReviewedKanjiID = async (apiToken, page) => {
 const setupLearnedKanji = async (apiToken, page, kanji) => {
 	const ids = await fetchReviewedKanjiID(apiToken, page);
 	const learnedKanji = ids.map(id => kanji[id].slug);
-	chrome.storage.local.set({"learnedKanji": learnedKanji, "learnedKanji_updated":formatDate(new Date())});
+	chrome.storage.local.set({"learnedKanji": learnedKanji, "learnedKanji_updated":formatDate(addHours(new Date(), -1))});
 	return learnedKanji;
 }
 
@@ -163,21 +165,19 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 		});
 	}
 
-	chrome.storage.local.get(["learnedKanji", "learnedKanji_updated"], response => {
-		const date = response["learnedKanji_updated"] ? response["learnedKanji_updated"] : formatDate(new Date());
-		modifiedSince(apiToken, date, learnedKanjiSource)
-			.then(modified => {
-				// even if not modified, fetch if learnedKanji not found in storage
-				if (!response["learnedKanji"] || modified) {
-					setupLearnedKanji(apiToken, learnedKanjiSource, allkanji)
-						.then(kanji => scripts(kanji))
-						.catch(errorHandling);
-				}
-				else {
+	chrome.storage.local.get(["learnedKanji", "learnedKanji_updated"], async response => {
+		const date = response["learnedKanji_updated"];
+		const modified = await modifiedSince(apiToken, date, learnedKanjiSource);
+		if (!response["learnedKanji"] || modified) {
+			setupLearnedKanji(apiToken, learnedKanjiSource, allkanji)
+				.then(kanji => scripts(kanji))
+				.catch(error => {
+					console.log(error);
 					scripts(response["learnedKanji"]);
-				}
-			})
-			.catch(errorHandling);
+				});
+		} else
+			scripts(response["learnedKanji"]);
+
 	});
 }
 
@@ -229,7 +229,7 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 			thisUrl = tab.url;
 			if (url === thisUrl && !urlChecker.test(url)) {
 				if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {
-					chrome.storage.local.get(["blacklist", "apiKey"], result => {
+					chrome.storage.local.get(["blacklist", "apiKey", "allkanji"], result => {
 						// check if the site is blacklisted
 						if (!result["blacklist"] || result["blacklist"].length === 0 || !blacklisted(result["blacklist"], url)) {
 							setSettings();
@@ -254,9 +254,8 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 									chrome.action.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 								}
 				
-								loadData(apiToken, thisTabId, result => {
-									setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", result.kanji);
-								});
+								if (result["allkanji"])
+									setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", result["allkanji"]);
 							}
 						}
 						else {
@@ -321,6 +320,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	// drive the database progress back to the popup
 	if (request.db) {
 		chrome.runtime.sendMessage({db: request.db});
+	}
+
+	// drive the error message back to the popup
+	if (request.error) {
+		chrome.runtime.sendMessage({error: request.error});
 	}
 });
 

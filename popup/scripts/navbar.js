@@ -17,7 +17,8 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings"], result => {
     }
 
     // random subject type
-    setRandomSubjectType(settings["kanji_details_popup"]["random_subject"]);
+    if (settings)
+        setRandomSubjectType(settings["kanji_details_popup"]["random_subject"]);
 });
 
 // when scripts.js has loaded
@@ -134,7 +135,22 @@ window.addEventListener("click", async e => {
 
     if (target.id === "blacklist") {
         await blacklist();
-        window.location.reload();
+        
+        const tab = await getTab();
+        chrome.tabs.sendMessage(tab.id, {reloadPage: true});
+        setTimeout(() => window.location.reload(), 500);
+    }
+
+    if (target.id === "run") {
+        const tab = await getTab();
+        chrome.tabs.sendMessage(tab.id, {windowLocation: "host"}, async url => {
+            if (url) {
+                await blacklistRemove(url["windowLocation"]);
+
+                chrome.tabs.sendMessage(tab.id, {reloadPage: true});
+                setTimeout(() => window.location.reload(), 500);
+            }
+        }); 
     }
 
 });

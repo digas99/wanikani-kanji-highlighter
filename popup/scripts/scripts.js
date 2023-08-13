@@ -54,6 +54,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.db) {
 		messagePopup.update(null, `${request.db.saved} / ${request.db.total}`);
 	}
+
+	// show error
+	if (request.error) {
+		if (messagePopup.exists()) {
+			messagePopup.update("ERROR: " + request.error.message);
+
+			console.log("ERROR", request.error);
+			if (request.error.code == 429) {
+				messagePopup.update(null, "Please, wait a few minutes and try again.");
+			}
+
+			// set initialFetch flag to false to prevent infinite loop
+			chrome.storage.local.set({"initialFetch": false});
+
+			// remove popup after 2 seconds
+			setTimeout(() => messagePopup.remove(), 4000);
+		}
+	}
 });
 
 let messagePopup, blacklistedSite, atWanikani;
@@ -72,15 +90,17 @@ window.onload = () => {
 			}
 			
 			// setup css vars
-			const appearance = settings["appearance"];
-			const documentStyle = document.documentElement.style;
-			documentStyle.setProperty('--highlight-default-color', appearance["highlight_learned"]);
-			documentStyle.setProperty('--notLearned-color', appearance["highlight_not_learned"]);
-			documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
-			documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
-			documentStyle.setProperty('--vocab-tag-color', appearance["vocab_color"]);
-			Object.values(srsStages).map(srs => srs["short"].toLowerCase())
-				.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
+			if (settings) {
+				const appearance = settings["appearance"];
+				const documentStyle = document.documentElement.style;
+				documentStyle.setProperty('--highlight-default-color', appearance["highlight_learned"]);
+				documentStyle.setProperty('--notLearned-color', appearance["highlight_not_learned"]);
+				documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
+				documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
+				documentStyle.setProperty('--vocab-tag-color', appearance["vocab_color"]);
+				Object.values(srsStages).map(srs => srs["short"].toLowerCase())
+					.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
+			}
 
 			if (result["initialFetch"] || result["initialFetch"] == undefined) {
 				messagePopup.create("Fetching subject data from Wanikani...", "Please, don't close the extension.");

@@ -15,7 +15,7 @@
 	<div id="main">
         <div id="userInfoWrapper">
             <!-- SCRIPTS UPTIME -->
-            <div title="Scripts Uptime Status" id="scriptsUptime">
+            <div id="scripts_status" title="Scripts Uptime Status">
                 <ul>
                     <li>Highlighter<div></div></li>
                     <li>Details Popup<div></div></li>
@@ -32,7 +32,7 @@
                 </div>
             </div>
             <!-- KANJI HIGHLIGHTED ON PAGE -->
-            <div class="resizable highlightedKanjiContainer userInfoWrapper-wrapper" data-settings="sizes-highlighted_kanji_height" style="max-height: 200px; height: 160px;">
+            <div id="highlighted_kanji" class="resizable highlightedKanjiContainer userInfoWrapper-wrapper" data-settings="sizes-highlighted_kanji_height" style="max-height: 200px; height: 160px;">
                 <div class="resizable-s"></div>
                 <div id="nmrKanjiHighlighted" class="userInfoWrapper-title">
                     <span id="nmrKanjiIndicator">Kanji</span>: <strong>0</strong> (in the page)
@@ -48,7 +48,7 @@
                 </div>
             </div>
             <!-- LESSONS AND REVIEWS -->
-            <div class="userInfoWrapper-wrapper" style="text-align: center;">
+            <div id="lessons_and_reviews" class="userInfoWrapper-wrapper" style="text-align: center;">
                 <ul style="display: inline-flex; width: 100%;">
                     <li style="width: 100%; color: white;">
                         <div class="summaryTitle userInfoWrapper-title" title="Lessons in WaniKani">
@@ -67,18 +67,18 @@
                 <p id="more-reviews-date" style="padding: 3px 0px; color: rgb(116, 116, 116);"></p>
             </div>
             <!-- OVERALL PROGRESSION BAR -->
-            <div class="userInfoWrapper-wrapper">
+            <div id="overall_progression_bar" class="userInfoWrapper-wrapper">
                 <p class="userInfoWrapper-title">Overall Progression Bar</p>
                 <ul id="progression-bar">
                 </ul>
             </div>
             <!-- OVERALL PROGRESSION STATS -->
-            <div>
+            <div id="overall_progression_stats">
                 <p class="userInfoWrapper-title">Overall Progression Stats</p>
                 <div id="progression-stats"></div>
             </div>
             <!-- LEVELS IN PROGRESS -->
-            <div style="width: 86%;">
+            <div id="levels_in_progress" style="width: 86%;">
                 <p class="userInfoWrapper-title">Levels In Progress</p>
                 <div id="levels-progress"></div>
         </div>

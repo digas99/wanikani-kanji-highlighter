@@ -221,7 +221,7 @@ window.onload = () => {
 						.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
 
 					document.body.style.cursor = "progress";
-					const date = response["userInfo_updated"] ? response["userInfo_updated"] : formatDate(new Date());
+					const date = response["userInfo_updated"] ? response["userInfo_updated"] : formatDate(addHours(new Date(), -1));
 
 					modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
 						.then(modified => {
@@ -246,22 +246,22 @@ window.onload = () => {
 
 								// scripts uptime
 								if (response["settings"] && response["settings"]["extension_popup_interface"] ? response["settings"]["extension_popup_interface"]["scripts_status"] : settingsInterface["extension_popup_interface"]["scripts_status"]) {
-									const scriptsUptimeWrapper = document.createElement("div");
-									userInfoWrapper.appendChild(scriptsUptimeWrapper);
-									scriptsUptimeWrapper.title = "Scripts Uptime Status";
-									scriptsUptimeWrapper.id = "scriptsUptime";
-									const scriptsUptimeUl = document.createElement("ul");
-									scriptsUptimeWrapper.appendChild(scriptsUptimeUl);
+									const scripts_statusWrapper = document.createElement("div");
+									userInfoWrapper.appendChild(scripts_statusWrapper);
+									scripts_statusWrapper.title = "Scripts Uptime Status";
+									scripts_statusWrapper.id = "scripts_status";
+									const scripts_statusUl = document.createElement("ul");
+									scripts_statusWrapper.appendChild(scripts_statusUl);
 									chrome.tabs.query({currentWindow: true, active: true}, tabs => {
 										["Highlighter", "Details Popup"].forEach(script => {
-											const scriptsUptimeLi = document.createElement("li");
-											scriptsUptimeUl.appendChild(scriptsUptimeLi);
-											scriptsUptimeLi.appendChild(document.createTextNode(script));
-											const scriptsUptimeSignal = document.createElement("div");
-											scriptsUptimeLi.appendChild(scriptsUptimeSignal);
+											const scripts_statusLi = document.createElement("li");
+											scripts_statusUl.appendChild(scripts_statusLi);
+											scripts_statusLi.appendChild(document.createTextNode(script));
+											const scripts_statusSignal = document.createElement("div");
+											scripts_statusLi.appendChild(scripts_statusSignal);
 
 											chrome.tabs.sendMessage(tabs[0].id, {uptime: script}, response => {
-												if (response) scriptsUptimeSignal.style.backgroundColor = "#80fd80";
+												if (response) scripts_statusSignal.style.backgroundColor = "#80fd80";
 											});
 										});
 									});
@@ -1906,7 +1906,7 @@ const submitAction = () => {
 	fetchUserInfo(apiKey, user => {
 		if (!invalidKey && user.code != 401) {
 			let msg, color;
-			chrome.storage.local.set({"apiKey":apiKey, "userInfo":user, "userInfo_updated":formatDate(new Date())});
+			chrome.storage.local.set({"apiKey":apiKey, "userInfo":user, "userInfo_updated":formatDate(addHours(new Date(), -1))});
 			msg = "The API key was accepted!";
 			color = "green";
 
@@ -4153,7 +4153,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 
 	if (request.uptimeDetailsPopup || request.uptimeHighlight) {
-		const wrapper = document.getElementById("scriptsUptime");
+		const wrapper = document.getElementById("scripts_status");
 		if (wrapper) {
 			if (request.uptimeHighlight) 
 				wrapper.getElementsByTagName("DIV")[0].style.backgroundColor = "#80fd80";

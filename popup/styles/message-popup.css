@@ -28,7 +28,7 @@
     position: absolute;
     left: 0;
     top: 0;
-    margin: auto;
+    margin: auto 30px;
     right: 0;
     bottom: 0;
     width: fit-content;
@@ -37,7 +37,7 @@
 
 .message-popup .subtext {
     padding: 6px 0;
-    font-size: 10px;
+    font-size: 11px;
     top: 0;
     position: absolute;
     color: #7b7b7b;

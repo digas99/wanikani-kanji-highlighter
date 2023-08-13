@@ -22,23 +22,23 @@
     border-radius: 0px 0px 5px 5px;
 }
 
-#scriptsUptime {
+#scripts_status {
     background-color: #2a2d48;
     color: white;
     padding: 6px;
     border-radius: 4px;
 }
 
-#scriptsUptime > ul {
+#scripts_status > ul {
 	display: flex;
 }
 
-#scriptsUptime > ul > li {
+#scripts_status > ul > li {
 	display: flex;
 	margin: auto;
 }
 
-#scriptsUptime > ul > li > div {
+#scripts_status > ul > li > div {
 	display: flex;
     width: 13px;
     height: 13px;

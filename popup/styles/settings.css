@@ -38,6 +38,7 @@
 
 #blacklistedSitesList {
 	font-weight: 900;
+	border-radius: unset;
 }
 
 #blacklistedSitesWrapper {

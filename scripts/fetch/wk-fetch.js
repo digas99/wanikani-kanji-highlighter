@@ -52,7 +52,12 @@ const setupSubjects = (apiToken, setup, build, callback) =>
 						subjects = Object.assign({}, storage, subjects);
 						associations = Object.assign({}, assocs, associations);
 						// saving all subjects
-						chrome.storage.local.set({...{[setup.storage.id]: subjects, [setup.storage.association]: associations, [setup.storage.updated]: formatDate(new Date()), [setup.storage.size]:data[0]["total_count"]}}, () => {
+						chrome.storage.local.set({...{
+							[setup.storage.id]: subjects,
+							[setup.storage.association]: associations,
+							[setup.storage.updated]: formatDate(addHours(new Date(), -1)),
+							[setup.storage.size]:Object.keys(subjects).length
+						}}, () => {
 							console.log("Setup "+setup.name+"...");
 							resolve([subjects, true]);
 							if (callback)
@@ -69,9 +74,18 @@ const fetchUserInfo = async(apiToken, callback) => {
 		const storage = result["userInfo"];
 		const updated = result["userInfo_updated"];
 
+		if (updated){
+			const modified = await modifiedSince(apiToken, updated, "https://api.wanikani.com/v2/user");
+			if (!modified) {
+				if (callback)
+					callback(storage);
+				return;
+			}
+		}
+
 		fetchPage(apiToken, "https://api.wanikani.com/v2/user", updated)
 			.then(user => {
-				// too many requests or not modified
+				// too many requests
 				if (user.error) {
 					console.log(user);
 					if (callback)
@@ -79,7 +93,7 @@ const fetchUserInfo = async(apiToken, callback) => {
 					return;
 				}
 
-				chrome.storage.local.set({"userInfo":user, "userInfo_updated":formatDate(new Date())});
+				chrome.storage.local.set({"userInfo":user, "userInfo_updated":formatDate(addHours(new Date(), -1))});
 				if (callback)
 					callback(user);
 			});
@@ -94,8 +108,6 @@ const setupAssignments = async (apiToken, callback) =>
 
 			fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments", updated)
 				.then(data => {
-					console.log(data);
-					
 					// too many requests or not modified
 					if (data.error) {
 						console.log(data);
@@ -105,16 +117,26 @@ const setupAssignments = async (apiToken, callback) =>
 						return;
 					}
 
-					const allAssignments = data.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
+					let allAssignments = assignments ? assignments["all"] : [];
+					const newAssignments = data.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
+					console.log("ASSIGNMENTS");
+					console.log(allAssignments, newAssignments);
+					newAssignments.forEach(assignment => {
+						const index = allAssignments.findIndex(a => a.id === assignment.id);
+						if (index !== -1)
+							allAssignments[index] = assignment;
+						else
+							allAssignments.push(assignment);
+					});
+
+					console.log(allAssignments);
 					const allFutureAssignments = filterAssignmentsByTime(allAssignments, new Date(), null);
 					const allAvailableReviews = filterAssignmentsByTime(allAssignments, new Date(), changeDay(new Date(), -1000));
-					assignments = Object.assign({}, assignments, {
+					chrome.storage.local.set({"assignments": {
 						"all":allAssignments,
 						"future":allFutureAssignments,
 						"past":allAvailableReviews
-					});
-					console.log(assignments);
-					chrome.storage.local.set({"assignments": assignments, "assignments_updated":formatDate(new Date())}, () => {
+					}, "assignments_updated":formatDate(addHours(new Date(), -1))}, () => {
 						resolve([data, true]);
 						if (callback)
 							callback(data, true);

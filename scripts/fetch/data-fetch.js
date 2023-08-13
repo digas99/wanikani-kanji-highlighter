@@ -4,7 +4,6 @@
 const fetchPage = async (apiToken, page, updated) => {				
 	const requestHeaders = new Headers({Authorization: `Bearer ${apiToken}`});
 	if (updated) {
-		requestHeaders.append('If-Modified-Since', updated);
 		// add updated_after to the url
 		page += page.includes("?") ? "&" : "?";
 		page += `updated_after=${convertToISO8601(updated)}`;
@@ -21,6 +20,10 @@ const fetchPage = async (apiToken, page, updated) => {
 			const result = responseBody;
 			if (result.error) {
 				console.log(result.error);
+				chrome.runtime.sendMessage({error: {
+					message: result.error,
+					code: result.code
+				}});
 			}
 			return result;
 		})
@@ -28,6 +31,12 @@ const fetchPage = async (apiToken, page, updated) => {
 
 // recursive function to fetch all pages that come after a given page (given page included)
 const fetchAllPages = async (apiToken, page, updated) => {
+	if (updated) {
+		const modified = await modifiedSince(apiToken, updated, page);
+		if (!modified)
+			return {error: {message: "Not modified", code: 304}};
+	}
+
 	if (!page) return [];
 
 	const result = await fetchPage(apiToken, page, updated);
@@ -48,12 +57,12 @@ const modifiedSince = async (apiKey, date, url) => {
 	var endpoint = new Request(url, requestInit);
 	
 	return fetch(endpoint)
-	.then(response => {
-		const result = response.status !== 304;
-		console.log("MODIFIED", date, url, result);
-		return result;
-	
-	})
+		.then(response => {
+			const result = response.status != 429 && response.status !== 304;
+			console.log("MODIFIED", date, url, result);
+			return result;
+		
+		});
 }
 
 
