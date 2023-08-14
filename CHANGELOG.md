@@ -16,6 +16,9 @@
 ## Data
 - Added new Kana Vocabulary from Wanikani
 
+## Bug Fixes
+- Fixed issue where the Subjects Progression Stats would not update over time
+
 ---
 
 # [Changelog v0.6.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.6)

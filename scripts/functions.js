@@ -418,6 +418,11 @@ const setupKanji = (kanjis, assocs, records, kanji) => {
 
 let progress = 0, fetches = 0;
 
+const updateSubjectsStats = async (apiKey, subjects) => {
+	await subjectsAssignmentStats(subjects);
+	await subjectsReviewStats(apiKey, subjects);
+}
+
 const sendSetupProgress = (text, progress, tab) => {
 	const messageData = {
 		setup: {
@@ -433,10 +438,8 @@ const sendSetupProgress = (text, progress, tab) => {
 
 const handleSubjectsResult = async (message, subjects, key) => {
 	console.log("SUBJECTS: ", subjects);
-	if (subjects && key) {
-		await assignUponSubjects(subjects);
-		await revStatsUponSubjects(key, subjects);
-	}
+	if (subjects && key)
+		updateSubjectsStats(key, subjects);	
 
 	progress++;
 	sendSetupProgress(message.text, progress/fetches, message.tab);
@@ -512,12 +515,9 @@ const loadData = async (apiToken, tabId, callback) => {
 	const messageText = "✔ Loaded Assignments data.";
 	console.log(messageText);
 	if (fetched) {
-		await handleSubjectsResult({
-			text: messageText,
-			tab: tabId
-		});
+		progress++;
+		sendSetupProgress(messageText, progress/fetches, tabId);
 	}	
-	
 
 	const setups = [
 		// radicals
@@ -527,13 +527,13 @@ const loadData = async (apiToken, tabId, callback) => {
 			
 			resolve(radicals);
 
+			await updateSubjectsStats(apiToken, radicals);	
+			
 			const messageText = "✔ Loaded Radicals data.";
 			console.log(messageText);
 			if (fetched) {
-				await handleSubjectsResult({
-					text: messageText,
-					tab: tabId
-				}, radicals, apiToken);
+				progress++;
+				sendSetupProgress(messageText, progress/fetches, tabId);
 			}
 		}),
 		// vocabulary
@@ -543,13 +543,13 @@ const loadData = async (apiToken, tabId, callback) => {
 
 			resolve(vocab);
 
+			await updateSubjectsStats(apiToken, vocab);	
+			
 			const messageText = "✔ Loaded Vocabulary data.";
 			console.log(messageText);
 			if (fetched) {
-				await handleSubjectsResult({
-					text: messageText,
-					tab: tabId
-				}, vocab, apiToken);
+				progress++;
+				sendSetupProgress(messageText, progress/fetches, tabId);
 			}
 		}),
 		// kana vocabulary
@@ -559,13 +559,13 @@ const loadData = async (apiToken, tabId, callback) => {
 
 			resolve(vocab);
 
+			await updateSubjectsStats(apiToken, vocab);	
+			
 			const messageText = "✔ Loaded Kana Vocabulary data.";
 			console.log(messageText);
 			if (fetched) {
-				await handleSubjectsResult({
-					text: messageText,
-					tab: tabId
-				}, vocab, apiToken);
+				progress++;
+				sendSetupProgress(messageText, progress/fetches, tabId);
 			}
 		}),
 		// kanji
@@ -574,14 +574,14 @@ const loadData = async (apiToken, tabId, callback) => {
 			const [kanji, fetched] = result;
 
 			resolve(kanji);
+
+			await updateSubjectsStats(apiToken, kanji);	
 			
 			const messageText = "✔ Loaded Kanji data.";
 			console.log(messageText);
 			if (fetched) {
-				await handleSubjectsResult({
-					text: messageText,
-					tab: tabId
-				}, kanji, apiToken);
+				progress++;
+				sendSetupProgress(messageText, progress/fetches, tabId);
 			}
 		})
 	];
@@ -596,8 +596,7 @@ const loadData = async (apiToken, tabId, callback) => {
 	});
 }
 
-const assignUponSubjects = async list => {
-	console.log("Assigning subjects ...", list);
+const subjectsAssignmentStats = async list => {
     const type = list[Object.keys(list)[0]]["subject_type"];
     if (list && type) {
         const db = new Database("wanikani");
@@ -680,48 +679,62 @@ const assignUponSubjects = async list => {
     }
 }
 
-const revStatsUponSubjects = async (apiToken, list) => {
+const subjectsReviewStats = async (apiToken, list) => {
 	const type = list[Object.keys(list)[0]]["subject_type"];
 	if (list && type) {
-		console.log(`Associating review statistics with ${type} ...`);
-		await fetchAllPages(apiToken, "https://api.wanikani.com/v2/review_statistics")
-			.then(stats => {
-				console
-				stats.map(coll => coll["data"])
-					.flat(1)
-					.forEach(stat => {
-						const data = stat["data"];
-						const subjectId = data["subject_id"];
-						if (subjectId && list[subjectId]) {
-							const subject = list[subjectId];
-							subject["stats"] = {
-								meaning_correct: data["meaning_correct"],
-								meaning_current_streak: data["meaning_current_streak"],
-								meaning_incorrect: data["meaning_incorrect"],
-								meaning_max_streak: data["meaning_max_streak"],
-								percentage_correct: data["percentage_correct"],
-								reading_correct: data["reading_correct"],
-								reading_current_streak: data["reading_current_streak"],
-								reading_incorrect: data["reading_incorrect"],
-								reading_max_streak: data["reading_max_streak"]
-							}
-						}
-					});
-					let storageId;
-					switch(type) {
-						case "radical":
-							storageId = "allradicals";
-							break;
-						case "kanji":
-							storageId = "allkanji";
-							break;
-						case "vocabulary":
-							storageId = "allvocab";
-							break;
+		chrome.storage.local.get("reviewStats_updated", async result => {
+			const updated = result["reviewStats_updated"];
+			console.log(`Associating review statistics with ${type} ...`);
+			await fetchAllPages(apiToken, "https://api.wanikani.com/v2/review_statistics", updated)
+				.then(stats => {
+					// too many requests or not modified
+					if (stats.error) {
+						console.log(stats);
+						return;
 					}
-					if (storageId)
-						chrome.storage.local.set({[storageId]:list});
-			});
+
+					stats.map(coll => coll["data"])
+						.flat(1)
+						.forEach(stat => {
+							const data = stat["data"];
+							const subjectId = data["subject_id"];
+							if (subjectId && list[subjectId]) {
+								const subject = list[subjectId];
+								subject["stats"] = {
+									meaning_correct: data["meaning_correct"],
+									meaning_current_streak: data["meaning_current_streak"],
+									meaning_incorrect: data["meaning_incorrect"],
+									meaning_max_streak: data["meaning_max_streak"],
+									percentage_correct: data["percentage_correct"],
+									reading_correct: data["reading_correct"],
+									reading_current_streak: data["reading_current_streak"],
+									reading_incorrect: data["reading_incorrect"],
+									reading_max_streak: data["reading_max_streak"]
+								}
+							}
+						});
+						let storageId;
+						switch(type) {
+							case "radical":
+								storageId = "allradicals";
+								break;
+							case "kanji":
+								storageId = "allkanji";
+								break;
+							case "vocabulary":
+								storageId = "allvocab";
+								break;
+							case "kana_vocabulary":
+								storageId = "allkanavocab";
+								break;
+						}
+						if (storageId)
+							chrome.storage.local.set({
+								[storageId]:list,
+								reviewStats_updated: formatDate(addHours(new Date(), -1))
+							});
+				});
+		});
 	}
 }
 

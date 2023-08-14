@@ -1801,23 +1801,23 @@ window.onload = () => {
 								// 					document.body.appendChild(textPopup);
 								// 					if (itemsListLoadingElem)
 								// 						textPopup.getElementsByTagName("div")[1].appendChild(itemsListLoadingElem);
-								// 					assignUponSubjects(radicals_dict[0]);
-								// 					revStatsUponSubjects(apiKey, radicals_dict[0]);
+								// 					subjectsAssignmentStats(radicals_dict[0]);
+								// 					subjectsReviewStats(apiKey, radicals_dict[0]);
 								// 				}
 
 								// 				setupVocab(apiKey)
 								// 					.then(vocab_dict => {
 								// 						if (vocab_dict[1]) {
-								// 							assignUponSubjects(vocab_dict[0]);
-								// 							revStatsUponSubjects(apiKey, vocab_dict[0]);
+								// 							subjectsAssignmentStats(vocab_dict[0]);
+								// 							subjectsReviewStats(apiKey, vocab_dict[0]);
 								// 						}
 
 								// 						// setup kanji last to make sure scripts run with all subjects
 								// 						setupKanji(apiKey)
 								// 							.then(kanji_dict => {
 								// 								if (kanji_dict[1]) {
-								// 									assignUponSubjects(kanji_dict[0]);
-								// 									revStatsUponSubjects(apiKey, kanji_dict[0]);
+								// 									subjectsAssignmentStats(kanji_dict[0]);
+								// 									subjectsReviewStats(apiKey, kanji_dict[0]);
 								// 								}
 								// 								console.log("END");
 								// 								if (itemsListLoadingElem) {
@@ -4251,8 +4251,8 @@ const loadItemsLists = callback => {
 						// associate assignments and stats info to subjects
 						[allKanji, allRadicals, allVocab].forEach(list => {
 							if (list) {
-								assignUponSubjects(list);
-								revStatsUponSubjects(apiKey, list);
+								subjectsAssignmentStats(list);
+								subjectsReviewStats(apiKey, list);
 							}
 						});
 					});

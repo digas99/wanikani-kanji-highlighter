@@ -35,14 +35,22 @@ It works with any website, and provides detailed information about any kanji tha
 
 #### - Migration to Manifest v3
 
-### Technicalities
+## Technicalities
 - Changed background from Page to Service Worker
 - Window.localStorage not accessible on Service Worker so changed it to IndexedDB
 - Popup is no longer entirely created with Javascript (it is now more organized and with each page on a different HTML file)
 
-### Popup
+## Popup
 - Added navbar to Changelogs list in the About page
 - Added "load more" button to Search Results to limit the number of results and reduce lag while writing on search bar
+- Added loading feedback popup for the user to understand the loading stages of data from wanikani
+- Loading data from Wanikani is now also being done from the extension Popup (no need to browse a web page)
+
+## Data
+- Added new Kana Vocabulary from Wanikani
+
+## Bug Fixes
+- Fixed issue where the Subjects Progression Stats would not update over time
 
 #### [(All changelogs)](CHANGELOG.md)
 
