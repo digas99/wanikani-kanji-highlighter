@@ -72,7 +72,7 @@ const setSettings = () => {
 
 		console.log("SETTINGS: ", settings);
 
-		chrome.storage.local.set({"settings":settings});
+		chrome.storage.local.set({"settings":settings}, () => console.log("Settings stored."));
 
 		// setup highlighting class value from settings
 		highlightingClass = settings["highlight_style"]["learned"];
@@ -108,15 +108,15 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	console.log("Setting up content scripts...");
 
 	// setup all learnable kanji if not yet
-	chrome.storage.local.get(["allLearnableKanji"], result => {
-		let allLearnableKanji = result["allLearnableKanji"];
+	chrome.storage.local.get(["learnable_kanji"], result => {
+		let allLearnableKanji = result["learnable_kanji"];
 		const kanjiList = [];
 		if (!allLearnableKanji) {
 			allLearnableKanji = allkanji;
 			for (let kanjiId in allLearnableKanji) {
 				kanjiList.push(allLearnableKanji[kanjiId]["slug"]);
 			}
-			chrome.storage.local.set({"allLearnableKanji":kanjiList});
+			chrome.storage.local.set({"learnable_kanji":kanjiList});
 		}
 	});
 
@@ -148,8 +148,8 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 				files: ['scripts/highlighter/highlight-setup.js']
 			}, () => injectedHighlighter = true);
 
-			chrome.storage.local.get(["allLearnableKanji"], result => {
-				const allKanji = result["allLearnableKanji"];
+			chrome.storage.local.get(["learnable_kanji"], result => {
+				const allKanji = result["learnable_kanji"];
 				const notLearnedKanji = allKanji.filter(k => !kanji.includes(k));
 				if (allKanji) {
 					chrome.storage.local.set({"highlight_setup": {
@@ -229,7 +229,7 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 			thisUrl = tab.url;
 			if (url === thisUrl && !urlChecker.test(url)) {
 				if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {
-					chrome.storage.local.get(["blacklist", "apiKey", "allkanji"], result => {
+					chrome.storage.local.get(["blacklist", "apiKey", "kanji"], result => {
 						// check if the site is blacklisted
 						if (!result["blacklist"] || result["blacklist"].length === 0 || !blacklisted(result["blacklist"], url)) {
 							setSettings();
@@ -254,8 +254,8 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 									chrome.action.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 								}
 				
-								if (result["allkanji"])
-									setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", result["allkanji"]);
+								if (result["kanji"])
+									setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", result["kanji"]);
 							}
 						}
 						else {

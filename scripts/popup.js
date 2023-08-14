@@ -109,7 +109,7 @@ window.onload = () => {
 	const loadingElem = loadingVal[0];
 	main.appendChild(loadingElem);
 
-	chrome.storage.local.get(["apiKey", "userInfo", "blacklist", "settings", "userInfo_updated","summary_updated", "reviews", "lessons", "kanji_progress", "kanji_levelsInProgress", "radical_progress", "radical_levelsInProgress", "vocabulary_progress", "vocabulary_levelsInProgress", "settings", "allkanji_size", "allradicals_size", "allvocab_size", "blacklist", "kanji_assoc"], response => {
+	chrome.storage.local.get(["apiKey", "userInfo", "blacklist", "settings", "userInfo_updated","summary_updated", "reviews", "lessons", "kanji_progress", "kanji_levelsInProgress", "radical_progress", "radical_levelsInProgress", "vocabulary_progress", "vocabulary_levelsInProgress", "settings", "kanji_size", "radicals_size", "vocabulary_size", "blacklist", "kanji_assoc"], response => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			activeTab = tabs[0];
 			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, urlValue => {
@@ -1489,9 +1489,9 @@ window.onload = () => {
 								if (radicalProgress || kanjiProgress || vocabularyProgress) {
 									// progress bar
 									if (response["settings"] ? response["settings"]["extension_popup_interface"]["overall_progression_bar"] : settingsInterface["extension_popup_interface"]["overall_progression_bar"]) {
-										const radicalsSize = response["allradicals_size"];
-										const kanjiSize = response["allkanji_size"];
-										const vocabularySize = response["allvocab_size"];
+										const radicalsSize = response["radicals_size"];
+										const kanjiSize = response["kanji_size"];
+										const vocabularySize = response["vocabulary_size"];
 										if (radicalsSize || kanjiSize || vocabularySize) {
 											allSize = (radicalsSize ? radicalsSize : 0) + (kanjiSize ? kanjiSize : 0) + (vocabularySize ? vocabularySize : 0);
 											
@@ -4165,10 +4165,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 const setupSubjectsLists = (callback) => {
-	chrome.storage.local.get(["allkanji", "allvocab", "allradicals"], result => {
-		const allKanji = result["allkanji"];
-		const allVocab = result["allvocab"];
-		const allRadicals = result["allradicals"];
+	chrome.storage.local.get(["kanji", "vocabulary", "radicals"], result => {
+		const allKanji = result["kanji"];
+		const allVocab = result["vocabulary"];
+		const allRadicals = result["radicals"];
 
 		if (allKanji && kanjiList.length == 0) {
 			for (const index in allKanji) {
@@ -4233,11 +4233,11 @@ const setupSubjectsLists = (callback) => {
 }
 
 const loadItemsLists = callback => {
-	chrome.storage.local.get(["allkanji", "allvocab", "allradicals"], result => {
+	chrome.storage.local.get(["kanji", "vocabulary", "radicals"], result => {
 		setTimeout(() => {
-			const allKanji = result["allkanji"];
-			const allVocab = result["allvocab"];
-			const allRadicals = result["allradicals"];
+			const allKanji = result["kanji"];
+			const allVocab = result["vocabulary"];
+			const allRadicals = result["radicals"];
 	
 			if (!allRadicals || !allKanji || !allVocab) {
 				Promise.all([setupKanji(apiKey), setupRadicals(apiKey), setupVocab(apiKey)])

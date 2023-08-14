@@ -1,5 +1,5 @@
 (() => {
-	chrome.storage.local.get(["allkanji", "allradicals", "allvocab", "allkanavocab", "settings"], result => {
+	chrome.storage.local.get(["kanji", "radicals", "vocabulary", "kana_vocab", "settings"], result => {
 		chrome.runtime.sendMessage({uptimeDetailsPopup:true});
 
 		const settings = result["settings"];
@@ -8,9 +8,9 @@
 
 		const atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(window.location.origin);
 		
-		const allKanji = result["allkanji"];
-		const allRadicals = result["allradicals"];
-		const allVocab = {...result["allvocab"], ...result["allkanavocab"]};
+		const allKanji = result["kanji"];
+		const allRadicals = result["radicals"];
+		const allVocab = {...result["vocabulary"], ...result["kana_vocab"]};
 		if (allKanji && allRadicals && allVocab) {
 			const detailsPopup = new SubjectDisplay(allRadicals, allKanji, allVocab, 275, document.documentElement);
 			

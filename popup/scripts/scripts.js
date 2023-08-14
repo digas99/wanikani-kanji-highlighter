@@ -43,10 +43,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 				setTimeout(() => {
 					messagePopup.remove();
-					window.location.reload();
+					chrome.storage.local.get(HOME_FETCH_KEYS, updateHomeInterface);
 				}, 1000);
 
 			}
+
+			if (setup.progress == null)
+				chrome.storage.local.set({"initialFetch": false});
 		}
 	}
 

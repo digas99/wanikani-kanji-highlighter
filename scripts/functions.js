@@ -509,6 +509,7 @@ const loadData = async (apiToken, tabId, callback) => {
 		
 	// assignments
 	const result = await setupAssignments(apiToken);
+	setupAvailableAssignments(apiToken);
 	const assignments = result[0];
 	const fetched = result[1];			
 	
@@ -654,13 +655,13 @@ const subjectsAssignmentStats = async list => {
                 let storageId;
                 switch (type) {
                     case "radical":
-                        storageId = "allradicals";
+                        storageId = "radicals";
                         break;
                     case "kanji":
-                        storageId = "allkanji";
+                        storageId = "kanji";
                         break;
                     case "vocabulary":
-                        storageId = "allvocab";
+                        storageId = "vocabulary";
                         break;
                 }
 
@@ -716,16 +717,16 @@ const subjectsReviewStats = async (apiToken, list) => {
 						let storageId;
 						switch(type) {
 							case "radical":
-								storageId = "allradicals";
+								storageId = "radicals";
 								break;
 							case "kanji":
-								storageId = "allkanji";
+								storageId = "kanji";
 								break;
 							case "vocabulary":
-								storageId = "allvocab";
+								storageId = "vocabulary";
 								break;
 							case "kana_vocabulary":
-								storageId = "allkanavocab";
+								storageId = "kana_vocab";
 								break;
 						}
 						if (storageId)

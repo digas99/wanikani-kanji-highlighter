@@ -1,9 +1,4 @@
 let settings, apiKey, userInfo, lastReviewsValue = 0, lastLessonsValue = 0;
-const ASSIGNMENTS = ["reviews", "lessons"];
-const PROGRESS = ["radical_progress", "kanji_progress", "vocabulary_progress", "allradicals_size", "allkanji_size", "allvocab_size", "radical_levelsInProgress", "kanji_levelsInProgress", "vocabulary_levelsInProgress"];
-const HIGHLIGHTED = ["kanji_assoc", "allHighLightedKanji"];
-
-let activeTab;
 
 let popupLoading;
 if (!messagePopup) {
@@ -11,121 +6,110 @@ if (!messagePopup) {
 	popupLoading.create("Loading data...");
 }
 
-chrome.storage.local.get(["apiKey", "settings", "userInfo", ...HIGHLIGHTED, ...ASSIGNMENTS , ...PROGRESS], result => {
+const updateHomeInterface = async (result) => {
+	settings = result["settings"] ? result["settings"] : defaultSettings;
+	userInfo = result["userInfo"];
+	const activeTab = await getTab();
+
+	// SCRIPTS UPTIME
+	if (settings["extension_popup_interface"]["scripts_status"]) {
+		["Highlighter", "Details Popup"].forEach((script, i) => {
+			chrome.tabs.sendMessage(activeTab.id, {uptime: script}, response => {
+				if (response) document.querySelectorAll("#scripts_status div")[i].style.backgroundColor = "#80fd80";
+			});
+		});
+	}
+
+
+	// SEARCH
+	const type = document.getElementById("kanjiSearchType").innerText;
+	document.querySelector("#kanjiSearchInput").addEventListener("click", () => window.location.href = "search.html"+(type ? `?type=${type}` : ""));
+
+
+	// HIGHLIGHTED KANJI
+	if (settings["extension_popup_interface"]["highlighted_kanji"]) {
+		const kanjiAssoc = result["kanji_assoc"];
+
+		chrome.tabs.sendMessage(activeTab.id, {nmrKanjiHighlighted:"popup"}, result => {
+			if (result) {
+				const {nmrKanjiHighlighted, learned, notLearned} = result;
+				kanjiListUpdate(learned, notLearned, kanjiAssoc);
+			}
+		});
+	}
+
+	// LESSONS AND REVIEWS
+	if (settings["extension_popup_interface"]["lessons_and_reviews"]) {
+		setupSummary(result["reviews"], result["lessons"]);
+	}
+
+
+	// PROGRESSIONS
+	const allSize = (result["radicals_size"] ? result["radicals_size"] : 0)
+		+ (result["kanji_size"] ? result["kanji_size"] : 0)
+		+ (result["vocabulary_size"] ? result["vocabulary_size"] : 0);
+
+	const progresses = {
+		"radical": result["radical_progress"],
+		"kanji": result["kanji_progress"],
+		"vocabulary": result["vocabulary_progress"]
+	};
+
+	if (settings["extension_popup_interface"]["overall_progression_bar"])
+		progressionBar(document.querySelector("#progression-bar"), srsStages, progresses, allSize, settings["appearance"]);
+
+	if (settings["extension_popup_interface"]["overall_progression_stats"])
+		progressionStats(document.querySelector("#progression-stats"), srsStages, progresses, settings["appearance"]);
+
+	if (settings["extension_popup_interface"]["levels_in_progress"]) {
+		const radicalsLevelInProgress = result["radical_levelsInProgress"] ? result["radical_levelsInProgress"] : [];
+		const kanjiLevelInProgress = result["kanji_levelsInProgress"] ? result["kanji_levelsInProgress"] : [];
+		const vocabularyLevelInProgress = result["vocabulary_levelsInProgress"] ? result["vocabulary_levelsInProgress"] : [];
+		const types = ["radical", "kanji", "vocabulary"];
+		const progressBarWrappers = [];
+		const db = new Database("wanikani");
+		db.create("subjects").then(created => {
+			if (created) {
+				[radicalsLevelInProgress, kanjiLevelInProgress, vocabularyLevelInProgress]
+					.forEach((levels, i) => {
+						progressBarWrappers.push(
+							new Promise((resolve, reject) => {
+								db.getAll("subjects", "level", levels).then(result => {	
+									const bars = [];							
+									levels.forEach(level => {
+										const values = result[level].filter(value => value["hidden_at"] == null && value["subject_type"] === types[i]);
+										bars.push(levelProgressBar(userInfo["level"], values, level, types[i], srsStages, settings["appearance"]));											
+									});
+									resolve(bars);
+								});
+							})
+						);
+					});
+
+				// put bars in correct order
+				const levelsInProgress = document.querySelector("#levels-progress");
+				Promise.all(progressBarWrappers).then(bars => {
+					bars.flat(1).sort((a,b) => Number(a.dataset.order) - Number(b.dataset.order))
+						.forEach(bar => levelsInProgress.appendChild(bar));
+				});
+			}
+		});
+	}
+
+	// remove sections hidden by the user
+	for (let [key, show] of Object.entries(settings["extension_popup_interface"])) {
+		if (!show) document.querySelector(`#${key}`)?.remove();
+	}	
+}
+
+chrome.storage.local.get(["apiKey", ...HOME_FETCH_KEYS], result => {
 	chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 		if (popupLoading) popupLoading.remove();
 		
-		activeTab = tabs[0];
-	
-		userInfo = result["userInfo"]["data"];
 		apiKey = result["apiKey"];
-		if (apiKey) {
-			settings = result["settings"] ? result["settings"] : defaultSettings;
-
-
-			// SCRIPTS UPTIME
-			if (settings["extension_popup_interface"]["scripts_status"]) {
-				chrome.tabs.query({currentWindow: true, active: true}, tabs => {
-					["Highlighter", "Details Popup"].forEach((script, i) => {
-						chrome.tabs.sendMessage(tabs[0].id, {uptime: script}, response => {
-							if (response) document.querySelectorAll("#scripts_status div")[i].style.backgroundColor = "#80fd80";
-						});
-					});
-				});
-			}
-
-			
-			// SEARCH
-			const type = document.getElementById("kanjiSearchType").innerText;
-			document.querySelector("#kanjiSearchInput").addEventListener("click", () => window.location.href = "search.html"+(type ? `?type=${type}` : ""));
-
-
-			// HIGHLIGHTED KANJI
-			if (settings["extension_popup_interface"]["highlighted_kanji"]) {
-				const kanjiAssoc = result["kanji_assoc"];
-				
-				chrome.tabs.query({currentWindow: true, active: true}, tabs => {
-					chrome.tabs.sendMessage(tabs[0].id, {nmrKanjiHighlighted:"popup"}, result => {
-						if (result) {
-							const {nmrKanjiHighlighted, learned, notLearned} = result;
-							kanjiListUpdate(learned, notLearned, kanjiAssoc);
-						}
-					});
-				});
-			}
-
-			console.log("HERE");
-
-			// LESSONS AND REVIEWS
-			if (settings["extension_popup_interface"]["lessons_and_reviews"]) {
-				// get all assignments if there are none in storage or if they were modified
-				setupAssignments(apiKey, () => setupAvailableAssignments(apiKey, setupSummary));
-			
-				// update values and update interface
-				setupAvailableAssignments(apiKey, setupSummary);
-
-				// put in interface whatever values are in cache
-				setupSummary(result["reviews"], result["lessons"]);
-			}
-
-
-			// PROGRESSIONS
-			const allSize = (result["allradicals_size"] ? result["allradicals_size"] : 0)
-				+ (result["allkanji_size"] ? result["allkanji_size"] : 0)
-				+ (result["allvocab_size"] ? result["allvocab_size"] : 0);
 		
-			const progresses = {
-				"radical": result["radical_progress"],
-				"kanji": result["kanji_progress"],
-				"vocabulary": result["vocabulary_progress"]
-			};
-
-			if (settings["extension_popup_interface"]["overall_progression_bar"])
-				progressionBar(document.querySelector("#progression-bar"), srsStages, progresses, allSize, settings["appearance"]);
-			
-			if (settings["extension_popup_interface"]["overall_progression_stats"])
-				progressionStats(document.querySelector("#progression-stats"), srsStages, progresses, settings["appearance"]);
-		
-			if (settings["extension_popup_interface"]["levels_in_progress"]) {
-				const radicalsLevelInProgress = result["radical_levelsInProgress"] ? result["radical_levelsInProgress"] : [];
-				const kanjiLevelInProgress = result["kanji_levelsInProgress"] ? result["kanji_levelsInProgress"] : [];
-				const vocabularyLevelInProgress = result["vocabulary_levelsInProgress"] ? result["vocabulary_levelsInProgress"] : [];
-				const types = ["radical", "kanji", "vocabulary"];
-				const progressBarWrappers = [];
-				const db = new Database("wanikani");
-				db.create("subjects").then(created => {
-					if (created) {
-						[radicalsLevelInProgress, kanjiLevelInProgress, vocabularyLevelInProgress]
-							.forEach((levels, i) => {
-								progressBarWrappers.push(
-									new Promise((resolve, reject) => {
-										db.getAll("subjects", "level", levels).then(result => {	
-											const bars = [];							
-											levels.forEach(level => {
-												const values = result[level].filter(value => value["hidden_at"] == null && value["subject_type"] === types[i]);
-												bars.push(levelProgressBar(userInfo["level"], values, level, types[i], srsStages, settings["appearance"]));											
-											});
-											resolve(bars);
-										});
-									})
-								);
-							});
-
-						// put bars in correct order
-						const levelsInProgress = document.querySelector("#levels-progress");
-						Promise.all(progressBarWrappers).then(bars => {
-							bars.flat(1).sort((a,b) => Number(a.dataset.order) - Number(b.dataset.order))
-								.forEach(bar => levelsInProgress.appendChild(bar));
-						});
-					}
-				});
-			}
-
-			// remove sections hidden by the user
-			for (let [key, show] of Object.entries(settings["extension_popup_interface"])) {
-				if (!show) document.querySelector(`#${key}`)?.remove();
-			}
-		}
+		if (apiKey)		
+			updateHomeInterface(result);
 		else
 			window.location.href = "auth.html";	
 	});
@@ -265,6 +249,9 @@ const timeStampRefresher = (moreReviews, timeStampInterval,thisDate, timeUnit, r
 const progressionBar = (wrapper, srsStages, progresses, size, colors) => {
 	let unlockedSize = 0, stageValue, stageColor;
 
+	// clear bar beforehand if needed
+	if (wrapper) wrapper.innerHTML = "";
+
 	Object.keys(srsStages).forEach(stage => {
 		stageValue = (progresses["radical"] && progresses["radical"][stage] ? progresses["radical"][stage] : 0)
 			+ (progresses["kanji"] && progresses["kanji"][stage] ? progresses["kanji"][stage] : 0)
@@ -307,6 +294,9 @@ const progressionBar = (wrapper, srsStages, progresses, size, colors) => {
 const progressionStats = (wrapper, srsStages, progresses, colors) => {
 	let row, stageValue, stageColor;
 	console.log(progresses);
+
+	// clear stats beforehand if needed
+	if (wrapper) wrapper.innerHTML = "";
 
 	Object.keys(srsStages).forEach(stage => {
 		stageValue = (progresses["radical"] && progresses["radical"][stage] ? progresses["radical"][stage] : 0)

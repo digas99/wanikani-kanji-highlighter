@@ -54,7 +54,7 @@
 						totalHighlighted = learned.size() + notLearned.size();
 						contentHighlighted = {learned:learned.highlightedSet(), notLearned:notLearned.highlightedSet()};
 						chrome.runtime.sendMessage({badge:totalHighlighted, nmrKanjiHighlighted:totalHighlighted, kanjiHighlighted:contentHighlighted});
-						chrome.storage.local.set({"nmrHighLightedKanji":totalHighlighted, "allHighLightedKanji":contentHighlighted});
+						chrome.storage.local.set({"nmrHighLightedKanji":totalHighlighted, "highlighted_kanji":contentHighlighted});
 					}, delay);
 
 					// only delay the first time

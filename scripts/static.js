@@ -417,11 +417,11 @@ const RADICAL_SETUP = {
 	name: "radicals",
 	endpoint: "https://api.wanikani.com/v2/subjects?types=radical",
 	storage: {
-		id: "allradicals",
-		updated: "allradicals_updated",
+		id: "radicals",
+		updated: "radicals_updated",
 		level: "radical_level",
 		association: "radical_assoc",
-		size: "allradicals_size"
+		size: "radicals_size"
 	},
 };
 
@@ -429,11 +429,11 @@ const VOCAB_SETUP = {
 	name: "vocabulary",
 	endpoint: "https://api.wanikani.com/v2/subjects?types=vocabulary",
 	storage: {
-		id: "allvocab",
-		updated: "allvocab_updated",
+		id: "vocabulary",
+		updated: "vocabulary_updated",
 		level: "vocab_level",
-		association: "vocab_assoc",
-		size: "allvocab_size"
+		association: "vocabulary_assoc",
+		size: "vocabulary_size"
 	},
 };
 
@@ -441,11 +441,11 @@ const KANA_VOCAB_SETUP = {
 	name: "kana vocab",
 	endpoint: "https://api.wanikani.com/v2/subjects?types=kana_vocabulary",
 	storage: {
-		id: "allkanavocab",
-		updated: "allkanavocab_updated",
+		id: "kana_vocab",
+		updated: "kana_vocab_updated",
 		level: "kanavocab_level",
-		association: "kanavocab_assoc",
-		size: "allkanavocab_size"
+		association: "kana_vocab_assoc",
+		size: "kana_vocab_size"
 	},
 };
 
@@ -453,11 +453,11 @@ const KANJI_SETUP = {
 	name: "kanji",
 	endpoint: "https://api.wanikani.com/v2/subjects?types=kanji",
 	storage: {
-		id: "allkanji",
-		updated: "allkanji_updated",
+		id: "kanji",
+		updated: "kanji_updated",
 		level: "kanji_level",
 		association: "kanji_assoc",
-		size: "allkanji_size"
+		size: "kanji_size"
 	},
 	jlpt: true,
 	joyo: true
@@ -470,3 +470,9 @@ const ASSIGNMENTS_SETUP = {
 		updated: "assignments_updated"
 	}
 };
+
+const ASSIGNMENTS = ["reviews", "lessons"];
+const PROGRESS = ["radical_progress", "kanji_progress", "vocabulary_progress", "radicals_size", "kanji_size", "vocabulary_size", "radical_levelsInProgress", "kanji_levelsInProgress", "vocabulary_levelsInProgress"];
+const HIGHLIGHTED = ["kanji_assoc", "highlighted_kanji"];
+
+const HOME_FETCH_KEYS = ["settings", "userInfo", ...HIGHLIGHTED, ...ASSIGNMENTS , ...PROGRESS]
