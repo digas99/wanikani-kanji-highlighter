@@ -10,7 +10,6 @@
 		blacklistedSite = blacklisted(result["blacklist"], url);
 		
 		if (!atWanikani && !blacklistedSite) {
-		//if (true) {
 			chrome.runtime.sendMessage({uptimeHighlight:true});
 
 			result = result["highlight_setup"];
@@ -98,48 +97,51 @@
 					iframe.contentDocument.styleSheets[0].insertRule(`.${className}_bold {color: ${color} !important;}`, iframe.contentDocument.styleSheets[0].cssRules.length);
 				}
 			}
-		}
-
-		clearHighlight = () => {
-			console.log("clearing highlight");
-			const highlighted = document.querySelectorAll(".wkhighlighter_clickable");
-			if (highlighted) {
-				Array.from(highlighted).forEach(elem => {
-					if (elem && elem.parentElement) {
-						Array.from(elem.parentElement.childNodes).forEach(child => child.remove());
-					}
-				});
+		
+			clearHighlight = () => {
+				console.log("clearing highlight");
+				const highlighted = document.querySelectorAll(".wkhighlighter_clickable");
+				if (highlighted) {
+					Array.from(highlighted).forEach(elem => {
+						if (elem && elem.parentElement) {
+							Array.from(elem.parentElement.childNodes).forEach(child => child.remove());
+						}
+					});
+				}
 			}
+	
+	
+			// youtube temporary fix
+			/*window.addEventListener('yt-page-data-updated', () => {
+				if (totalHighlighted > 0)
+					window.location.reload();
+			});*/
+	
+			// soomther youtube temporary fix
+			// Select the video element
+			const videoElement = document.querySelector('#movie_player video');
+	
+			// Create a new MutationObserver
+			const observer = new MutationObserver(function(mutationsList) {
+				for (const mutation of mutationsList) {
+				console.log(mutation);
+					if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+						// if in between videos, reload page
+						if (mutation.target.src == "" && totalHighlighted > 0) {
+						window.location.reload();	
+						}
+					}
+				}
+			});
+	
+			// Configure the observer to watch for changes to the 'src' attribute
+			const config = { attributes: true, attributeFilter: ['src'] };
+	
+			// Start observing the video element
+			observer.observe(videoElement, config);
 		}
-
-
-		// youtube temporary fix
-		/*window.addEventListener('yt-page-data-updated', () => {
-			if (totalHighlighted > 0)
-				window.location.reload();
-		});*/
-
-		// soomther youtube temporary fix
-       // Select the video element
-	   const videoElement = document.querySelector('#movie_player video');
-
-	   // Create a new MutationObserver
-	   const observer = new MutationObserver(function(mutationsList) {
-		   for (const mutation of mutationsList) {
-			console.log(mutation);
-			   if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
-				  // if in between videos, reload page
-				  if (mutation.target.src == "" && totalHighlighted > 0) {
-					window.location.reload();	
-				  }
-			   }
-		   }
-	   });
-
-	   // Configure the observer to watch for changes to the 'src' attribute
-	   const config = { attributes: true, attributeFilter: ['src'] };
-
-	   // Start observing the video element
-	   observer.observe(videoElement, config);
+		else {
+			chrome.runtime.sendMessage({uptimeHighlight:false});
+		}
 	});
 })();

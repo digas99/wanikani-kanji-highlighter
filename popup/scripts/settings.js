@@ -143,21 +143,21 @@ document.addEventListener('click', e => {
 			const checkbox_wrapper = target.parentElement;
 			checkboxStyle(checkbox_wrapper, target.checked);
 	
-			handleSettingsAction(target, target.checked, (group, setting) => {
+			handleSettingsAction(target, target.checked, async (group, setting) => {
 				switch(group) {
 					case "extension_icon":
 						switch (setting) {
 							case "kanji_counter":
 								let value = "";
-	
+								const tab = await getTab();
 								if (target.checked) {
 									chrome.storage.local.get(["nmrHighLightedKanji"], result => {
 										value = (result && result["nmrHighLightedKanji"] ? result["nmrHighLightedKanji"] : 0).toString();
-										chrome.action.setBadgeText({text: value, tabId:activeTab.id});
+										chrome.action.setBadgeText({text: value, tabId:tab.id});
 									});
 								}
 								else
-									chrome.action.setBadgeText({text: '', tabId:activeTab.id});
+									chrome.action.setBadgeText({text: '', tabId:tab.id});
 	
 								break;
 						}

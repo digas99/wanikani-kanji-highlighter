@@ -756,7 +756,8 @@ const blacklistRemove = url => {
 	return new Promise(resolve => {
 		chrome.storage.local.get(["blacklist"], data => {
 			const blacklist = data["blacklist"];
-			const index = blacklist.indexOf(url.replace(".", "\\."));
+			const index = blacklist.indexOf(url.replace("www.", "").replace(".", "\\."));
+			console.log(url, blacklist);
 			if (index > -1) {
 				blacklist.splice(index, 1);
 				chrome.storage.local.set({"blacklist":blacklist});

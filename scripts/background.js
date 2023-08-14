@@ -311,21 +311,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.kanaWriting)
 		kanaWriting = request.kanaWriting;
 
+
+	// DRIVE MESSAGES BACK TO THE POPUP
+
 	// drive the setup progress back to the popup
-	if (request.setup) {
-		console.log("BACKGROUND JS", request.setup);
-		chrome.runtime.sendMessage({setup: request.setup});
-	}
+	if (request.setup) chrome.runtime.sendMessage({setup: request.setup});
 
 	// drive the database progress back to the popup
-	if (request.db) {
-		chrome.runtime.sendMessage({db: request.db});
-	}
+	if (request.db) chrome.runtime.sendMessage({db: request.db});
 
 	// drive the error message back to the popup
-	if (request.error) {
-		chrome.runtime.sendMessage({error: request.error});
-	}
+	if (request.error) chrome.runtime.sendMessage({error: request.error});
+
+	// drive loading request back to the popup
+	if (request.loading) chrome.runtime.sendMessage({loading: request.loading});
 });
 
 const contextMenuItem = {

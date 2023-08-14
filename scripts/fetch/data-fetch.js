@@ -31,15 +31,17 @@ const fetchPage = async (apiToken, page, updated) => {
 
 // recursive function to fetch all pages that come after a given page (given page included)
 const fetchAllPages = async (apiToken, page, updated) => {
+	if (!page) return [];
+
 	if (updated) {
 		const modified = await modifiedSince(apiToken, updated, page);
+		console.log(page, modified);
 		if (!modified)
 			return {error: {message: "Not modified", code: 304}};
 	}
 
-	if (!page) return [];
-
 	const result = await fetchPage(apiToken, page, updated);
+	console.log(result);
 	
 	if (result.error)
 		return result;
@@ -55,7 +57,7 @@ const modifiedSince = async (apiKey, date, url) => {
 	requestHeaders.append('If-Modified-Since', date);
 	var requestInit = { method: 'GET', headers: requestHeaders };
 	var endpoint = new Request(url, requestInit);
-	
+	console.log("CHECKING", date, url);
 	return fetch(endpoint)
 		.then(response => {
 			const result = response.status != 429 && response.status !== 304;

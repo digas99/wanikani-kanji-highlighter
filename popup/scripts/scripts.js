@@ -44,7 +44,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				setTimeout(() => {
 					messagePopup.remove();
 					window.location.reload();
-				}, 500);
+				}, 1000);
 
 			}
 		}
@@ -68,8 +68,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			// set initialFetch flag to false to prevent infinite loop
 			chrome.storage.local.set({"initialFetch": false});
 
-			// remove popup after 2 seconds
+			// remove popup after a few seconds
 			setTimeout(() => messagePopup.remove(), 4000);
+		}
+	}
+
+	// show loading
+	if (request.loading) {
+		if (!messagePopup.exists()) {
+			messagePopup.create("Fetching subject data from Wanikani...", "Please, don't close the extension.");
+			messagePopup.setLoading();
 		}
 	}
 });

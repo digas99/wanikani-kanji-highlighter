@@ -21,6 +21,9 @@ const setupSubjects = (apiToken, setup, build, callback) =>
 							return;
 						}
 
+						// open a loading popup
+						chrome.runtime.sendMessage({loading: true});
+
 						let subjects = {};
 						let associations = {};
 						const db_records = [];
