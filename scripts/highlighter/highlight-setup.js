@@ -15,12 +15,6 @@
 
 			result = result["highlight_setup"];
 
-			// youtube temporary fix
-			window.addEventListener('yt-page-data-updated', () => {
-				if (totalHighlighted > 0)
-					window.location.reload();
-			});
-
 			const otherClasses = ["wkhighlighter_clickable", "wkhighlighter_hoverable"];
 			const tagFilter = tag => !(tag.closest(".sd-detailsPopup") && !tag.closest(".sd-detailsPopup_sentencesWrapper") && !tag.closest(".sd-popupDetails_p"));
 
@@ -105,5 +99,47 @@
 				}
 			}
 		}
+
+		clearHighlight = () => {
+			console.log("clearing highlight");
+			const highlighted = document.querySelectorAll(".wkhighlighter_clickable");
+			if (highlighted) {
+				Array.from(highlighted).forEach(elem => {
+					if (elem && elem.parentElement) {
+						Array.from(elem.parentElement.childNodes).forEach(child => child.remove());
+					}
+				});
+			}
+		}
+
+
+		// youtube temporary fix
+		/*window.addEventListener('yt-page-data-updated', () => {
+			if (totalHighlighted > 0)
+				window.location.reload();
+		});*/
+
+		// soomther youtube temporary fix
+       // Select the video element
+	   const videoElement = document.querySelector('#movie_player video');
+
+	   // Create a new MutationObserver
+	   const observer = new MutationObserver(function(mutationsList) {
+		   for (const mutation of mutationsList) {
+			console.log(mutation);
+			   if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+				  // if in between videos, reload page
+				  if (mutation.target.src == "" && totalHighlighted > 0) {
+					window.location.reload();	
+				  }
+			   }
+		   }
+	   });
+
+	   // Configure the observer to watch for changes to the 'src' attribute
+	   const config = { attributes: true, attributeFilter: ['src'] };
+
+	   // Start observing the video element
+	   observer.observe(videoElement, config);
 	});
 })();

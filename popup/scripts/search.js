@@ -156,7 +156,7 @@ const searchSubject = (kanji, vocabulary, input, searchType, targeted, display) 
 
 const matchesMeanings = (input, meanings, precise) => {
 	let expr;
-	if (input.length > 3 && !precise) {
+	if (input.length > 1 && !precise) {
 		expr = new RegExp(input, "g");
 		for (const index in meanings) {
 			if (expr.test(meanings[index].toLowerCase())) {
