@@ -170,7 +170,7 @@ const updateTypeContainer = (type, container, subjects) => {
 
 const subjectTile = (type, subject) => {
     const subjectWrapper = document.createElement("li");
-    const characters = subject["characters"] ? subject["characters"]  : `<img height="22px" style="margin-top:-3px;margin-bottom:-4px;padding-top:8px" src="${subject["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`;
+    const characters = subject["characters"] ? subject["characters"] : `<img height="22px" style="margin-top:-3px;margin-bottom:-4px;padding-top:8px" src="${subject["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`;
     subjectWrapper.classList.add(type+"_back");
     subjectWrapper.title = subject["meanings"][0];
     subjectWrapper.style.position = "relative";
@@ -220,7 +220,7 @@ const subjectTile = (type, subject) => {
         subjectWrapper.setAttribute("data-available_at", subject["available_at"]);
     
 
-    if (subject["srs_stage"] !== null) {
+    if (subject["srs_stage"] !== null && subject["srs_stage"] >= 0) {
         subjectWrapper.title += " \x0D"+srsStages[subject["srs_stage"]]["name"];
         subjectWrapper.setAttribute("data-srs", subject["srs_stage"]);
     }
@@ -611,7 +611,7 @@ const colorings = (subjects, type) => {
                 if (elem.getAttribute("data-srs")) {
                     let backColor;
                     if (elem.getAttribute("data-srs") == "-1") {
-                        backColor = "#000000";
+                        backColor = "#ffffff";
                         elem.style.setProperty("background-color", backColor, "important");
                     }
                     else {

@@ -150,9 +150,12 @@
     overflow: hidden;
 }
 
-#levels-progress > ul > li > div {
-    text-align: center;
-    margin-top: 5px;
+#levels-progress > ul > li > a {
+    color: white;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    height: 100%;
 }
 
 #levels-progress > ul > span {

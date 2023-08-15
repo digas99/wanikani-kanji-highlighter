@@ -395,7 +395,7 @@ const levelProgressBar = (currentLevel, values, level, type, srsStages, colors) 
 	const all = values.length;
 	const passed = values.filter(subject => subject["passed_at"]).length;
 	const notPassed = values.filter(subject => !subject["passed_at"]);
-	const locked = notPassed.filter(subject => subject["srs_stage"] == null).length;
+	const locked = notPassed.filter(subject => subject["srs_stage"] == -1).length;
 
 	const progressBarWrapper = document.createElement("ul");
 
@@ -404,16 +404,16 @@ const levelProgressBar = (currentLevel, values, level, type, srsStages, colors) 
 	progressBarWrapper.setAttribute("data-order", levelValue);
 
 	// bar for passed
-	progressBarWrapper.appendChild(levelProgressBarSlice(passed/all*100, {background: "black", text: "white"}, "Passed: "+passed));
+	progressBarWrapper.appendChild(levelProgressBarSlice(passed/all*100, {background: "black", text: "white"}, "Passed: "+passed, {level: level, type: type, srs: "passed"}));
 
 	// traverse from initiate until apprentice IV
 	for (let i = 5; i >= 0; i--) {
 		const stageSubjects = notPassed.filter(subject => subject["srs_stage"] == i).length;
-		progressBarWrapper.appendChild(levelProgressBarSlice(stageSubjects/all*100, {background: colors[srsStages[i]["short"].toLowerCase()+"_color"], text: "white"}, srsStages[i]["name"]+": "+stageSubjects));
+		progressBarWrapper.appendChild(levelProgressBarSlice(stageSubjects/all*100, {background: colors[srsStages[i]["short"].toLowerCase()+"_color"], text: "white"}, srsStages[i]["name"]+": "+stageSubjects, {level: level, type: type, srs: srsStages[i]["name"]}));
 	}
 
 	// bar for locked
-	progressBarWrapper.appendChild(levelProgressBarSlice(locked/all*100, {background: "white", text: "black"}, "Locked: "+locked));
+	progressBarWrapper.appendChild(levelProgressBarSlice(locked/all*100, {background: "white", text: "black"}, "Locked: "+locked, {level: level, type: type, srs: "locked"}));
 
 	// bar id
 	const barTitle = document.createElement("span");
@@ -427,17 +427,22 @@ const levelProgressBar = (currentLevel, values, level, type, srsStages, colors) 
 	return progressBarWrapper;
 }
 
-const levelProgressBarSlice = (value, color, title) => {
+const levelProgressBarSlice = (value, color, title, info) => {
+	const {level, type, srs} = info;
+
 	const progressBarBar = document.createElement("li");
 	progressBarBar.classList.add("clickable");
 	const percentageValue = value;
 	progressBarBar.style.width = percentageValue+"%";
 	progressBarBar.style.backgroundColor = color["background"];
-	progressBarBar.style.color = color["text"];
 	progressBarBar.title = title;
+	progressBarLink = document.createElement("a");
+	progressBarBar.appendChild(progressBarLink);
+	progressBarLink.href = `/popup/progressions.html?level=${level}&type=${type}&jump=${srs}`;
 	if (percentageValue > 8.1) {
 		const percentage = document.createElement("div");
-		progressBarBar.appendChild(percentage);
+		progressBarLink.appendChild(percentage);
+		percentage.style.color = color["text"];
 		percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
 	}
 	return progressBarBar;

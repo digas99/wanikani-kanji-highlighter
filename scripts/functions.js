@@ -762,3 +762,57 @@ const blacklisted = (blacklist, url) => {
 	}
 	return false;
 }
+
+const dataTile = (subjects, elem, value) => {
+	const subject = subjects.find(subject => 
+		subject["characters"] === value ||
+		subject?.character_images?.find(image => image["url"] == elem.querySelector("img")?.src));
+		
+	if (subject) {
+		const meaning = subject["meanings"][0];
+		let reading = subject["readings"] ? subject["readings"][0] : subject["readings"];
+		if (reading && typeof reading !== "string")
+			reading = subject["readings"].find(reading => reading["primary"])["reading"];
+
+		const type = subject["subject_type"];
+
+		if (type !== "radical")
+			elem.classList.add("kanjiDetails");
+
+		elem.title = `${meaning} ${reading ? `| ${reading}` : ""}\x0D${type.split("_").map(word => word[0].toUpperCase() + word.slice(1)).join(" ")}`;
+		elem.setAttribute("data-item-id", subject["id"]);
+	}
+}
+
+const headerSRSDecoration = (header, srs) => {
+	const egg = document.createElement("div");
+	egg.classList.add("srsTitleEgg");
+	if (srs > 4 && srs < 7)
+		egg.style.backgroundPositionX = "-22px";
+	if (srs == 7)
+		egg.style.backgroundPositionX = "-45px";
+	if (srs == 8)
+		egg.style.backgroundPositionX = "-67px";
+
+	header.insertBefore(egg, header.firstChild);
+}
+
+const headerSubjectDecoration = (header, type) => {
+	const typeElem = document.createElement("span");
+	header.insertBefore(typeElem, header.firstChild);
+	typeElem.style.fontWeight = "bold";
+	let text;
+	switch(type) {
+		case "radical":
+			text = "部首";
+			break;
+		case "kanji":
+			text = "漢字";
+			break;
+		case "vocabulary":
+		case "kana_vocabulary":
+			text = "単語";
+			break;
+	}
+	typeElem.textContent = text;
+}
