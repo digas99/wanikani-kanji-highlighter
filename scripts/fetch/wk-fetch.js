@@ -10,11 +10,8 @@ const setupSubjects = (apiToken, setup, build, callback) =>
 			if (created) {
 				fetchAllPages(apiToken, setup.endpoint, updated)
 					.then(async data => {
-						console.log(data);
-
 						// too many requests or not modified
 						if (data.error) {
-							console.log(data);
 							resolve([storage, false]);
 							if (callback)
 								callback(storage, false);
@@ -33,9 +30,8 @@ const setupSubjects = (apiToken, setup, build, callback) =>
 
 						await db.insert("subjects", db_records);
 
-						console.log("Inserted "+db_records.length+" records into database for "+setup.name);
+						console.log("[DATABASE]: Inserted "+db_records.length+" records into database for "+setup.name);
 
-						console.log(subjects, associations);
 						if (data["total_count"] > 0) {
 							// add jlpt info
 							if (setup.jlpt) {
@@ -61,7 +57,6 @@ const setupSubjects = (apiToken, setup, build, callback) =>
 							[setup.storage.updated]: formatDate(addHours(new Date(), -1)),
 							[setup.storage.size]:Object.keys(subjects).length
 						}}, () => {
-							console.log("Setup "+setup.name+"...");
 							resolve([subjects, true]);
 							if (callback)
 								callback(subjects, true);
@@ -90,7 +85,7 @@ const fetchUserInfo = async(apiToken, callback) => {
 			.then(user => {
 				// too many requests
 				if (user.error) {
-					console.log(user);
+					console.log("[USER]:", user);
 					if (callback)
 						callback(storage);
 					return;
@@ -113,7 +108,6 @@ const setupAssignments = async (apiToken, callback) =>
 				.then(data => {
 					// too many requests or not modified
 					if (data.error) {
-						console.log(data);
 						resolve([assignments, false]);
 						if (callback)
 							callback(assignments, false);
@@ -122,8 +116,6 @@ const setupAssignments = async (apiToken, callback) =>
 
 					let allAssignments = assignments ? assignments["all"] : [];
 					const newAssignments = data.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
-					console.log("ASSIGNMENTS");
-					console.log(allAssignments, newAssignments);
 					newAssignments.forEach(assignment => {
 						const index = allAssignments.findIndex(a => a.id === assignment.id);
 						if (index !== -1)
@@ -132,7 +124,6 @@ const setupAssignments = async (apiToken, callback) =>
 							allAssignments.push(assignment);
 					});
 
-					console.log(allAssignments);
 					const allFutureAssignments = filterAssignmentsByTime(allAssignments, new Date(), null);
 					const allAvailableReviews = filterAssignmentsByTime(allAssignments, new Date(), changeDay(new Date(), -1000));
 					chrome.storage.local.set({"assignments": {

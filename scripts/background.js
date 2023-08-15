@@ -30,7 +30,7 @@ chrome.runtime.onConnect.addListener(port => externalPort = port);
 chrome.runtime.onInstalled.addListener(details => {
 	console.log("Extension installed");
 
-	chrome.storage.local.set({"initialFetch": true});
+	chrome.storage.local.set({"initialFetch": true, "context_menus": []});
 
 	// clear all subjects on extension update
 	if (details.reason == "update")
@@ -70,9 +70,7 @@ const setSettings = () => {
 			notStored.forEach(id => settings[id[0]][id[1]] = defaultSettings[id[0]][id[1]]);
 		}
 
-		console.log("SETTINGS: ", settings);
-
-		chrome.storage.local.set({"settings":settings}, () => console.log("Settings stored."));
+		chrome.storage.local.set({"settings":settings}, () => console.log("[SETTINGS] stored."));
 
 		// setup highlighting class value from settings
 		highlightingClass = settings["highlight_style"]["learned"];
@@ -333,7 +331,15 @@ const contextMenuItem = {
 	contexts: ["selection"]
 };
 
-chrome.contextMenus.create(contextMenuItem);
+chrome.storage.local.get("context_menus", result => {
+	const menus = result["context_menus"] || [];
+	if (!menus.includes(contextMenuItem.id)) {
+		chrome.contextMenus.create(contextMenuItem, () => {
+			menus.push(contextMenuItem.id);
+			chrome.storage.local.set({"context_menus": menus});
+		});
+	}
+});
 
 chrome.contextMenus.onClicked.addListener(data => {
 	let selectedText = data["selectionText"];

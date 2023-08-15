@@ -116,7 +116,7 @@
                 const objectStore = transaction.objectStore(table);
         
                 return new Promise((resolve, reject) => {
-                    transaction.oncomplete = () => console.log("All GET transactions were complete.");
+                    //transaction.oncomplete = () => console.log("All GET transactions were complete.");
             
                     transaction.onerror = () => {
                         console.log("Problem getting records.", e.target.error);
@@ -135,7 +135,7 @@
                 const objectStore = transaction.objectStore(table);
         
                 return new Promise((resolve, reject) => {
-                    transaction.oncomplete = () => console.log("All GET transactions were complete.");
+                    //transaction.oncomplete = () => console.log("All GET transactions were complete.");
             
                     transaction.onerror = () => {
                         console.log("Problem getting records.", e.target.error);
@@ -175,7 +175,6 @@
         
                 return new Promise((resolve, reject) => {
                     transaction.oncomplete = () => {
-                        console.log("All PUT transactions were complete.");
                         resolve(true);
                     }
             
@@ -195,7 +194,6 @@
         
                 return new Promise((resolve, reject) => {
                     transaction.oncomplete = () => {
-                        console.log("All DELETE transactions were complete.");
                         resolve(true);
                     }
             

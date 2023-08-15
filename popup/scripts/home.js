@@ -1,4 +1,6 @@
 let settings, apiKey, userInfo, lastReviewsValue = 0, lastLessonsValue = 0;
+let highlightList;
+let activeTab;
 
 let popupLoading;
 if (!messagePopup) {
@@ -9,7 +11,7 @@ if (!messagePopup) {
 const updateHomeInterface = async (result) => {
 	settings = result["settings"] ? result["settings"] : defaultSettings;
 	userInfo = result["userInfo"];
-	const activeTab = await getTab();
+	activeTab = await getTab();
 
 	// SCRIPTS UPTIME
 	if (settings["extension_popup_interface"]["scripts_status"]) {
@@ -28,12 +30,42 @@ const updateHomeInterface = async (result) => {
 
 	// HIGHLIGHTED KANJI
 	if (settings["extension_popup_interface"]["highlighted_kanji"]) {
+		const learned = [], notLearned = [];
+		highlightList = new TilesList(
+			document.querySelector("#highlighted_kanji"),
+			[
+				{
+					title: "Learned",
+					color: "var(--highlight-default-color)",
+					data: learned
+				},
+				{
+					title: "Not learned",
+					color: "var(--notLearned-color)",
+					data: notLearned
+				}
+			],
+			{
+				title: `Kanji: <b>${learned.length + notLearned.length}</b> (in the page)`,
+				height: 200,
+				bars: {
+					labels: true
+				},
+				sections: {
+					fillWidth: true,
+					join: false,
+					notFound: "No Kanji found in the current page!"
+				}
+			}
+		);
+
 		const kanjiAssoc = result["kanji_assoc"];
 
 		chrome.tabs.sendMessage(activeTab.id, {nmrKanjiHighlighted:"popup"}, result => {
 			if (result) {
 				const {nmrKanjiHighlighted, learned, notLearned} = result;
-				kanjiListUpdate(learned, notLearned, kanjiAssoc);
+				if (learned.length > 0 || notLearned.length > 0)
+					kanjiListUpdate(learned, notLearned, kanjiAssoc);
 			}
 		});
 	}
@@ -42,7 +74,6 @@ const updateHomeInterface = async (result) => {
 	if (settings["extension_popup_interface"]["lessons_and_reviews"]) {
 		setupSummary(result["reviews"], result["lessons"]);
 	}
-
 
 	// PROGRESSIONS
 	const allSize = (result["radicals_size"] ? result["radicals_size"] : 0)
@@ -86,8 +117,11 @@ const updateHomeInterface = async (result) => {
 						);
 					});
 
-				// put bars in correct order
+				// clear previous bars
 				const levelsInProgress = document.querySelector("#levels-progress");
+				levelsInProgress.innerHTML = "";
+					
+				// put bars in correct order
 				Promise.all(progressBarWrappers).then(bars => {
 					bars.flat(1).sort((a,b) => Number(a.dataset.order) - Number(b.dataset.order))
 						.forEach(bar => levelsInProgress.appendChild(bar));
@@ -103,62 +137,40 @@ const updateHomeInterface = async (result) => {
 }
 
 chrome.storage.local.get(["apiKey", ...HOME_FETCH_KEYS], result => {
-	chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-		if (popupLoading) popupLoading.remove();
-		
-		apiKey = result["apiKey"];
-		
-		if (apiKey)		
-			updateHomeInterface(result);
-		else
-			window.location.href = "auth.html";	
-	});
+	if (popupLoading) popupLoading.remove();
+	
+	apiKey = result["apiKey"];
+	
+	if (apiKey) {
+		updateHomeInterface(result);
+		loadData(apiKey);
+	}
+	else
+		window.location.href = "auth.html";	
 });
 
 const kanjiListUpdate = (learned, notLearned, kanjiAssoc) => {
-	// fill number of kanji
-	document.querySelector("#nmrKanjiHighlighted strong").innerText = learned.length + notLearned.length;
-
-	// fill progress bar of kanji
-	const barData = [
+	highlightList.updateTitle(`Kanji: <b>${learned.length + notLearned.length}</b> (in the page)`);
+	highlightList.update([
 		{
-			link: "learnedKanji",
+			title: "Learned",
 			color: "var(--highlight-default-color)",
-			value: learned.length
+			data: learned
 		},
 		{
-			link: "notLearnedKanji",
+			title: "Not learned",
 			color: "var(--notLearned-color)",
-			value: notLearned.length
+			data: notLearned
 		}
-	];
-	const kanjiFoundBar = document.querySelector(".items-list-bar");
-	kanjiFoundBar.parentElement.replaceChild(itemsListBar(barData), kanjiFoundBar);
+	]);
 
-	// fill table
-	const oldKanjiList = document.querySelector("#kanjiHighlightedList").querySelector("ul");
-	const highlightedKanjiList = document.createElement("ul");
-	oldKanjiList.parentElement.replaceChild(highlightedKanjiList, oldKanjiList);
-	const classes = ["kanjiHighlightedLearned", "kanjiHighlightedNotLearned"];
-	if (learned.length > 0 || notLearned.length > 0) {
-		document.querySelector(".not-found")?.remove();
-		document.querySelector(".highlightedKanjiContainer").style.removeProperty("height");
-		[learned, notLearned].forEach((kanjiList, i) => {
-			kanjiList.forEach(kanji => {
-				const li = document.createElement("li");
-				li.classList.add("clickable", "kanjiDetails", classes[i]);
-				li.appendChild(document.createTextNode(kanji));
-				highlightedKanjiList.appendChild(li);
-			});
-		});
-
-		// add data attribute
-		highlightedKanjiList.querySelectorAll("li").forEach(li => {
-			const kanji = li.innerText;
-			if (kanjiAssoc && kanjiAssoc[kanji])
-				li.setAttribute("data-item-id", kanjiAssoc[kanji]);
-		});
-	}
+	// add data attribute
+	Array.from(highlightList.list.querySelectorAll("li")).forEach(li => {
+		const kanji = li.innerText;
+		li.classList.add("kanjiDetails");
+		if (kanjiAssoc && kanjiAssoc[kanji])
+			li.setAttribute("data-item-id", kanjiAssoc[kanji]);
+	});
 }
 
 const setupSummary = (reviews, lessons) => {
@@ -448,7 +460,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 
 	// update highlighted kanji list
-	if (request.kanjiHighlighted && document.getElementById("kanjiHighlightedList") && sender.tab.id == activeTab.id) {
+	if (request.kanjiHighlighted && highlightList && sender.tab.id == activeTab.id) {
 		chrome.storage.local.get(["kanji_assoc"], result => {
 			const kanjiAssoc = result["kanji_assoc"];
 			const {learned, notLearned} = request.kanjiHighlighted;
@@ -464,6 +476,7 @@ document.addEventListener("scriptsLoaded", () => {
 
 	if (atWanikani) main.insertBefore(enhancedWarning("Limited features at wanikani, sorry!", "var(--wanikani)"), userInfoWrapper);
 	else if (blacklistedSite) main.insertBefore(enhancedWarning("Site blacklisted by you!", "red"), userInfoWrapper);
+	else if (!validSite) main.insertBefore(enhancedWarning("The current site doesn't allow for highlighting.", "#b3b3b3"), userInfoWrapper);
 });
 
 const enhancedWarning = (text, color) => {

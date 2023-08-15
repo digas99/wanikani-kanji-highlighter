@@ -65,6 +65,18 @@ document.addEventListener("scriptsLoaded", () => {
             highlightedKanjiCounter.remove();
 
     }
+
+    // if not valid site
+    if (!validSite) {
+        // remove some buttons
+        const buttons = document.querySelectorAll("#blacklist, #run, #random");
+        buttons.forEach(button => button?.parentElement.remove());
+
+        // remove highlighted kanji container
+        const highlightedKanjiCounter = document.querySelector(".highlightedKanjiContainer");
+        if (highlightedKanjiCounter)
+            highlightedKanjiCounter.remove();
+    }
     
     if (!blacklistedSite && !atWanikani) {
         chrome.storage.local.get(["blacklist"], result => {

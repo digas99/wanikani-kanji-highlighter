@@ -33,16 +33,12 @@ const convertToKana = text => {
 	return finalValue == undefined ? '' : finalValue;
 }
 
-const isAllKana = text => {
-	// TODO
+const hasKana = text => {
+	return text.match(/[\u3040-\u309f\u30a0-\u30ff]/);
 }
 
-const isAllKanji = text => {
-	// TODO
-}
-
-const hasNonJapaneseCharacters = text => {
-	// TODO
+const hasKanji = text => {
+	return text.match(/[\u3400-\u9FBF]/);
 }
 
 const kana = {

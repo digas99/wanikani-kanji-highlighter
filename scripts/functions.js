@@ -126,38 +126,33 @@ const filterAssignmentsByTime = (list, currentDate, capDate) => {
 }
 
 // clears cache of this extension from chrome storage
-const clearCache = () => {
-	chrome.storage.local.get(null, data => {
-		let keysToRemove = [];
-		Object.keys(data).forEach(key => {
-			if (/^.*/g.test(key)) {
-				keysToRemove.push(key);
-			}
+const clearCache = async (keysToKeep) => {
+	if (keysToKeep) {
+		const dataToKeep = {};
+
+		// Get the data from chrome.storage.local
+		const data = await new Promise(resolve => {
+			chrome.storage.local.get(keysToKeep, data => {
+				resolve(data);
+			});
 		});
-		if (typeof window !== 'undefined')
-			window.location.reload();
-		chrome.storage.local.remove(keysToRemove);
-	});
+	
+		keysToKeep.forEach(key => (dataToKeep[key] = data[key]));
+	
+		// Clear chrome.storage.local and set the data to keep
+		await new Promise(resolve => {
+			chrome.storage.local.clear(() => {
+				chrome.storage.local.set(dataToKeep, () => {
+					resolve();
+				});
+			});
+		});
+	}
+
 }
 
 const clearSubjects = async () => {
-	// get data to keep (it's easier than to pick the ones to remove)
-	chrome.storage.local.get(null, async data => {
-		const keysToKeep = ["apiKey", "settings", "userInfo", "userInfo_updated"];
-		let dataToKeep = {};
-		keysToKeep.forEach(key => dataToKeep[key] = data[key]);
-		chrome.storage.local.clear(async () => {
-			console.log("cleared");
-			chrome.storage.local.set(dataToKeep);
-
-			const db = new Database("wanikani");
-			await db.create("subjects");
-			await db.delete("subjects");
-
-			if (typeof window !== 'undefined')
-				window.location.reload();
-		});
-	});
+	await clearCache(["apiKey", "settings", "userInfo", "userInfo_updated"]);
 }
 
 const rand = (min, max) => {
@@ -436,15 +431,6 @@ const sendSetupProgress = (text, progress, tab) => {
 		chrome.runtime.sendMessage(messageData);
 }
 
-const handleSubjectsResult = async (message, subjects, key) => {
-	console.log("SUBJECTS: ", subjects);
-	if (subjects && key)
-		updateSubjectsStats(key, subjects);	
-
-	progress++;
-	sendSetupProgress(message.text, progress/fetches, message.tab);
-}
-
 // check if bulk fetch was done less than 1 minute ago
 const canFetch = async () => {
 	const bulkFetch = await new Promise(resolve => {
@@ -460,7 +446,6 @@ const sizeToFetch = async apiToken => {
 				[RADICAL_SETUP, VOCAB_SETUP, KANA_VOCAB_SETUP, KANJI_SETUP, ASSIGNMENTS_SETUP]
 				  .map(async setup => await modifiedSince(apiToken, result[setup.storage.updated], setup.endpoint))
 			);
-			console.log(fetches);
 	
 			const filteredFetches = fetches.filter(Boolean);
 			resolve(filteredFetches.length);
@@ -491,21 +476,12 @@ const loadData = async (apiToken, tabId, callback) => {
 			kanji: kanji
 	});
 
-	/*
-	if (!await canFetch()) {
-		// use data from storage
-		if (callback) {
-			chrome.storage.local.get([ASSIGNMENTS_SETUP.storage.id, RADICAL_SETUP.storage.id, VOCAB_SETUP.storage.id, KANA_VOCAB_SETUP.storage.id, KANJI_SETUP.storage.id], result => {
-				callback(returnObject(result[ASSIGNMENTS_SETUP.storage.id], result[RADICAL_SETUP.storage.id], result[VOCAB_SETUP.storage.id], result[KANA_VOCAB_SETUP.storage.id], result[KANJI_SETUP.storage.id]));
-			});
-		}
-		return;
-	}	
-	*/			
-
 	// get number of fetches that will be done
 	fetches = await sizeToFetch(apiToken); 
-	console.log("fetches: ", fetches);
+	console.log("[FETCHES]: ", fetches);
+
+	if (fetches > 0)
+		chrome.runtime.sendMessage({loading: true});
 		
 	// assignments
 	const result = await setupAssignments(apiToken);
@@ -514,7 +490,7 @@ const loadData = async (apiToken, tabId, callback) => {
 	const fetched = result[1];			
 	
 	const messageText = "✔ Loaded Assignments data.";
-	console.log(messageText);
+	console.log("[LOADED]:", messageText);
 	if (fetched) {
 		progress++;
 		sendSetupProgress(messageText, progress/fetches, tabId);
@@ -531,7 +507,7 @@ const loadData = async (apiToken, tabId, callback) => {
 			await updateSubjectsStats(apiToken, radicals);	
 			
 			const messageText = "✔ Loaded Radicals data.";
-			console.log(messageText);
+			console.log("[LOADED]:", messageText);
 			if (fetched) {
 				progress++;
 				sendSetupProgress(messageText, progress/fetches, tabId);
@@ -547,7 +523,7 @@ const loadData = async (apiToken, tabId, callback) => {
 			await updateSubjectsStats(apiToken, vocab);	
 			
 			const messageText = "✔ Loaded Vocabulary data.";
-			console.log(messageText);
+			console.log("[LOADED]:", messageText);
 			if (fetched) {
 				progress++;
 				sendSetupProgress(messageText, progress/fetches, tabId);
@@ -563,7 +539,7 @@ const loadData = async (apiToken, tabId, callback) => {
 			await updateSubjectsStats(apiToken, vocab);	
 			
 			const messageText = "✔ Loaded Kana Vocabulary data.";
-			console.log(messageText);
+			console.log("[LOADED]:", messageText);
 			if (fetched) {
 				progress++;
 				sendSetupProgress(messageText, progress/fetches, tabId);
@@ -579,7 +555,7 @@ const loadData = async (apiToken, tabId, callback) => {
 			await updateSubjectsStats(apiToken, kanji);	
 			
 			const messageText = "✔ Loaded Kanji data.";
-			console.log(messageText);
+			console.log("[LOADED]:", messageText);
 			if (fetched) {
 				progress++;
 				sendSetupProgress(messageText, progress/fetches, tabId);
@@ -613,7 +589,7 @@ const subjectsAssignmentStats = async list => {
             const levelsInProgress = [];
 
             if (allAssignments) {
-                console.log(`Associating assignments with ${type} ...`);
+                console.log(`[ASSIGNMENTS]: Associating assignments with ${type} ...`);
 
                 const updatePromises = allAssignments.map(assignment => {
                     const data = assignment["data"];
@@ -685,14 +661,12 @@ const subjectsReviewStats = async (apiToken, list) => {
 	if (list && type) {
 		chrome.storage.local.get("reviewStats_updated", async result => {
 			const updated = result["reviewStats_updated"];
-			console.log(`Associating review statistics with ${type} ...`);
+			console.log(`[REVIEW STATS]: Associating review statistics with ${type} ...`);
 			await fetchAllPages(apiToken, "https://api.wanikani.com/v2/review_statistics", updated)
 				.then(stats => {
 					// too many requests or not modified
-					if (stats.error) {
-						console.log(stats);
+					if (stats.error)
 						return;
-					}
 
 					stats.map(coll => coll["data"])
 						.flat(1)
@@ -771,7 +745,6 @@ const blacklistRemove = url => {
 		chrome.storage.local.get(["blacklist"], data => {
 			const blacklist = data["blacklist"];
 			const index = blacklist.indexOf(url.replace("www.", "").replace(".", "\\."));
-			console.log(url, blacklist);
 			if (index > -1) {
 				blacklist.splice(index, 1);
 				chrome.storage.local.set({"blacklist":blacklist});

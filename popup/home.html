@@ -7,7 +7,7 @@
 	<link rel="stylesheet" href="styles/styles.css">
     <link rel="stylesheet" href="styles/navbar.css">
     <link rel="stylesheet" href="styles/search.css">
-    <link rel="stylesheet" href="styles/items-list.css">
+    <link rel="stylesheet" href="styles/tiles-list.css">
 	<link rel="stylesheet" href="styles/home.css">
     <link rel="stylesheet" href="styles/message-popup.css">
 </head>
@@ -32,21 +32,7 @@
                 </div>
             </div>
             <!-- KANJI HIGHLIGHTED ON PAGE -->
-            <div id="highlighted_kanji" class="resizable highlightedKanjiContainer userInfoWrapper-wrapper" data-settings="sizes-highlighted_kanji_height" style="max-height: 200px; height: 160px;">
-                <div class="resizable-s"></div>
-                <div id="nmrKanjiHighlighted" class="userInfoWrapper-title">
-                    <span id="nmrKanjiIndicator">Kanji</span>: <strong>0</strong> (in the page)
-                </div>
-                <div class="items-list-bar"></div>
-                <div id="kanjiHighlightedList" class="simple-grid">
-                    <ul>
-                        <div class="not-found">
-                            <p>金</p>
-                            <p>No Kanji found in the current page!</p>
-                        </div>
-                    </ul>
-                </div>
-            </div>
+            <div id="highlighted_kanji" class="resizable highlightedKanjiContainer userInfoWrapper-wrapper" data-settings="sizes-highlighted_kanji_height"></div>
             <!-- LESSONS AND REVIEWS -->
             <div id="lessons_and_reviews" class="userInfoWrapper-wrapper" style="text-align: center;">
                 <ul style="display: inline-flex; width: 100%;">
@@ -132,7 +118,7 @@
     </div>
 
     <script src="/scripts/static.js"></script>
-    <script src="/scripts/items-list.js"></script>
+    <script src="scripts/tiles-list.js"></script>
     <script src="/scripts/time.js"></script>
     <script src="/scripts/database.js"></script>
     <script src="/scripts/fetch/data-fetch.js"></script>

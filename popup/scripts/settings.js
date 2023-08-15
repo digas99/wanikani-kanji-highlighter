@@ -125,7 +125,7 @@ const handleSettingsAction = (target, value, callback) => {
 	});
 }
 
-document.addEventListener('click', e => {
+document.addEventListener('click', async e => {
 	const target = e.target;
 
 	// CUSTOM CHECKBOX CLICK
@@ -267,12 +267,10 @@ document.addEventListener('click', e => {
 			switch (target.id) {
 				case "clearSubjectsData":
 					if (window.confirm("Clear all subject data?")) {
-						clearSubjects();
-					}
-					break;
-				case "clearAll":
-					if (window.confirm("Clear all extension data?")) {
-
+						await clearSubjects();
+						// return to page home.html if not already there
+						if (window.location.pathname != "/popup/home.html")
+							window.location.href = "/popup/home.html";
 					}
 					break;
 			}

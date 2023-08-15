@@ -17,6 +17,14 @@ if (searchBar) {
                     console.log(data["vocabulary"], data["kana_vocabulary"], vocabulary);
 
                     searchBar.addEventListener("input", () => searchSubject(kanji, vocabulary, searchBar, null, settings["search"]["targeted_search"], settings["search"]["results_display"]));
+
+                    // get search query from url
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const search = urlParams.get('search');
+                    if (search) {
+                        searchBar.value = search;
+                        searchBar.dispatchEvent(new Event("input"));
+                    }
                 });
             }
         });
@@ -85,7 +93,7 @@ const searchSubject = (kanji, vocabulary, input, searchType, targeted, display) 
         input.value = convertToKana(input.value);
     
         // if it is hiragana
-        if (input.value.match(/[\u3040-\u309f]/)) {
+        if (hasKana(value)) {
             //const filterByReadings = (itemList, value) => itemList.filter(item => matchesReadings(value, item["readings"], targeted));
             filteredKanji = kanji.filter(subject => matchesReadings(input.value, subject.readings, targeted));
             filteredVocab = vocabulary.filter(subject => matchesReadings(input.value, subject.readings, targeted) || new RegExp(input.value, "g").test(subject.characters));
@@ -93,7 +101,7 @@ const searchSubject = (kanji, vocabulary, input, searchType, targeted, display) 
     }
     else {
         // if it is a chinese character
-        if (value.match(/[\u3400-\u9FBF]/)) {
+        if (hasKanji(value)) {
             filteredKanji = filteredKanji.concat(kanji.filter(subject => value == subject.characters));
                     
             if (filteredKanji.length > 0 && !targeted) {

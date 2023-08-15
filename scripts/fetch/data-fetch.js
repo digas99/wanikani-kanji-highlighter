@@ -35,18 +35,16 @@ const fetchAllPages = async (apiToken, page, updated) => {
 
 	if (updated) {
 		const modified = await modifiedSince(apiToken, updated, page);
-		console.log(page, modified);
 		if (!modified)
 			return {error: {message: "Not modified", code: 304}};
 	}
 
 	const result = await fetchPage(apiToken, page, updated);
-	console.log(result);
 	
 	if (result.error)
 		return result;
 
-	return [result].concat(await fetchAllPages(apiToken, result.pages.next_url, updated));
+	return [result].concat(await fetchAllPages(apiToken, result.pages.next_url));
 }
 
 // check if the data in the endpoints has been modified since the given date
@@ -57,11 +55,10 @@ const modifiedSince = async (apiKey, date, url) => {
 	requestHeaders.append('If-Modified-Since', date);
 	var requestInit = { method: 'GET', headers: requestHeaders };
 	var endpoint = new Request(url, requestInit);
-	console.log("CHECKING", date, url);
 	return fetch(endpoint)
 		.then(response => {
 			const result = response.status != 429 && response.status !== 304;
-			console.log("MODIFIED", date, url, result);
+			console.log("[MODIFIED]:", date, url, result);
 			return result;
 		
 		});

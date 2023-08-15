@@ -1782,7 +1782,7 @@ window.onload = () => {
 								// const itemsListLoadingVal = loading(["main-loading"], ["kanjiHighlightedLearned"], 50, "Loading subjects info...");
 								// itemsListLoadingElem = itemsListLoadingVal[0];
 
-								// loadItemsLists(() => {
+								// loadTilesLists(() => {
 								// 	itemsListLoadingElem.remove();
 								// 	itemsListLoadingElem = null;
 								// });
@@ -4131,7 +4131,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					});
 				});
 				
-				updateItemsListBar(document.getElementsByClassName("items-list-bar")[0], [learned.length, notLearned.length]);
+				updateTilesListBar(document.getElementsByClassName("tiles-list-bar")[0], [learned.length, notLearned.length]);
 
 				if (learned.length == 0 && notLearned.length == 0) {
 					const notFound = document.createElement("div");
@@ -4232,7 +4232,7 @@ const setupSubjectsLists = (callback) => {
 	});
 }
 
-const loadItemsLists = callback => {
+const loadTilesLists = callback => {
 	chrome.storage.local.get(["kanji", "vocabulary", "radicals"], result => {
 		setTimeout(() => {
 			const allKanji = result["kanji"];

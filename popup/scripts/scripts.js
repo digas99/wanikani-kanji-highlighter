@@ -21,9 +21,10 @@ window.onscroll = () => {
 	}
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+	//console.log("message received", request);
+
 	// catch wanikani data setup completion
-	console.log("SCRIPT JS", request.setup);
 	if (request.setup) {
 		if (messagePopup) {
 			if (!messagePopup.exists()) {
@@ -43,7 +44,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 				setTimeout(() => {
 					messagePopup.remove();
-					chrome.storage.local.get(HOME_FETCH_KEYS, updateHomeInterface);
+					if (typeof updateHomeInterface === "function") {
+						chrome.storage.local.get(HOME_FETCH_KEYS, updateHomeInterface);
+					}
 				}, 1000);
 
 			}
@@ -83,21 +86,57 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			messagePopup.setLoading();
 		}
 	}
+
+	// selected text
+	if (request.selectedText) {
+		const selectedText = request.selectedText;
+		makeSearch(selectedText);	
+	}
 });
+
+const makeSearch = (search) => {
+	if (search && search.length > 0) {
+		// got to search page if not there
+		if (!window.location.href.includes("search")) {
+			let url = "search.html?search=" + search;
+			// if it is hiragana or katakana
+			if (hasKana(search))
+				url += "&type=A";	
+
+			window.location.href = url;
+		}
+		else {
+			const searchInput = document.querySelector("#kanjiSearchInput");
+			changeInput(searchInput.parentElement, hasKana(search) ? "A" : "あ");
+			searchInput.value = search;
+			searchInput.dispatchEvent(new Event("input"));
+		}
+	}
+}
 
 let messagePopup, blacklistedSite, atWanikani;
 window.onload = () => {
 	messagePopup = new MessagePopup(document.body)
-	
-	chrome.storage.local.get(["initialFetch", "apiKey", "settings", "blacklist"], async result => {
+
+	chrome.storage.local.get(["initialFetch", "settings", "blacklist", "contextMenuSelectedText"], async result => {
+		if (result["contextMenuSelectedText"]) {
+			makeSearch(result["contextMenuSelectedText"]);
+			chrome.storage.local.remove("contextMenuSelectedText");
+		}
+
 		const activeTab = await getTab();
 		chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, url => {
 			const settings = result["settings"];
 
 			if (url) {
 				url = url["windowLocation"];
+				validSite = true;
 				atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url);
 				blacklistedSite = blacklisted(result["blacklist"], url);
+			} else {
+				validSite = false;
+				atWanikani = false;
+				blacklistedSite = false;
 			}
 			
 			// setup css vars
@@ -120,8 +159,6 @@ window.onload = () => {
 			}
 
 			document.dispatchEvent(new Event("scriptsLoaded"));
-			
-			loadData(result["apiKey"]);
 		});
 	});
 }
