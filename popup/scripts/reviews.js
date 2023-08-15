@@ -1,5 +1,13 @@
 const reviewsList = document.querySelector("#reviewsList");
 let db, list;
+
+let popupLoading;
+if (!messagePopup) {
+	popupLoading = new MessagePopup(document.body);
+	popupLoading.create("Loading subjects...");
+	popupLoading.setLoading();
+}
+
 chrome.storage.local.get(["reviews"], async result => {
 	db = new Database("wanikani");
 	const opened = await db.open("subjects");
@@ -33,9 +41,6 @@ chrome.storage.local.get(["reviews"], async result => {
 				data: characters,
 				callbacks: {
 					item: (elem, value) => {
-						if (!elem.querySelector("img"))
-							elem.classList.add("kanjiDetails");
-						
 						const subject = subjects.find(subject => 
 							subject["characters"] === value ||
 							subject?.character_images?.find(image => image["url"] == elem.querySelector("img")?.src));
@@ -48,7 +53,10 @@ chrome.storage.local.get(["reviews"], async result => {
 
 							const type = subject["subject_type"];
 
-							elem.title = `${meaning} ${reading ? `| ${reading}` : ""} | ${type}`;
+							if (type !== "radical")
+								elem.classList.add("kanjiDetails");
+
+							elem.title = `${meaning} ${reading ? `| ${reading}` : ""}\x0D${type.split("_").map(word => word[0].toUpperCase() + word.slice(1)).join(" ")}`;
 							elem.setAttribute("data-item-id", subject["id"]);
 						}
 					},
@@ -85,5 +93,7 @@ chrome.storage.local.get(["reviews"], async result => {
 				}
 			}
 		);
+
+		if (popupLoading) popupLoading.remove();
 	}
 });

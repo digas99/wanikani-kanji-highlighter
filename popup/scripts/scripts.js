@@ -119,14 +119,34 @@ window.onload = () => {
 	messagePopup = new MessagePopup(document.body)
 
 	chrome.storage.local.get(["initialFetch", "settings", "blacklist", "contextMenuSelectedText"], async result => {
+		const settings = result["settings"];
+
 		if (result["contextMenuSelectedText"]) {
 			makeSearch(result["contextMenuSelectedText"]);
 			chrome.storage.local.remove("contextMenuSelectedText");
 		}
+		
+		// setup css vars
+		if (settings) {
+			const appearance = settings["appearance"];
+			const documentStyle = document.documentElement.style;
+			documentStyle.setProperty('--highlight-default-color', appearance["highlight_learned"]);
+			documentStyle.setProperty('--notLearned-color', appearance["highlight_not_learned"]);
+			documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
+			documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
+			documentStyle.setProperty('--vocabulary-tag-color', appearance["vocab_color"]);
+			Object.values(srsStages).map(srs => srs["short"].toLowerCase())
+				.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
+		}
+	
+		if (result["initialFetch"] || result["initialFetch"] == undefined) {
+			messagePopup.create("Fetching subject data from Wanikani...", "Please, don't close the extension.");
+			messagePopup.setLoading();
+			
+		}
 
 		const activeTab = await getTab();
 		chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, url => {
-			const settings = result["settings"];
 
 			if (url) {
 				url = url["windowLocation"];
@@ -137,25 +157,6 @@ window.onload = () => {
 				validSite = false;
 				atWanikani = false;
 				blacklistedSite = false;
-			}
-			
-			// setup css vars
-			if (settings) {
-				const appearance = settings["appearance"];
-				const documentStyle = document.documentElement.style;
-				documentStyle.setProperty('--highlight-default-color', appearance["highlight_learned"]);
-				documentStyle.setProperty('--notLearned-color', appearance["highlight_not_learned"]);
-				documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
-				documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
-				documentStyle.setProperty('--vocab-tag-color', appearance["vocab_color"]);
-				Object.values(srsStages).map(srs => srs["short"].toLowerCase())
-					.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
-			}
-
-			if (result["initialFetch"] || result["initialFetch"] == undefined) {
-				messagePopup.create("Fetching subject data from Wanikani...", "Please, don't close the extension.");
-				messagePopup.setLoading();
-				
 			}
 
 			document.dispatchEvent(new Event("scriptsLoaded"));

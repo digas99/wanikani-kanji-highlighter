@@ -1,12 +1,42 @@
 let settings, apiKey, userInfo, lastReviewsValue = 0, lastLessonsValue = 0;
-let highlightList;
+
 let activeTab;
 
 let popupLoading;
 if (!messagePopup) {
 	popupLoading = new MessagePopup(document.body);
 	popupLoading.create("Loading data...");
+	popupLoading.setLoading();
 }
+
+let learned = [], notLearned = [];
+let highlightList = new TilesList(
+	document.querySelector("#highlighted_kanji"),
+	[
+		{
+			title: "Learned",
+			color: "var(--highlight-default-color)",
+			data: learned
+		},
+		{
+			title: "Not learned",
+			color: "var(--notLearned-color)",
+			data: notLearned
+		}
+	],
+	{
+		title: `Kanji: <b>${learned.length + notLearned.length}</b> (in the page)`,
+		height: 200,
+		bars: {
+			labels: true
+		},
+		sections: {
+			fillWidth: true,
+			join: false,
+			notFound: "No Kanji found in the current page!"
+		}
+	}
+);
 
 const updateHomeInterface = async (result) => {
 	settings = result["settings"] ? result["settings"] : defaultSettings;
@@ -28,34 +58,7 @@ const updateHomeInterface = async (result) => {
 
 	// HIGHLIGHTED KANJI
 	if (settings["extension_popup_interface"]["highlighted_kanji"]) {
-		const learned = [], notLearned = [];
-		highlightList = new TilesList(
-			document.querySelector("#highlighted_kanji"),
-			[
-				{
-					title: "Learned",
-					color: "var(--highlight-default-color)",
-					data: learned
-				},
-				{
-					title: "Not learned",
-					color: "var(--notLearned-color)",
-					data: notLearned
-				}
-			],
-			{
-				title: `Kanji: <b>${learned.length + notLearned.length}</b> (in the page)`,
-				height: 200,
-				bars: {
-					labels: true
-				},
-				sections: {
-					fillWidth: true,
-					join: false,
-					notFound: "No Kanji found in the current page!"
-				}
-			}
-		);
+
 
 		const kanjiAssoc = result["kanji_assoc"];
 
@@ -283,9 +286,12 @@ const progressionBar = (wrapper, srsStages, progresses, size, colors) => {
 			progressBarBar.style.width = percentageValue+"%";
 			progressBarBar.style.backgroundColor = stageColor;
 			progressBarBar.title = srsStages[stage]["name"]+": "+stageValue+" / "+percentageValue.toFixed(1)+"%";
+			const progressBarLink = document.createElement("a");
+			progressBarBar.appendChild(progressBarLink);
+			progressBarLink.href = "/popup/progressions.html?srs="+stage;
 			if (percentageValue > 8.1) {
 				const percentage = document.createElement("div");
-				progressBarBar.appendChild(percentage);
+				progressBarLink.appendChild(percentage);
 				percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
 			}
 		}
@@ -298,9 +304,12 @@ const progressionBar = (wrapper, srsStages, progresses, size, colors) => {
 	lockedSubjectsBar.style.width = percentageValue+"%";
 	lockedSubjectsBar.classList.add("clickable");
 	lockedSubjectsBar.title = "Locked: "+(size-unlockedSize)+" / "+percentageValue.toFixed(1)+"%";
+	const progressBarLink = document.createElement("a");
+	lockedSubjectsBar.appendChild(progressBarLink);
+	progressBarLink.href = "/popup/progressions.html?srs="+-1;
 	if (percentageValue > 8.1) {
 		const percentage = document.createElement("div");
-		lockedSubjectsBar.appendChild(percentage);
+		progressBarLink.appendChild(percentage);
 		percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
 	}
 }
@@ -330,9 +339,12 @@ const progressionStats = (wrapper, srsStages, progresses, colors) => {
 		const stageSquare = document.createElement("div");
 		stageSquareWrapper.appendChild(stageSquare);
 		stageSquare.classList.add("clickable");
-		stageSquare.appendChild(document.createTextNode(stageValue));
+		const stageLink = document.createElement("a");
 		stageSquare.title = srsStages[stage]["name"];
 		stageSquare.style.backgroundColor = stageColor;
+		stageLink.href = "/popup/progressions.html?srs="+stage;
+		stageSquare.appendChild(stageLink);
+		stageLink.appendChild(document.createTextNode(stageValue));
 
 		const infoMenu = progressionMenu(srsStages, stage, progresses, stageValue, stageColor, colors);
 		stageSquareWrapper.appendChild(infoMenu);
@@ -392,16 +404,16 @@ const levelProgressBar = (currentLevel, values, level, type, srsStages, colors) 
 	progressBarWrapper.setAttribute("data-order", levelValue);
 
 	// bar for passed
-	progressBarWrapper.appendChild(levelProgressBarSlice(passed, all, {background: "black", text: "white"}, "Passed: "+passed));
+	progressBarWrapper.appendChild(levelProgressBarSlice(passed/all*100, {background: "black", text: "white"}, "Passed: "+passed));
 
 	// traverse from initiate until apprentice IV
 	for (let i = 5; i >= 0; i--) {
 		const stageSubjects = notPassed.filter(subject => subject["srs_stage"] == i).length;
-		progressBarWrapper.appendChild(levelProgressBarSlice(stageSubjects, all, {background: colors[srsStages[i]["short"].toLowerCase()+"_color"], text: "white"}, srsStages[i]["name"]+": "+stageSubjects));
+		progressBarWrapper.appendChild(levelProgressBarSlice(stageSubjects/all*100, {background: colors[srsStages[i]["short"].toLowerCase()+"_color"], text: "white"}, srsStages[i]["name"]+": "+stageSubjects));
 	}
 
 	// bar for locked
-	progressBarWrapper.appendChild(levelProgressBarSlice(locked, all, {background: "white", text: "black"}, "Locked: "+locked));
+	progressBarWrapper.appendChild(levelProgressBarSlice(locked/all*100, {background: "white", text: "black"}, "Locked: "+locked));
 
 	// bar id
 	const barTitle = document.createElement("span");
@@ -415,10 +427,10 @@ const levelProgressBar = (currentLevel, values, level, type, srsStages, colors) 
 	return progressBarWrapper;
 }
 
-const levelProgressBarSlice = (subjects, all, color, title) => {
+const levelProgressBarSlice = (value, color, title) => {
 	const progressBarBar = document.createElement("li");
 	progressBarBar.classList.add("clickable");
-	const percentageValue = subjects/all*100;
+	const percentageValue = value;
 	progressBarBar.style.width = percentageValue+"%";
 	progressBarBar.style.backgroundColor = color["background"];
 	progressBarBar.style.color = color["text"];

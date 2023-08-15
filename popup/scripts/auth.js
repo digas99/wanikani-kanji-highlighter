@@ -1,5 +1,6 @@
 const popupLoading = new MessagePopup(document.body);
 popupLoading.create("Loading data...");
+popupLoading.setLoading();
 
 chrome.storage.local.get(["apiKey", "settings"], result => {
     if (!result["apiKey"]) {

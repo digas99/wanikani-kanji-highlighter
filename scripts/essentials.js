@@ -50,7 +50,7 @@ chrome.storage.local.get("settings", result => {
 		documentStyle.setProperty('--default-color', appearance["details_popup"]);
 		documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
 		documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
-		documentStyle.setProperty('--vocab-tag-color', appearance["vocab_color"]);
+		documentStyle.setProperty('--vocabulary-tag-color', appearance["vocab_color"]);
 		Object.values(srsStages).map(srs => srs["short"].toLowerCase())
 			.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
 	}

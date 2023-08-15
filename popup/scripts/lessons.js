@@ -1,4 +1,12 @@
 const lessonsList = document.querySelector("#lessonsList");
+
+let popupLoading;
+if (!messagePopup) {
+	popupLoading = new MessagePopup(document.body);
+	popupLoading.create("Loading subjects...");
+	popupLoading.setLoading();
+}
+
 let db, list;
 chrome.storage.local.get(["lessons"], async result => {
 	db = new Database("wanikani");
@@ -33,9 +41,6 @@ chrome.storage.local.get(["lessons"], async result => {
 				data: characters,
 				callbacks: {
 					item: (elem, value) => {
-						if (!elem.querySelector("img"))
-							elem.classList.add("kanjiDetails");
-						
 						const subject = subjects.find(subject => 
 							subject["characters"] === value ||
 							subject?.character_images?.find(image => image["url"] == elem.querySelector("img")?.src));
@@ -48,7 +53,10 @@ chrome.storage.local.get(["lessons"], async result => {
 
 							const type = subject["subject_type"];
 
-							elem.title = `${meaning} ${reading ? `| ${reading}` : ""} | ${type}`;
+							if (type !== "radical")
+								elem.classList.add("kanjiDetails");
+
+							elem.title = `${meaning} ${reading ? `| ${reading}` : ""}\x0D${type.split("_").map(word => word[0].toUpperCase() + word.slice(1)).join(" ")}`;
 							elem.setAttribute("data-item-id", subject["id"]);
 						}
 					},
@@ -74,6 +82,7 @@ chrome.storage.local.get(["lessons"], async result => {
 			sections,
 			{
 				title: `<b>${count}</b> Lessons available right now!`,
+				height: 500,
 				bars: {
 					labels: true
 				},
@@ -84,5 +93,7 @@ chrome.storage.local.get(["lessons"], async result => {
 				}
 			}
 		);
+
+		if (popupLoading) popupLoading.remove();
 	}
 });

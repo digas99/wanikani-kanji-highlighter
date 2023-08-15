@@ -3,7 +3,7 @@
 :root {
 	--radical-tag-color: #65b6ae;
 	--kanji-tag-color: #e7e485;
-	--vocab-tag-color: #fc759b;
+	--vocabulary-tag-color: #fc759b;
 	--reading-tag-bkcolor: #2e2e2e;
 	--popup-details-title-color: white;
 	--popup-details-title-bkcolor: #e36f94;
@@ -297,7 +297,7 @@
 }
 
 .sd-vocabularyTag {
-    color: var(--vocab-tag-color);
+    color: var(--vocabulary-tag-color);
 }
 
 .sd-readingTag {
@@ -375,7 +375,7 @@
 }
 
 .sd-detailsPopup_vocab_row {
-	/*box-shadow: 0px 4px 0px 2px var(--vocab-tag-color) !important;*/
+	/*box-shadow: 0px 4px 0px 2px var(--vocabulary-tag-color) !important;*/
 	width: 100%;
 }
 

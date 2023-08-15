@@ -34,8 +34,8 @@ Table Of Contents
 	--radical-tag-color-font: #000000;
 	--kanji-tag-color: #e7e485;
 	--kanji-tag-color-font: #000000;
-	--vocab-tag-color: #fc759b;
-	--vocab-tag-color-font: #000000;
+	--vocabulary-tag-color: #fc759b;
+	--vocabulary-tag-color-font: #000000;
 	--highlight-default-color: #2c5091;
 	--highlight-default-color-font: #000000;
 	--notLearned-color: #a32727;
@@ -240,7 +240,7 @@ i {
 }
 
 .vocab_back {
-	background-color: var(--vocab-tag-color) !important;
+	background-color: var(--vocabulary-tag-color) !important;
 }
 
 .bellow-border {

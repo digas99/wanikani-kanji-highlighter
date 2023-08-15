@@ -137,7 +137,7 @@
 			if (info["anchor"]) {
 				link.addEventListener("click", e => {
 					const upperOffset = bar.parentElement.parentElement.parentElement.offsetTop + 55;
-					bar.nextElementSibling.scrollTo(0, document.querySelector(`#${info["anchor"]}`)?.offsetTop-upperOffset);
+					bar.nextElementSibling.scrollTo(0, document.querySelector(`#tiles-list-${info["anchor"]}`)?.offsetTop-upperOffset);
 				});
 			}
 		});
@@ -169,12 +169,13 @@
 		const sectionTitle = document.createElement("div");
 		section.appendChild(sectionTitle);
 		sectionTitle.classList.add("clickable");
-		sectionTitle.id = title.toLowerCase().replace(/ /g, "-");
+		sectionTitle.id = `tiles-list-${title.toLowerCase().replace(/ /g, "-")}`;
 		sectionTitle.appendChild(document.createTextNode(title + " (" + data.length + ")"));
 		const arrowWrapper = document.createElement("div");
 		sectionTitle.appendChild(arrowWrapper);
 		const arrow = document.createElement("i");
 		arrowWrapper.appendChild(arrow);
+		arrow.style.borderColor = color;
 		arrow.classList.add("up", "tiles-list-section-arrow");
 		const sectionContent = document.createElement("ul");
 		section.appendChild(sectionContent);

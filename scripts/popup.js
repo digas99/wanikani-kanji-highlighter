@@ -216,7 +216,7 @@ window.onload = () => {
 					documentStyle.setProperty('--notLearned-color', appearance["highlight_not_learned"]);
 					documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
 					documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
-					documentStyle.setProperty('--vocab-tag-color', appearance["vocab_color"]);
+					documentStyle.setProperty('--vocabulary-tag-color', appearance["vocab_color"]);
 					Object.values(srsStages).map(srs => srs["short"].toLowerCase())
 						.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
 
@@ -1137,7 +1137,7 @@ window.onload = () => {
 											}
 											else if (settings["kanji_details_popup"]["random_subject"] == "Vocabulary") {
 												icon_img.setAttribute("data-item-id", "rand-vocab");
-												type.style.backgroundColor = "var(--vocab-tag-color)";
+												type.style.backgroundColor = "var(--vocabulary-tag-color)";
 												type.style.filter = "invert(1)";
 											}
 										}	
@@ -3212,7 +3212,7 @@ document.addEventListener("click", e => {
 										break;
 									case "vocabulary":
 										li.classList.add("vocab_back" , "kanjiDetails", "clickable");
-										cssVar = "--vocab-tag-color";
+										cssVar = "--vocabulary-tag-color";
 										break;
 									case "radical":
 										li.classList.add("radical_back");
@@ -3568,7 +3568,7 @@ document.addEventListener("input", e => {
 									}
 									else if (value === "Vocabulary") {
 										img.setAttribute("data-item-id", "rand-vocab");
-										randomSubjectType.style.backgroundColor = "var(--vocab-tag-color)";
+										randomSubjectType.style.backgroundColor = "var(--vocabulary-tag-color)";
 										randomSubjectType.style.filter = "invert(1)";
 									}
 								}

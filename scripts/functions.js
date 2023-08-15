@@ -292,7 +292,7 @@ const setupRadicals = (radicals, records, radical) => {
 		"meanings": data.meanings.map(data => data.meaning),
 		"subject_type":radical.object,
 		"hidden_at":data.hidden_at,
-		"srs_stage" : null,
+		"srs_stage" : -1,
 		"hidden" : null,
 		"passed_at" : null,
 		"available_at" : null
@@ -328,7 +328,7 @@ const setupVocab = (vocabs, assocs, records, vocab) => {
 		"id":vocab.id,
 		"subject_type":vocab.object,
 		"hidden_at":data.hidden_at,
-		"srs_stage" : null,
+		"srs_stage" : -1,
 		"hidden" : null,
 		"passed_at" : null,
 		"available_at" : null
@@ -361,7 +361,7 @@ const setupKanaVocab = (vocabs, assocs, records, vocab) => {
 		"id":vocab.id,
 		"subject_type":vocab.object,
 		"hidden_at":data.hidden_at,
-		"srs_stage" : null,
+		"srs_stage" : -1,
 		"hidden" : null,
 		"passed_at" : null,
 		"available_at" : null
@@ -403,7 +403,7 @@ const setupKanji = (kanjis, assocs, records, kanji) => {
 		"id" : kanji.id,
 		"subject_type" : kanji.object,
 		"hidden_at" : data.hidden_at,
-		"srs_stage" : null,
+		"srs_stage" : -1,
 		"hidden" : null,
 		"passed_at" : null
 	});

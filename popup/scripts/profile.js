@@ -4,16 +4,53 @@ let popupLoading;
 if (!messagePopup) {
 	popupLoading = new MessagePopup(document.body);
 	popupLoading.create("Loading data...");
+    popupLoading.setLoading();
 }
 
-chrome.storage.local.get(["apiKey", "userInfo", "userInfo_updated", "settings"], result => {
-    const date = result["userInfo_updated"] ? result["userInfo_updated"] : formatDate(new Date());
+chrome.storage.local.get(["apiKey", "userInfo", "settings"], async result => {
     const apiKey = result["apiKey"];
     settings = result["settings"];
     menuSettings = settings && settings["profile_menus"] ? settings["profile_menus"] : defaultSettings["profile_menus"];
 
     const db = new Database("wanikani");
-    db.open("subjects").then(opened => {
+    const opened = await db.open("subjects");
+    if (opened) {
+        if (popupLoading) popupLoading.remove();
+
+        const userInfo = result["userInfo"]["data"];
+
+        // if user info has been updated in wanikani, then update cache
+        if (!userInfo)
+            fetchUserInfo(apiKey);
+        
+        if (userInfo) {
+            const link = "https://www.wanikani.com/users/"+userInfo["username"];
+
+            const avatar = document.querySelector("#profile-pic img");
+            setAvatar(avatar, link, userInfo["avatar"]);
+
+            avatar.parentElement.href = link;
+            avatar.parentElement.title = link;
+
+            // username
+            const username = document.querySelector("#username");
+            username.appendChild(document.createTextNode(userInfo["username"]));
+
+            // scroll down arrow
+            const goDownArrowWrapper = document.querySelector(".scroll-down");
+            if (goDownArrowWrapper)
+                goDownArrowWrapper.addEventListener("click", () => window.scroll(0, 420));
+
+            const subjectsData = await db.getAll("subjects", "level", Number(userInfo["level"]));
+
+            updateLevelData(Number(userInfo["level"]), db);
+
+            // apply previously saved changes to subject tiles
+            applyChanges();
+        }
+    } 
+
+    /*db.open("subjects").then(opened => {
         if (opened) {
             db.getAll("subjects").then(data => {
                 const subjectsData = data.filter(subject => !subject["hidden_at"]);
@@ -54,10 +91,12 @@ chrome.storage.local.get(["apiKey", "userInfo", "userInfo_updated", "settings"],
                     });
             });
         }
-    });
+    });*/
 });
 
-const updateLevelData = (level, data, clear) => {
+const updateLevelData = async (level, db, clear) => {
+    const data = await db.getAll("subjects", "level", level);
+
     if (clear) clearData();
     
     if (!clear)
@@ -68,7 +107,7 @@ const updateLevelData = (level, data, clear) => {
 
     // add clicking events and animation to levels
     if (!clear)
-        levelsChooserAction(document.querySelector(".levels-chooser"), data);
+        levelsChooserAction(document.querySelector(".levels-chooser"), db);
 
     // all subjects progress
     const allTab = document.querySelector(".subject-tab");
@@ -209,7 +248,7 @@ const levelsChooser = (levelValue, wrapper) => {
     });	
 }
 
-const levelsChooserAction = (levelsList, data) => {
+const levelsChooserAction = (levelsList, db) => {
     Array.from(levelsList.querySelectorAll("li")).forEach((levelWrapper, i) => {
         const level = Number(levelWrapper.innerText);
         if (!isNaN(level) && i !== 1) {
@@ -220,9 +259,9 @@ const levelsChooserAction = (levelsList, data) => {
                 document.querySelector(".levels-chooser-wrapper").replaceChild(newLevelsChooser, levelsList);
                 newLevelsChooser.style.paddingTop = "175px";
 
-                levelsChooserAction(newLevelsChooser, data);
+                levelsChooserAction(newLevelsChooser, db);
 
-                updateLevelData(level, data, true);
+                updateLevelData(level, db, true);
 
                 applyChanges();
             });

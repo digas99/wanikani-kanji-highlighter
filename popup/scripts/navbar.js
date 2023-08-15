@@ -110,7 +110,7 @@ const setRandomSubjectType = (value) => {
         }
         else if (value === "Vocabulary") {
             img.setAttribute("data-item-id", "rand-vocab");
-            randomSubjectType.style.backgroundColor = "var(--vocab-tag-color)";
+            randomSubjectType.style.backgroundColor = "var(--vocabulary-tag-color)";
             randomSubjectType.style.filter = "invert(1)";
         }
     }

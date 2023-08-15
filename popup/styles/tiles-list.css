@@ -57,6 +57,8 @@
     background-color: var(--default-color);
     color: white;
 	display: flex;
+	align-items: center;
+    column-gap: 10px;
 }
 
 .tiles-list-section > ul {
@@ -77,7 +79,6 @@
 
 .tiles-list-section-arrow {
     padding: 4px;
-    margin-left: 10px;
     border-color: white;
     margin-bottom: -7px;
 }
