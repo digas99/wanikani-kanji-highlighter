@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">	
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width">
+	<title>WKHighlighter</title>
+	<link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="styles/navbar.css">
+    <link rel="stylesheet" href="styles/message-popup.css">
+	<link rel="stylesheet" href="styles/tiles-list.css">
+</head>
+<body>
+	<!-- TOP NAVBAR -->
+	<div class="topNav">
+		<a href="home.html" title="Go back" class="clickable">
+			<div>
+				<i class="left"></i>
+				<div>Reviews</div>
+			</div>
+		</a>
+    </div>
+
+	<!-- PAGE CONTENT -->
+	<div id="sec-page">
+		<!-- REVIEWS LIST -->
+		<div id="reviewsList" class="section"></div>
+
+	</div>
+
+	   <!-- SIDEBAR -->
+	<div class="side-panel">
+        <a href="profile.html" class="clickable" id="profile">
+            <div>
+                <img src="/images/wanikani-default.png">
+            </div>
+            <p title="Level"></p>
+        </a>
+        <ul>
+            <li class="clickable" style="position: relative;">
+                <a href="settings.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="settings" src="../images/settings.png" title="Settings" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="search.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="search" src="../images/search.png" title="Search" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative; padding-right: 3px;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="blacklist" src="../images/blacklist.png" title="Blacklist" style="width: 20px;">
+                    <span class="side-panel-info-alert" style="background-color: red; color: white; filter: invert(1);">0</span>
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="about.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="about" src="../images/about.png" title="About" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="random" src="../images/random.png" title="Random" data-item-id="rand" class="kanjiDetails" style="width: 20px;">
+                    <span id="random-subject-type" class="side-panel-info-alert">A</span>
+                </a>
+            </li>
+            <li class="clickable" style="position: relative; padding-left: 3px;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="exit" src="../images/exit.png" title="Exit" style="width: 20px;">
+                </a>
+            </li>
+        </ul>
+        <div id="side-panel-logo" class="clickable" title="Wanikani Kanji Highlighter">
+            <img src="../logo/logo.png" style="pointer-events: none;">
+        </div>
+    </div>
+
+	<script src="/scripts/static.js"></script>
+	<script src="/scripts/time.js"></script>
+	<script src="/scripts/fetch/data-fetch.js"></script>
+    <script src="/scripts/fetch/wk-fetch.js"></script>
+	<script src="/scripts/kana.js"></script>
+	<script src="/scripts/functions.js"></script>
+	<script src="/scripts/database.js"></script>
+    <script src="scripts/message-popup.js"></script>
+	<script src="scripts/tiles-list.js"></script>
+	<script src="scripts/scripts.js"></script>
+	<script src="scripts/navbar.js"></script>
+	<script src="scripts/reviews.js"></script>
+</body>

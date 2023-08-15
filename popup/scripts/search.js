@@ -9,8 +9,8 @@ if (searchBar) {
 
         // add search action to search bar
         const db = new Database("wanikani");
-        db.create("subjects").then(created => {
-            if (created) {
+        db.open("subjects").then(opened => {
+            if (opened) {
                 db.getAll("subjects", "subject_type", ["kanji", "vocabulary", "kana_vocabulary"]).then(data => {
                     const kanji = data["kanji"];
                     const vocabulary = [...data["vocabulary"], ...data["kana_vocabulary"]];

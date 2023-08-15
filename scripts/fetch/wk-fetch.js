@@ -6,8 +6,8 @@ const setupSubjects = (apiToken, setup, build, callback) =>
 			const assocs = result[setup.storage.association];
 			
 			const db = new Database("wanikani");
-			const created = await db.create("subjects");
-			if (created) {
+			const opened = await db.open("subjects");
+			if (opened) {
 				fetchAllPages(apiToken, setup.endpoint, updated)
 					.then(async data => {
 						// too many requests or not modified

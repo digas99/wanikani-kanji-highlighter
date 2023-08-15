@@ -853,8 +853,8 @@ window.onload = () => {
 										let allSubjects = 0, allPassedSubjects = 0;
 
 										const db = new Database("wanikani");
-										db.create("subjects").then(created => {
-											if (created) {
+										db.open("subjects").then(opened => {
+											if (opened) {
 												db.getAll("subjects", "level", levelValue)
 												.then(results => {
 													["radical", "kanji", "vocab"].forEach(type => {

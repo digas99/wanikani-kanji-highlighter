@@ -22,11 +22,9 @@ const updateHomeInterface = async (result) => {
 		});
 	}
 
-
 	// SEARCH
 	const type = document.getElementById("kanjiSearchType").innerText;
 	document.querySelector("#kanjiSearchInput").addEventListener("click", () => window.location.href = "search.html"+(type ? `?type=${type}` : ""));
-
 
 	// HIGHLIGHTED KANJI
 	if (settings["extension_popup_interface"]["highlighted_kanji"]) {
@@ -99,8 +97,8 @@ const updateHomeInterface = async (result) => {
 		const types = ["radical", "kanji", "vocabulary"];
 		const progressBarWrappers = [];
 		const db = new Database("wanikani");
-		db.create("subjects").then(created => {
-			if (created) {
+		db.open("subjects").then(opened => {
+			if (opened) {
 				[radicalsLevelInProgress, kanjiLevelInProgress, vocabularyLevelInProgress]
 					.forEach((levels, i) => {
 						progressBarWrappers.push(
@@ -150,27 +148,31 @@ chrome.storage.local.get(["apiKey", ...HOME_FETCH_KEYS], result => {
 });
 
 const kanjiListUpdate = (learned, notLearned, kanjiAssoc) => {
+	const itemCallback = (elem, value) => {
+		elem.classList.add("kanjiDetails");
+		if (kanjiAssoc && kanjiAssoc[value])
+			elem.setAttribute("data-item-id", kanjiAssoc[value]);
+	}
+
 	highlightList.updateTitle(`Kanji: <b>${learned.length + notLearned.length}</b> (in the page)`);
 	highlightList.update([
 		{
 			title: "Learned",
 			color: "var(--highlight-default-color)",
-			data: learned
+			data: learned,
+			callbacks: {
+				item: itemCallback
+			}
 		},
 		{
 			title: "Not learned",
 			color: "var(--notLearned-color)",
-			data: notLearned
+			data: notLearned,
+			callbacks: {
+				item: itemCallback
+			}
 		}
 	]);
-
-	// add data attribute
-	Array.from(highlightList.list.querySelectorAll("li")).forEach(li => {
-		const kanji = li.innerText;
-		li.classList.add("kanjiDetails");
-		if (kanjiAssoc && kanjiAssoc[kanji])
-			li.setAttribute("data-item-id", kanjiAssoc[kanji]);
-	});
 }
 
 const setupSummary = (reviews, lessons) => {

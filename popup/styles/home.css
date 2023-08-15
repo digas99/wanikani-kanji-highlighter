@@ -177,30 +177,6 @@
 	font-size: 25.2px;
 }
 
-.not-found {
-    position: absolute;
-    left: 0;
-    right: 0;
-    margin: auto;
-}
-
-.not-found > p:first-child {
-	text-align: center;
-    padding-bottom: 12px;
-    color: rgb(216, 216, 216);
-    font-size: 52px;
-    margin-top: -10px;
-    width: 100%;
-    position: relative;
-}
-
-.not-found > p:last-child {
-	text-align: center;
-    padding: 0px 5px;
-    color: silver;
-    font-size: 13px;
-}
-
 .kanjiHighlightedLearned {
 	background-color: var(--highlight-default-color);
 }

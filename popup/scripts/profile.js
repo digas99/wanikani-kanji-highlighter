@@ -13,8 +13,8 @@ chrome.storage.local.get(["apiKey", "userInfo", "userInfo_updated", "settings"],
     menuSettings = settings && settings["profile_menus"] ? settings["profile_menus"] : defaultSettings["profile_menus"];
 
     const db = new Database("wanikani");
-    db.create("subjects").then(created => {
-        if (created) {
+    db.open("subjects").then(opened => {
+        if (opened) {
             db.getAll("subjects").then(data => {
                 const subjectsData = data.filter(subject => !subject["hidden_at"]);
 

@@ -577,9 +577,9 @@ const subjectsAssignmentStats = async list => {
     const type = list[Object.keys(list)[0]]["subject_type"];
     if (list && type) {
         const db = new Database("wanikani");
-        const created = await db.create("subjects");
+        const opened = await db.open("subjects");
 
-        if (created) {
+        if (opened) {
             const result = await new Promise(resolve => {
                 chrome.storage.local.get("assignments", resolve);
             });

@@ -38,7 +38,7 @@ chrome.runtime.onInstalled.addListener(details => {
 });
 
 const db = new Database("wanikani");
-db.create("subjects", "id", ["level", "subject_type"]);
+db.open("subjects", "id", ["level", "subject_type", "srs_stage"]);
 
 let settings;
 // set settings

@@ -275,3 +275,42 @@ i {
 #goBack * {
 	pointer-events: none;
 }
+
+.srsTitleEgg {
+	width: 22px;
+	height: 24px;
+    overflow: hidden;
+    margin-right: 5px;
+    background-image: url(/images/eggs.png);
+    background-size: 112px;
+    background-repeat: no-repeat;
+} 
+
+.radical-image {
+	width: 22px;
+	filter: invert(1);
+}
+
+.not-found {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
+.not-found > p:first-child {
+	text-align: center;
+    padding-bottom: 12px;
+    color: rgb(216, 216, 216);
+    font-size: 52px;
+    margin-top: -10px;
+    width: 100%;
+    position: relative;
+}
+
+.not-found > p:last-child {
+	text-align: center;
+    padding: 0px 5px;
+    color: silver;
+    font-size: 13px;
+}

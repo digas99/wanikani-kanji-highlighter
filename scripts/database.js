@@ -5,7 +5,7 @@
     }
 
     Database.prototype = {
-        create: function(table, key, indexes) {
+        open: function(table, key, indexes) {
             this.key = key;
 
             const request = indexedDB.open(this.name, 1);
@@ -20,7 +20,7 @@
                 request.onupgradeneeded = e => {
                     that.db = e.target.result;
 
-                    let objectStore = that.db.createObjectStore(table, {keyPath: key});
+                    let objectStore = that.db.openObjectStore(table, {keyPath: key});
                     if (indexes)
                         indexes.forEach(index => objectStore.createIndex(index, [index], {unique: false}));
 

@@ -51,7 +51,7 @@
 			if (this.options.sections.join)
 				this.list.appendChild(joined(this.sections));
 			else
-				this.sections.forEach(s => this.list.appendChild(section(s["title"], s["data"], s["color"])));
+				this.sections.forEach(s => this.list.appendChild(section(s)));
 
 			// make tiles fill entire width
 			if (this.options.sections.fillWidth)
@@ -116,7 +116,7 @@
 			link.addEventListener("mouseover", e => {
 				const popup = document.createElement("div");
 				li.appendChild(popup);
-				popup.classList.add("srsStageBarInfoPopup");
+				popup.classList.add("tiles-list-bar-label");
 				popup.appendChild(document.createTextNode(e.target.dataset.size));
 				const mostRightPos = popup.getBoundingClientRect().x + popup.offsetWidth;
 				const bodyWidth = document.body.offsetWidth;
@@ -128,7 +128,7 @@
 			});
 
 			link.addEventListener("mouseout", e => {
-				const popup = e.target.parentElement.getElementsByClassName("srsStageBarInfoPopup")[0];
+				const popup = e.target.parentElement.getElementsByClassName("tiles-list-bar-label")[0];
 				if (popup)
 					popup.remove();	
 			});
@@ -136,15 +136,31 @@
 			// anchor
 			if (info["anchor"]) {
 				link.addEventListener("click", e => {
-					const upperOffset = 135;
-					bar.nextElementSibling.scrollTo(0, document.querySelector(`#${info["anchor"]}`).offsetTop-upperOffset);
+					const upperOffset = bar.parentElement.parentElement.parentElement.offsetTop + 55;
+					bar.nextElementSibling.scrollTo(0, document.querySelector(`#${info["anchor"]}`)?.offsetTop-upperOffset);
 				});
 			}
 		});
 		return bar;
 	}
 
-	const section = (title, data, color) => {
+	const tile = (value, color, callback) => {
+		const li = document.createElement("li");
+		li.classList.add("clickable");
+		li.innerHTML = value;
+		li.style.backgroundColor = color;
+		const backColor = hexToRGB(color);
+		li.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
+
+		if (callback)
+			callback(li, value);
+
+		return li;
+	}
+
+	const section = (section_data) => {
+		const {title, data, color, callbacks} = section_data;
+		
 		if (data.length == 0)
 			return new DocumentFragment();
 
@@ -155,19 +171,14 @@
 		sectionTitle.classList.add("clickable");
 		sectionTitle.id = title.toLowerCase().replace(/ /g, "-");
 		sectionTitle.appendChild(document.createTextNode(title + " (" + data.length + ")"));
+		const arrowWrapper = document.createElement("div");
+		sectionTitle.appendChild(arrowWrapper);
 		const arrow = document.createElement("i");
-		sectionTitle.appendChild(arrow);
+		arrowWrapper.appendChild(arrow);
 		arrow.classList.add("up", "tiles-list-section-arrow");
 		const sectionContent = document.createElement("ul");
 		section.appendChild(sectionContent);
-
-		data.forEach(item => {
-			const li = document.createElement("li");
-			sectionContent.appendChild(li);
-			li.classList.add("clickable");
-			li.appendChild(document.createTextNode(item));
-			li.style.backgroundColor = color;
-		});
+		data.forEach(item => sectionContent.appendChild(tile(item, color, callbacks?.item)));
 
 		// title click
 		sectionTitle.addEventListener("click", e => {
@@ -181,6 +192,9 @@
 			}
 		});
 
+		if (callbacks?.section)
+			callbacks.section(section, sectionTitle, sectionContent);
+
 		return section;			
 	}
 
@@ -189,15 +203,10 @@
 		joinedSection.classList.add("tiles-list-section");
 		const joinedSectionContent = document.createElement("ul");
 		joinedSection.appendChild(joinedSectionContent);
-		sections.forEach(section => {
-			section["data"].forEach(item => {
-				const li = document.createElement("li");
-				joinedSectionContent.appendChild(li);
-				li.classList.add("clickable");
-				li.appendChild(document.createTextNode(item));
-				li.style.backgroundColor = section["color"];
-			});
-		});
+		sections.forEach(section =>
+			section["data"].forEach(item =>
+				joinedSectionContent.appendChild(tile(item, section["color"], section["callbacks"]?.item))));
+
 		return joinedSection;
 	}
 
@@ -237,7 +246,7 @@ const itemsListBar = data => {
 		link.addEventListener("mouseover", e => {
 			const popup = document.createElement("div");
 			li.appendChild(popup);
-			popup.classList.add("srsStageBarInfoPopup");
+			popup.classList.add("tiles-list-bar-label");
 			popup.appendChild(document.createTextNode(e.target.dataset.size));
 			const mostRightPos = popup.getBoundingClientRect().x + popup.offsetWidth;
 			const bodyWidth = document.body.offsetWidth;
@@ -248,7 +257,7 @@ const itemsListBar = data => {
 			}
 		});
 		link.addEventListener("mouseout", e => {
-			const popup = e.target.parentElement.getElementsByClassName("srsStageBarInfoPopup")[0];
+			const popup = e.target.parentElement.getElementsByClassName("tiles-list-bar-label")[0];
 			if (popup)
 				popup.remove();	
 		});
