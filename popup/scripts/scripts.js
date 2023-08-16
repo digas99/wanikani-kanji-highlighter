@@ -22,41 +22,16 @@ window.onscroll = () => {
 }
 
 chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
-	// catch wanikani data setup completion
+	// show setup
 	if (request.setup) {
-		if (messagePopup) {
-			if (!messagePopup.exists()) {
-				messagePopup.create("Fetching subject data from Wanikani...", "Please, don't close the extension.");
-				messagePopup.setLoading();
-			}
-
-			const setup = request.setup;
-	
-			// update loading popup
-			messagePopup.loading(setup.progress);
-			messagePopup.update(setup.text);
-	
-			if (setup.progress == 1) {
-				console.log("setup complete");
-				chrome.storage.local.set({"initialFetch": false});
-
-				setTimeout(() => {
-					messagePopup.remove();
-					if (typeof updateHomeInterface === "function") {
-						chrome.storage.local.get(HOME_FETCH_KEYS, updateHomeInterface);
-					}
-				}, 1000);
-
-			}
-
-			if (setup.progress == null)
-				chrome.storage.local.set({"initialFetch": false});
-		}
+		document.querySelector("#updates-loading").innerText = request.setup.fetches;
+		handleLoadingMessages(request.setup.text, request.setup.progress);
 	}
 
 	// show db progress
 	if (request.db) {
-		messagePopup.update(null, `${request.db.saved} / ${request.db.total}`);
+		if (messagePopup.exists())
+			messagePopup.update(null, `${request.db.saved} / ${request.db.total}`);
 	}
 
 	// show error
@@ -80,7 +55,7 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 	// show loading
 	if (request.loading) {
 		if (!messagePopup.exists()) {
-			messagePopup.create("Fetching subject data from Wanikani...", "Please, don't close the extension.");
+			messagePopup.create("Fetching subject data from Wanikani...", "Updating data......");
 			messagePopup.setLoading();
 		}
 	}
@@ -114,8 +89,7 @@ const makeSearch = (search) => {
 
 let messagePopup, blacklistedSite, atWanikani;
 window.onload = () => {
-	messagePopup = new MessagePopup(document.body)
-
+	
 	chrome.storage.local.get(["initialFetch", "settings", "blacklist", "contextMenuSelectedText"], async result => {
 		const settings = result["settings"];
 
@@ -137,7 +111,11 @@ window.onload = () => {
 				.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
 		}
 	
-		if (result["initialFetch"] || result["initialFetch"] == undefined) {
+		const initialFetch = result["initialFetch"] || result["initialFetch"] == undefined;
+
+		messagePopup = new MessagePopup(document.body, initialFetch ? "default" : "bottom");
+
+		if (initialFetch) {
 			messagePopup.create("Fetching subject data from Wanikani...", "Please, don't close the extension.");
 			messagePopup.setLoading();
 			
@@ -172,4 +150,46 @@ document.addEventListener("click", e => {
 			chrome.tabs.sendMessage(tabs[0].id, {infoPopupFromSearch:targetElem.closest(".kanjiDetails").getAttribute("data-item-id")}, () => window.chrome.runtime.lastError);
 		});
 	}
+});
+
+const handleLoadingMessages = (text, progress) => {
+	if (!messagePopup.exists()) {
+		messagePopup.create("Fetching subject data from Wanikani...", "Please, don't close the extension.");
+		messagePopup.setLoading();
+	}
+
+	// update loading popup
+	messagePopup.loading(progress);
+	messagePopup.update(text);
+
+	if (progress == 1) {
+		console.log("setup complete");
+		chrome.storage.local.get("initialFetch", ({initialFetch}) => {
+			initialFetch = initialFetch || initialFetch == undefined;
+			if (initialFetch)
+				chrome.storage.local.set({"initialFetch": false});
+			
+			setTimeout(async () => {
+				messagePopup.remove();
+				document.querySelector("#updates-loading").innerText = "0";
+	
+				if (typeof updateHomeInterface === "function") {
+					chrome.storage.local.get(HOME_FETCH_KEYS, updateHomeInterface);
+					
+					if (initialFetch) {
+						const tab = await getTab();
+						chrome.tabs.sendMessage(tab.id, {reloadPage: true});
+					}
+				}
+			}, 1000);
+		});
+	}
+
+	if (progress == null)
+		chrome.storage.local.set({"initialFetch": false});
+}
+
+document.addEventListener("loadData", e => {
+	document.querySelector("#updates-loading").innerText = e.fetches;
+	handleLoadingMessages(e.text, e.progress);
 });

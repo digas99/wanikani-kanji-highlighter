@@ -147,7 +147,7 @@ chrome.storage.local.get(["apiKey", ...HOME_FETCH_KEYS], result => {
 	
 	if (apiKey) {
 		updateHomeInterface(result);
-		loadData(apiKey);
+		chrome.runtime.sendMessage({loadData: apiKey});
 	}
 	else
 		window.location.href = "auth.html";	

@@ -1,16 +1,17 @@
 (function () {
 	// construtctor
-	const MessagePopup = function(parent) {
+	const MessagePopup = function(parent, style="default") {
 		this.parent = parent;
+		this.style = style;
 	}
 
 	MessagePopup.prototype = {
 
 		// create popup
-		create: function(text, subtext) {
+		create: function(text, subtext, style) {
 			this.wrapper = document.createElement("div");
 			this.parent.appendChild(this.wrapper);
-			this.wrapper.classList.add("message-popup");
+			this.updateStyle(style || this.style);
 		
 			// add gray back
 			this.wrapper.appendChild(document.createElement("div"));
@@ -84,6 +85,20 @@
 			loadingIcon.appendChild(icon);
 			icon.src = "../images/refreshing.png";
 			return loadingIcon;
+		},
+
+		updateStyle: function(style) {
+			this.style = style;
+			this.wrapper.className = "";
+
+			switch(this.style) {
+				case "default":
+					this.wrapper.classList.add("message-popup");
+					break;
+				case "bottom":
+					this.wrapper.classList.add("bottom-popup");
+					break;
+			}
 		}
 	}
 

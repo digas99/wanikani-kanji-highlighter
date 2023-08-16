@@ -10,6 +10,10 @@
 	z-index: 6;
 }
 
+.bottom-popup > div:nth-child(1) {
+    display: none;
+}
+
 .message-popup > div:nth-child(2) {
     position: fixed;
     background-color: white;
@@ -24,7 +28,18 @@
 	z-index: 6;
 }
 
-.message-popup > div:nth-child(2) > div:nth-child(1) {
+.bottom-popup > div:nth-child(2) {
+    position: fixed;
+    bottom: 0;
+    height: 60px;
+    z-index: 15;
+    margin: auto;
+    width: 98%;
+    box-shadow: 0px 0px 6px -2px black;
+    background-color: white;
+}
+
+.message-popup > div:nth-child(2) > div:nth-child(1), .bottom-popup > div:nth-child(2) > div:nth-child(1) {
     position: absolute;
     left: 0;
     top: 0;
@@ -35,7 +50,7 @@
     height: fit-content;
 }
 
-.message-popup .subtext {
+.message-popup .subtext, .bottom-popup .subtext {
     padding: 6px 0;
     font-size: 11px;
     top: 0;
@@ -45,13 +60,13 @@
     width: 100%;
 }
 
-.message-popup .message-popup-bar {
+.message-popup .message-popup-bar, .bottom-popup .message-popup-bar {
 	position: relative;
 	width: 100%;
 	height: 100%;
 }
 
-.message-popup .message-popup-bar > div {
+.message-popup .message-popup-bar > div, .bottom-popup .message-popup-bar > div {
     position: absolute;
     width: 99%;
     bottom: 0;
@@ -60,12 +75,12 @@
     margin: 2px;
 }
 
-.message-popup .message-popup-bar > div > div {
+.message-popup .message-popup-bar > div > div, .bottom-popup .message-popup-bar > div > div {
 	background-color: var(--default-color);
 	height: 100%;
 }
 
-.message-popup .loading-icon {
+.message-popup .loading-icon, .bottom-popup .loading-icon {
     position: absolute;
     top: 0;
     text-align: center;
@@ -78,7 +93,7 @@
     left: -35px;
 }
 
-.message-popup .loading-icon > img {
+.message-popup .loading-icon > img, .bottom-popup .loading-icon > img {
     width: 15px;
     animation: rotateAnimation 2s linear infinite;
     filter: invert(1);

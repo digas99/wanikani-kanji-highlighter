@@ -413,11 +413,21 @@ const setupKanji = (kanjis, assocs, records, kanji) => {
 
 let progress = 0, fetches = 0;
 
+const loadEvent = new CustomEvent("loadData", {text: "", progress: progress, fetches: fetches});
+
 const sendSetupProgress = (text, progress, tab) => {
+	loadEvent.progress = progress;
+	loadEvent.text = text;
+	loadEvent.fetches = fetches;
+	
+	if (typeof window === "object")
+		document.dispatchEvent(loadEvent);
+
 	const messageData = {
 		setup: {
 			text: text,
 			progress: progress,
+			fetches: fetches
 		}
 	}
 	if (tab)
@@ -477,7 +487,9 @@ const loadData = async (apiToken, tabId, callback) => {
 
 	if (fetches > 0)
 		chrome.runtime.sendMessage({loading: true});
-		
+	else
+		return;
+	 		
 	// assignments
 	const result = await setupAssignments(apiToken);
 	setupAvailableAssignments(apiToken);
@@ -490,6 +502,8 @@ const loadData = async (apiToken, tabId, callback) => {
 		progress++;
 		sendSetupProgress(messageText, progress/fetches, tabId);
 	}	
+
+	if (progress == fetches) progress = 0;
 
 	const setups = [
 		// radicals
@@ -507,6 +521,8 @@ const loadData = async (apiToken, tabId, callback) => {
 				progress++;
 				sendSetupProgress(messageText, progress/fetches, tabId);
 			}
+
+			if (progress == fetches) progress = 0;
 		}),
 		// vocabulary
 		new Promise(async (resolve, reject) => {
@@ -523,6 +539,8 @@ const loadData = async (apiToken, tabId, callback) => {
 				progress++;
 				sendSetupProgress(messageText, progress/fetches, tabId);
 			}
+		
+			if (progress == fetches) progress = 0;
 		}),
 		// kana vocabulary
 		new Promise(async (resolve, reject) => {
@@ -564,14 +582,15 @@ const loadData = async (apiToken, tabId, callback) => {
 		if (callback)
 			callback(returnObject(assignments, results[0], results[1], results[2], results[3]));
 
-		const fetched = await subjectsReviewStats(apiKey, results);
+		const fetched = await subjectsReviewStats(apiToken, results);
 		const messageText = "✔ Loaded Review Statistics data.";
 		console.log("[LOADED]:", messageText);
 		if (fetched) {
 			progress++;
 			sendSetupProgress(messageText, progress/fetches, tabId);
 		}
-		
+
+		if (progress == fetches) progress = 0;
 	});
 }
 
@@ -630,29 +649,14 @@ const subjectsAssignmentStats = async list => {
 
                 await Promise.all(updatePromises);
 
-                let storageId;
-                switch (type) {
-                    case "radical":
-                        storageId = "radicals";
-                        break;
-                    case "kanji":
-                        storageId = "kanji";
-                        break;
-                    case "vocabulary":
-                        storageId = "vocabulary";
-                        break;
-                }
-
-                if (storageId) {
-                    const storageData = {
-                        [storageId]: list,
-                        ["" + type + "_progress"]: progress,
-                        ["" + type + "_levelsInProgress"]: levelsInProgress
-                    };
-                    await new Promise(resolve => {
-                        chrome.storage.local.set(storageData, resolve);
-                    });
-                }
+				const storageData = {
+					[type]: list,
+					["" + type + "_progress"]: progress,
+					["" + type + "_levelsInProgress"]: levelsInProgress
+				};
+				await new Promise(resolve => {
+					chrome.storage.local.set(storageData, resolve);
+				});
             }
         }
     }

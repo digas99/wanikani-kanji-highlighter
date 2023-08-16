@@ -254,6 +254,10 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 				
 								if (result["kanji"])
 									setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", result["kanji"]);
+								else {
+									chrome.action.setBadgeText({text: "X", tabId:thisTabId});
+									chrome.action.setBadgeBackgroundColor({color: "#00aaff", tabId:thisTabId});
+								}
 							}
 						}
 						else {
@@ -276,7 +280,7 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 
 let highlightUpdateFunction;
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 	// sends to the content script information about key pressing and the reference to the highlight update function
 	if (request.key)
 		tabs.sendMessage(thisTabId, {key: request.key, intervalFunction: highlightUpdateFunction});
@@ -323,6 +327,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 	// drive loading request back to the popup
 	if (request.loading) chrome.runtime.sendMessage({loading: request.loading});
+
+
+	// LOAD DATA
+	if (request.loadData) {
+		loadData(request.loadData);
+	}
 });
 
 const contextMenuItem = {

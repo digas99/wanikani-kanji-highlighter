@@ -141,7 +141,7 @@
 }
 
 .side-panel-focus {
-	width: 100px;
+	width: 110px;
 	box-shadow: 0px 0px 4px 0px black;
 }
 
@@ -156,7 +156,7 @@
 
 .side-panel-focus > ul > li > a > p {
 	color: black;
-    padding-left: 7px;
+    padding-left: 12px;
 }
 
 .side-panel-focus > div > a > img {
