@@ -42,9 +42,10 @@ const updateHomeInterface = async (result) => {
 	settings = result["settings"] ? result["settings"] : defaultSettings;
 	userInfo = result["userInfo"];
 	activeTab = await getTab();
+	const interface = settings["extension_popup_interface"];
 
 	// SCRIPTS UPTIME
-	if (settings["extension_popup_interface"]["scripts_status"]) {
+	if (interface["scripts_status"]) {
 		["Highlighter", "Details Popup"].forEach((script, i) => {
 			chrome.tabs.sendMessage(activeTab.id, {uptime: script}, response => {
 				if (response) document.querySelectorAll("#scripts_status div")[i].style.backgroundColor = "#80fd80";
@@ -53,13 +54,13 @@ const updateHomeInterface = async (result) => {
 	}
 
 	// SEARCH
-	const type = document.getElementById("kanjiSearchType").innerText;
-	document.querySelector("#kanjiSearchInput").addEventListener("click", () => window.location.href = "search.html"+(type ? `?type=${type}` : ""));
+	if (interface["search_bar"] && document.getElementById("kanjiSearchType")) {
+		const type = document.getElementById("kanjiSearchType").innerText;
+		document.querySelector("#kanjiSearchInput").addEventListener("click", () => window.location.href = "search.html"+(type ? `?type=${type}` : ""));
+	}
 
 	// HIGHLIGHTED KANJI
-	if (settings["extension_popup_interface"]["highlighted_kanji"]) {
-
-
+	if (interface["highlighted_kanji"]) {
 		const kanjiAssoc = result["kanji_assoc"];
 
 		chrome.tabs.sendMessage(activeTab.id, {nmrKanjiHighlighted:"popup"}, result => {
@@ -72,14 +73,14 @@ const updateHomeInterface = async (result) => {
 	}
 
 	// LESSONS AND REVIEWS
-	if (settings["extension_popup_interface"]["lessons_and_reviews"]) {
+	if (interface["lessons_and_reviews"]) {
 		setupSummary(result["reviews"], result["lessons"]);
 	}
 
 	// PROGRESSIONS
-	const allSize = (result["radicals_size"] ? result["radicals_size"] : 0)
-		+ (result["kanji_size"] ? result["kanji_size"] : 0)
-		+ (result["vocabulary_size"] ? result["vocabulary_size"] : 0);
+	const allSize = (result["radicals_size"] || 0)
+		+ (result["kanji_size"] || 0)
+		+ (result["vocabulary_size"] || 0);
 
 	const progresses = {
 		"radical": result["radical_progress"],
@@ -87,52 +88,54 @@ const updateHomeInterface = async (result) => {
 		"vocabulary": result["vocabulary_progress"]
 	};
 
-	if (settings["extension_popup_interface"]["overall_progression_bar"])
-		progressionBar(document.querySelector("#progression-bar"), srsStages, progresses, allSize, settings["appearance"]);
+	if (interface["overall_progression_bar"])
+		progressionBar(document.querySelector("#progression-bar"), progresses, allSize, settings["appearance"]);
 
-	if (settings["extension_popup_interface"]["overall_progression_stats"])
-		progressionStats(document.querySelector("#progression-stats"), srsStages, progresses, settings["appearance"]);
+	if (interface["overall_progression_stats"])
+		progressionStats(document.querySelector("#progression-stats"), progresses, settings["appearance"], 5,
+			(menu, srs) => {
+				if (srs < 5) menu.style.top = "35px";
+				if (srs % 5 == 0) menu.style.left = "20px";
+			}
+		);
 
-	if (settings["extension_popup_interface"]["levels_in_progress"]) {
-		const radicalsLevelInProgress = result["radical_levelsInProgress"] ? result["radical_levelsInProgress"] : [];
-		const kanjiLevelInProgress = result["kanji_levelsInProgress"] ? result["kanji_levelsInProgress"] : [];
-		const vocabularyLevelInProgress = result["vocabulary_levelsInProgress"] ? result["vocabulary_levelsInProgress"] : [];
+	if (interface["levels_in_progress"]) {
+		const radicalsLevelInProgress = result["radical_levelsInProgress"] || [];
+		const kanjiLevelInProgress = result["kanji_levelsInProgress"] || [];
+		const vocabularyLevelInProgress = result["vocabulary_levelsInProgress"] || [];
 		const types = ["radical", "kanji", "vocabulary"];
 		const progressBarWrappers = [];
 		const db = new Database("wanikani");
-		db.open("subjects").then(opened => {
-			if (opened) {
-				[radicalsLevelInProgress, kanjiLevelInProgress, vocabularyLevelInProgress]
-					.forEach((levels, i) => {
-						progressBarWrappers.push(
-							new Promise((resolve, reject) => {
-								db.getAll("subjects", "level", levels).then(result => {	
-									const bars = [];							
-									levels.forEach(level => {
-										const values = result[level].filter(value => value["hidden_at"] == null && value["subject_type"] === types[i]);
-										bars.push(levelProgressBar(userInfo["level"], values, level, types[i], srsStages, settings["appearance"]));											
-									});
-									resolve(bars);
-								});
-							})
-						);
-					});
+		const opened = await db.open("subjects");
+		if (opened) {
+			[radicalsLevelInProgress, kanjiLevelInProgress, vocabularyLevelInProgress].forEach((levels, i) => {
+				progressBarWrappers.push(
+					new Promise(async (resolve, reject) => {
+						const result = await db.getAll("subjects", "level", levels);
+						const bars = [];							
+						levels.forEach(level => {
+							const values = result[level].filter(value => value["hidden_at"] == null && value["subject_type"] === types[i]);
+							bars.push(levelProgressBar(userInfo["level"], values, level, types[i], settings["appearance"]));											
+						});
+						resolve(bars);
+					})
+				);
+			});
 
-				// clear previous bars
-				const levelsInProgress = document.querySelector("#levels-progress");
-				levelsInProgress.innerHTML = "";
-					
-				// put bars in correct order
-				Promise.all(progressBarWrappers).then(bars => {
-					bars.flat(1).sort((a,b) => Number(a.dataset.order) - Number(b.dataset.order))
-						.forEach(bar => levelsInProgress.appendChild(bar));
-				});
-			}
-		});
+			// clear previous bars
+			const levelsInProgress = document.querySelector("#levels-progress");
+			levelsInProgress.innerHTML = "";
+				
+			// put bars in correct order
+			Promise.all(progressBarWrappers).then(bars => {
+				bars.flat(1).sort((a,b) => Number(a.dataset.order) - Number(b.dataset.order))
+					.forEach(bar => levelsInProgress.appendChild(bar));
+			});
+		}
 	}
 
 	// remove sections hidden by the user
-	for (let [key, show] of Object.entries(settings["extension_popup_interface"])) {
+	for (let [key, show] of Object.entries(interface)) {
 		if (!show) document.querySelector(`#${key}`)?.remove();
 	}	
 }
@@ -261,208 +264,6 @@ const timeStampRefresher = (moreReviews, timeStampInterval,thisDate, timeUnit, r
 
 	// refresh time stamp
 	moreReviews.getElementsByTagName("B")[1].innerText = newTimeStamp;
-}
-
-const progressionBar = (wrapper, srsStages, progresses, size, colors) => {
-	let unlockedSize = 0, stageValue, stageColor;
-
-	// clear bar beforehand if needed
-	if (wrapper) wrapper.innerHTML = "";
-
-	Object.keys(srsStages).forEach(stage => {
-		stageValue = (progresses["radical"] && progresses["radical"][stage] ? progresses["radical"][stage] : 0)
-			+ (progresses["kanji"] && progresses["kanji"][stage] ? progresses["kanji"][stage] : 0)
-			+ (progresses["vocabulary"] && progresses["vocabulary"][stage] ? progresses["vocabulary"][stage] : 0);
-		
-		stageColor = colors ? colors[srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
-		unlockedSize += stageValue;
-
-		// add bar to progress bar
-		if (wrapper && size) {
-			const progressBarBar = document.createElement("li");
-			wrapper.appendChild(progressBarBar);
-			progressBarBar.classList.add("clickable");
-			const percentageValue = stageValue/size*100;
-			progressBarBar.style.width = percentageValue+"%";
-			progressBarBar.style.backgroundColor = stageColor;
-			progressBarBar.title = srsStages[stage]["name"]+": "+stageValue+" / "+percentageValue.toFixed(1)+"%";
-			const progressBarLink = document.createElement("a");
-			progressBarBar.appendChild(progressBarLink);
-			progressBarLink.href = "/popup/progressions.html?srs="+stage;
-			if (percentageValue > 8.1) {
-				const percentage = document.createElement("div");
-				progressBarLink.appendChild(percentage);
-				percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
-			}
-		}
-	});
-
-	// add locked subjects bar
-	const lockedSubjectsBar = document.createElement("li");
-	wrapper.appendChild(lockedSubjectsBar);
-	const percentageValue = (size-unlockedSize)/size*100
-	lockedSubjectsBar.style.width = percentageValue+"%";
-	lockedSubjectsBar.classList.add("clickable");
-	lockedSubjectsBar.title = "Locked: "+(size-unlockedSize)+" / "+percentageValue.toFixed(1)+"%";
-	const progressBarLink = document.createElement("a");
-	lockedSubjectsBar.appendChild(progressBarLink);
-	progressBarLink.href = "/popup/progressions.html?srs="+-1;
-	if (percentageValue > 8.1) {
-		const percentage = document.createElement("div");
-		progressBarLink.appendChild(percentage);
-		percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
-	}
-}
-
-const progressionStats = (wrapper, srsStages, progresses, colors) => {
-	let row, stageValue, stageColor;
-	console.log(progresses);
-
-	// clear stats beforehand if needed
-	if (wrapper) wrapper.innerHTML = "";
-
-	Object.keys(srsStages).forEach(stage => {
-		stageValue = (progresses["radical"] && progresses["radical"][stage] ? progresses["radical"][stage] : 0)
-			+ (progresses["kanji"] && progresses["kanji"][stage] ? progresses["kanji"][stage] : 0)
-			+ (progresses["vocabulary"] && progresses["vocabulary"][stage] ? progresses["vocabulary"][stage] : 0);
-	
-		stageColor = colors ? colors[srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
-		
-		// add square to progression stats
-		if (stage % 5 == 0) {
-			row = document.createElement("ul");
-			wrapper.appendChild(row);
-		}
-
-		const stageSquareWrapper = document.createElement("li");
-		row.appendChild(stageSquareWrapper);
-		const stageSquare = document.createElement("div");
-		stageSquareWrapper.appendChild(stageSquare);
-		stageSquare.classList.add("clickable");
-		const stageLink = document.createElement("a");
-		stageSquare.title = srsStages[stage]["name"];
-		stageSquare.style.backgroundColor = stageColor;
-		stageLink.href = "/popup/progressions.html?srs="+stage;
-		stageSquare.appendChild(stageLink);
-		stageLink.appendChild(document.createTextNode(stageValue));
-
-		const infoMenu = progressionMenu(srsStages, stage, progresses, stageValue, stageColor, colors);
-		stageSquareWrapper.appendChild(infoMenu);
-		
-		if (stage < 5)
-			infoMenu.style.top = "35px";
-
-		if (stage % 5 == 0)
-			infoMenu.style.left = "20px";
-
-		stageSquareWrapper.addEventListener("mouseover", () => infoMenu.classList.remove("hidden"));
-		stageSquareWrapper.addEventListener("mouseout", () => infoMenu.classList.add("hidden"));
-	});
-}
-
-const progressionMenu = (srsStages, stage, progresses, stageValue, stageColor, typeColors) => {
-	const infoMenu = document.createElement("div");
-	infoMenu.classList.add("progression-menu", "hidden");
-	const infoMenuTitle = document.createElement("p");
-	infoMenu.appendChild(infoMenuTitle);
-	infoMenuTitle.appendChild(document.createTextNode(srsStages[stage]["name"]));
-	infoMenuTitle.style.color = stageColor;
-	const infoMenuBar = document.createElement("div");
-	infoMenu.appendChild(infoMenuBar);
-	const infoMenuListing = document.createElement("ul");
-	infoMenu.appendChild(infoMenuListing);
-	["Radical", "Kanji", "Vocabulary"].forEach(type => {
-		let typeProgress = progresses[type.toLowerCase()];
-
-		const bar = document.createElement("div");
-		infoMenuBar.appendChild(bar);
-		bar.style.width = (typeProgress && typeProgress[stage] ? typeProgress[stage] / stageValue *100 : 0)+"%";
-		const colorId = (type == "Radical" ? "radical" : type == "Kanji" ? "kanji" : "vocab")+"_color";
-		bar.style.backgroundColor = typeColors[colorId];
-
-		const infoMenuType = document.createElement("li");
-		infoMenuListing.appendChild(infoMenuType);
-		const typeTitle = document.createElement("b");
-		infoMenuType.appendChild(typeTitle);
-		typeTitle.appendChild(document.createTextNode(type+": "));
-		infoMenuType.appendChild(document.createTextNode(typeProgress && typeProgress[stage] ? typeProgress[stage] : 0));
-	});
-
-	return infoMenu;
-}
-
-const levelProgressBar = (currentLevel, values, level, type, srsStages, colors) => {
-	const all = values.length;
-	const passed = values.filter(subject => subject["passed_at"]).length;
-	const notPassed = values.filter(subject => !subject["passed_at"]);
-	const locked = notPassed.filter(subject => subject["srs_stage"] == -1).length;
-
-	const progressBarWrapper = document.createElement("ul");
-
-	// set order value
-	const levelValue = Number(level);
-	progressBarWrapper.setAttribute("data-order", levelValue);
-
-	// bar for passed
-	progressBarWrapper.appendChild(levelProgressBarSlice(passed/all*100, {background: "black", text: "white"}, "Passed: "+passed, {level: level, type: type, srs: "passed"}));
-
-	// traverse from initiate until apprentice IV
-	for (let i = 5; i >= 0; i--) {
-		const stageSubjects = notPassed.filter(subject => subject["srs_stage"] == i).length;
-		progressBarWrapper.appendChild(levelProgressBarSlice(stageSubjects/all*100, {background: colors[srsStages[i]["short"].toLowerCase()+"_color"], text: "white"}, srsStages[i]["name"]+": "+stageSubjects, {level: level, type: type, srs: srsStages[i]["name"]}));
-	}
-
-	// bar for locked
-	progressBarWrapper.appendChild(levelProgressBarSlice(locked/all*100, {background: "white", text: "black"}, "Locked: "+locked, {level: level, type: type, srs: "locked"}));
-
-	// bar id
-	const barTitle = document.createElement("span");
-	progressBarWrapper.appendChild(barTitle);
-	barTitle.appendChild(document.createTextNode(levelValue+" "+type.charAt(0).toUpperCase()+type.substring(1, 3)));
-
-	// levelup marker
-	if (type == "kanji" && levelValue == currentLevel)
-		progressBarWrapper.appendChild(levelUpMarker(all));
-
-	return progressBarWrapper;
-}
-
-const levelProgressBarSlice = (value, color, title, info) => {
-	const {level, type, srs} = info;
-
-	const progressBarBar = document.createElement("li");
-	progressBarBar.classList.add("clickable");
-	const percentageValue = value;
-	progressBarBar.style.width = percentageValue+"%";
-	progressBarBar.style.backgroundColor = color["background"];
-	progressBarBar.title = title;
-	progressBarLink = document.createElement("a");
-	progressBarBar.appendChild(progressBarLink);
-	progressBarLink.href = `/popup/progressions.html?level=${level}&type=${type}&jump=${srs}`;
-	if (percentageValue > 8.1) {
-		const percentage = document.createElement("div");
-		progressBarLink.appendChild(percentage);
-		percentage.style.color = color["text"];
-		percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
-	}
-	return progressBarBar;
-}
-
-const levelUpMarker = numberKanji => {
-	const levelupMarkerWrapper = document.createElement("div");
-	levelupMarkerWrapper.classList.add("levelup-marker");
-	levelupMarkerWrapper.style.width = "86%";
-	const levelupMarker = document.createElement("div");
-	levelupMarkerWrapper.appendChild(levelupMarker);
-	
-	// calculate number of kanji to get atleast 90%
-	let final = numberKanji;
-	for (let k = numberKanji; k > 0; k--) {
-		if (k/numberKanji*100 < 90) break;
-		final = k;
-	}
-	levelupMarker.style.width = final/numberKanji*100+"%";
-	return levelupMarkerWrapper;
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

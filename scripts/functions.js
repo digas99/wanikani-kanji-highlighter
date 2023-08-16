@@ -413,11 +413,6 @@ const setupKanji = (kanjis, assocs, records, kanji) => {
 
 let progress = 0, fetches = 0;
 
-const updateSubjectsStats = async (apiKey, subjects) => {
-	await subjectsAssignmentStats(subjects);
-	await subjectsReviewStats(apiKey, subjects);
-}
-
 const sendSetupProgress = (text, progress, tab) => {
 	const messageData = {
 		setup: {
@@ -441,9 +436,9 @@ const canFetch = async () => {
 
 const sizeToFetch = async apiToken => {
 	return new Promise(resolve => {
-		chrome.storage.local.get([RADICAL_SETUP.storage.updated, VOCAB_SETUP.storage.updated, KANA_VOCAB_SETUP.storage.updated, KANJI_SETUP.storage.updated, ASSIGNMENTS_SETUP.storage.updated], async result => {
+		chrome.storage.local.get([RADICAL_SETUP.storage.updated, VOCAB_SETUP.storage.updated, KANA_VOCAB_SETUP.storage.updated, KANJI_SETUP.storage.updated, ASSIGNMENTS_SETUP.storage.updated, REVIEWSTATS_SETUP.storage.updated], async result => {
 			const fetches = await Promise.all(
-				[RADICAL_SETUP, VOCAB_SETUP, KANA_VOCAB_SETUP, KANJI_SETUP, ASSIGNMENTS_SETUP]
+				[RADICAL_SETUP, VOCAB_SETUP, KANA_VOCAB_SETUP, KANJI_SETUP, ASSIGNMENTS_SETUP, REVIEWSTATS_SETUP]
 				  .map(async setup => await modifiedSince(apiToken, result[setup.storage.updated], setup.endpoint))
 			);
 	
@@ -468,11 +463,11 @@ const getTab = () => {
 // get all assignments if there are none in storage or if they were modified
 // see if all subjects are already saved in storage
 const loadData = async (apiToken, tabId, callback) => {
-	const returnObject = (assignments, radicals, vocab, kana_vocab, kanji) => ({
+	const returnObject = (assignments, radicals, vocab, kana_vocabulary, kanji) => ({
 			assignments: assignments,
 			radicals: radicals,
 			vocab: vocab,
-			kana_vocab: kana_vocab,
+			kana_vocabulary: kana_vocabulary,
 			kanji: kanji
 	});
 
@@ -504,7 +499,7 @@ const loadData = async (apiToken, tabId, callback) => {
 			
 			resolve(radicals);
 
-			await updateSubjectsStats(apiToken, radicals);	
+			await subjectsAssignmentStats(radicals);	
 			
 			const messageText = "✔ Loaded Radicals data.";
 			console.log("[LOADED]:", messageText);
@@ -520,7 +515,7 @@ const loadData = async (apiToken, tabId, callback) => {
 
 			resolve(vocab);
 
-			await updateSubjectsStats(apiToken, vocab);	
+			await subjectsAssignmentStats(vocab);	
 			
 			const messageText = "✔ Loaded Vocabulary data.";
 			console.log("[LOADED]:", messageText);
@@ -536,7 +531,7 @@ const loadData = async (apiToken, tabId, callback) => {
 
 			resolve(vocab);
 
-			await updateSubjectsStats(apiToken, vocab);	
+			await subjectsAssignmentStats(vocab);	
 			
 			const messageText = "✔ Loaded Kana Vocabulary data.";
 			console.log("[LOADED]:", messageText);
@@ -552,7 +547,7 @@ const loadData = async (apiToken, tabId, callback) => {
 
 			resolve(kanji);
 
-			await updateSubjectsStats(apiToken, kanji);	
+			await subjectsAssignmentStats(kanji);	
 			
 			const messageText = "✔ Loaded Kanji data.";
 			console.log("[LOADED]:", messageText);
@@ -563,13 +558,20 @@ const loadData = async (apiToken, tabId, callback) => {
 		})
 	];
 	
-	Promise.all(setups).then(results => {
+	Promise.all(setups).then(async results => {
 		// add bulk fetch timestamp to storage
 		chrome.storage.local.set({bulk_fetch: new Date().getTime()});
-
-		if (callback) {
+		if (callback)
 			callback(returnObject(assignments, results[0], results[1], results[2], results[3]));
+
+		const fetched = await subjectsReviewStats(apiKey, results);
+		const messageText = "✔ Loaded Review Statistics data.";
+		console.log("[LOADED]:", messageText);
+		if (fetched) {
+			progress++;
+			sendSetupProgress(messageText, progress/fetches, tabId);
 		}
+		
 	});
 }
 
@@ -656,61 +658,47 @@ const subjectsAssignmentStats = async list => {
     }
 }
 
-const subjectsReviewStats = async (apiToken, list) => {
-	const type = list[Object.keys(list)[0]]["subject_type"];
-	if (list && type) {
+const subjectsReviewStats = async (apiToken, lists) => {
+	return new Promise(async (resolve) => {
 		chrome.storage.local.get("reviewStats_updated", async result => {
 			const updated = result["reviewStats_updated"];
-			console.log(`[REVIEW STATS]: Associating review statistics with ${type} ...`);
-			await fetchAllPages(apiToken, "https://api.wanikani.com/v2/review_statistics", updated)
-				.then(stats => {
-					// too many requests or not modified
-					if (stats.error)
-						return;
+			const stats = await fetchAllPages(apiToken, "https://api.wanikani.com/v2/review_statistics", updated);
 
-					stats.map(coll => coll["data"])
-						.flat(1)
-						.forEach(stat => {
-							const data = stat["data"];
-							const subjectId = data["subject_id"];
-							if (subjectId && list[subjectId]) {
-								const subject = list[subjectId];
-								subject["stats"] = {
-									meaning_correct: data["meaning_correct"],
-									meaning_current_streak: data["meaning_current_streak"],
-									meaning_incorrect: data["meaning_incorrect"],
-									meaning_max_streak: data["meaning_max_streak"],
-									percentage_correct: data["percentage_correct"],
-									reading_correct: data["reading_correct"],
-									reading_current_streak: data["reading_current_streak"],
-									reading_incorrect: data["reading_incorrect"],
-									reading_max_streak: data["reading_max_streak"]
-								}
-							}
-						});
-						let storageId;
-						switch(type) {
-							case "radical":
-								storageId = "radicals";
-								break;
-							case "kanji":
-								storageId = "kanji";
-								break;
-							case "vocabulary":
-								storageId = "vocabulary";
-								break;
-							case "kana_vocabulary":
-								storageId = "kana_vocab";
-								break;
-						}
-						if (storageId)
-							chrome.storage.local.set({
-								[storageId]:list,
-								reviewStats_updated: formatDate(addHours(new Date(), -1))
-							});
+			if (stats.error) {
+				resolve(false);
+				return;
+			}
+
+			console.log(lists);
+			for (const list of lists) {
+				const type = list[Object.keys(list)[0]]["subject_type"];
+				console.log(`[REVIEW STATS]: Associating review statistics with ${type} ...`);
+
+				stats.map(coll => coll["data"]).flat(1).forEach(stat => {
+					const data = stat["data"];
+					const subjectId = data["subject_id"];
+					if (subjectId && list[subjectId]) {
+						const subject = list[subjectId];
+						subject["stats"] = {
+							meaning_correct: data["meaning_correct"],
+							meaning_current_streak: data["meaning_current_streak"],
+							meaning_incorrect: data["meaning_incorrect"],
+							meaning_max_streak: data["meaning_max_streak"],
+							percentage_correct: data["percentage_correct"],
+							reading_correct: data["reading_correct"],
+							reading_current_streak: data["reading_current_streak"],
+							reading_incorrect: data["reading_incorrect"],
+							reading_max_streak: data["reading_max_streak"]
+						};
+					}
 				});
+
+				chrome.storage.local.set({ [type]: list }, () => console.log(`[REVIEW STATS]: ${type} updated`));
+			}
+
+			chrome.storage.local.set({ reviewStats_updated: formatDate(addHours(new Date(), -1)) }, () => resolve(true));
 		});
-	}
+	});
 }
 
 const blacklist = async url => {
@@ -815,4 +803,215 @@ const headerSubjectDecoration = (header, type) => {
 			break;
 	}
 	typeElem.textContent = text;
+}
+
+const getCharacter = subject => {
+	if (subject["characters"])
+		return subject["characters"];
+	else {
+		const img = subject["character_images"].find(image => image["metadata"]["style_name"] == 'original');
+		if (img) {
+			return `<img class="radical-image" src="${img["url"]}" />`;	
+		}
+
+		return "";
+	}
+}
+
+const progressionStats = (wrapper, progresses, colors, line, menuCallback) => {
+	let row, stageValue, stageColor;
+	console.log(progresses);
+
+	// clear stats beforehand if needed
+	if (wrapper) wrapper.innerHTML = "";
+
+	Object.keys(srsStages).forEach(stage => {
+		stageValue = (progresses["radical"] && progresses["radical"][stage] ? progresses["radical"][stage] : 0)
+			+ (progresses["kanji"] && progresses["kanji"][stage] ? progresses["kanji"][stage] : 0)
+			+ (progresses["vocabulary"] && progresses["vocabulary"][stage] ? progresses["vocabulary"][stage] : 0);
+	
+		stageColor = colors ? colors[srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
+
+		if (stage % line == 0) {
+			row = document.createElement("ul");
+			wrapper.appendChild(row);
+		}
+
+		const stageSquareWrapper = document.createElement("li");
+		row.appendChild(stageSquareWrapper);
+		const stageSquare = document.createElement("div");
+		stageSquareWrapper.appendChild(stageSquare);
+		stageSquare.classList.add("clickable");
+		const stageLink = document.createElement("a");
+		stageSquare.title = srsStages[stage]["name"];
+		stageSquare.style.backgroundColor = stageColor;
+		stageLink.href = "/popup/progressions.html?srs="+stage;
+		stageSquare.appendChild(stageLink);
+		stageLink.appendChild(document.createTextNode(stageValue));
+
+		const infoMenu = progressionMenu(stage, progresses, stageValue, {stage: stageColor, type: colors});
+		stageSquareWrapper.appendChild(infoMenu);
+
+		if (menuCallback)
+			menuCallback(infoMenu, stage);
+
+		stageSquareWrapper.addEventListener("mouseover", () => infoMenu.classList.remove("hidden"));
+		stageSquareWrapper.addEventListener("mouseout", () => infoMenu.classList.add("hidden"));
+	});
+}
+
+const progressionMenu = (stage, progresses, value, colors) => {
+	const infoMenu = document.createElement("div");
+	infoMenu.classList.add("progression-menu", "hidden");
+	const infoMenuTitle = document.createElement("p");
+	infoMenu.appendChild(infoMenuTitle);
+	infoMenuTitle.appendChild(document.createTextNode(srsStages[stage]["name"]));
+	infoMenuTitle.style.color = colors.stage;
+	const infoMenuBar = document.createElement("div");
+	infoMenu.appendChild(infoMenuBar);
+	const infoMenuListing = document.createElement("ul");
+	infoMenu.appendChild(infoMenuListing);
+	["Radical", "Kanji", "Vocabulary"].forEach(type => {
+		let typeProgress = progresses[type.toLowerCase()];
+
+		const bar = document.createElement("div");
+		infoMenuBar.appendChild(bar);
+		bar.style.width = (typeProgress && typeProgress[stage] ? typeProgress[stage] / value *100 : 0)+"%";
+		const colorId = (type == "Radical" ? "radical" : type == "Kanji" ? "kanji" : "vocab")+"_color";
+		bar.style.backgroundColor = colors.type[colorId];
+
+		const infoMenuType = document.createElement("li");
+		infoMenuListing.appendChild(infoMenuType);
+		const typeTitle = document.createElement("b");
+		infoMenuType.appendChild(typeTitle);
+		typeTitle.appendChild(document.createTextNode(type+": "));
+		infoMenuType.appendChild(document.createTextNode(typeProgress && typeProgress[stage] ? typeProgress[stage] : 0));
+	});
+
+	return infoMenu;
+}
+
+const progressionBar = (wrapper, progresses, size, colors) => {
+	let unlockedSize = 0, stageValue, stageColor;
+
+	// clear bar beforehand if needed
+	if (wrapper) wrapper.innerHTML = "";
+
+	Object.keys(srsStages).forEach(stage => {
+		stageValue = (progresses["radical"] && progresses["radical"][stage] ? progresses["radical"][stage] : 0)
+			+ (progresses["kanji"] && progresses["kanji"][stage] ? progresses["kanji"][stage] : 0)
+			+ (progresses["vocabulary"] && progresses["vocabulary"][stage] ? progresses["vocabulary"][stage] : 0);
+		
+		stageColor = colors ? colors[srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
+		unlockedSize += stageValue;
+
+		// add bar to progress bar
+		if (wrapper && size) {
+			const progressBarBar = document.createElement("li");
+			wrapper.appendChild(progressBarBar);
+			progressBarBar.classList.add("clickable");
+			const percentageValue = stageValue/size*100;
+			progressBarBar.style.width = percentageValue+"%";
+			progressBarBar.style.backgroundColor = stageColor;
+			progressBarBar.title = srsStages[stage]["name"]+": "+stageValue+" / "+percentageValue.toFixed(1)+"%";
+			const progressBarLink = document.createElement("a");
+			progressBarBar.appendChild(progressBarLink);
+			progressBarLink.href = "/popup/progressions.html?srs="+stage;
+			if (percentageValue > 8.1) {
+				const percentage = document.createElement("div");
+				progressBarLink.appendChild(percentage);
+				percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
+			}
+		}
+	});
+
+	// add locked subjects bar
+	const lockedSubjectsBar = document.createElement("li");
+	wrapper.appendChild(lockedSubjectsBar);
+	const percentageValue = (size-unlockedSize)/size*100
+	lockedSubjectsBar.style.width = percentageValue+"%";
+	lockedSubjectsBar.classList.add("clickable");
+	lockedSubjectsBar.title = "Locked: "+(size-unlockedSize)+" / "+percentageValue.toFixed(1)+"%";
+	const progressBarLink = document.createElement("a");
+	lockedSubjectsBar.appendChild(progressBarLink);
+	progressBarLink.href = "/popup/progressions.html?srs="+-1;
+	if (percentageValue > 8.1) {
+		const percentage = document.createElement("div");
+		progressBarLink.appendChild(percentage);
+		percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
+	}
+}
+
+const levelProgressBar = (currentLevel, values, level, type, colors) => {
+	const all = values.length;
+	const passed = values.filter(subject => subject["passed_at"]).length;
+	const notPassed = values.filter(subject => !subject["passed_at"]);
+	const locked = notPassed.filter(subject => subject["srs_stage"] == -1).length;
+
+	const progressBarWrapper = document.createElement("ul");
+
+	// set order value
+	const levelValue = Number(level);
+	progressBarWrapper.setAttribute("data-order", levelValue);
+
+	// bar for passed
+	progressBarWrapper.appendChild(levelProgressBarSlice(passed/all*100, {background: "black", text: "white"}, "Passed: "+passed, {level: level, type: type, srs: "passed"}));
+
+	// traverse from initiate until apprentice IV
+	for (let i = 5; i >= 0; i--) {
+		const stageSubjects = notPassed.filter(subject => subject["srs_stage"] == i).length;
+		progressBarWrapper.appendChild(levelProgressBarSlice(stageSubjects/all*100, {background: colors[srsStages[i]["short"].toLowerCase()+"_color"], text: "white"}, srsStages[i]["name"]+": "+stageSubjects, {level: level, type: type, srs: srsStages[i]["name"]}));
+	}
+
+	// bar for locked
+	progressBarWrapper.appendChild(levelProgressBarSlice(locked/all*100, {background: "white", text: "black"}, "Locked: "+locked, {level: level, type: type, srs: "locked"}));
+
+	// bar id
+	const barTitle = document.createElement("span");
+	progressBarWrapper.appendChild(barTitle);
+	barTitle.appendChild(document.createTextNode(levelValue+" "+type.charAt(0).toUpperCase()+type.substring(1, 3)));
+
+	// levelup marker
+	if (type == "kanji" && levelValue == currentLevel)
+		progressBarWrapper.appendChild(levelUpMarker(all));
+
+	return progressBarWrapper;
+}
+
+const levelProgressBarSlice = (value, color, title, info) => {
+	const {level, type, srs} = info;
+
+	const progressBarBar = document.createElement("li");
+	progressBarBar.classList.add("clickable");
+	const percentageValue = value;
+	progressBarBar.style.width = percentageValue+"%";
+	progressBarBar.style.backgroundColor = color["background"];
+	progressBarBar.title = title;
+	progressBarLink = document.createElement("a");
+	progressBarBar.appendChild(progressBarLink);
+	progressBarLink.href = `/popup/progressions.html?level=${level}&type=${type}&jump=${srs}`;
+	if (percentageValue > 8.1) {
+		const percentage = document.createElement("div");
+		progressBarLink.appendChild(percentage);
+		percentage.style.color = color["text"];
+		percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
+	}
+	return progressBarBar;
+}
+
+const levelUpMarker = numberKanji => {
+	const levelupMarkerWrapper = document.createElement("div");
+	levelupMarkerWrapper.classList.add("levelup-marker");
+	levelupMarkerWrapper.style.width = "86%";
+	const levelupMarker = document.createElement("div");
+	levelupMarkerWrapper.appendChild(levelupMarker);
+	
+	// calculate number of kanji to get atleast 90%
+	let final = numberKanji;
+	for (let k = numberKanji; k > 0; k--) {
+		if (k/numberKanji*100 < 90) break;
+		final = k;
+	}
+	levelupMarker.style.width = final/numberKanji*100+"%";
+	return levelupMarkerWrapper;
 }

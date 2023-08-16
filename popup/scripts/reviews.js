@@ -21,19 +21,7 @@ chrome.storage.local.get(["reviews"], async result => {
 			const { name, short, color } = srsStages[srsId];
 			const srsReviews = reviews.filter(review => review["srs_stage"] === srs && !review["hidden_at"]);
 			const subjects = await db.getAll("subjects", "srs_stage", parseInt(srs));
-			const characters = srsReviews.map(review => {
-				const subject = subjects.find(subject => subject["id"] === review["subject_id"]);
-				if (subject["characters"])
-					return subject["characters"];
-				else {
-					const img = subject["character_images"].find(image => image["metadata"]["style_name"] == 'original');
-					if (img) {
-						return `<img class="radical-image" src="${img["url"]}" />`;	
-					}
-
-					return "";
-				}
-			});
+			const characters = srsReviews.map(review => getCharacter(subjects.find(subject => subject["id"] === review["subject_id"])));
 
 			return {
 				title: `${name}`,

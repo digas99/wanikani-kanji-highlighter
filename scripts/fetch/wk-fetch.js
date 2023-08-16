@@ -171,7 +171,5 @@ const setupAvailableAssignments = async (apiToken, callback) => {
 						});
 					}
 				})
-				.catch(errorHandling);
 		})
-		.catch(errorHandling);
 }

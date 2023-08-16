@@ -3211,7 +3211,7 @@ document.addEventListener("click", e => {
 										cssVar = "--kanji-tag-color";
 										break;
 									case "vocabulary":
-										li.classList.add("vocab_back" , "kanjiDetails", "clickable");
+										li.classList.add("vocabulary_back" , "kanjiDetails", "clickable");
 										cssVar = "--vocabulary-tag-color";
 										break;
 									case "radical":
@@ -3987,7 +3987,7 @@ const searchSubject = (event, searchType) => {
 					if (type == "kanji")
 						colorClass = "kanji_back";
 					else if (type == "vocabulary")
-						colorClass = "vocab_back";
+						colorClass = "vocabulary_back";
 					subjectType.classList.add("searchResultItemType", colorClass);
 					
 					// if it is not in list type

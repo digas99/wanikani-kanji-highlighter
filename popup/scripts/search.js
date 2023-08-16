@@ -4,30 +4,36 @@ const searchBar = document.querySelector("#kanjiSearchInput");
 if (searchBar) {
     searchBar.focus();
 
-    chrome.storage.local.get(["settings"], result => {
+    chrome.storage.local.get(["settings"], async result => {
         settings = result["settings"];
 
         // add search action to search bar
         const db = new Database("wanikani");
-        db.open("subjects").then(opened => {
-            if (opened) {
-                db.getAll("subjects", "subject_type", ["kanji", "vocabulary", "kana_vocabulary"]).then(data => {
-                    const kanji = data["kanji"];
-                    const vocabulary = [...data["vocabulary"], ...data["kana_vocabulary"]];
-                    console.log(data["vocabulary"], data["kana_vocabulary"], vocabulary);
+        const opened = await db.open("subjects");
+        if (opened) {
+            const data = await db.getAll("subjects", "subject_type", ["kanji", "vocabulary", "kana_vocabulary"]);
+            
+            const kanji = data["kanji"];
+            const vocabulary = [...data["vocabulary"], ...data["kana_vocabulary"]];
+            console.log(data["vocabulary"], data["kana_vocabulary"], vocabulary);
+            
+            const urlParams = new URLSearchParams(window.location.search);
 
-                    searchBar.addEventListener("input", () => searchSubject(kanji, vocabulary, searchBar, null, settings["search"]["targeted_search"], settings["search"]["results_display"]));
+            searchBar.addEventListener("input", () => {
+                searchSubject(kanji, vocabulary, searchBar, null, settings["search"]["targeted_search"], settings["search"]["results_display"]);
 
-                    // get search query from url
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const search = urlParams.get('search');
-                    if (search) {
-                        searchBar.value = search;
-                        searchBar.dispatchEvent(new Event("input"));
-                    }
-                });
+                // update url
+                urlParams.set('search', searchBar.value);
+                window.history.replaceState({}, '', `${location.pathname}?${urlParams}`);
+            });
+
+            // get search query from url
+            const search = urlParams.get('search');
+            if (search) {
+                searchBar.value = search;
+                searchBar.dispatchEvent(new Event("input"));
             }
-        });
+        }
 
         const inputWrapper = document.querySelector("#kanjiSearchInputWrapper");
         const typeWrapper = document.querySelector(".kanjiSearchTypeWrapper");
@@ -115,7 +121,6 @@ const searchSubject = (kanji, vocabulary, input, searchType, targeted, display) 
         }
         // if is number check for level
         else if (!isNaN(value)) {
-            //const filterByLevel = (itemList, value) => itemList.filter(item => value == item["level"]);
             filteredKanji = kanji.filter(subject => subject["level"] == value);
             filteredVocab = vocabulary.filter(subject => subject["level"] == value);
         }
@@ -124,7 +129,6 @@ const searchSubject = (kanji, vocabulary, input, searchType, targeted, display) 
             filteredVocab = vocabulary.filter(subject => subject.hidden_at !== null);
         }
         else {
-            //const filterByMeanings = (itemList, value) => itemList.filter(item => matchesMeanings(value, item["meanings"], targeted));
             const cleanInput = input.value.toLowerCase().trim();
             filteredKanji = kanji.filter(subject => matchesMeanings(cleanInput, subject.meanings, targeted));
             filteredVocab = vocabulary.filter(subject => matchesMeanings(value, subject.meanings, targeted));
@@ -207,7 +211,7 @@ const matchesReadings = (input, readings, precise) => {
 const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
     for (let index = lowerIndex; index < upperIndex && index < results.length; index++) {
         const data = results[index];
-        const type = data["subject_type"];
+        let type = data["subject_type"];
         const chars = data["characters"];
 
         const kanjiAlike = type == "kanji" || chars.length == 1;
@@ -222,7 +226,7 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
             li.style.opacity = "0.4";
             li.title = "This subject no longer shows up in lessons or reviews, since "+data["hidden_at"].split("T")[0]+".";
         }
-        else if (data["srs_stage"]) {
+        else if (data["srs_stage"] && data["srs_stage"] > -1) {
             li.style.borderLeft = `4px solid var(--${srsStages[data["srs_stage"]]["short"].toLowerCase()}-color)`;
             li.title = srsStages[data["srs_stage"]]["name"];
         }
@@ -241,6 +245,7 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         li.appendChild(itemInfoWrapper);
         if (kanjiAlike)
             itemInfoWrapper.style.width = "100%";
+
         const level = document.createElement("span");
         itemInfoWrapper.appendChild(level);
         level.classList.add("searchResultItemLevel");
@@ -250,7 +255,7 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         meaning.classList.add("searchResultItemTitle");
         meaning.appendChild(document.createTextNode(data["meanings"].join(", ")));
 
-        if (kanjiAlike) {
+        if (type == "kanji") {
             const on = document.createElement("span");
             itemInfoWrapper.appendChild(on); 
             on.appendChild(document.createTextNode("on: "));
@@ -269,19 +274,15 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         }
 
         //specifically for 'kana_vocabulary'
-        console.log(type);
         if (type == "kana_vocabulary") {
             meaning.style.borderBottom = "none";
+            type = "vocabulary";
         }
 
         // subject type
         const subjectType = document.createElement("div");
         li.appendChild(subjectType);
-        let colorClass;
-        if (kanjiAlike)
-            colorClass = "kanji_back";
-        else if (vocabAlike)
-            colorClass = "vocab_back";
+        let colorClass = type+"_back";
         subjectType.classList.add("searchResultItemType", colorClass);
         
         // if it is not in list type

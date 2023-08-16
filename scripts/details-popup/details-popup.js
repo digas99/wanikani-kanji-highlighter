@@ -1,5 +1,5 @@
 (() => {
-	chrome.storage.local.get(["kanji", "radicals", "vocabulary", "kana_vocab", "settings"], result => {
+	chrome.storage.local.get(["kanji", "radicals", "vocabulary", "kana_vocabulary", "settings"], result => {
 		chrome.runtime.sendMessage({uptimeDetailsPopup:true});
 
 		const settings = result["settings"];
@@ -10,7 +10,7 @@
 		
 		const allKanji = result["kanji"];
 		const allRadicals = result["radicals"];
-		const allVocab = {...result["vocabulary"], ...result["kana_vocab"]};
+		const allVocab = {...result["vocabulary"], ...result["kana_vocabulary"]};
 		if (allKanji && allRadicals && allVocab) {
 			const detailsPopup = new SubjectDisplay(allRadicals, allKanji, allVocab, 275, document.documentElement);
 			
@@ -29,7 +29,7 @@
 					if (id.split("-")[0] === "rand") {
 						let allSubjectsKeys = [Object.keys(allKanji), Object.keys(allVocab)].flat(1);
 						if (id.split("-")[1] === "kanji") allSubjectsKeys = Object.keys(allKanji);
-						else if (id.split("-")[1] === "vocab") allSubjectsKeys = Object.keys(allVocab);
+						else if (id.split("-")[1] === "vocabulary") allSubjectsKeys = Object.keys(allVocab);
 
 						if (allSubjectsKeys)
 							id = allSubjectsKeys[rand(0, allSubjectsKeys.length-1)];

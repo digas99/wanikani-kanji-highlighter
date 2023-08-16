@@ -21,19 +21,7 @@ chrome.storage.local.get(["lessons"], async result => {
 			const { name, short, color } = srsStages[srsId];
 			const srsLessons = lessons.filter(lesson => lesson["srs_stage"] === srs && !lesson["hidden_at"]);
 			const subjects = await db.getAll("subjects", "srs_stage", parseInt(srs));
-			const characters = srsLessons.map(lesson => {
-				const subject = subjects.find(subject => subject["id"] === lesson["subject_id"]);
-				if (subject["characters"])
-					return subject["characters"];
-				else {
-					const img = subject["character_images"].find(image => image["metadata"]["style_name"] == 'original');
-					if (img) {
-						return `<img class="radical-image" src="${img["url"]}" />`;	
-					}
-
-					return "";
-				}
-			});
+			const characters = srsLessons.map(lesson => getCharacter(subjects.find(subject => subject["id"] === lesson["subject_id"])));
 
 			return {
 				title: `${name}`,

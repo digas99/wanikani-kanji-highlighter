@@ -11,6 +11,9 @@ const srsStages = {
 	9: {name:"Burned", short: "Brn", color: "#b34b50"}
 };
 
+const WANIKANI_COLOR = "#00aaff";
+const WANIKANI_SEC_COLOR = "#f100a1";
+
 const defaultSettings = {
 	"kanji_details_popup": {
 		activated: true,
@@ -37,8 +40,8 @@ const defaultSettings = {
 		results_display: "searchResultOptionlist"
 	},
 	"appearance": {
-		highlight_learned: "#2c5091",
-		highlight_not_learned: "#a32727",
+		highlight_learned: WANIKANI_COLOR,
+		highlight_not_learned: WANIKANI_SEC_COLOR,
 		details_popup: "#404040",
 		radical_color: "#65b6ae",
 		kanji_color: "#e7e485",
@@ -81,6 +84,7 @@ const defaultSettings = {
 	},
 	"extension_popup_interface": {
 		scripts_status: true,
+		search_bar: true,
 		highlighted_kanji: true,
 		lessons_and_reviews: true,
 		overall_progression_bar: true,
@@ -370,8 +374,8 @@ const settingsInterface = [
 ];
 
 const wanikaniPattern = {
-	highlight_learned: "#2c5091",
-	highlight_not_learned: "#a32727",
+	highlight_learned: WANIKANI_COLOR,
+	highlight_not_learned: WANIKANI_SEC_COLOR,
 	details_popup: "#404040",
 	radical_color: "#00a1f1",
 	kanji_color: "#f100a1",
@@ -389,8 +393,8 @@ const wanikaniPattern = {
 };
 
 const flamingDurtlesPattern = {
-	highlight_learned: "#2c5091",
-	highlight_not_learned: "#a32727",
+	highlight_learned: WANIKANI_COLOR,
+	highlight_not_learned: WANIKANI_SEC_COLOR,
 	details_popup: "#404040",
 	radical_color: "#65b6ae",
 	kanji_color: "#e7e485",
@@ -438,10 +442,10 @@ const VOCAB_SETUP = {
 };
 
 const KANA_VOCAB_SETUP = {
-	name: "kana vocab",
+	name: "kana vocabulary",
 	endpoint: "https://api.wanikani.com/v2/subjects?types=kana_vocabulary",
 	storage: {
-		id: "kana_vocab",
+		id: "kana_vocabulary",
 		updated: "kana_vocab_updated",
 		level: "kanavocab_level",
 		association: "kana_vocab_assoc",
@@ -468,6 +472,13 @@ const ASSIGNMENTS_SETUP = {
 	storage: {
 		id: "assignments",
 		updated: "assignments_updated"
+	}
+};
+
+const REVIEWSTATS_SETUP = {
+	endpoint: "https://api.wanikani.com/v2/review_statistics",
+	storage: {
+		updated: "reviewStats_updated"
 	}
 };
 

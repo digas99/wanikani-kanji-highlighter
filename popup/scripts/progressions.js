@@ -18,21 +18,9 @@ if (srsStage != null && srsStage >= -1 && srsStage <= 9) {
 	db.open("subjects").then(async opened => {
 		if (opened) {
 			srsSubjects = await db.getAll("subjects", "srs_stage", srsStage);
-			console.log(srsSubjects);
 			const sections = await Promise.all(["radical", "kanji", "vocabulary"].map(async type => {
 				const subjects = srsSubjects.filter(subject => subject["subject_type"].includes(type) && !subject["hidden_at"]);
-				const characters = subjects.map(subject => {
-					if (subject["characters"])
-						return subject["characters"];
-					else {
-						const img = subject["character_images"].find(image => image["metadata"]["style_name"] == 'original');
-						if (img) {
-							return `<img class="radical-image" src="${img["url"]}" />`;	
-						}
-	
-						return "";
-					}
-				});
+				const characters = subjects.map(getCharacter);
 	
 				return {
 					title: type[0].toUpperCase() + type.slice(1),
@@ -51,7 +39,7 @@ if (srsStage != null && srsStage >= -1 && srsStage <= 9) {
 				sections,
 				{
 					title: `<b>${srsSubjects.length}</b> Subjects on <b>${srsStages[srsStage] ? srsStages[srsStage]["name"] : "Locked"}</b>`,
-					height: 500,
+					height: 445,
 					bars: {
 						labels: true
 					},
@@ -63,8 +51,25 @@ if (srsStage != null && srsStage >= -1 && srsStage <= 9) {
 				}
 			);		
 
-			if (popupLoading) popupLoading.remove();
 		}
+	});
+	
+	// progression stats
+	chrome.storage.local.get(["settings", "radical_progress", "kanji_progress", "vocabulary_progress"], result => {
+		const progresses = {
+			"radical": result["radical_progress"],
+			"kanji": result["kanji_progress"],
+			"vocabulary": result["vocabulary_progress"]
+		};
+		
+		progressionStats(document.querySelector("#progression-stats"), progresses, result["settings"]["appearance"], 10,
+			(menu, srs) => {
+				if (srs == 0) menu.style.left = "0";
+				if (srs == 9) menu.style.left = "-75px";
+			}
+		);
+		
+		if (popupLoading) popupLoading.remove();
 	});
 }
 
@@ -82,19 +87,8 @@ if (level != null && level >= 1 && level <= 60 && subjectType != null && ["radic
 			typeSubjects = levelSubjects.filter(subject => subject["subject_type"].includes(subjectType) && !subject["hidden_at"]);
 			console.log(typeSubjects);
 			const sections = await Promise.all([5,4,3,2,1,0,-1].map(async srs => {
-				const subjects = typeSubjects.filter(subject => srs < 5 ? subject["srs_stage"] == srs : subject["srs_stage"] >= 5);
-				const characters = subjects.map(subject => {
-					if (subject["characters"])
-						return subject["characters"];
-					else {
-						const img = subject["character_images"].find(image => image["metadata"]["style_name"] == 'original');
-						if (img) {
-							return `<img class="radical-image" src="${img["url"]}" />`;	
-						}
-	
-						return "";
-					}
-				});
+				const subjects = typeSubjects.filter(subject => srs >= 5 ? subject["passed_at"] : subject["srs_stage"] == srs && !subject["passed_at"]);
+				const characters = subjects.map(getCharacter);
 
 				let color = getComputedStyle(document.body).getPropertyValue(`--${srsStages[srs]?.short.toLowerCase()}-color`);
 				console.log(color, srs);
@@ -120,7 +114,7 @@ if (level != null && level >= 1 && level <= 60 && subjectType != null && ["radic
 				wrapper,
 				sections,
 				{
-					title: `<b>${typeSubjects.length}</b> Subjects on <b>Level ${level}</b>`,
+					title: `<b>${typeSubjects.length}</b> ${subjectType.charAt(0).toUpperCase() + subjectType.slice(1)} on <b>Level ${level}</b>`,
 					height: 500,
 					bars: {
 						labels: true

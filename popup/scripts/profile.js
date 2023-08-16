@@ -49,49 +49,6 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings"], async result => {
             applyChanges();
         }
     } 
-
-    /*db.open("subjects").then(opened => {
-        if (opened) {
-            db.getAll("subjects").then(data => {
-                const subjectsData = data.filter(subject => !subject["hidden_at"]);
-
-                modifiedSince(apiKey, date, "https://api.wanikani.com/v2/user")
-                    .then(modified => {
-                		if (popupLoading) popupLoading.remove();
-
-                        const userInfo = result["userInfo"]["data"];
-
-                        // if user info has been updated in wanikani, then update cache
-                        if (!userInfo || modified)
-                            fetchUserInfo(apiKey);
-                        
-                        if (userInfo) {
-                            const link = "https://www.wanikani.com/users/"+userInfo["username"];
-
-                            const avatar = document.querySelector("#profile-pic img");
-                            setAvatar(avatar, link, userInfo["avatar"]);
-
-                            avatar.parentElement.href = link;
-                            avatar.parentElement.title = link;
-
-                            // username
-                            const username = document.querySelector("#username");
-                            username.appendChild(document.createTextNode(userInfo["username"]));
-
-                            // scroll down arrow
-                            const goDownArrowWrapper = document.querySelector(".scroll-down");
-                            if (goDownArrowWrapper)
-                                goDownArrowWrapper.addEventListener("click", () => window.scroll(0, 420));
-
-                            updateLevelData(Number(userInfo["level"]), subjectsData);
-
-                            // apply previously saved changes to subject tiles
-                            applyChanges();
-                        }
-                    });
-            });
-        }
-    });*/
 });
 
 const updateLevelData = async (level, db, clear) => {
@@ -114,7 +71,7 @@ const updateLevelData = async (level, db, clear) => {
     allTab.querySelector("span").appendChild(document.createTextNode(`${allPassedSubjects.length} / ${allSubjects.length}`));
     
     // subject types containers
-    ["radical", "kanji", "vocab"].forEach(type => {
+    ["radical", "kanji", "vocabulary"].forEach(type => {
         const subjects = allSubjects.filter(subject => subject["subject_type"].includes(type));
         const passedSubjects = subjects.filter(subject => subject.passed_at != null);
 

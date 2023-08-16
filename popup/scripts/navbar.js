@@ -109,7 +109,7 @@ const setRandomSubjectType = (value) => {
             randomSubjectType.style.filter = "invert(1)";
         }
         else if (value === "Vocabulary") {
-            img.setAttribute("data-item-id", "rand-vocab");
+            img.setAttribute("data-item-id", "rand-vocabulary");
             randomSubjectType.style.backgroundColor = "var(--vocabulary-tag-color)";
             randomSubjectType.style.filter = "invert(1)";
         }
@@ -139,32 +139,40 @@ const setAvatar = (elem, url, avatar, userInfo) => {
 window.addEventListener("click", async e => {
     const target = e.target;
 
-    if (target.id === "exit")
-        chrome.storage.local.remove("apiKey", () => window.location.href = "auth.html");
+    const clickable = target.closest(".clickable");
+    if (clickable) {
+        if (clickable.querySelector("#exit")) {
+            const loading = new MessagePopup(document.body);
+            loading.create("Logging out...");
+            loading.setLoading();
+    
+            await clearSubjects();
+            chrome.storage.local.remove(["apiKey", "userInfo", "userInfo_updated"], () => window.location.href = "auth.html");
+        }
 
-    if (target.id === "side-panel-logo")
-        expandSideBar(document.querySelector(".side-panel"));
+        if (clickable.querySelector("#side-panel-logo"))
+            expandSideBar(document.querySelector(".side-panel"));
 
-    if (target.id === "blacklist") {
-        await blacklist();
-        
-        const tab = await getTab();
-        chrome.tabs.sendMessage(tab.id, {reloadPage: true});
-        setTimeout(() => window.location.reload(), 500);
+        if (clickable.querySelector("#blacklist")) {
+            await blacklist();
+            
+            const tab = await getTab();
+            chrome.tabs.sendMessage(tab.id, {reloadPage: true});
+            setTimeout(() => window.location.reload(), 500);
+        }
+
+        if (clickable.querySelector("#run")) {
+            const tab = await getTab();
+            chrome.tabs.sendMessage(tab.id, {windowLocation: "host"}, async url => {
+                if (url) {
+                    await blacklistRemove(url["windowLocation"]);
+
+                    chrome.tabs.sendMessage(tab.id, {reloadPage: true});
+                    setTimeout(() => window.location.reload(), 500);
+                }
+            }); 
+        }
     }
-
-    if (target.id === "run") {
-        const tab = await getTab();
-        chrome.tabs.sendMessage(tab.id, {windowLocation: "host"}, async url => {
-            if (url) {
-                await blacklistRemove(url["windowLocation"]);
-
-                chrome.tabs.sendMessage(tab.id, {reloadPage: true});
-                setTimeout(() => window.location.reload(), 500);
-            }
-        }); 
-    }
-
 });
 
 const expandSideBar = sidebar => {

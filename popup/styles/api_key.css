@@ -1,3 +1,7 @@
+body {
+    padding-right: unset !important;
+}
+
 .apiKeyStep-wrapper {
     margin-top: 45px;
     padding: 5px 10px;

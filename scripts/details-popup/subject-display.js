@@ -238,7 +238,7 @@
 					this.detailsPopup.style.setProperty("border-top", "4px solid yellow", "important");	
 				else {
 					const srsId = item["srs_stage"];
-					this.detailsPopup.style.setProperty("border-top", "4px solid "+(srsId != undefined ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "black"), "important");	
+					this.detailsPopup.style.setProperty("border-top", "4px solid "+(srsId != undefined ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "white"), "important");	
 				}
 				
 				const detailedInfoWrapper = this.detailsPopup.getElementsByClassName("sd-popupDetails_detailedInfoWrapper");
@@ -415,7 +415,7 @@
 			// similar kanji cards
 			details.appendChild(itemCardsSection(kanjiInfo, "visually_similar_subject_ids", "Similar Kanji", "sd-detailsPopup_kanji_row", this.allKanji));
 		
-			// vocab with that kanji
+			// vocabulary with that kanji
 			details.appendChild(itemCardsSection(kanjiInfo, "amalgamation_subject_ids", "Vocabulary", "sd-detailsPopup_vocab_row", this.allVocab));
 		
 			const statsSection = document.createElement("div");
@@ -469,7 +469,8 @@
 				}, 200);
 			}
 
-			const sections = [["Info", "https://i.imgur.com/E6Hrw7w.png"], ["Cards", "https://i.imgur.com/r991llA.png"]];
+			const sections = [["Info", "https://i.imgur.com/E6Hrw7w.png"]];
+			if (vocabInfo["subject_type"] == "vocabulary") sections.push(["Cards", "https://i.imgur.com/r991llA.png"]);
 			if (vocabInfo["stats"]) sections.push(["Statistics", "https://i.imgur.com/Ufz4G1K.png"]);
 			if (vocabInfo["timestamps"]) sections.push(["Timestamps", "https://i.imgur.com/dcT0L48.png"]);		
 			// navbar
@@ -855,7 +856,7 @@
 	
 		}
 
-		li.style.setProperty("border-top", "4px solid "+(srsId != undefined ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "black"), "important");
+		li.style.setProperty("border-top", "4px solid " + (srsId != undefined ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "white"), "important");
 
 		if (level) {
 			const levelDiv = document.createElement("div");
@@ -931,10 +932,10 @@
 			const statsSection = document.getElementById("sd-popupDetails_StatisticsSection");
 			const timestampsSection = document.getElementById("sd-popupDetails_TimestampsSection");
 
-			if (scrollTop < cardsSection.offsetTop) navbarHighlightChanger(navbarUl.children[0]);
-			if (scrollTop >= cardsSection.offsetTop && scrollTop < statsSection.offsetTop) navbarHighlightChanger(navbarUl.children[1]);
-			if (scrollTop >= statsSection.offsetTop && scrollTop < timestampsSection.offsetTop) navbarHighlightChanger(navbarUl.children[2]);
-			if (scrollTop >= timestampsSection.offsetTop) navbarHighlightChanger(navbarUl.children[3]);
+			if (cardsSection && scrollTop < cardsSection.offsetTop) navbarHighlightChanger(navbarUl.children[0]);
+			if (cardsSection && statsSection && scrollTop >= cardsSection.offsetTop && scrollTop < statsSection.offsetTop) navbarHighlightChanger(navbarUl.children[1]);
+			if (statsSection && timestampsSection && scrollTop >= statsSection.offsetTop && scrollTop < timestampsSection.offsetTop) navbarHighlightChanger(navbarUl.children[2]);
+			if (timestampsSection && scrollTop >= timestampsSection.offsetTop) navbarHighlightChanger(navbarUl.children[3]);
 		});
 
 		return navbar;

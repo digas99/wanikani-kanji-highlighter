@@ -22,8 +22,6 @@ window.onscroll = () => {
 }
 
 chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
-	//console.log("message received", request);
-
 	// catch wanikani data setup completion
 	if (request.setup) {
 		if (messagePopup) {
