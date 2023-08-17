@@ -1,12 +1,8 @@
 let db = new Database("wanikani");
 
-let popupLoading;
-if (!messagePopup) {
-	popupLoading = new MessagePopup(document.body);
-	popupLoading.create("Loading subjects...");
-	popupLoading.setLoading();
-}
-
+let popupLoading = new MessagePopup(document.body);
+popupLoading.create("Loading subjects...");
+popupLoading.setLoading();
 
 const url = new URL(window.location.href);
 const wrapper = document.querySelector("#list");
@@ -29,7 +25,8 @@ if (srsStage != null && srsStage >= -1 && srsStage <= 9) {
 					callbacks: {
 						item: (elem, value) => dataTile(subjects, elem, value),
 						section: (wrapper, title, content) => headerSubjectDecoration(title, type)
-					} 
+					},
+					fillWidth: !type.includes("vocab")
 				};
 			}));
 			
@@ -44,13 +41,14 @@ if (srsStage != null && srsStage >= -1 && srsStage <= 9) {
 						labels: true
 					},
 					sections: {
-						fillWidth: false,
+						fillWidth: true,
 						join: false,
 						notFound: "No subjects found in this SRS Stage."
 					}
 				}
 			);		
 
+			if (popupLoading) popupLoading.remove();
 		}
 	});
 	
@@ -69,7 +67,6 @@ if (srsStage != null && srsStage >= -1 && srsStage <= 9) {
 			}
 		);
 		
-		if (popupLoading) popupLoading.remove();
 	});
 }
 
@@ -83,9 +80,7 @@ if (level != null && level >= 1 && level <= 60 && subjectType != null && ["radic
 	db.open("subjects").then(async opened => {
 		if (opened) {
 			levelSubjects = await db.getAll("subjects", "level", level);
-			console.log(levelSubjects);
 			typeSubjects = levelSubjects.filter(subject => subject["subject_type"].includes(subjectType) && !subject["hidden_at"]);
-			console.log(typeSubjects);
 			const sections = await Promise.all([5,4,3,2,1,0,-1].map(async srs => {
 				const subjects = typeSubjects.filter(subject => srs >= 5 ? subject["passed_at"] : subject["srs_stage"] == srs && !subject["passed_at"]);
 				const characters = subjects.map(getCharacter);

@@ -4,11 +4,12 @@ body {
 
 .apiKeyStep-wrapper {
     margin-top: 45px;
-    padding: 5px 10px;
+    padding: 5px 0px;
 }
 
 .apiKeyStep-wrapper > div:not(.apiKeyStep) {
-    margin-top: 6px;
+    padding: 15px;
+    border-radius: 5px;
 }
 
 .apiKeyStep,
@@ -17,7 +18,9 @@ body {
 }
 
 .apiKeyStep img {
-    width: 100%;
+    width: 95%;
+    margin: 10px;
+    border-radius: 5px;
 }
 
 .apiKeyStep {

@@ -15,7 +15,7 @@
 	<div id="main">
         <div id="userInfoWrapper">
             <!-- SCRIPTS UPTIME -->
-            <div id="scripts_status" title="Scripts Uptime Status">
+            <div id="scripts_status" class="section" title="Scripts Uptime Status">
                 <ul>
                     <li>Highlighter<div></div></li>
                     <li>Details Popup<div></div></li>
@@ -23,7 +23,7 @@
             </div>
             <!-- SEARCH AREA -->
             <div id="search_bar" class="searchArea" title="Search subjects">
-                <div id="kanjiSearchInputWrapper" class="textInputWrapper">
+                <div id="kanjiSearchInputWrapper" class="section textInputWrapper">
                     <img class="textInputIcon" src="../images/search.png">
                     <input type="text" placeholder="Gold / 金 / 5" id="kanjiSearchInput">
                     <a href="search.html?type=A" class="kanjiSearchTypeWrapper" title="Kana" id="kanjiSearchTypeKana">
@@ -32,9 +32,9 @@
                 </div>
             </div>
             <!-- KANJI HIGHLIGHTED ON PAGE -->
-            <div id="highlighted_kanji" class="resizable highlightedKanjiContainer userInfoWrapper-wrapper" data-settings="sizes-highlighted_kanji_height"></div>
+            <div id="highlighted_kanji" class="section resizable highlightedKanjiContainer userInfoWrapper-wrapper" data-settings="sizes-highlighted_kanji_height"></div>
             <!-- LESSONS AND REVIEWS -->
-            <div id="lessons_and_reviews" class="userInfoWrapper-wrapper" style="text-align: center;">
+            <div id="lessons_and_reviews" class="section userInfoWrapper-wrapper" style="text-align: center;">
                 <ul style="display: inline-flex; width: 100%;">
                     <li style="width: 100%; color: white;">
                         <div class="summaryTitle userInfoWrapper-title" title="Lessons in WaniKani">
@@ -53,18 +53,18 @@
                 <p id="more-reviews-date" style="padding: 3px 0px; color: rgb(116, 116, 116);"></p>
             </div>
             <!-- OVERALL PROGRESSION BAR -->
-            <div id="overall_progression_bar" class="userInfoWrapper-wrapper">
+            <div id="overall_progression_bar" class="section userInfoWrapper-wrapper">
                 <p class="userInfoWrapper-title">Overall Progression Bar</p>
                 <ul id="progression-bar">
                 </ul>
             </div>
             <!-- OVERALL PROGRESSION STATS -->
-            <div id="overall_progression_stats">
+            <div id="overall_progression_stats" class="section">
                 <p class="userInfoWrapper-title">Overall Progression Stats</p>
                 <div id="progression-stats"></div>
             </div>
             <!-- LEVELS IN PROGRESS -->
-            <div id="levels_in_progress" style="width: 86%;">
+            <div id="levels_in_progress" class="section" style="width: 87%;">
                 <p class="userInfoWrapper-title">Levels In Progress</p>
                 <div id="levels-progress"></div>
         </div>
@@ -92,7 +92,7 @@
             <li class="clickable" style="position: relative; padding-right: 3px;">
                 <a href="#" class="navbar_icon" style="padding: 0px 5px;">
                     <img id="blacklist" src="../images/blacklist.png" title="Blacklist" style="width: 20px;">
-                    <span class="side-panel-info-alert" style="background-color: red; color: white; filter: invert(1);">0</span>
+                    <span class="side-panel-info-alert" style="background-color: #f100a1; color: white; filter: invert(1);">0</span>
                 </a>
             </li>
             <li class="clickable" style="position: relative;">

@@ -45,11 +45,11 @@ const submitAction = () => {
         fetchUserInfo(apiKey, user => {
             if (user) {
                 if (user.code == 401) {
-                    main.insertBefore(message("The API key doesn't exist!", "red"), form);
+                    form.appendChild(message("The API key doesn't exist!", "red"));
                     popupLoading.remove();
                 }
                 else if (user.code == 429) {
-                    main.insetBefore(message("Too many requests! Wait a few minutes and try again.", "red"), form);
+                    form.appendChild(message("Too many requests! Wait a few minutes and try again.", "red"));
                     popupLoading.remove();
                 }
                 else {
@@ -57,20 +57,25 @@ const submitAction = () => {
                     window.location.href = "home.html";
                 }
             } else {
-                main.insertBefore(message("Unexpected error!", "red"), form);
+                form.appendChild(message("Unexpected error!", "red"));
                 popupLoading.remove();
             }
         });
     }
     else
-        main.insertBefore(message("The API key is invalid!", "red"), form);
+        form.appendChild(message("The API key is invalid!", "red"));
 }
 
 const message = (msg, color) => {
     const submitMessage = document.createElement("p");
     submitMessage.id = "message";
-    submitMessage.style.marginTop = "5px";	
     submitMessage.style.color = color;
     submitMessage.appendChild(document.createTextNode(msg));
     return submitMessage;
 }
+
+// add ENTER key listener
+document.addEventListener("keydown", event => {
+    if (event.key == "Enter")
+        submitAction();
+});

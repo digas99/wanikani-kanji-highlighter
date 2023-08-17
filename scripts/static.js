@@ -1,14 +1,14 @@
 const srsStages = {
-	0: {name:"Initiate", short: "Int", color: "#c0c0c0"},
-	1: {name:"Apprentice I", short: "Ap1", color: "#84bedb"},
-	2: {name:"Apprentice II", short: "Ap2", color: "#58afdb"},
-	3: {name:"Apprentice III", short: "Ap3", color: "#2ca2de"},
-	4: {name:"Apprentice IV", short: "Ap4", color: "#0093de"},
-	5: {name:"Guru I", short: "Gr1", color: "#65ab63"},
-	6: {name:"Guru II", short: "Gr2", color: "#15af12"},
-	7: {name:"Master", short: "Mst", color: "#bd772f"},
-	8: {name:"Enlightened", short: "Enl", color: "#b255bd"},
-	9: {name:"Burned", short: "Brn", color: "#b34b50"}
+	0: {name:"Initiate", short: "Int", color: "#c1c0c1"},
+	1: {name:"Apprentice I", short: "Ap1", color: "#cf72b0"},
+	2: {name:"Apprentice II", short: "Ap2", color: "#d560ad"},
+	3: {name:"Apprentice III", short: "Ap3", color: "#db44a9"},
+	4: {name:"Apprentice IV", short: "Ap4", color: "#dd0093"},
+	5: {name:"Guru I", short: "Gr1", color: "#894e97"},
+	6: {name:"Guru II", short: "Gr2", color: "#882d9e"},
+	7: {name:"Master", short: "Mst", color: "#294ddb"},
+	8: {name:"Enlightened", short: "Enl", color: "#0093dd"},
+	9: {name:"Burned", short: "Brn", color: "#e20000"}
 };
 
 const WANIKANI_COLOR = "#00aaff";
@@ -43,9 +43,9 @@ const defaultSettings = {
 		highlight_learned: WANIKANI_COLOR,
 		highlight_not_learned: WANIKANI_SEC_COLOR,
 		details_popup: "#404040",
-		radical_color: "#65b6ae",
-		kanji_color: "#e7e485",
-		vocab_color: "#fc759b",
+		radical_color: "#00a1f1",
+		kanji_color: "#f100a1",
+		vocab_color: "#a100f1",
 		int_color: srsStages[0].color,
 		ap1_color: srsStages[1].color,
 		ap2_color: srsStages[2].color,
@@ -74,7 +74,7 @@ const defaultSettings = {
 	"miscellaneous": {
 		time_in_12h_format: true,
 		kana_writing: false,
-		extension_popup_width: 400,
+		//extension_popup_width: 400,
 		// srs_info_on_reviews: false
 	},
 	"sizes": {
@@ -415,7 +415,7 @@ const unwantedTags = ["html", "body", "head", "title", "style", "link", "meta", 
 
 const urlChecker = new RegExp("^(chrome|devtools)(-[a-zA-Z0-9]+)?:\/\/");
 
-const defaultWindowSize = 400;
+const defaultWindowSize = 420;
 
 const RADICAL_SETUP = {
 	name: "radicals",

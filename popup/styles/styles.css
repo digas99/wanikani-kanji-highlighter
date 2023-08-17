@@ -1,48 +1,50 @@
 :root {
-	--body-base-width: 400px;
+	--body-base-width: 420px;
 	--default-color: #2a2d48;
-	--radical-tag-color: #65b6ae;
+	--radical-tag-color: #00a1f1;
 	--radical-tag-color-font: #000000;
-	--kanji-tag-color: #e7e485;
+	--kanji-tag-color: #f100a1;
 	--kanji-tag-color-font: #000000;
-	--vocabulary-tag-color: #fc759b;
+	--vocabulary-tag-color: #a100f1;
 	--vocabulary-tag-color-font: #000000;
-	--highlight-default-color: #2c5091;
+	--highlight-default-color: #f100a1;
 	--highlight-default-color-font: #000000;
-	--notLearned-color: #a32727;
+	--notLearned-color: #00aaff;
 	--notLearned-color-font: #000000;
 	--wanikani: #f100a1;
 	--wanikani-sec: #00aaff;
 	--dark-back: #383838;
 	--reviews-color: #2c7080;
-	--int-color: #c0c0c0;
+	--int-color: #c1c0c1;
 	--int-color-font: #000000;
-	--ap1-color: #84bedb;
+	--ap1-color: #cf72b0;
 	--ap1-color-font: #000000;
-	--ap2-color: #58afdb;
+	--ap2-color: #d560ad;
 	--ap2-color-font: #000000;
-	--ap3-color: #2ca2de;
+	--ap3-color: #db44a9;
 	--ap3-color-font: #000000;
-	--ap4-color: #0093de;
+	--ap4-color: #dd0093;
 	--ap4-color-font: #000000;
-	--gr1-color: #65ab63;
+	--gr1-color: #894e97;
 	--gr1-color-font: #000000;
-	--gr2-color: #2dad2a;
+	--gr2-color: #882d9e;
 	--gr2-color-font: #000000;
-	--mst-color: #bd772f;
+	--mst-color: #294ddb;
 	--mst-color-font: #000000;
-	--enl-color: #b255bd;
+	--enl-color: #0093dd;
 	--enl-color-font: #000000;
-	--brn-color: #b34b50;
+	--brn-color: #e20000;
 	--brn-color-font: #000000;
 	scroll-behavior: smooth;
+
+	background-color: #eee;
 }
 
 body {
     width: var(--body-base-width);
     transition: 0.3s;
     font-size: 13px;
-    padding-right: 40px;
+    padding-right: 45px;
     min-height: 365px;
 }
 
@@ -313,4 +315,10 @@ i {
     padding: 0px 5px;
     color: silver;
     font-size: 13px;
+}
+
+.section {
+	background-color: white;
+	margin: 4px 0;
+	border-bottom: 1px solid silver;
 }

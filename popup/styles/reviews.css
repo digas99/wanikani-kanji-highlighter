@@ -1,0 +1,38 @@
+#reviewsChart {
+	display: flex;
+    position: relative;
+	margin: 10px 15px 0px 0px;
+}
+
+#reviewsChart > i {
+	border-color: #aaaaaa;
+    padding: 6px;
+	position: absolute;
+	top: 3px;
+}
+
+#reviewsDaySelector {
+	text-align: right;
+	margin: 10px 0;
+}
+
+#reviewsDaySelector > label {
+	padding-right: 10px;
+	font-size: 13px;
+	color: #747474;
+}
+
+#reviewsDaySelector > input {
+	height: 17px;
+    color: #747474;
+}
+
+#reviewsPage-nmrReviews24hLabel {
+	color: #747474;
+    margin: 6px 5px 0 0;
+    text-align: right;
+}
+
+#reviewsPage-nmrReviews24hLabel > b {
+	color: var(--reviews-color);
+}

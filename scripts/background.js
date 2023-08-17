@@ -6,7 +6,6 @@ importScripts(
 	"/scripts/database.js",
 	"/scripts/functions.js",
 	"/scripts/kana.js",
-	"/lib/localstoragedb.min.js"
 );
 
 const tabs = chrome.tabs;
@@ -40,11 +39,10 @@ chrome.runtime.onInstalled.addListener(details => {
 const db = new Database("wanikani");
 db.open("subjects", "id", ["level", "subject_type", "srs_stage"]);
 
-let settings;
 // set settings
 const setSettings = () => {
 	chrome.storage.local.get(["settings"], result => {
-		settings = result["settings"];
+		const settings = result["settings"];
 		
 		if (!settings)
 			settings = defaultSettings;
@@ -119,34 +117,36 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 	});
 
 	const scripts = kanji => {
-		// inject details popup
-		if (settings["kanji_details_popup"]["activated"]) {
+		chrome.storage.local.get(["settings", "learnable_kanji"], result => {
+			const settings = result["settings"];
+
+			// inject details popup
+			if (settings["kanji_details_popup"]["activated"]) {
+				chrome.scripting.executeScript({
+					target: {tabId: thisTabId},
+					files: ['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js']
+				});
+	
+				chrome.scripting.insertCSS({
+					target: {tabId: thisTabId},
+					files: ['styles/subject-display.css'],
+				});
+			}
+	
+			// inject highlighter
 			chrome.scripting.executeScript({
 				target: {tabId: thisTabId},
-				files: ['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js']
-			});
-
-			chrome.scripting.insertCSS({
-				target: {tabId: thisTabId},
-				files: ['styles/subject-display.css'],
-			});
-		}
-
-		// inject highlighter
-		chrome.scripting.executeScript({
-			target: {tabId: thisTabId},
-			files: ['scripts/highlighter/highlight.js']
-		}, () => {
-			chrome.scripting.insertCSS({
-				target: {tabId: thisTabId},
-				files: ['styles/highlight.css'],
-			});
-			chrome.scripting.executeScript({
-				target: {tabId: thisTabId},
-				files: ['scripts/highlighter/highlight-setup.js']
-			}, () => injectedHighlighter = true);
-
-			chrome.storage.local.get(["learnable_kanji"], result => {
+				files: ['scripts/highlighter/highlight.js']
+			}, () => {
+				chrome.scripting.insertCSS({
+					target: {tabId: thisTabId},
+					files: ['styles/highlight.css'],
+				});
+				chrome.scripting.executeScript({
+					target: {tabId: thisTabId},
+					files: ['scripts/highlighter/highlight-setup.js']
+				}, () => injectedHighlighter = true);
+	
 				const allKanji = result["learnable_kanji"];
 				const notLearnedKanji = allKanji.filter(k => !kanji.includes(k));
 				if (allKanji) {
@@ -184,32 +184,34 @@ tabs.onActivated.addListener(activeInfo => {
 	tabs.get(thisTabId, result => {
 		if (result) {
 			if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(result["url"])) {
-				if (settings["extension_icon"]["kanji_counter"] && injectedHighlighter) {
-					tabs.sendMessage(thisTabId, {nmrKanjiHighlighted:"popup"}, response => {
-						if (response && response["nmrKanjiHighlighted"])
-							chrome.action.setBadgeText({text:response["nmrKanjiHighlighted"].toString(), tabId:thisTabId});
-						else
-							chrome.action.setBadgeText({text: "0", tabId:thisTabId});
-						
-						if (!response) {
-							// highlighter not injected because of some error
-							chrome.storage.local.get(["blacklist"], blacklist => {
+				chrome.storage.local.get(["settings", "blacklist"], result => {
+					const blacklist = result["blacklist"];
+					const settings = result["settings"];
+				
+					if (settings["extension_icon"]["kanji_counter"] && injectedHighlighter) {
+						tabs.sendMessage(thisTabId, {nmrKanjiHighlighted:"popup"}, response => {
+							if (response && response["nmrKanjiHighlighted"])
+								chrome.action.setBadgeText({text:response["nmrKanjiHighlighted"].toString(), tabId:thisTabId});
+							else
+								chrome.action.setBadgeText({text: "0", tabId:thisTabId});
+							
+							if (!response) {
 								// check if the site is blacklisted
-								if (!blacklist["blacklist"] || blacklist["blacklist"].length === 0 || !blacklisted(blacklist["blacklist"], thisUrl))
+								if (!blacklist || blacklist.length === 0 || !blacklisted(blacklist, thisUrl))
 									setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", allKanjiList);
 								else {
 									chrome.action.setBadgeText({text: '!', tabId:thisTabId});
 									chrome.action.setBadgeBackgroundColor({color: "#dc6560", tabId:thisTabId});
 								}
-							});
-						}
-			
-						chrome.action.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
-
-						tabs.sendMessage(thisTabId, {kanaWriting:kanaWriting});
-						
-					});
-				}
+							}
+				
+							chrome.action.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
+	
+							tabs.sendMessage(thisTabId, {kanaWriting:kanaWriting});
+							
+						});
+					}
+				});
 			}
 			else {
 				chrome.action.setBadgeText({text: "W", tabId:thisTabId});
@@ -227,7 +229,9 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 			thisUrl = tab.url;
 			if (url === thisUrl && !urlChecker.test(url)) {
 				if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {
-					chrome.storage.local.get(["blacklist", "apiKey", "kanji"], result => {
+					chrome.storage.local.get(["settings", "blacklist", "apiKey", "kanji"], result => {
+						const settings = result["settings"];
+
 						// check if the site is blacklisted
 						if (!result["blacklist"] || result["blacklist"].length === 0 || !blacklisted(result["blacklist"], url)) {
 							setSettings();
@@ -292,9 +296,13 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 	if (request.popupDetails)
 		tabs.sendMessage(thisTabId, {popupDetails: request.popupDetails});
 
-	if (request.badge && settings["extension_icon"]["kanji_counter"] && sender.url === thisUrl) {
-		chrome.action.setBadgeText({text: request.badge.toString(), tabId:thisTabId});
-		chrome.action.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
+	if (request.badge && sender.url === thisUrl) {
+		chrome.storage.local.get("settings", result => {
+			if (result["settings"]["extension_icon"]["kanji_counter"]) {
+				chrome.action.setBadgeText({text: request.badge.toString(), tabId:thisTabId});
+				chrome.action.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
+			}
+		});
 	}
 
 	if (request.imgUrl) {

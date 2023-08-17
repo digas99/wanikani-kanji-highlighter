@@ -18,8 +18,8 @@
 }
 
 .userInfoWrapper-wrapper {
-	border: 1px solid silver;
     border-radius: 0px 0px 5px 5px;
+    background-color: white;
 }
 
 #scripts_status {
@@ -42,7 +42,7 @@
 	display: flex;
     width: 13px;
     height: 13px;
-	background-color: #ff6d6d;
+	background-color: var(--wanikani);
     border-radius: 15px;
     margin-left: 10px;
 }

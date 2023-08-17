@@ -40,7 +40,7 @@ let highlightList = new TilesList(
 
 const updateHomeInterface = async (result) => {
 	settings = result["settings"] ? result["settings"] : defaultSettings;
-	userInfo = result["userInfo"];
+	userInfo = result["userInfo"]["data"];
 	activeTab = await getTab();
 	const interface = settings["extension_popup_interface"];
 
@@ -48,7 +48,7 @@ const updateHomeInterface = async (result) => {
 	if (interface["scripts_status"]) {
 		["Highlighter", "Details Popup"].forEach((script, i) => {
 			chrome.tabs.sendMessage(activeTab.id, {uptime: script}, response => {
-				if (response) document.querySelectorAll("#scripts_status div")[i].style.backgroundColor = "#80fd80";
+				if (response) document.querySelectorAll("#scripts_status div")[i].style.backgroundColor = "var(--wanikani-sec)";
 			});
 		});
 	}

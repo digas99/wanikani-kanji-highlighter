@@ -25,7 +25,7 @@
 		<div id="settingsContent" style="margin-top: 45px">
 			<div class="settingsOptionsWrapper">
 				<!-- BLACKLISTED SITES -->
-				<div class="settingsSection">
+				<div class="section settingsSection">
 					<p id="blacklistedSitesList" class="button clickable">
 						Blacklisted Sites (0)
 						<i class="blacklisted_title_arrow arrow down"></i>
@@ -34,7 +34,7 @@
 				</div>
 
 				<!-- KANJI DETAILS POPUP -->
-				<div class="settingsSection">
+				<div class="section settingsSection">
 					<p>Kanji Details Popup</p>
 					<!-- ACTIVATED -->
 					<div title="Activate Details Popup script (side panel with subject information)">
@@ -76,7 +76,7 @@
 				</div>
 
 				<!-- Notifications -->
-				<div class="settingsSection">
+				<div class="section settingsSection">
 					<p>Notifications</p>
 					<!-- NEW REVIEWS -->
 					<div title="Be notified whenever new reviews are available (browser needs to be open)">
@@ -111,7 +111,7 @@
 				</div>
 
 				<!-- EXTENSION POPOUP INTERFACE -->
-				<div class="settingsSection">
+				<div class="section settingsSection">
 					<p>Extension Popup Interface</p>
 					<!-- SCRIPT STATUS -->
 					<div title="Show scripts status in the extension popup home.">
@@ -179,7 +179,7 @@
 				</div>
 
 				<!-- MISCELLANEOUS -->
-				<div class="settingsSection">
+				<div class="section settingsSection">
 					<p>Miscellaneous</p>
 					<!-- TIME FORMAT -->
 					<div title="Set timestamps within the Extension Popup to be on 12h Format">
@@ -200,6 +200,7 @@
 						</div>
 					</div>
 					<!-- EXTENSION POPUP WIDTH -->
+					<!--
 					<div title="Width of the Extension Popup window.">
 						<label for="settings-miscellaneous-extension_popup_width" class="settingsItemLabel">Extension Popup Width</label>
 						<div class="slider" title="Mouse Wheel: +1&#10;Shift + Mouse Wheel: +10&#10;Ctrl + Mouse Wheel: +100" style="display: flex; text-align: center;">
@@ -207,10 +208,11 @@
 							<span>400</span>
 						</div>
 					</div>
+					-->
 				</div>
 
 				<!-- EXTENSION ICON -->
-				<div class="settingsSection">
+				<div class="section settingsSection">
 					<p>Extension Icon</p>
 					<!-- TIME FORMAT -->
 					<div title="Show Kanji Counter on the Extension icon">
@@ -224,7 +226,7 @@
 				</div>
 
 				<!-- HIGHLIGHT STYLE -->
-				<div class="settingsSection">
+				<div class="section settingsSection">
 					<p>Highlight Style</p>
 					<!-- LEARNED -->
 					<div>
@@ -247,7 +249,7 @@
 				</div>
 
 				<!-- APPEARANCE -->
-				<div class="settingsSection">
+				<div class="section settingsSection">
 					<p>Appearance</p>
 					<!-- HIGHLIGHT -->
 					<div>
@@ -310,13 +312,13 @@
 					<!-- COLOR TEMPLATES -->
 					<div class="appearence-buttons" style="margin: 10px auto 0px;">
 						<div class="button" style="margin-right: 5px;">Reset</div>
-						<div class="button" style="margin-right: 5px; background-color: var(--wanikani);">Wanikani</div>
+						<!-- <div class="button" style="margin-right: 5px; background-color: var(--wanikani);">Wanikani</div> -->
 						<div class="button" style="background-color: white; color: red; border: 1px solid black; font-weight: bold;">Flaming Durtles</div>
 					</div>
 				</div>
 
 				<!-- DANGER -->
-				<div class="settingsSection">
+				<div class="section settingsSection">
 					<p>Danger Section</p>
 					<div class="dangerItem">
 						<div class="button" id="clearSubjectsData" style="border-bottom-left-radius: unset; border-bottom-right-radius: unset;">Clear Subjects Data</div>
@@ -349,7 +351,7 @@
             <li class="clickable" style="position: relative; padding-right: 3px;">
                 <a href="#" class="navbar_icon" style="padding: 0px 5px;">
                     <img id="blacklist" src="../images/blacklist.png" title="Blacklist" style="width: 20px;">
-                    <span class="side-panel-info-alert" style="background-color: red; color: white; filter: invert(1);">0</span>
+                    <span class="side-panel-info-alert" style="background-color: #f100a1; color: white; filter: invert(1);">0</span>
                 </a>
             </li>
             <li class="clickable" style="position: relative;">

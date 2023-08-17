@@ -485,11 +485,13 @@ const loadData = async (apiToken, tabId, callback) => {
 	fetches = await sizeToFetch(apiToken); 
 	console.log("[FETCHES]: ", fetches);
 
-	if (fetches > 0)
-		chrome.runtime.sendMessage({loading: true});
-	else
-		return;
-	 		
+	if (fetches > 0) 
+		chrome.runtime.sendMessage({loading: true, setup: {fetches: fetches}});
+	else {
+		if (!callback)
+			return;
+	}		
+
 	// assignments
 	const result = await setupAssignments(apiToken);
 	setupAvailableAssignments(apiToken);
@@ -935,6 +937,7 @@ const progressionBar = (wrapper, progresses, size, colors) => {
 	const percentageValue = (size-unlockedSize)/size*100
 	lockedSubjectsBar.style.width = percentageValue+"%";
 	lockedSubjectsBar.classList.add("clickable");
+	lockedSubjectsBar.style.backgroundColor = "white";
 	lockedSubjectsBar.title = "Locked: "+(size-unlockedSize)+" / "+percentageValue.toFixed(1)+"%";
 	const progressBarLink = document.createElement("a");
 	lockedSubjectsBar.appendChild(progressBarLink);
@@ -1006,7 +1009,7 @@ const levelProgressBarSlice = (value, color, title, info) => {
 const levelUpMarker = numberKanji => {
 	const levelupMarkerWrapper = document.createElement("div");
 	levelupMarkerWrapper.classList.add("levelup-marker");
-	levelupMarkerWrapper.style.width = "86%";
+	levelupMarkerWrapper.style.width = "87%";
 	const levelupMarker = document.createElement("div");
 	levelupMarkerWrapper.appendChild(levelupMarker);
 	

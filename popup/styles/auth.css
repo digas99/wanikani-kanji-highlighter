@@ -3,10 +3,10 @@ body {
 }
 
 .logo-section {
-	border-radius: 9px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
     text-align: center;
-    margin: 0 15px;
-    margin-bottom: 20px;
+    margin: 0 5px;
     background-color: var(--default-color);
     padding: 22px;
     color: white;
@@ -15,6 +15,14 @@ body {
 .logo-section > p {
 	font-size: 18px;
     font-weight: bold;
+}
+
+.api-key-form {
+    margin: 0 5px;
+    padding: 18px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    position: relative;
 }
 
 .api-key-form > div:first-child {
@@ -26,6 +34,10 @@ body {
 .api-key-form .input-wrapper {
     width: 100%;
     margin-right: 5px;
+}
+
+#apiKeyInput, #apiKeyInputWrapper {
+    background-color: #eee;
 }
 
 #submit {
@@ -46,8 +58,8 @@ body {
 }
 
 #message {
-	margin-top: 5px;
-    text-align: center;
-    font-size: 16px;
-    font-weight: bold;
+    font-size: 13px;
+    position: absolute;
+    right: 25px;
+    top: 20px;
 }

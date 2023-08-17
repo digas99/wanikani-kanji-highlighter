@@ -54,8 +54,12 @@
 				this.sections.forEach(s => this.list.appendChild(section(s)));
 
 			// make tiles fill entire width
-			if (this.options.sections.fillWidth)
-				Array.from(this.list.querySelectorAll("ul")).forEach(ul => ul.classList.add("fill-width"));
+			if (this.options.sections.fillWidth) {
+				Array.from(this.list.querySelectorAll("ul")).forEach(ul => {
+					if (ul.dataset.fillWidth != "false")
+						ul.classList.add("fill-width");
+				});
+			}
 
 			// add bars
 			if (this.options.bars)
@@ -161,7 +165,7 @@
 	}
 
 	const section = (section_data) => {
-		const {title, data, color, callbacks} = section_data;
+		const {title, data, color, callbacks, fillWidth} = section_data;
 		
 		if (data.length == 0)
 			return new DocumentFragment();
@@ -181,6 +185,8 @@
 		arrow.classList.add("up", "tiles-list-section-arrow");
 		const sectionContent = document.createElement("ul");
 		section.appendChild(sectionContent);
+		if (fillWidth == false)
+			sectionContent.setAttribute("data-fill-width", false);
 		data.forEach(item => sectionContent.appendChild(tile(item, color, callbacks?.item)));
 
 		// title click

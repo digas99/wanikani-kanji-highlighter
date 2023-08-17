@@ -5,7 +5,6 @@
 
 .textInputWrapper {
 	display: flex;
-    border: 1px solid silver;
     border-radius: 17px;
     padding: 4px 6px;
 	position: relative;
@@ -94,16 +93,15 @@
 
 .searchResultItemLine {
 	display: flex;
-    padding: 6px 0px;
+    padding: 10px 0px;
 	transition: 0.2s;
 	cursor: pointer;
 	position: relative;
-    margin: 7px 3px;
-	box-shadow: rgb(0 0 0) 0px 4px 0px 2px;
-	border-radius: 6px;
+    margin: 2px 3px;
 	text-align: left;
 	color: white;
-	background-color: var(--dark-back);
+	background-color: var(--default-color);
+	border-bottom-right-radius: 10px;
 }
 
 .searchResultItemLine:hover {
@@ -159,14 +157,12 @@
     padding: 3px !important;
     font-size: 12px;
     right: 0;
+    top: 0;
     font-weight: 900;
     width: 14px;
     text-align: center;
-    top: 0;
     box-shadow: black 0px 3px 0px 0px;
-    border-width: 1px;
-    border-style: solid;
-    border-radius: 4px;
+    border: 1px solid black;
 }
 
 .searchResultItemTitle {
@@ -181,21 +177,18 @@
 .searchResultItemInfo {
 	display: grid;
     background-color: white;
-    box-shadow: inset 0px 0px 5px black;
     padding: 2px;
     margin: 0 7px;
-    border-radius: 8px;
 	pointer-events: none;
 	color: black;
 }
 
 .searchResultItemType {
-	bottom: -6px;
+	bottom: 0px;
+    right: 0px;
     position: absolute;
-    right: -2px;
     padding: 0 !important;
     border-bottom-right-radius: 6px;
-    box-shadow: -2px -2px 5px -2px black;
 }
 
 .searchResultItemType-normal {

@@ -65,7 +65,7 @@ const blacklistEntry = (site) => {
 	const a = document.createElement("a");
 	div.appendChild(a);
 	a.target = "_black";
-	a.href = "https://www."+site;
+	a.href = "https://"+site;
 	a.style.width = "100%";
 	a.appendChild(document.createTextNode(site));
 

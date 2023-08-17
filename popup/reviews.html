@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="styles/navbar.css">
     <link rel="stylesheet" href="styles/message-popup.css">
 	<link rel="stylesheet" href="styles/tiles-list.css">
+    <link rel="stylesheet" href="styles/reviews.css">
 </head>
 <body>
 	<!-- TOP NAVBAR -->
@@ -23,11 +24,13 @@
 	<!-- PAGE CONTENT -->
 	<div id="sec-page">
 		<!-- REVIEWS LIST -->
-		<div id="reviewsList" class="section"></div>
+		<div id="reviewsList"></div>
 
+        <!-- REVIEWS CHART -->
+        <div id="reviewsChart"></div>
 	</div>
 
-	   <!-- SIDEBAR -->
+    <!-- SIDEBAR -->
 	<div class="side-panel">
         <a href="profile.html" class="clickable" id="profile">
             <div>
@@ -49,7 +52,7 @@
             <li class="clickable" style="position: relative; padding-right: 3px;">
                 <a href="#" class="navbar_icon" style="padding: 0px 5px;">
                     <img id="blacklist" src="../images/blacklist.png" title="Blacklist" style="width: 20px;">
-                    <span class="side-panel-info-alert" style="background-color: red; color: white; filter: invert(1);">0</span>
+                    <span class="side-panel-info-alert" style="background-color: #f100a1; color: white; filter: invert(1);">0</span>
                 </a>
             </li>
             <li class="clickable" style="position: relative;">
@@ -76,6 +79,8 @@
         </div>
     </div>
 
+    <script src="/lib/chart.js"></script>
+    <script src="/lib/chartjs-plugin-datalabels.min.js"></script>
 	<script src="/scripts/static.js"></script>
 	<script src="/scripts/time.js"></script>
 	<script src="/scripts/fetch/data-fetch.js"></script>

@@ -41,12 +41,7 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings"], async result => {
             if (goDownArrowWrapper)
                 goDownArrowWrapper.addEventListener("click", () => window.scroll(0, 420));
 
-            const subjectsData = await db.getAll("subjects", "level", Number(userInfo["level"]));
-
-            updateLevelData(Number(userInfo["level"]), db);
-
-            // apply previously saved changes to subject tiles
-            applyChanges();
+            await updateLevelData(Number(userInfo["level"]), db);
         }
     } 
 });
@@ -81,6 +76,9 @@ const updateLevelData = async (level, db, clear) => {
 
         // subject tiles lists
         updateTypeContainer(type, document.querySelector(`#${type}-container`), subjects);
+        	
+        // apply previously saved changes to subject tiles
+        applyChanges();
     });
 }
 

@@ -39,7 +39,8 @@ document.addEventListener("scriptsLoaded", () => {
             runButton.id = "run";
             runButton.src = "/images/run.png";
             runButton.title = "Run";
-            runButton.style = "width: 20px;";            
+            runButton.style = "width: 20px;";
+            wrapper.style.paddingLeft = "4px";         
         }
 
         // remove highlighted kanji container
@@ -84,7 +85,7 @@ document.addEventListener("scriptsLoaded", () => {
     
             // blacklist button
             if (blacklist_data) {
-                const blacklistNumber = document.querySelector("#blacklist").parentElement.querySelector(".side-panel-info-alert");
+                const blacklistNumber = document.querySelector("#blacklist")?.parentElement.querySelector(".side-panel-info-alert");
                 if (blacklistNumber)
                     blacklistNumber.innerText = blacklist_data.length;
             }

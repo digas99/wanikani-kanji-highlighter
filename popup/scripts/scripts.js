@@ -24,8 +24,11 @@ window.onscroll = () => {
 chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 	// show setup
 	if (request.setup) {
-		document.querySelector("#updates-loading").innerText = request.setup.fetches;
-		handleLoadingMessages(request.setup.text, request.setup.progress);
+		if (request.setup.text || request.setup.progress)
+			handleLoadingMessages(request.setup.text, request.setup.progress);
+
+		if (request.setup.fetches && document.querySelector("#updates-loading"))
+			document.querySelector("#updates-loading").innerText = request.setup.fetches;
 	}
 
 	// show db progress
@@ -171,7 +174,9 @@ const handleLoadingMessages = (text, progress) => {
 			
 			setTimeout(async () => {
 				messagePopup.remove();
-				document.querySelector("#updates-loading").innerText = "0";
+
+				if (document.querySelector("#updates-loading"))
+					document.querySelector("#updates-loading").innerText = "0";
 	
 				if (typeof updateHomeInterface === "function") {
 					chrome.storage.local.get(HOME_FETCH_KEYS, updateHomeInterface);
@@ -190,6 +195,7 @@ const handleLoadingMessages = (text, progress) => {
 }
 
 document.addEventListener("loadData", e => {
-	document.querySelector("#updates-loading").innerText = e.fetches;
+	if (e.fetches && document.querySelector("#updates-loading"))
+		document.querySelector("#updates-loading").innerText = e.fetches;
 	handleLoadingMessages(e.text, e.progress);
 });

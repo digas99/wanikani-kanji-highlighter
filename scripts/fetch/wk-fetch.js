@@ -86,8 +86,12 @@ const fetchUserInfo = async(apiToken, callback) => {
 				// too many requests
 				if (user.error) {
 					console.log("[USER]:", user);
-					if (callback)
-						callback(storage);
+					if (callback) {
+						if (user.code == 401)
+							callback(user);
+						else
+							callback(storage);
+					}
 					return;
 				}
 
