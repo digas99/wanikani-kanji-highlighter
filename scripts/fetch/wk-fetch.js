@@ -87,10 +87,10 @@ const fetchUserInfo = async(apiToken, callback) => {
 				if (user.error) {
 					console.log("[USER]:", user);
 					if (callback) {
-						if (user.code == 401)
-							callback(user);
-						else
+						if (user.status == 302)
 							callback(storage);
+						else
+							callback(user);
 					}
 					return;
 				}

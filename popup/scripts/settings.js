@@ -189,14 +189,6 @@ document.addEventListener('click', async e => {
 								break;
 						}
 						break;
-					case "miscellaneous":
-						switch(setting) {
-							case "kana_writing":
-								// update both on web page and background
-								chrome.tabs.query({currentWindow: true, active: true}, tabs => chrome.tabs.sendMessage(tabs[0].id, {kanaWriting: target.checked}));
-								break;
-						}
-						break;
 				}
 			});
 		}
@@ -251,9 +243,9 @@ document.addEventListener('click', async e => {
 					if (window.confirm("Reset all colors?"))
 						updateColorSchema(defaultSettings["appearance"]);
 					break;
-				case "Wanikani":
-					if (window.confirm("Change colors to WaniKani pattern?"))
-						updateColorSchema(wanikaniPattern);
+				case "Grays":
+					if (window.confirm("Change colors to a pattern of grays?"))
+						updateColorSchema(graysPattern);
 					break;
 				case "Flaming Durtles":
 					if (window.confirm("Change colors to Flaming Durtles pattern?"))

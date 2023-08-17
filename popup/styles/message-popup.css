@@ -1,3 +1,6 @@
+.message-popup > div {
+    z-index: 100;
+}
 
 .message-popup > div:nth-child(1) {
     width: 100%;
@@ -7,7 +10,6 @@
     opacity: 0.5;
     left: 0;
     top: 0;
-	z-index: 6;
 }
 
 .bottom-popup > div:nth-child(1) {
@@ -25,7 +27,6 @@
     right: 0;
     bottom: 0;
     box-shadow: 0px 0px 6px -2px black;
-	z-index: 6;
 }
 
 .bottom-popup > div:nth-child(2) {

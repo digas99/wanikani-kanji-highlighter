@@ -42,14 +42,20 @@ const submitAction = () => {
     const form = main.querySelector(".api-key-form"); 
     if (!invalidKey) {
         popupLoading.create("Loading user info...");
+        popupLoading.setLoading();
         fetchUserInfo(apiKey, user => {
+            console.log(user);
             if (user) {
-                if (user.code == 401) {
+                if (user.status == 401) {
                     form.appendChild(message("The API key doesn't exist!", "red"));
                     popupLoading.remove();
                 }
-                else if (user.code == 429) {
+                else if (user.status == 429) {
                     form.appendChild(message("Too many requests! Wait a few minutes and try again.", "red"));
+                    popupLoading.remove();
+                }
+                else if (user.status == 500) {
+                    form.appendChild(message("Error in the Wanikani Servers!", "red"));
                     popupLoading.remove();
                 }
                 else {

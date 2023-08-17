@@ -193,3 +193,9 @@
     font-weight: bold;
     color: rgb(204, 204, 204);
 }
+
+.separator {
+    height: 1px;
+    background-color: black;
+    margin: 20px 10px;
+}

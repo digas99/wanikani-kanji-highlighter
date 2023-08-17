@@ -1,6 +1,6 @@
 chrome.storage.local.get(["apiKey", "userInfo", "settings"], result => {
     const apiKey = result["apiKey"];
-    const userInfo = result["userInfo"]["data"];
+    const userInfo = result["userInfo"]?.data;
     const settings = result["settings"];
 
     // if user info has been updated in wanikani, then update cache
@@ -23,8 +23,6 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings"], result => {
 
 // when scripts.js has loaded
 document.addEventListener("scriptsLoaded", () => {
-    console.log(blacklistedSite, atWanikani);
-    
     // if site is blacklisted
     if (blacklistedSite) {
         const blacklistButton = document.querySelector("#blacklist");

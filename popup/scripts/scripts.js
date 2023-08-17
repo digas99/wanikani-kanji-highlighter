@@ -1,3 +1,59 @@
+// handle color as soon as possible
+chrome.storage.local.get(["settings"], result => {
+	const settings = result["settings"];
+
+	// setup css vars
+	if (settings) {
+		const appearance = settings["appearance"];
+		const documentStyle = document.documentElement.style;
+		documentStyle.setProperty('--highlight-default-color', appearance["highlight_learned"]);
+		documentStyle.setProperty('--notLearned-color', appearance["highlight_not_learned"]);
+		documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
+		documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
+		documentStyle.setProperty('--vocabulary-tag-color', appearance["vocab_color"]);
+		Object.values(srsStages).map(srs => srs["short"].toLowerCase())
+			.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
+	}
+});
+
+let messagePopup, blacklistedSite, atWanikani;
+window.onload = () => {
+	chrome.storage.local.get(["initialFetch", "blacklist", "contextMenuSelectedText"], async result => {
+		if (result["contextMenuSelectedText"]) {
+			makeSearch(result["contextMenuSelectedText"]);
+			chrome.storage.local.remove("contextMenuSelectedText");
+		}
+
+	
+		const initialFetch = result["initialFetch"] || result["initialFetch"] == undefined;
+
+		messagePopup = new MessagePopup(document.body, initialFetch ? "default" : "bottom");
+
+		if (initialFetch) {
+			messagePopup.create("Fetching subject data from Wanikani...", "Please, don't close the extension.");
+			messagePopup.setLoading();
+			
+		}
+
+		const activeTab = await getTab();
+		chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, url => {
+
+			if (url) {
+				url = url["windowLocation"];
+				validSite = true;
+				atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url);
+				blacklistedSite = blacklisted(result["blacklist"], url);
+			} else {
+				validSite = false;
+				atWanikani = false;
+				blacklistedSite = false;
+			}
+
+			document.dispatchEvent(new Event("scriptsLoaded"));
+		});
+	});
+}
+
 window.onscroll = () => {
 	let goTop = document.querySelector(".goTop");
 	if (document.documentElement.scrollTop > 500) {
@@ -88,59 +144,6 @@ const makeSearch = (search) => {
 			searchInput.dispatchEvent(new Event("input"));
 		}
 	}
-}
-
-let messagePopup, blacklistedSite, atWanikani;
-window.onload = () => {
-	
-	chrome.storage.local.get(["initialFetch", "settings", "blacklist", "contextMenuSelectedText"], async result => {
-		const settings = result["settings"];
-
-		if (result["contextMenuSelectedText"]) {
-			makeSearch(result["contextMenuSelectedText"]);
-			chrome.storage.local.remove("contextMenuSelectedText");
-		}
-		
-		// setup css vars
-		if (settings) {
-			const appearance = settings["appearance"];
-			const documentStyle = document.documentElement.style;
-			documentStyle.setProperty('--highlight-default-color', appearance["highlight_learned"]);
-			documentStyle.setProperty('--notLearned-color', appearance["highlight_not_learned"]);
-			documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
-			documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
-			documentStyle.setProperty('--vocabulary-tag-color', appearance["vocab_color"]);
-			Object.values(srsStages).map(srs => srs["short"].toLowerCase())
-				.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
-		}
-	
-		const initialFetch = result["initialFetch"] || result["initialFetch"] == undefined;
-
-		messagePopup = new MessagePopup(document.body, initialFetch ? "default" : "bottom");
-
-		if (initialFetch) {
-			messagePopup.create("Fetching subject data from Wanikani...", "Please, don't close the extension.");
-			messagePopup.setLoading();
-			
-		}
-
-		const activeTab = await getTab();
-		chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, url => {
-
-			if (url) {
-				url = url["windowLocation"];
-				validSite = true;
-				atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url);
-				blacklistedSite = blacklisted(result["blacklist"], url);
-			} else {
-				validSite = false;
-				atWanikani = false;
-				blacklistedSite = false;
-			}
-
-			document.dispatchEvent(new Event("scriptsLoaded"));
-		});
-	});
 }
 
 document.addEventListener("click", e => {

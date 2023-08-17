@@ -40,7 +40,7 @@ let highlightList = new TilesList(
 
 const updateHomeInterface = async (result) => {
 	settings = result["settings"] ? result["settings"] : defaultSettings;
-	userInfo = result["userInfo"]["data"];
+	userInfo = result["userInfo"]?.data;
 	activeTab = await getTab();
 	const interface = settings["extension_popup_interface"];
 
@@ -296,7 +296,7 @@ document.addEventListener("scriptsLoaded", () => {
 
 	if (atWanikani) main.insertBefore(enhancedWarning("Limited features at wanikani, sorry!", "var(--wanikani)"), userInfoWrapper);
 	else if (blacklistedSite) main.insertBefore(enhancedWarning("Site blacklisted by you!", "red"), userInfoWrapper);
-	else if (!validSite) main.insertBefore(enhancedWarning("The current site doesn't allow for highlighting.", "#b3b3b3"), userInfoWrapper);
+	else if (!validSite) main.insertBefore(enhancedWarning("Can't inject highlighter (maybe reload the page?)", "#b3b3b3"), userInfoWrapper);
 });
 
 const enhancedWarning = (text, color) => {

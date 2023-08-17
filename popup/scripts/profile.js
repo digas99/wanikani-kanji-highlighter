@@ -19,14 +19,14 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings"], async result => {
 
         const url = new URL(window.location.href);
 
-        const userInfo = result["userInfo"]["data"];
-        const level = Number(url.searchParams.get("level") || userInfo["level"]);
-
+        const userInfo = result["userInfo"]?.data;
+        
         // if user info has been updated in wanikani, then update cache
         if (!userInfo)
-            fetchUserInfo(apiKey);
-        
+        fetchUserInfo(apiKey);
+    
         if (userInfo) {
+            const level = Number(url.searchParams.get("level") || userInfo["level"]);
             const link = "https://www.wanikani.com/users/"+userInfo["username"];
 
             const avatar = document.querySelector("#profile-pic img");
@@ -58,6 +58,7 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings"], async result => {
                     levelsChooserAction(levelChooser, db);
                     updateLevelData(level, db, true);
                     updateTopLevelList(level);
+                    applyChanges();
 
                     // update url params
                     const url = new URL(window.location.href);
@@ -113,7 +114,6 @@ const updateLevelData = async (level, db, clear) => {
         updateTypeContainer(type, document.querySelector(`#${type}-container`), subjects);
     });
 
-    // apply previously saved changes to subject tiles
     applyChanges();
 
     // update url params
@@ -497,9 +497,6 @@ const menuActions = (tab, subjectsType, menuTitle, property, keys, value) => {
             if (subjectsType === "All")
                 subjects = document.querySelectorAll(".subject-container > ul > li");
 
-            // reset tiles
-            Array.from(document.querySelectorAll(".subject-container > ul > li")).forEach(subject => subject.classList.remove("hidden"));
-            
             switch(property) {    
                 case "srs_stage":
                     filters(subjects, value, menuSettings[keys[0]]["filter"]["state"]);
@@ -515,9 +512,6 @@ const menuActions = (tab, subjectsType, menuTitle, property, keys, value) => {
             subjects = tab.nextElementSibling.querySelectorAll("li");
             if (subjectsType === "All")
                 subjects = document.querySelectorAll(".subject-container > ul > li");
-
-            // reset tiles
-            Array.from(document.querySelectorAll(".subject-container > ul > li")).forEach(subject => subject.style.removeProperty("color"));
 
             switch(property) {    
                 case "color_by":
@@ -597,6 +591,8 @@ const menuMenu = (wrapper, defaults) => {
 }
 
 const colorings = (subjects, type) => {
+    subjects.forEach(subject => subject.style.removeProperty("color"));
+
     switch(type) {
         case "Subject Type":
             subjects.forEach(elem => elem.style.removeProperty("background-color"));
@@ -615,6 +611,13 @@ const colorings = (subjects, type) => {
                     }
                     backColor = hexToRGB(backColor);
                     elem.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
+
+                    // handle radicals that are images
+                    if (elem.firstChild.tagName == "IMG") {
+                        elem.firstChild.style.marginTop = "unset";
+                        if (elem.style.color == "rgb(0, 0, 0)")
+                            elem.firstChild.style.removeProperty("filter");
+                    }
                 }
             });
             break;
@@ -647,6 +650,9 @@ const filterMenu = (wrapper, defaults) => {
 }
 
 const filters = (subjects, srs, state) => {
+    // reset tiles
+    Array.from(subjects).forEach(elem => elem.classList.remove("hidden"));
+    
     if (srs !== "None") {
         Array.from(subjects).forEach(elem => {
             const srsChecker = srs !== "None" && (elem.getAttribute("data-srs") == "-1" && srs !== "Locked" || elem.getAttribute("data-srs") !== "-1" && srs !== srsStages[elem.getAttribute("data-srs")]["name"]);

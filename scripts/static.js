@@ -158,221 +158,6 @@ const defaultSettings = {
 	}
 };
 
-const settingsInterface = [
-	{
-		title:"Kanji Details Popup",
-		options: [
-			{
-				title:"Activated",
-				type: "checkbox",
-				id:"settings-kanji_details_popup-activated",
-				description: "Activate Details Popup script (side panel with subject information)"
-			},
-			{
-				title: "Key Bindings",
-				type: "checkbox",
-				id: "settings-kanji_details_popup-key_bindings",
-				description: "Enable Hotkeys within Details Popup"
-			},
-			{
-				title: "Random Subject",
-				type: "select",
-				options: ["Any", "Kanji", "Vocabulary"],
-				id: "settings-kanji_details_popup-random_subject",
-				description: "Type of subject that will appear upon clicking on the button Random on the Extension Popup side panel"
-			},
-			{
-				title: "Popup Opacity",
-				type: "slider",
-				range: {
-					min: 0,
-					max: 10,
-					value: 7
-				},
-				id: "settings-kanji_details_popup-popup_opacity",
-				description: "Opacity of the small Details Popup that shows up when hovering a kanji. \x0DTip: opacity changes in real time if small popup is open (hover a kanji or get a random subject)."
-			}
-		]
-	},
-	{
-		title:"Notifications",
-		options: [
-			{
-				title:"New Reviews",
-				type: "checkbox",
-				id:"settings-notifications-new_reviews",
-				description: "Be notified whenever new reviews are available (browser needs to be open)"
-			},
-			{
-				title:"Practice Reminder",
-				type: "checkbox",
-				id:"settings-notifications-practice_reminder",
-				description: "Be notified at a specific time of the day to practice Japanese (browser needs to be open)"
-			},
-			{
-				title:"Searching a Webpage Word",
-				type: "checkbox",
-				id:"settings-notifications-searching_a_webpage_word",
-				description: "Get a notification when searching a word from a webpage on the extension"
-			}
-		]
-	},
-	{
-		title: "Extension Popup Interface",
-		options: [
-			{
-				title: "Scripts Status",
-				type: "checkbox",
-				id: "settings-extension_popup_interface-scripts_status",
-				description: "Show scripts status in the extension popup home."
-			},
-			{
-				title: "Highlighted Kanji",
-				type: "checkbox",
-				id: "settings-extension_popup_interface-highlighted_kanji",
-				description: "Show kanji highlighted in the current page in the extension popup home."
-			},
-			{
-				title: "Lessons and Reviews",
-				type: "checkbox",
-				id: "settings-extension_popup_interface-lessons_and_reviews",
-				description: "Show number of lessons and reviews in the extension popup home."
-			},
-			{
-				title: "Overall Progression Bar",
-				type: "checkbox",
-				id: "settings-extension_popup_interface-overall_progression_bar",
-				description: "Show progression bar for each SRS Stage in the extension popup home. \x0DTip: the higher your level, the better the progress bar is to understand."
-			},
-			{
-				title: "Overall Progression Stats",
-				type: "checkbox",
-				id: "settings-extension_popup_interface-overall_progression_stats",
-				description: "Show numbers for each SRS Stage in the extension popup home."
-			},
-			{
-				title: "Levels In Progress",
-				type: "checkbox",
-				id: "settings-extension_popup_interface-levels_in_progress",
-				description: "Show which levels still have subjects in progress in the extension popup home."
-			}
-		]
-	},
-	{
-		title: "Miscellaneous",
-		options: [
-			{
-				title: "Time in 12h Format",
-				type: "checkbox",
-				id: "settings-miscellaneous-time_in_12h_format",
-				description: "Set timestamps within the Extension Popup to be on 12h Format"
-			},
-			{
-				title: "Kana Writing",
-				type: "checkbox",
-				id: "settings-miscellaneous-kana_writing",
-				description: "Write Kana on text inputs on a webpage. Some inputs might not work."
-			},
-			{
-				title: "Extension Popup Width",
-				type: "slider",
-				range: {
-					min: 400,
-					max: 725,
-					value: 400
-				},
-				id: "settings-miscellaneous-extension_popup_width",
-				description: "Width of the Extension Popup window."
-			},
-			// {
-			// 	title: "SRS Info on Reviews",
-			// 	type: "checkbox",
-			// 	id: "settings-miscellaneous-srs_info_on_reviews",
-			// 	description: "Show SRS information on the subjects while doing Reviews at wanikani.com"
-			// }
-		]
-	},
-	{
-		title:"Extension Icon",
-		options: [
-			{
-				title:"Kanji Counter",
-				type: "checkbox",
-				id:"settings-extension_icon-kanji_counter",
-				description: "Show Kanji Counter on the Extension icon"
-			},
-			// {
-			// 	title:"Time Until Next Reviews",
-			// 	type: "checkbox",
-			// 	id:"settings-extension_icon-time_until_next_reviews"
-			// },
-			// {
-			// 	title:"Number of Reviews",
-			// 	type: "checkbox",
-			// 	id:"settings-extension_icon-number_of_reviews"
-			// },
-			// {
-			// 	title:"Number of Lessons",
-			// 	type: "checkbox",
-			// 	id:"settings-extension_icon-number_of_lessons"
-			// }
-		]
-	}
-	// {
-	// 	title:"Highlight Style",
-	// 	options: [
-	// 		{
-	// 			title:"Learned",
-	// 			type: "chooser",
-	// 			options: [
-	// 				{
-	// 					text:"A",
-	// 					classes: ["wkhighlighter_highlighted", "settings_highlight_style_option" ,"clickable"]
-	// 				},
-	// 				{
-	// 					text:"A",
-	// 					classes: ["wkhighlighter_highlighted_underlined", "settings_highlight_style_option" ,"clickable"]
-	// 				},
-	// 				{
-	// 					text:"A",
-	// 					classes: ["wkhighlighter_highlighted_bold", "settings_highlight_style_option" ,"clickable"]
-	// 				}
-	// 			]
-	// 		},
-	// 		{
-	// 			title:"Not Learned",
-	// 			type: "chooser",
-	// 			options: [
-	// 				{
-	// 					text:"A",
-	// 					classes: ["wkhighlighter_highlightedNotLearned", "settings_highlight_style_option" ,"clickable"]
-	// 				},
-	// 				{
-	// 					text:"A",
-	// 					classes: ["wkhighlighter_highlightedNotLearned_underlined", "settings_highlight_style_option" ,"clickable"]
-	// 				},
-	// 				{
-	// 					text:"A",
-	// 					classes: ["wkhighlighter_highlightedNotLearned_bold", "settings_highlight_style_option" ,"clickable"]
-	// 				}
-	// 			]
-	// 		}
-	// 	]
-	// },
-	// {
-	// 	title:"Danger Sections",
-	// 	type: "button-description",
-	// 	options: [
-	// 		{
-	// 			title:"Clear Cache",
-	// 			id:"clearCash",
-	// 			classes: [],
-	// 			description:"Clears local data. This won't affect your WaniKani account!"
-	// 		}
-	// 	]
-	// }
-];
-
 const wanikaniPattern = {
 	highlight_learned: WANIKANI_COLOR,
 	highlight_not_learned: WANIKANI_SEC_COLOR,
@@ -410,6 +195,25 @@ const flamingDurtlesPattern = {
 	brn_color: "#d53b49",
 	int_color: "#c1c0c1"
 }
+
+const graysPattern = {
+	highlight_learned: "#6B6B6B",
+	highlight_not_learned: "#1E1E1E",
+	details_popup: "#404040",
+	radical_color: "#9E9E9E",
+	kanji_color: "#757575",
+	vocab_color: "#505050",
+	ap1_color: "#C0C0C0",
+	ap2_color: "#808080",
+	ap3_color: "#6D6D6D",
+	ap4_color: "#474747",
+	gr1_color: "#708090",
+	gr2_color: "#4c6073",
+	mst_color: "#36454F",
+	enl_color: "#2C3E50",
+	brn_color: "#293133",
+	int_color: "#B2BEB5",
+  };  
 
 const unwantedTags = ["html", "body", "head", "title", "style", "link", "meta", "script", "noscript", "img", "svg"];
 
