@@ -21,11 +21,11 @@
         <div class="topNav-lessons">
 			<a title="Lessons" href="/popup/lessons.html">
                 <div class="lessons-icon"><div></div></div>
-                <div>0</div>
+                <div class="lessons-count">0</div>
             </a>
             <a title="Reviews" href="/popup/reviews.html">
                 <div class="reviews-icon"><div></div></div>
-                <div>0</div>
+                <div class="lessons-count">0</div>
             </a>
         </div>
     </div>
@@ -34,16 +34,16 @@
     <div id="sec-page">
         <!-- SEARCH AREA -->
         <div style="margin-top: 55px;" class="searchArea" title="Search subjects">
-            <div id="kanjiSearchInputWrapper" class="section textInputWrapper">
-                <img class="textInputIcon" src="../images/search.png">
-                <input type="text" placeholder="Gold / 金 / 5" id="kanjiSearchInput">
-                <div class="kanjiSearchTypeWrapper" title="Kana" id="kanjiSearchTypeKana">
-                    <span id="kanjiSearchType">あ</span>
+            <div class="searchMenu">
+                <div id="kanjiSearchInputWrapper" class="section textInputWrapper">
+                    <img class="textInputIcon" src="../images/search.png">
+                    <input type="text" placeholder="Gold / 金 / 5" id="kanjiSearchInput">
+                    <div class="kanjiSearchTypeWrapper" title="Kana" id="kanjiSearchTypeKana">
+                        <span id="kanjiSearchType">あ</span>
+                    </div>
                 </div>
-            </div>
-            <div id="searchResultWrapper">
                 <div id="searchResultNavbar">
-                    <div id="nmrKanjiFound"><span>Found <strong>0</strong> items<span></span></span></div>
+                    <!-- <div id="nmrKanjiFound"><span>Found <strong>0</strong> items<span></span></span></div> -->
                     <div class="searchResultNavbarOptionsWrapper" style="display: flex;">
                         <div class="searchResultNavbarTarget clickable" title="Precise Search"><img src="../images/target.png"></div>
                         <ul style="display: flex;">
@@ -52,7 +52,11 @@
                             <li class="searchResultNavbarOption clickable" title="Small Grid" id="searchResultOptionsmall-grid"><img src="../images/small-grid.png"></li>
                         </ul>
                     </div>
-                </div><ul id="searchResultItemWrapper"></ul></div>
+                </div>
+            </div>
+            <div id="searchResultWrapper">
+                <ul id="searchResultItemWrapper"></ul>
+            </div>
         </div>
 	</div>
 

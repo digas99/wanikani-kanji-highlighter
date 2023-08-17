@@ -41,7 +41,7 @@ chrome.storage.local.get(["reviews"], async result => {
 			sections,
 			{
 				title: `<b>${count}</b> Reviews available right now!`,
-				height: 290,
+				height: 250,
 				bars: {
 					labels: true
 				},

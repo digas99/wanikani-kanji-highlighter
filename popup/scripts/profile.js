@@ -42,7 +42,7 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings"], async result => {
             // scroll down arrow
             const goDownArrowWrapper = document.querySelector(".scroll-down");
             if (goDownArrowWrapper)
-                goDownArrowWrapper.addEventListener("click", () => window.scroll(0, 370));
+                goDownArrowWrapper.addEventListener("click", () => window.scroll(0, 364));
 
             const topLevel = document.querySelector(".top-level-list");
             topLevel.children[level-1].classList.add("current-level");

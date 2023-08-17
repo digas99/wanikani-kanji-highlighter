@@ -47,6 +47,10 @@
     margin-left: 10px;
 }
 
+.searchArea .textInputWrapper {
+    width: 97%;
+}
+
 .summaryValue {
 	font-size: 35px;
     padding: 7px 17px;
@@ -58,11 +62,6 @@
     height: 25px;
     display: flex;
     flex-direction: row;
-}
-
-#progression-bar > li {
-    height: 100%;
-    overflow: hidden;
 }
 
 #progression-bar > li > a {

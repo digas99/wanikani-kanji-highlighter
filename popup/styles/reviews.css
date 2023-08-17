@@ -1,7 +1,7 @@
 #reviewsChart {
 	display: flex;
     position: relative;
-	margin: 10px 15px 0px 0px;
+    margin-top: 15px;
 }
 
 #reviewsChart > i {

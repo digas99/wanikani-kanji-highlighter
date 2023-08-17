@@ -272,10 +272,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		const uptimeSignals = document.querySelectorAll("#scripts_status div");
 		if (uptimeSignals) {
 			if (request.uptimeHighlight) 
-				uptimeSignals[0].style.backgroundColor = "#80fd80";
+				uptimeSignals[0].style.backgroundColor = "var(--wanikani-sec)";
 
 			if (request.uptimeDetailsPopup) 
-				uptimeSignals[1].style.backgroundColor = "#80fd80";
+				uptimeSignals[1].style.backgroundColor = "var(--wanikani-sec)";
 		}
 	}
 

@@ -1,3 +1,7 @@
+.tiles-list-wrapper {
+	background-color: white;
+}
+
 .tiles-list-header {
 	text-align: center;
     background-color: var(--default-color);

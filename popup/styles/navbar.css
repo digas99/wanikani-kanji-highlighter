@@ -6,18 +6,22 @@
     border-top: 5px solid var(--wanikani);
     top: 0;
     width: 100%;
-    padding: 10px;
     display: flex;
     align-items: center;
     color: white;
     margin-left: -8px;
     z-index: 10;
     border-bottom: 2px solid white;
+    height: 45px;
+    padding: 0 15px;
 }
 
 .topNav > a {
     margin: 2px;
     cursor: pointer;
+    height: 100%;
+    align-items: center;
+    display: flex;
 }
 
 .topNav > a * {
@@ -51,7 +55,7 @@
 
 .topNav-lessons {
 	position: absolute;
-    right: 80px;
+    right: 90px;
     top: 0;
     display: flex;
     column-gap: 15px;
@@ -60,17 +64,18 @@
 }
 
 .topNav-lessons > a {
-	display: flex;
+    display: flex;
 	align-items: center;
-	column-gap: 10px;
 	color: white;
+    opacity: 1;
 }
 
 .topNav-lessons .lessons-icon, .topNav-lessons .reviews-icon {
 	width: 20px;
     height: 20px;
     overflow: hidden;
-    border-radius: 50%;
+    border-top-left-radius: 50%;
+    border-bottom-left-radius: 50%;
 }
 
 .topNav-lessons .lessons-icon {
@@ -83,14 +88,6 @@
 	border: 2px solid var(--wanikani-sec);
 }
 
-.topNav-lessons .lessons-icon > div {
-	background-image: url(/images/bg_lessons-1-9c106fff33b5cbfbc1a01f82f9966bec87cc935ab91fc0275dc42dcbeb2e82ba.png);
-}
-
-.topNav-lessons .reviews-icon > div {
-	background-image: url(/images/bg_reviews-500-eaacc89f5f04073e99bb83a655f9e084d7cf0c04b28461fc2ec2f2de3bd69a8c.png);
-}
-
 .topNav-lessons .lessons-icon > div, .topNav-lessons .reviews-icon > div {
 	width: 30px;
     height: 30px;
@@ -99,6 +96,20 @@
     margin: auto;
     text-align: center;
     margin-left: -6px;
+}
+
+.topNav-lessons .lessons-count {
+    color: white;
+    padding: 3px 10px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    font-weight: bold;
+    border: 2px solid white;
+}
+
+.topNav-lessons > a:hover .lessons-count {
+    background-color: white;
+    color: var(--default-color);
 }
 
 #goBack {

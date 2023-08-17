@@ -38,6 +38,7 @@
 	scroll-behavior: smooth;
 
 	background-color: #eee;
+	min-height: 600px;
 }
 
 body {
@@ -45,7 +46,6 @@ body {
     transition: 0.3s;
     font-size: 13px;
     padding-right: 45px;
-    min-height: 365px;
 }
 
 a {
@@ -182,7 +182,7 @@ i {
 }
 
 #sec-page {
-	margin-top: 45px;
+	margin-top: 57px;
 	position: relative;
 }
 
@@ -244,6 +244,47 @@ i {
 	margin-bottom: -18px;
     border-color: white;
     padding: 5px;
+}
+
+.lessons-icon > div {
+	background-image: url(/images/bg_lessons-1-9c106fff33b5cbfbc1a01f82f9966bec87cc935ab91fc0275dc42dcbeb2e82ba.png);
+}
+
+.reviews-icon > div {
+	background-image: url(/images/bg_reviews-500-eaacc89f5f04073e99bb83a655f9e084d7cf0c04b28461fc2ec2f2de3bd69a8c.png);
+}
+
+.lessons-cover {
+	width: 440px;
+    height: 230px;
+    position: absolute;
+    top: 50px;
+    left: 0;
+}
+
+.lessons-cover > div {
+	width: 100%;
+    height: 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+	position: relative;
+}
+
+.lessons-cover.lessons-icon {
+	background-color: var(--wanikani);
+}
+
+.lessons-cover.reviews-icon {
+	background-color: var(--wanikani-sec);
+}
+
+.image-fade {
+	position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background: linear-gradient(to bottom, rgba(238, 238, 238, 0), rgba(238, 238, 238, 1));
 }
 
 .disabled {
