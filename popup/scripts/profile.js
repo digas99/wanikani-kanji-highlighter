@@ -17,7 +17,10 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings"], async result => {
     if (opened) {
         if (popupLoading) popupLoading.remove();
 
+        const url = new URL(window.location.href);
+
         const userInfo = result["userInfo"]["data"];
+        const level = Number(url.searchParams.get("level") || userInfo["level"]);
 
         // if user info has been updated in wanikani, then update cache
         if (!userInfo)
@@ -39,20 +42,52 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings"], async result => {
             // scroll down arrow
             const goDownArrowWrapper = document.querySelector(".scroll-down");
             if (goDownArrowWrapper)
-                goDownArrowWrapper.addEventListener("click", () => window.scroll(0, 420));
+                goDownArrowWrapper.addEventListener("click", () => window.scroll(0, 370));
 
-            await updateLevelData(Number(userInfo["level"]), db);
+            const topLevel = document.querySelector(".top-level-list");
+            topLevel.children[level-1].classList.add("current-level");
+            for (let i = 1; i < level; i++)
+                topLevel.children[i-1].classList.add("passed-level");
+            
+            topLevel.addEventListener("click", async e => {
+                if (e.target.classList.contains("clickable")) {
+                    const level = Number(e.target.innerText);
+                    const levelChooser = document.querySelector(".levels-chooser");
+                    levelChooser.innerHTML = "";
+                    levelsChooser(level, levelChooser);
+                    levelsChooserAction(levelChooser, db);
+                    updateLevelData(level, db, true);
+                    updateTopLevelList(level);
+
+                    // update url params
+                    const url = new URL(window.location.href);
+                    url.searchParams.set("level", level);
+                    window.history.replaceState({}, "", url);
+                }
+            });
+            
+            updateTopLevelList(level);
+
+            await updateLevelData(level, db);
         }
     } 
 });
+
+const updateTopLevelList = level => {
+    const topLevel = document.querySelector(".top-level-list");
+    // clear selected level
+    document.querySelector(".selected-level")?.classList.remove("selected-level");
+    topLevel.children[level-1].classList.add("selected-level");
+    // scroll top level list until current level stays in the middle
+    topLevel.scrollTo(topLevel.children[level-1].offsetLeft - topLevel.children[6].offsetLeft, 0);
+}
 
 const updateLevelData = async (level, db, clear) => {
     const data = await db.getAll("subjects", "level", level);
 
     if (clear) clearData();
     
-    if (!clear)
-        levelsChooser(level, document.querySelector(".levels-chooser"));
+    if (!clear) levelsChooser(level, document.querySelector(".levels-chooser"));
 
     const allSubjects = data.filter(subject => subject["level"] === level);
     const allPassedSubjects = allSubjects.filter(subject => subject.passed_at != null);
@@ -76,10 +111,15 @@ const updateLevelData = async (level, db, clear) => {
 
         // subject tiles lists
         updateTypeContainer(type, document.querySelector(`#${type}-container`), subjects);
-        	
-        // apply previously saved changes to subject tiles
-        applyChanges();
     });
+
+    // apply previously saved changes to subject tiles
+    applyChanges();
+
+    // update url params
+    const url = new URL(window.location.href);
+    url.searchParams.set("level", level);
+    window.history.replaceState({}, "", url);
 }
 
 const updateLevelProgressBar = (progressBarWrapper, passedSubjects, allSubjects) => {
@@ -217,7 +257,7 @@ const levelsChooserAction = (levelsList, db) => {
                 levelsChooserAction(newLevelsChooser, db);
 
                 updateLevelData(level, db, true);
-
+                updateTopLevelList(level);
                 applyChanges();
             });
 
@@ -656,3 +696,10 @@ const sortings = (containers, value, direction) => {
             break;
     }
 }
+
+window.addEventListener("scroll", () => {
+    if (window.scrollY > 225)
+        document.querySelector(".top-level-list").classList.remove("top-level-list-hidden");
+    else
+        document.querySelector(".top-level-list").classList.add("top-level-list-hidden");
+});

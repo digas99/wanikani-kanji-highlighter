@@ -1,3 +1,43 @@
+.top-level-list {
+    display: flex;
+    top: 43px;
+    left: 0;
+    position: fixed;
+    z-index: 9;
+    background-color: white;
+    width: 90.6%;
+    overflow: auto;
+    scroll-behavior: smooth;
+    transition: 0.3s;
+}
+
+.top-level-list > div {
+    padding: 15px;
+    background-color: white;
+    border-right: 1px solid #e9e9e9;
+}
+
+.top-level-list > .passed-level, .top-level-list > .current-level, .top-level-list > .selected-level {
+    color: white;
+    font-weight: bold;
+}
+
+.top-level-list > .passed-level {
+    background-color: var(--wanikani);
+}
+
+.top-level-list > .current-level {
+    background-color: var(--wanikani-sec);
+}
+
+.top-level-list > .selected-level {
+    background-color: var(--default-color);
+}
+
+.top-level-list-hidden {
+    top: -5px;
+}
+
 .levels-chooser-wrapper {
 	border-radius: 15px;
     background-color: var(--default-color);
