@@ -207,7 +207,7 @@ const setupSummary = (reviews, lessons) => {
 				const remainingTime = msToTime(thisDate - currentTime);
 				const moreReviews = document.querySelector("#more-reviews");
 				if (moreReviews) {
-					moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
+					moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:var(--wanikani-sec);font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
 					let time = `${thisDate.getHours() < 10 ? "0"+thisDate.getHours() : thisDate.getHours()}:${thisDate.getMinutes() < 10 ? "0"+thisDate.getMinutes() : thisDate.getMinutes()}`;
 					if (settings && settings["miscellaneous"]["time_in_12h_format"])
 						time = time12h(time);
@@ -255,7 +255,7 @@ const timeStampRefresher = (moreReviews, timeStampInterval,thisDate, timeUnit, r
 
 	// if time stamp reached 0
 	if (thisDate <= newCurrentDate) {
-		moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> <b class="refresh clickable">now</b>`;
+		moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:var(--wanikani-sec);font-weight:bold">Reviews</span> <b class="refresh clickable">now</b>`;
 		// refresh popup automatically
 		setTimeout(() => window.location.reload(), 1000);
 		clearInterval(timeStampInterval);

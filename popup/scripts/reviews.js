@@ -15,13 +15,13 @@ chrome.storage.local.get(["reviews"], async result => {
 	db = new Database("wanikani");
 	const opened = await db.open("subjects");
 	if (opened) {
-		const reviews = data.map(assignment => assignment["data"])
-			.map(assignment => ({"srs_stage":assignment["srs_stage"], "subject_id":assignment["subject_id"], "subject_type":assignment["subject_type"]}));
+		const reviews = data.filter(review => review && !review["hidden_at"])
+			.map(review => ({"srs_stage":review["data"]["srs_stage"], "subject_id":review["data"]["subject_id"], "subject_type":review["data"]["subject_type"]}));
 
 		const sections = await Promise.all(Object.keys(srsStages).map(async srsId => {
 			const srs = parseInt(srsId);
 			const { name, short, color } = srsStages[srsId];
-			const srsReviews = reviews.filter(review => review["srs_stage"] === srs && !review["hidden_at"]);
+			const srsReviews = reviews.filter(review => review["srs_stage"] === srs);
 			const subjects = await db.getAll("subjects", "srs_stage", parseInt(srs));
 			const characters = srsReviews.map(review => getCharacter(subjects.find(subject => subject["id"] === review["subject_id"])));
 

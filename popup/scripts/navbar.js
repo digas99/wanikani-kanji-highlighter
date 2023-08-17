@@ -1,4 +1,4 @@
-chrome.storage.local.get(["apiKey", "userInfo", "settings"], result => {
+chrome.storage.local.get(["apiKey", "userInfo", "settings", "lessons", "reviews"], result => {
     const apiKey = result["apiKey"];
     const userInfo = result["userInfo"]?.data;
     const settings = result["settings"];
@@ -19,6 +19,15 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings"], result => {
     // random subject type
     if (settings)
         setRandomSubjectType(settings["kanji_details_popup"]["random_subject"]);
+
+    // top navbar lessons and reviews
+    const nLesson = result["lessons"]?.count;
+    const nReview = result["reviews"]?.count;
+    const topNavbar = document.querySelector(".topNav");
+    if (topNavbar) {
+        document.querySelector(".lessons-icon").nextElementSibling.innerText = nLesson;
+        document.querySelector(".reviews-icon").nextElementSibling.innerText = nReview;
+    }
 });
 
 // when scripts.js has loaded

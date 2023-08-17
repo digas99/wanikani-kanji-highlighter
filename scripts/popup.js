@@ -1357,7 +1357,7 @@ window.onload = () => {
 										summaryLi.appendChild(value);
 										value.appendChild(document.createTextNode("0"));
 										value.classList.add("summaryValue", "clickable");
-										value.style.backgroundColor = topic == "Lessons" ? "#4f7b61" : "#2c7080";
+										value.style.backgroundColor = topic == "Lessons" ? "#4f7b61" : "var(--wanikani-sec)";
 										value.id = "summary"+topic;
 									});
 
@@ -1369,7 +1369,7 @@ window.onload = () => {
 									summaryWrapper.appendChild(moreReviews);
 									moreReviews.style.padding = "3px 0";
 									moreReviews.style.color = "#747474";
-									moreReviews.innerHTML = 'More <span style="color:#2c7080;font-weight:bold">Reviews</span> in';
+									moreReviews.innerHTML = 'More <span style="color:var(--wanikani-sec);font-weight:bold">Reviews</span> in';
 									const moreReviewsDate  = document.createElement("p");
 									summaryWrapper.appendChild(moreReviewsDate);
 									moreReviewsDate.style.padding = "3px 0";
@@ -1401,7 +1401,7 @@ window.onload = () => {
 												const reviewsForNextHour = filterAssignmentsByTime(nextReviews, new Date(), thisDate);
 												if (reviewsForNextHour.length > 0) {
 													const remainingTime = msToTime(thisDate - currentTime);
-													moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
+													moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:var(--wanikani-sec);font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
 													settings = response["settings"];
 													let time = `${thisDate.getHours() < 10 ? "0"+thisDate.getHours() : thisDate.getHours()}:${thisDate.getMinutes() < 10 ? "0"+thisDate.getMinutes() : thisDate.getMinutes()}`;
 													if (settings && settings["miscellaneous"]["time_in_12h_format"])
@@ -1438,7 +1438,7 @@ window.onload = () => {
 
 														// if time stamp reached 0
 														if (thisDate <= newCurrentDate) {
-															moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:#2c7080;font-weight:bold">Reviews</span> <b class="refresh clickable">now</b>`;
+															moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:var(--wanikani-sec);font-weight:bold">Reviews</span> <b class="refresh clickable">now</b>`;
 															// refresh popup automatically
 															setTimeout(() => window.location.reload(), 1000);
 															clearInterval(timeStampInterval);
