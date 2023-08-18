@@ -7,6 +7,34 @@ if (searchBar) {
     chrome.storage.local.get(["settings"], async result => {
         settings = result["settings"];
 
+        // select result display
+        const resultsDisplay = settings["search"]["results_display"];
+        if (resultsDisplay) {
+            Array.from(document.getElementsByClassName("searchResultNavbarOption")).forEach(elem => elem.classList.remove("full_opacity"));
+            const resultDisplayElem = document.getElementById(resultsDisplay);
+            if (resultDisplayElem) resultDisplayElem.classList.add("full_opacity");
+        }
+
+        // select targeted search
+        const targetedSearch = settings["search"]["targeted_search"];
+        if (targetedSearch) {
+            const targetedSearchElem = document.querySelector(".searchResultNavbarTarget");
+            if (targetedSearchElem) targetedSearchElem.classList.add("full_opacity");
+        }
+
+        const inputWrapper = document.querySelector("#kanjiSearchInputWrapper");
+        const typeWrapper = document.querySelector(".kanjiSearchTypeWrapper");
+        typeWrapper.addEventListener("click", () => {
+            if (typeWrapper.innerText === "A") changeInput(inputWrapper, "あ");
+            else changeInput(inputWrapper, "A");
+
+            inputWrapper.querySelector("#kanjiSearchInput").focus();
+        });
+
+        // add start search information
+        const searchWrapper = document.querySelector("#searchResultItemWrapper");
+        searchWrapper.appendChild(notFound("Start searching using kanji, kana, meaning or level."));
+
         // add search action to search bar
         const db = new Database("wanikani");
         const opened = await db.open("subjects");
@@ -15,7 +43,6 @@ if (searchBar) {
             
             const kanji = data["kanji"];
             const vocabulary = [...data["vocabulary"], ...data["kana_vocabulary"]];
-            console.log(data["vocabulary"], data["kana_vocabulary"], vocabulary);
             
             const urlParams = new URLSearchParams(window.location.search);
 
@@ -34,15 +61,6 @@ if (searchBar) {
                 searchBar.dispatchEvent(new Event("input"));
             }
         }
-
-        const inputWrapper = document.querySelector("#kanjiSearchInputWrapper");
-        const typeWrapper = document.querySelector(".kanjiSearchTypeWrapper");
-        typeWrapper.addEventListener("click", () => {
-            if (typeWrapper.innerText === "A") changeInput(inputWrapper, "あ");
-            else changeInput(inputWrapper, "A");
-
-            inputWrapper.querySelector("#kanjiSearchInput").focus();
-        });
     });
 }
 
@@ -139,30 +157,27 @@ const searchSubject = (kanji, vocabulary, input, searchType, targeted, display) 
     filteredVocab = filteredVocab.flat();
 
     const nmrItemsFound = document.getElementById("nmrKanjiFound");
+
+    const firstKanji = filteredKanji[0];
+    const firstVocab = filteredVocab[0];
+
+    const sortObjectByLevel = itemList => itemList.sort((a,b) => a["level"] > b["level"] ? 1 : -1);
+    if (filteredKanji.length > 0) sortObjectByLevel(filteredKanji).unshift(firstKanji);
+    if (filteredVocab.length > 0) sortObjectByLevel(filteredVocab).unshift(firstVocab);
+    const filteredContent = [...new Set(filteredKanji.concat(filteredVocab))].flat(0);
+
     if (nmrItemsFound) 
-        nmrItemsFound.innerHTML = `<span>Found <strong>0</strong> items<span>`;
+        nmrItemsFound.innerHTML = `<span>${filteredContent.length}<span>`;
 
-    if (filteredKanji.length > 0 || filteredVocab.length > 0) {
-        const firstKanji = filteredKanji[0];
-        const firstVocab = filteredVocab[0];
+    let index = 0, offset = 100;
+    displayResults(searchResultUL, filteredContent, index, index+offset, display);
 
-        const sortObjectByLevel = itemList => itemList.sort((a,b) => a["level"] > b["level"] ? 1 : -1);
-        if (filteredKanji.length > 0) sortObjectByLevel(filteredKanji).unshift(firstKanji);
-        if (filteredVocab.length > 0) sortObjectByLevel(filteredVocab).unshift(firstVocab);
-        const filteredContent = [...new Set(filteredKanji.concat(filteredVocab))].flat(0);
-    
-        if (nmrItemsFound) 
-            nmrItemsFound.innerHTML = `<span>Found <strong>${filteredContent.length}</strong> items<span>`;
+    // add load more button
+    loadMoreButton(index, offset, searchResultUL, filteredContent, display);
 
-        let index = 0, offset = 100;
-        displayResults(searchResultUL, filteredContent, index, index+offset, display);
-
-        // add load more button
-        loadMoreButton(index, offset, searchResultUL, filteredContent, display);
-
-        if (display != "searchResultOptionlist")
-            document.documentElement.style.setProperty('--body-base-width', manageBodyWidth(630, parseInt(document.documentElement.style.getPropertyValue('--body-base-width')))+"px");
-            
+    if (filteredContent.length == 0) {
+        const searchWrapper = document.querySelector("#searchResultItemWrapper");
+        searchWrapper.appendChild(notFound("Could not find any results for the given prompt."));
     }
 }
 
@@ -214,13 +229,9 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         let type = data["subject_type"];
         const chars = data["characters"];
 
-        const kanjiAlike = type == "kanji" || chars.length == 1;
-        const vocabAlike = type.includes("vocab") && chars.length > 1;	
-        
         const li = document.createElement("li");
-        li.classList.add("searchResultItemLine", "kanjiDetails"); 
+        li.classList.add("searchResultItemLine"); 
         wrapper.appendChild(li);
-        li.setAttribute('data-item-id', data["id"]);
         if (data["hidden_at"]) {
             li.style.borderLeft = "4px solid yellow";
             li.style.opacity = "0.4";
@@ -231,25 +242,23 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
             li.title = srsStages[data["srs_stage"]]["name"];
         }
 
+        const dataWrapper = document.createElement("div");
+        li.appendChild(dataWrapper);
+        dataWrapper.style.width = "100%";
+        dataWrapper.style.cursor = "pointer";
+        dataWrapper.setAttribute('data-item-id', data["id"]);
+        dataWrapper.classList.add("kanjiDetails");
         const itemSpan = document.createElement("span");
         itemSpan.classList.add("searchResultItem");
 
-        li.appendChild(itemSpan);
+        dataWrapper.appendChild(itemSpan);
         itemSpan.appendChild(document.createTextNode(chars));
-
-        if (vocabAlike)
-            li.style.display = "inherit";
 
         const itemInfoWrapper = document.createElement("div");
         itemInfoWrapper.classList.add("searchResultItemInfo");
-        li.appendChild(itemInfoWrapper);
-        if (kanjiAlike)
-            itemInfoWrapper.style.width = "100%";
+        dataWrapper.appendChild(itemInfoWrapper);
 
-        const level = document.createElement("span");
-        itemInfoWrapper.appendChild(level);
-        level.classList.add("searchResultItemLevel");
-        level.appendChild(document.createTextNode(data["level"]));
+
         const meaning = document.createElement("span");
         itemInfoWrapper.appendChild(meaning);
         meaning.classList.add("searchResultItemTitle");
@@ -258,11 +267,15 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         if (type == "kanji") {
             const on = document.createElement("span");
             itemInfoWrapper.appendChild(on); 
-            on.appendChild(document.createTextNode("on: "));
+            const onText = document.createElement("span");
+            on.appendChild(onText);
+            onText.appendChild(document.createTextNode("ON: "));
             on.appendChild(document.createTextNode(data["readings"].filter(reading => reading.type == "onyomi").map(kanji => kanji.reading).join(", ")));
             const kun = document.createElement("span");
             itemInfoWrapper.appendChild(kun); 
-            kun.appendChild(document.createTextNode("kun: "));
+            const kunText = document.createElement("span");
+            kun.appendChild(kunText);
+            kunText.appendChild(document.createTextNode("KUN: "));
             kun.appendChild(document.createTextNode(data["readings"].filter(reading => reading.type == "kunyomi").map(kanji => kanji.reading).join(", ")));
         }
 
@@ -279,26 +292,65 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
             type = "vocabulary";
         }
 
-        // subject type
-        const subjectType = document.createElement("div");
-        li.appendChild(subjectType);
-        let colorClass = type+"_back";
-        subjectType.classList.add("searchResultItemType", colorClass);
+        if (display == "searchResultOptionlist") {
+            // subject type
+            const subjectType = document.createElement("div");
+            li.appendChild(subjectType);
+            subjectType.classList.add("searchResultItemType");
+            // audio icon
+            const audioWrapper = document.createElement("div");
+            subjectType.appendChild(audioWrapper);
+            if (data["pronunciation_audios"]) {
+                audioWrapper.classList.add("clickable");
+                audioWrapper.title = "Play audio";
+                audioWrapper.addEventListener("click", () => playSubjectAudio(data["pronunciation_audios"], audioWrapper));
+            }
+            else {
+                audioWrapper.classList.add("disabled");
+                audioWrapper.title = "No audio available";
+            }
+            const audio = document.createElement("img");
+            audioWrapper.appendChild(audio);
+            audio.src = chrome.runtime.getURL("/images/volume.png");
+            // copy icon
+            const copyWrapper = document.createElement("div");
+            subjectType.appendChild(copyWrapper);
+            copyWrapper.classList.add("clickable");
+            copyWrapper.title = "Copy";
+            const copy = document.createElement("img");
+            copyWrapper.addEventListener("click", () => copyToClipboard(chars, copy)); 
+            copyWrapper.appendChild(copy);
+            copy.src = chrome.runtime.getURL("/images/copy.png");
+            // srs stage
+            if (data["srs_stage"] != undefined) {
+                const srsStage = document.createElement("div");
+                subjectType.appendChild(srsStage);
+                const srsStageText = document.createElement("span");
+                srsStage.appendChild(srsStageText);
+                srsStageText.appendChild(document.createTextNode(data["srs_stage"] >= 0 ? srsStages[data["srs_stage"]]["short"] : "Lkd"));
+                if (data["srs_stage"] >= 0)
+                    srsStageText.style.color = `var(--${srsStages[data["srs_stage"]]["short"].toLowerCase()}-color)`;
+            }
+            // level
+            if (data["level"]) {
+                const levelWrapper = document.createElement("div");
+                subjectType.appendChild(levelWrapper);
+                const levelText = document.createElement("span");
+                levelWrapper.appendChild(levelText);
+                levelText.appendChild(document.createTextNode(data["level"]));
+            }
+        }
         
         // if it is not in list type
         if (display != "searchResultOptionlist") {
             if (display == "searchResultOptionbig-grid") {
                 li.classList.add("searchResultItemSquare");
-                subjectType.classList.add("searchResultItemType-small");
             }
             else if (display == "searchResultOptionsmall-grid") {
                 li.classList.add("searchResultItemSquareSmall");
-                subjectType.classList.add("searchResultItemType-tiny");
             }
             itemInfoWrapper.style.display = "none";
         }
-        else
-            subjectType.classList.add("searchResultItemType-normal");
     }
 }
 
@@ -317,3 +369,66 @@ const loadMoreButton = (index, offset, searchResultsWrapper, content, display) =
         });
     }
 }
+
+document.addEventListener("click", e => {
+    const target = e.target;
+
+	// clicked in the menu option in search results
+	if (target.classList.contains("searchResultNavbarOption")) {
+		Array.from(document.querySelectorAll(".searchResultNavbarOption")).forEach(elem => elem.classList.remove("full_opacity"));
+
+		target.classList.add("full_opacity");
+
+		chrome.storage.local.get(["settings"], result => {
+			settings = result["settings"];
+			if (settings && settings["search"])
+				settings["search"]["results_display"] = target.id;
+			chrome.storage.local.set({"settings":settings});
+		});
+
+		const removeSquareClasses = elem => {
+			const classes = elem.classList;
+			if (classes.contains("searchResultItemSquare")) classes.remove("searchResultItemSquare");
+			if (classes.contains("searchResultItemSquareSmall")) classes.remove("searchResultItemSquareSmall");
+		}
+
+		if (["searchResultOptionbig-grid", "searchResultOptionsmall-grid"].includes(target.id)) {
+			Array.from(document.getElementsByClassName("searchResultItemInfo")).forEach(elem => {
+				const parent = elem.parentElement;
+				removeSquareClasses(parent);
+				parent.classList.add(target.id == "searchResultOptionbig-grid" ? "searchResultItemSquare" : "searchResultItemSquareSmall");
+				elem.style.display = "none";
+			});
+			
+			const newClass = target.id === "searchResultOptionbig-grid" ? "searchResultItemType-small" : "searchResultItemType-tiny"; 
+			Array.from(document.getElementsByClassName("searchResultItemType")).forEach(elem => elem.classList.replace(elem.classList[2], newClass));
+		}
+		else {
+			Array.from(document.getElementsByClassName("searchResultItemLine")).forEach(elem => {
+				elem.getElementsByClassName("searchResultItemInfo")[0].style.display = "grid";
+				removeSquareClasses(elem);
+			});
+			Array.from(document.getElementsByClassName("searchResultItemType")).forEach(elem => elem.classList.replace(elem.classList[2], "searchResultItemType-normal"));
+		}
+	}
+
+    // clicked in the targeted search option in search results
+	if (target.classList.contains("searchResultNavbarTarget")) {
+		chrome.storage.local.get(["settings"], result => {
+			settings = result["settings"];
+			if (settings && settings["search"]) {
+				if (settings["search"]["targeted_search"]) {
+					target.classList.remove("full_opacity");
+					settings["search"]["targeted_search"] = false;
+				}
+				else {
+					target.classList.add("full_opacity");
+					settings["search"]["targeted_search"] = true;
+				}
+				chrome.storage.local.set({"settings":settings});
+
+				document.getElementById("kanjiSearchInput").dispatchEvent(new Event("input"));
+			}
+		});
+	}
+});

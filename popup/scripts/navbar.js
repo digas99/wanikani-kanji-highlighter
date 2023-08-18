@@ -181,6 +181,9 @@ window.addEventListener("click", async e => {
             }); 
         }
     }
+
+    if (target.id == "random-subject-type")
+        target.previousElementSibling.click();
 });
 
 const expandSideBar = sidebar => {

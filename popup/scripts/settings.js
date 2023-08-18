@@ -53,6 +53,13 @@ chrome.storage.local.get(["settings", "blacklist"], data => {
 		wrapper.appendChild(p);
 		p.appendChild(document.createTextNode("There are no sites blacklisted!"));
 	}
+
+	// PRACTICE REMINDER
+	const practiceReminder = document.querySelector(".practice-reminder-time");
+	if (settings["notifications"]["practice_reminder"]) {
+		practiceReminder.classList.remove("disabled");
+		practiceReminder.value = settings["notifications"]["practice_reminder_timestamp"];
+	}
 });
 
 const blacklistEntry = (site) => {
@@ -117,6 +124,7 @@ const handleSettingsAction = (target, value, callback) => {
 		const group = settingsID[0];
 		const setting = settingsID[1];
 		settings[group][setting] = value;
+		console.log(settings);
 
 		await callback(group, setting);
 
@@ -169,22 +177,36 @@ document.addEventListener('click', async e => {
 									chrome.alarms.clear("next-reviews");
 								else {
 									chrome.runtime.connect();
+									chrome.storage.local.get(["reviews"], result => {
+										const date = setupReviewsAlarm(result["reviews"]);
+										if (date) {
+											const notif = new MessagePopup(document.body, "bottom");
+											notif.create(`You'll be reminded of your next review at ${date.toLocaleString()}`, "Review reminder set!");
+											setTimeout(() => notif.remove(), 3000);
+										}
+									});
 									//chrome.runtime.sendMessage({onDisconnect:"reload"}, () => window.chrome.runtime.lastError);
 								}
 								break;
 							case "practice_reminder":
-								const timeInput = document.getElementById("practice-reminder-time");
-								if (target.checked) {
-									if (timeInput.classList.contains("disabled"))
-										timeInput.classList.remove("disabled");
+								const timeInput = document.querySelector(".practice-reminder-time");
+								if (!target.checked) {
 									chrome.alarms.clear("practice");
-									chrome.runtime.connect();
+									if (!timeInput.classList.contains("disabled"))
+										timeInput.classList.remove("disabled");
+									//chrome.runtime.connect();
 									//chrome.runtime.sendMessage({onDisconnect:"reload"}, () => window.chrome.runtime.lastError);
 								}
 								else {
-									if (!timeInput.classList.contains("disabled"))
+									if (timeInput.classList.contains("disabled"))
 										timeInput.classList.add("disabled");
-									chrome.alarms.clear("practice");
+									const date = setupPracticeAlarm(timeInput.value);
+									console.log(date);
+									if (date) {
+										const notif = new MessagePopup(document.body, "bottom");
+										notif.create(`You'll be reminded to practice at ${date.toLocaleString()}`, "Practice reminder set!");
+										setTimeout(() => notif.remove(), 3000);
+									}
 								}
 								break;
 						}
@@ -274,6 +296,7 @@ document.addEventListener('input', e => {
 	const target = e.target;
 	
 	const type = target.getAttribute("type") || target.type;
+	console.log(type);
 
 	if (target.classList.contains("settingsItemInput")) {
 		// SELECT ACTIONS
@@ -350,6 +373,29 @@ document.addEventListener('input', e => {
 								break;
 						}
 					break;
+				}
+			});
+		}
+
+		// TIME
+		if (type === "time") {
+			console.log(target.value);
+			const value = target.value;
+			handleSettingsAction(target, value, (group, setting) => {
+				switch(group) {
+					case "notifications":
+						switch (setting) {
+							case "practice_reminder_timestamp":
+								chrome.alarms.clear("practice");
+								const date = setupPracticeAlarm(value);
+								if (date) {
+									const notif = new MessagePopup(document.body, "bottom");
+									notif.create(`You'll be reminded to practice at ${date.toLocaleString()}`, "Practice reminder set!");
+									setTimeout(() => notif.remove(), 3000);
+								}
+								break;
+						}
+						break;
 				}
 			});
 		}

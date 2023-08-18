@@ -31,13 +31,15 @@
 
 .bottom-popup > div:nth-child(2) {
     position: fixed;
-    bottom: 0;
+    bottom: -60px;
     height: 60px;
     z-index: 15;
     margin: auto;
-    width: 98%;
+    width: 100%;
     box-shadow: 0px 0px 6px -2px black;
     background-color: white;
+    left: 0;
+    transition: 0.3s;
 }
 
 .message-popup > div:nth-child(2) > div:nth-child(1), .bottom-popup > div:nth-child(2) > div:nth-child(1) {

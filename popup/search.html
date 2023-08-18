@@ -33,7 +33,7 @@
     <!-- PAGE CONTENT -->
     <div id="sec-page">
         <!-- SEARCH AREA -->
-        <div style="margin-top: 55px;" class="searchArea" title="Search subjects">
+        <div style="margin-top: 55px;" class="searchArea">
             <div class="searchMenu">
                 <div id="kanjiSearchInputWrapper" class="section textInputWrapper">
                     <img class="textInputIcon" src="../images/search.png">
@@ -43,11 +43,13 @@
                     </div>
                 </div>
                 <div id="searchResultNavbar">
-                    <!-- <div id="nmrKanjiFound"><span>Found <strong>0</strong> items<span></span></span></div> -->
                     <div class="searchResultNavbarOptionsWrapper" style="display: flex;">
+                        <div id="nmrKanjiFound"><span>0<span></span></span></div>
+                        <div class="searchOptionSeparator"></div>
                         <div class="searchResultNavbarTarget clickable" title="Precise Search"><img src="../images/target.png"></div>
+                        <div class="searchOptionSeparator"></div>
                         <ul style="display: flex;">
-                            <li class="searchResultNavbarOption clickable full_opacity" title="List" id="searchResultOptionlist"><img src="../images/list.png"></li>
+                            <li class="searchResultNavbarOption clickable" title="List" id="searchResultOptionlist"><img src="../images/list.png"></li>
                             <li class="searchResultNavbarOption clickable" title="Big Grid" id="searchResultOptionbig-grid"><img src="../images/big-grid.png"></li>
                             <li class="searchResultNavbarOption clickable" title="Small Grid" id="searchResultOptionsmall-grid"><img src="../images/small-grid.png"></li>
                         </ul>

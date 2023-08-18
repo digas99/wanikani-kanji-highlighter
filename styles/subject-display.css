@@ -454,7 +454,7 @@
 	margin-left: 7px;
 }
 
-.sd-detailsPopup_fail-audio-play {
+.fail-audio-play {
 	position: absolute;
     right: -5px;
     filter: invert(1);
@@ -466,7 +466,7 @@
     border-radius: 15px;
 }
 
-.sd-copiedMessage {
+.copiedMessage {
 	color: lightgray;
 	font-size: 12px;
 	margin-top: 4px;

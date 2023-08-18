@@ -222,6 +222,7 @@ tabs.onActivated.addListener(activeInfo => {
 });
 
 chrome.webNavigation.onDOMContentLoaded.addListener(details => {
+	console.log("DOM loaded", details);
 	thisTabId = details.tabId;
 	const url = details.url;
 	if (thisTabId && url) {
@@ -349,15 +350,7 @@ const contextMenuItem = {
 	contexts: ["selection"]
 };
 
-chrome.storage.local.get("context_menus", result => {
-	const menus = result["context_menus"] || [];
-	if (!menus.includes(contextMenuItem.id)) {
-		chrome.contextMenus.create(contextMenuItem, () => {
-			menus.push(contextMenuItem.id);
-			chrome.storage.local.set({"context_menus": menus});
-		});
-	}
-});
+chrome.contextMenus.create(contextMenuItem);
 
 chrome.contextMenus.onClicked.addListener(data => {
 	let selectedText = data["selectionText"];
@@ -380,44 +373,6 @@ chrome.contextMenus.onClicked.addListener(data => {
 	}
 });
 
-const setNextReviewsBundle = next_reviews => {
-	const next_revs_dates = next_reviews.map(review => new Date(review["available_at"]));
-	const next_date = new Date(Math.min.apply(null, next_revs_dates));
-	const next_revs = filterAssignmentsByTime(next_reviews, new Date(), next_date);
-
-	chrome.storage.local.set({"next-reviews-bundle":next_revs});
-
-	return {
-		date: next_date,
-		reviews: next_revs
-	}
-}
-
-const setupReviewsAlarm = reviews => {
-	if (reviews && reviews["next_reviews"]) {
-		const next_date = setNextReviewsBundle(reviews["next_reviews"])["date"];
-		if (next_date) {
-			// create alarm for the time of the next reviews
-			chrome.alarms.create("next-reviews", {
-				when: next_date.getTime()
-			});
-		}
-	}
-}
-
-const setupPracticeAlarm = time => {
-	time = time?.split(":");
-	if (time?.length === 2) {
-		let date = new Date(setExactHour(new Date(), time[0]).getTime() + time[1]*60000);
-		if (date?.getTime() <= new Date().getTime()) date = changeDay(date, 1);
-		if (date) {
-			chrome.alarms.create("practice", {
-				when: date.getTime()
-			});
-		}
-	}
-}
-
 chrome.storage.local.get(["settings"], result => {
 	const settings = result["settings"];
 	if (settings) {
@@ -428,7 +383,7 @@ chrome.storage.local.get(["settings"], result => {
 				chrome.storage.local.get(["reviews"], result => setupReviewsAlarm(result["reviews"]));
 
 			if (alarms.filter(alarm => alarm.name === 'practice').length == 0 && settings["notifications"]["practice_reminder"])
-				chrome.storage.local.get(["practice_timestamp"], result => setupPracticeAlarm(result["practice_timestamp"]));
+				chrome.storage.local.get(["practice_reminder_timestamp"], result => setupPracticeAlarm(result["practice_reminder_timestamp"]));
 		});
 	}
 });
@@ -463,9 +418,6 @@ chrome.alarms.onAlarm.addListener(alarm => {
 						iconUrl: "../logo/logo.png"
 					});
 				}
-	
-				// setup new alarm
-				setupPracticeAlarm(result["practice_timestamp"]);
 			});
 		});
 	}

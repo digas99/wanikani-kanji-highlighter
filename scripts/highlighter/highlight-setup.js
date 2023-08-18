@@ -110,35 +110,28 @@
 				}
 			}
 	
-	
-			// youtube temporary fix
-			/*window.addEventListener('yt-page-data-updated', () => {
-				if (totalHighlighted > 0)
-					window.location.reload();
-			});*/
-	
 			// soomther youtube temporary fix
 			// Select the video element
 			const videoElement = document.querySelector('#movie_player video');
-	
-			// Create a new MutationObserver
-			const observer = new MutationObserver(function(mutationsList) {
-				for (const mutation of mutationsList) {
-				console.log(mutation);
-					if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
-						// if in between videos, reload page
-						if (mutation.target.src == "" && totalHighlighted > 0) {
-						window.location.reload();	
+			if (videoElement) {
+				// Create a new MutationObserver
+				const observer = new MutationObserver(function(mutationsList) {
+					for (const mutation of mutationsList) {
+						if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+							// if in between videos, reload page
+							if (mutation.target.src == "" && totalHighlighted > 0) {
+							window.location.reload();	
+							}
 						}
 					}
-				}
-			});
-	
-			// Configure the observer to watch for changes to the 'src' attribute
-			const config = { attributes: true, attributeFilter: ['src'] };
-	
-			// Start observing the video element
-			observer.observe(videoElement, config);
+				});
+		
+				// Configure the observer to watch for changes to the 'src' attribute
+				const config = { attributes: true, attributeFilter: ['src'] };
+		
+				// Start observing the video element
+				observer.observe(videoElement, config);
+			}
 		}
 		else {
 			chrome.runtime.sendMessage({uptimeHighlight:false});

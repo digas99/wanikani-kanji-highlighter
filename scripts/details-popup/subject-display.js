@@ -1100,29 +1100,5 @@
 		return stats;
 	}
 
-	const playSubjectAudio = (audioList, wrapper) => {
-		if (audioList && audioList.length > 0) {
-			const audio = new Audio();
-			audio.src = audioList[Math.floor(Math.random() * audioList.length)].url;
-			const play = audio.play();
-			if (play !== undefined) {
-				play.then(() => console.log("Audio played"))
-				.catch(e => {
-					let failAudioPlay;
-					if (wrapper.getElementsByClassName("sd-detailsPopup_fail-audio-play").length == 0) {
-						wrapper.getElementsByClassName("sd-detailsPopup_fail-audio-play");
-						failAudioPlay = document.createElement("div");
-						wrapper.appendChild(failAudioPlay);
-						failAudioPlay.classList.add("sd-detailsPopup_fail-audio-play");
-						failAudioPlay.appendChild(document.createTextNode("Could not play audio"));
-						console.log("Could not play audio!");
-					}
-
-					wrapper.addEventListener("mouseout", () => failAudioPlay.remove());
-				});
-			}
-		}
-	}
-
 	window.SubjectDisplay = SubjectDisplay;
 }());

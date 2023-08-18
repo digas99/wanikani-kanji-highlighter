@@ -1,3 +1,7 @@
+html {
+    min-height: unset !important;
+}
+
 body {
     padding-right: unset !important;
 }
@@ -37,7 +41,7 @@ body {
 }
 
 #apiKeyInput, #apiKeyInputWrapper {
-    background-color: #eee;
+    background-color: var(--body-color);
 }
 
 #submit {

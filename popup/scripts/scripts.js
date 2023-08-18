@@ -64,14 +64,13 @@ window.onscroll = () => {
 			const arrow = document.createElement("i");
 			goTop.appendChild(arrow);
 			arrow.classList.add("up");
-			goTop.style.top = "0";
-			setTimeout(() => goTop.style.top = "56px", 200);
+			setTimeout(() => goTop.style.right = "7px", 200);
 			goTop.addEventListener("click", () => window.scrollTo(0,0));
 		}
 	}
 	else {
 		if (goTop) {
-			goTop.style.top = "0px";
+			goTop.style.removeProperty("right");
 			setTimeout(() => goTop.remove(), 200);
 		}
 	}

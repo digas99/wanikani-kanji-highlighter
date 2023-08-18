@@ -1,6 +1,6 @@
 const reviewsList = document.querySelector("#reviewsList");
 const reviewsChart = document.querySelector("#reviewsChart");
-let db, list;
+let db;
 
 let popupLoading;
 if (!messagePopup) {
@@ -9,14 +9,34 @@ if (!messagePopup) {
 	popupLoading.setLoading();
 }
 
+let list = new TilesList(
+	reviewsList,
+	[],
+	{
+		title: `<b>0</b> Reviews available right now!`,
+		height: 250,
+		bars: {
+			labels: true
+		},
+		sections: {
+			fillWidth: false,
+			join: false,
+			notFound: "No reviews found. You're all caught up!"
+		}
+	}
+);
+
 chrome.storage.local.get(["reviews"], async result => {
 	const {count, data, next_reviews} = result["reviews"];
 	
+	list.updateTitle(`<b>${count}</b> Reviews available right now!`);
+
 	db = new Database("wanikani");
 	const opened = await db.open("subjects");
 	if (opened) {
 		const reviews = data.filter(review => review && !review["hidden_at"])
 			.map(review => ({"srs_stage":review["data"]["srs_stage"], "subject_id":review["data"]["subject_id"], "subject_type":review["data"]["subject_type"]}));
+		
 
 		const sections = await Promise.all(Object.keys(srsStages).map(async srsId => {
 			const srs = parseInt(srsId);
@@ -35,23 +55,8 @@ chrome.storage.local.get(["reviews"], async result => {
 				} 
 			};
 		}));
-		
-		list = new TilesList(
-			reviewsList,
-			sections,
-			{
-				title: `<b>${count}</b> Reviews available right now!`,
-				height: 250,
-				bars: {
-					labels: true
-				},
-				sections: {
-					fillWidth: false,
-					join: false,
-					notFound: "No reviews found. You're all caught up!"
-				}
-			}
-		);
+
+		list.update(sections);
 
 		if (popupLoading) popupLoading.remove();
 	}

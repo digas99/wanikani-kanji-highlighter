@@ -219,17 +219,5 @@
 		return joinedSection;
 	}
 
-	const notFound = (title) => {
-		const wrapper = document.createElement("div");
-		wrapper.classList.add("not-found");
-		const kanji = document.createElement("p");
-		wrapper.appendChild(kanji);
-		kanji.appendChild(document.createTextNode("金"));
-		const text = document.createElement("p");
-		wrapper.appendChild(text);
-		text.appendChild(document.createTextNode(title));
-		return wrapper;
-	}
-
 	window.TilesList = TilesList;
 }());

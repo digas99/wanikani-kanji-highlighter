@@ -11,20 +11,8 @@ chrome.storage.local.get(["apiKey"], async result => {
 	apiKeyWrapper.innerText = apiKey;
 
 	// COPY API KEY
-	const copyToClipboard = document.querySelector(".api-key img[alt='copy']");
-	copyToClipboard.addEventListener("click", async () => {
-		if (window.navigator.clipboard) {
-			await window.navigator.clipboard.writeText(apiKey);
-			Array.from(document.getElementsByClassName("copiedMessage")).forEach(elem => elem.remove());
-			const copiedMessage = document.createElement("div");
-			copyToClipboard.parentElement.appendChild(copiedMessage);
-			copiedMessage.appendChild(document.createTextNode("Copied!"));
-			copiedMessage.classList.add("copiedMessage");
-			copiedMessage.style.color = "gray";
-			copiedMessage.style.fontSize = "12px";
-			setTimeout(() => copiedMessage.remove(), 1500);
-		}
-	});
+	const copyToClip = document.querySelector(".api-key img[alt='copy']");
+	copyToClip.addEventListener("click", async () => await copyToClipboard(apiKey, copyToClip));
 	
 	// CHANGELOG
 	const changelogWrapper = document.querySelector(".changelog");

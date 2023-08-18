@@ -7,7 +7,25 @@ if (!messagePopup) {
 	popupLoading.setLoading();
 }
 
-let db, list;
+let db;
+
+let list = new TilesList(
+	lessonsList,
+	[],
+	{
+		title: `<b>0</b> Lessons available right now!`,
+		height: 500,
+		bars: {
+			labels: true
+		},
+		sections: {
+			fillWidth: false,
+			join: false,
+			notFound: "No lessons found. You're all caught up!"
+		}
+	}
+);
+
 chrome.storage.local.get(["lessons"], async result => {
 	db = new Database("wanikani");
 	const opened = await db.open("subjects");
@@ -15,6 +33,8 @@ chrome.storage.local.get(["lessons"], async result => {
 		const {count, data} = result["lessons"];
 		const lessons = data.map(assignment => assignment["data"])
 			.map(assignment => ({"srs_stage":assignment["srs_stage"], "subject_id":assignment["subject_id"], "subject_type":assignment["subject_type"]}));
+		
+		list.updateTitle(`<b>${count}</b> Lessons available right now!`);
 
 		const sections = await Promise.all(["radical", "kanji", "vocabulary"].map(async type => {
 			const srsLessons = lessons.filter(lesson => lesson["subject_type"].includes(type) && !lesson["hidden_at"]);
@@ -31,23 +51,8 @@ chrome.storage.local.get(["lessons"], async result => {
 				} 
 			};
 		}));
-		
-		list = new TilesList(
-			lessonsList,
-			sections,
-			{
-				title: `<b>${count}</b> Lessons available right now!`,
-				height: 500,
-				bars: {
-					labels: true
-				},
-				sections: {
-					fillWidth: false,
-					join: false,
-					notFound: "No lessons found. You're all caught up!"
-				}
-			}
-		);
+
+		list.update(sections);
 
 		if (popupLoading) popupLoading.remove();
 	}

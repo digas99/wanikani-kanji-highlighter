@@ -31,6 +31,9 @@
 			this.subtextNode.classList.add("subtext");
 			if (subtext)
 				this.subtextNode.innerText = subtext;
+
+			if (this.style === 'bottom')
+				setTimeout(() => this.textWrapper.style.bottom = "0", 200);
 		},
 
 		// update text
@@ -40,8 +43,17 @@
 		},
 
 		// remove popup
-		remove: function() {
-			this.wrapper.remove();
+		remove: async function() {
+			if (this.style === 'bottom') {
+				this.textWrapper.style.bottom = "-60px";
+				await new Promise(resolve => setTimeout(() => {
+					this.wrapper.remove();
+					resolve();
+				}, 400));
+			}
+			else
+				this.wrapper.remove();
+			
 			this.wrapper = null;
 			this.textWrapper = null;
 			this.textNode = null;

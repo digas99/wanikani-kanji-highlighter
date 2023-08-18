@@ -328,6 +328,7 @@ const setupVocab = (vocabs, assocs, records, vocab) => {
 		"id":vocab.id,
 		"subject_type":vocab.object,
 		"hidden_at":data.hidden_at,
+		"pronunciation_audios" : data.pronunciation_audios,
 		"srs_stage" : -1,
 		"hidden" : null,
 		"passed_at" : null,
@@ -361,6 +362,7 @@ const setupKanaVocab = (vocabs, assocs, records, vocab) => {
 		"id":vocab.id,
 		"subject_type":vocab.object,
 		"hidden_at":data.hidden_at,
+		"pronunciation_audios" : data.pronunciation_audios,
 		"srs_stage" : -1,
 		"hidden" : null,
 		"passed_at" : null,
@@ -1021,4 +1023,97 @@ const levelUpMarker = numberKanji => {
 	}
 	levelupMarker.style.width = final/numberKanji*100+"%";
 	return levelupMarkerWrapper;
+}
+
+const notFound = (title) => {
+	const wrapper = document.createElement("div");
+	wrapper.classList.add("not-found");
+	const kanji = document.createElement("p");
+	wrapper.appendChild(kanji);
+	kanji.appendChild(document.createTextNode("金"));
+	const text = document.createElement("p");
+	wrapper.appendChild(text);
+	text.appendChild(document.createTextNode(title));
+	return wrapper;
+}
+
+
+const setupReviewsAlarm = reviews => {
+	if (reviews && reviews["next_reviews"]) {
+		const next_date = setNextReviewsBundle(reviews["next_reviews"])["date"];
+		if (next_date) {
+			// create alarm for the time of the next reviews
+			chrome.alarms.create("next-reviews", {
+				when: next_date.getTime()
+			});
+			return next_date;
+		}
+	}
+}
+
+const setupPracticeAlarm = time => {
+	time = time?.split(":");
+	if (time?.length === 2) {
+		let date = new Date(setExactHour(new Date(), time[0]).getTime() + time[1]*60000);
+		if (date?.getTime() <= new Date().getTime()) date = changeDay(date, 1);
+		if (date) {
+			chrome.alarms.create("practice", {
+				when: date.getTime(),
+				periodInMinutes: 1440
+			});
+			console.log("[PRACTICE]: Alarm set for", date);
+			return date;
+		}
+	}
+}
+
+const setNextReviewsBundle = next_reviews => {
+	const next_revs_dates = next_reviews.map(review => new Date(review["available_at"]));
+	const next_date = new Date(Math.min.apply(null, next_revs_dates));
+	const next_revs = filterAssignmentsByTime(next_reviews, new Date(), next_date);
+
+	chrome.storage.local.set({"next-reviews-bundle":next_revs});
+
+	return {
+		date: next_date,
+		reviews: next_revs
+	}
+}
+
+const playSubjectAudio = (audioList, wrapper) => {
+	if (audioList && audioList.length > 0) {
+		const audio = new Audio();
+		audio.src = audioList[Math.floor(Math.random() * audioList.length)].url;
+		const play = audio.play();
+		if (play !== undefined) {
+			play.then(() => console.log("Audio played"))
+			.catch(e => {
+				let failAudioPlay;
+				if (wrapper.getElementsByClassName("fail-audio-play").length == 0) {
+					wrapper.getElementsByClassName("fail-audio-play");
+					failAudioPlay = document.createElement("div");
+					wrapper.appendChild(failAudioPlay);
+					failAudioPlay.classList.add("fail-audio-play");
+					failAudioPlay.appendChild(document.createTextNode("Could not play audio"));
+					console.log("Could not play audio!");
+
+					setTimeout(() => failAudioPlay.remove(), 1500);
+				}
+			});
+		}
+	}
+}
+
+const copyToClipboard = async (text, wrapper) => {
+	if (window.navigator.clipboard) {
+		await window.navigator.clipboard.writeText(text);
+		Array.from(document.getElementsByClassName("copiedMessage")).forEach(elem => elem.remove());
+		const copiedMessage = document.createElement("div");
+		wrapper.parentElement.appendChild(copiedMessage);
+		copiedMessage.appendChild(document.createTextNode("Copied!"));
+		copiedMessage.classList.add("copiedMessage");
+		copiedMessage.style.color = "gray";
+		copiedMessage.style.fontSize = "12px";
+		setTimeout(() => copiedMessage.remove(), 1500);
+	}
 }

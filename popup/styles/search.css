@@ -10,7 +10,7 @@
     position: fixed;
     top: 50px;
     z-index: 10;
-    background-color: #eee;
+    background-color: var(--body-color);
     width: 416px;
     left: 0;
     padding: 10px;
@@ -107,18 +107,13 @@
 	display: flex;
     padding: 10px 0px;
 	transition: 0.2s;
-	cursor: pointer;
 	position: relative;
     margin: 2px 3px;
 	text-align: left;
 	color: white;
 	background-color: var(--default-color);
 	border-bottom-right-radius: 10px;
-}
-
-.searchResultItemLine:hover {
-	background-color: #e3e1e1 !important;
-    border-radius: 10px !important; 
+	min-height: 100px;
 }
 
 .searchResultItemLine span {
@@ -148,11 +143,7 @@
 .searchResultItem {
     font-size: 35px;
     padding-right: 0px !important;
-}
-
-.searchResultItem:hover {
-	opacity: 0.6;
-	font-weight: 900;
+    margin-left: 5px;
 }
 
 .searchResultVocab {
@@ -193,15 +184,36 @@
     margin: 0 7px;
 	pointer-events: none;
 	color: black;
+	min-height: 45px;
 }
 
 .searchResultItemType {
-	bottom: 0px;
+	top: 0px;
     right: 0px;
     position: absolute;
     padding: 0 !important;
     border-bottom-right-radius: 6px;
+	height: 100%;
+	width: 45px;
+    display: flex;
+    flex-direction: column;
+	text-align: center;
+	background-color: var(--default-color);
 }
+
+.searchResultItemType > div {
+	padding: 5px;
+}
+
+.searchResultItemType > div:not(:last-child) {
+	border-bottom: 1px solid #a3a3a3;
+}
+
+.searchResultItemType img {
+	width: 17px;
+	filter: invert(1);
+}
+
 
 .searchResultItemType-normal {
     width: 20px;
@@ -251,16 +263,19 @@
 }
 
 .searchResultNavbarTarget {
-	border-right: 1px solid silver;
-    margin-right: 7px;
-    padding-right: 9px;
 	opacity: 0.5;
+}
+
+.searchOptionSeparator {
+	margin: 5px 8px;
+    width: 2px;
+    background-color: silver;
 }
 
 #nmrKanjiFound { 
 	width: 100%;
 	margin: auto;
-	font-size: 13px;
+	font-size: 14px;
 }
 
 #nmrKanjiFound > span {
@@ -270,7 +285,6 @@
 .loadMore {
 	padding: 10px;
     border: 1px solid silver;
-    border-radius: 6px;
     background-color: var(--default-color);
     color: white;
 }
