@@ -350,6 +350,7 @@
 	display: inline-block;
     text-align: center;
 	background-color: white;
+	min-width: 90px;
 }
 
 .sd-detailsPopup_cardRow a {

@@ -91,6 +91,7 @@ if (urlParams.get('type'))
 const searchSubject = (kanji, vocabulary, input, searchType, targeted, display) => {
     let searchResultUL = document.getElementById("searchResultItemWrapper");
 	if (searchResultUL) searchResultUL.innerHTML = "";
+    Array.from(document.querySelectorAll(".loadMore")).forEach(elem => elem.remove());
     
 	if (!document.getElementById("searchResultWrapper")) {
 		const searchResultWrapper = document.createElement("div");
