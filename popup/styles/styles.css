@@ -218,7 +218,7 @@ i {
 	display: block;
 }
 
-.simple-grid > ul > li {
+.simple-grid > ul li {
     padding: 2px 6px;
     display: inline-block;
 	margin: 2px;
@@ -372,4 +372,20 @@ i {
 	color: lightgray;
 	font-size: 12px;
 	margin-top: 4px;
+}
+
+.justify-list {
+	display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 0;
+    list-style-type: none;
+    margin: 0;
+	position: relative;
+}
+
+.justify-list > li{
+	flex-grow: 1;
+	text-align: center;
+	justify-content: center;
 }

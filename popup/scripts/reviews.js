@@ -52,7 +52,8 @@ chrome.storage.local.get(["reviews"], async result => {
 				callbacks: {
 					item: (elem, value) => dataTile(subjects, elem, value),
 					section: (wrapper, title, content) => headerSRSDecoration(title, srs)
-				} 
+				},
+				justify: true
 			};
 		}));
 

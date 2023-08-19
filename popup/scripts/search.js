@@ -89,12 +89,9 @@ if (urlParams.get('type'))
     changeInput(document.querySelector("#kanjiSearchInputWrapper"), urlParams.get('type'));
 
 const searchSubject = (kanji, vocabulary, input, searchType, targeted, display) => {
-    let wrapper = document.getElementById("searchResultItemWrapper");
-	if (wrapper) wrapper.remove();
-
-	const searchResultUL = document.createElement("ul");
-	searchResultUL.id = "searchResultItemWrapper";
-
+    let searchResultUL = document.getElementById("searchResultItemWrapper");
+	if (searchResultUL) searchResultUL.innerHTML = "";
+    
 	if (!document.getElementById("searchResultWrapper")) {
 		const searchResultWrapper = document.createElement("div");
 		searchResultWrapper.id = "searchResultWrapper";
@@ -173,7 +170,7 @@ const searchSubject = (kanji, vocabulary, input, searchType, targeted, display) 
     displayResults(searchResultUL, filteredContent, index, index+offset, display);
 
     // add load more button
-    loadMoreButton(index, offset, searchResultUL, filteredContent, display);
+    loadMoreButton(index, offset, searchResultUL.parentElement, filteredContent, display);
 
     if (filteredContent.length == 0) {
         const searchWrapper = document.querySelector("#searchResultItemWrapper");
@@ -224,6 +221,10 @@ const matchesReadings = (input, readings, precise) => {
 }
 
 const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
+    unjustifyLastRow(wrapper);
+    if (display == "searchResultOptionbig-grid")
+        wrapper.classList.add("justify-list");
+
     for (let index = lowerIndex; index < upperIndex && index < results.length; index++) {
         const data = results[index];
         let type = data["subject_type"];
@@ -241,11 +242,13 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
             li.style.borderLeft = `4px solid var(--${srsStages[data["srs_stage"]]["short"].toLowerCase()}-color)`;
             li.title = srsStages[data["srs_stage"]]["name"];
         }
+        else {
+            li.style.borderLeft = "4px solid white";
+            li.title = "Locked";
+        }
 
         const dataWrapper = document.createElement("div");
         li.appendChild(dataWrapper);
-        dataWrapper.style.width = "100%";
-        dataWrapper.style.cursor = "pointer";
         dataWrapper.setAttribute('data-item-id', data["id"]);
         dataWrapper.classList.add("kanjiDetails");
         const itemSpan = document.createElement("span");
@@ -253,6 +256,10 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
 
         dataWrapper.appendChild(itemSpan);
         itemSpan.appendChild(document.createTextNode(chars));
+
+        const itemInfoType = document.createElement("div");
+        itemInfoType.classList.add("searchResultType");
+        dataWrapper.appendChild(itemInfoType);
 
         const itemInfoWrapper = document.createElement("div");
         itemInfoWrapper.classList.add("searchResultItemInfo");
@@ -292,64 +299,58 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
             type = "vocabulary";
         }
 
-        if (display == "searchResultOptionlist") {
-            // subject type
-            const subjectType = document.createElement("div");
-            li.appendChild(subjectType);
-            subjectType.classList.add("searchResultItemType");
-            // audio icon
-            const audioWrapper = document.createElement("div");
-            subjectType.appendChild(audioWrapper);
-            if (data["pronunciation_audios"]) {
-                audioWrapper.classList.add("clickable");
-                audioWrapper.title = "Play audio";
-                audioWrapper.addEventListener("click", () => playSubjectAudio(data["pronunciation_audios"], audioWrapper));
-            }
-            else {
-                audioWrapper.classList.add("disabled");
-                audioWrapper.title = "No audio available";
-            }
-            const audio = document.createElement("img");
-            audioWrapper.appendChild(audio);
-            audio.src = chrome.runtime.getURL("/images/volume.png");
-            // copy icon
-            const copyWrapper = document.createElement("div");
-            subjectType.appendChild(copyWrapper);
-            copyWrapper.classList.add("clickable");
-            copyWrapper.title = "Copy";
-            const copy = document.createElement("img");
-            copyWrapper.addEventListener("click", () => copyToClipboard(chars, copy)); 
-            copyWrapper.appendChild(copy);
-            copy.src = chrome.runtime.getURL("/images/copy.png");
-            // srs stage
-            if (data["srs_stage"] != undefined) {
-                const srsStage = document.createElement("div");
-                subjectType.appendChild(srsStage);
-                const srsStageText = document.createElement("span");
-                srsStage.appendChild(srsStageText);
-                srsStageText.appendChild(document.createTextNode(data["srs_stage"] >= 0 ? srsStages[data["srs_stage"]]["short"] : "Lkd"));
-                if (data["srs_stage"] >= 0)
-                    srsStageText.style.color = `var(--${srsStages[data["srs_stage"]]["short"].toLowerCase()}-color)`;
-            }
-            // level
-            if (data["level"]) {
-                const levelWrapper = document.createElement("div");
-                subjectType.appendChild(levelWrapper);
-                const levelText = document.createElement("span");
-                levelWrapper.appendChild(levelText);
-                levelText.appendChild(document.createTextNode(data["level"]));
-            }
+        itemInfoType.appendChild(document.createTextNode(type.charAt(0).toUpperCase()+type.slice(1).replaceAll("_", " ")));
+
+        // subject type
+        const subjectType = document.createElement("div");
+        li.appendChild(subjectType);
+        subjectType.classList.add("searchResultItemType");
+        // audio icon
+        const audioWrapper = document.createElement("div");
+        subjectType.appendChild(audioWrapper);
+        if (data["pronunciation_audios"]) {
+            audioWrapper.classList.add("clickable");
+            audioWrapper.title = "Play audio";
+            audioWrapper.addEventListener("click", () => playSubjectAudio(data["pronunciation_audios"], audioWrapper));
+        }
+        else {
+            audioWrapper.classList.add("disabled");
+            audioWrapper.title = "No audio available";
+        }
+        const audio = document.createElement("img");
+        audioWrapper.appendChild(audio);
+        audio.src = chrome.runtime.getURL("/images/volume.png");
+        // copy icon
+        const copyWrapper = document.createElement("div");
+        subjectType.appendChild(copyWrapper);
+        copyWrapper.classList.add("clickable");
+        copyWrapper.title = "Copy";
+        const copy = document.createElement("img");
+        copyWrapper.addEventListener("click", () => copyToClipboard(chars, copy)); 
+        copyWrapper.appendChild(copy);
+        copy.src = chrome.runtime.getURL("/images/copy.png");
+        // srs stage
+        if (data["srs_stage"] != undefined) {
+            const srsStage = document.createElement("div");
+            subjectType.appendChild(srsStage);
+            const srsStageText = document.createElement("span");
+            srsStage.appendChild(srsStageText);
+            srsStageText.appendChild(document.createTextNode(data["srs_stage"] >= 0 ? srsStages[data["srs_stage"]]["short"] : "Lkd"));
+            if (data["srs_stage"] >= 0)
+                srsStageText.style.color = `var(--${srsStages[data["srs_stage"]]["short"].toLowerCase()}-color)`;
+        }
+        // level
+        if (data["level"]) {
+            const levelWrapper = document.createElement("div");
+            subjectType.appendChild(levelWrapper);
+            const levelText = document.createElement("span");
+            levelWrapper.appendChild(levelText);
+            levelText.appendChild(document.createTextNode(data["level"]));
         }
         
         // if it is not in list type
-        if (display != "searchResultOptionlist") {
-            if (display == "searchResultOptionbig-grid") {
-                li.classList.add("searchResultItemSquare");
-            }
-            else if (display == "searchResultOptionsmall-grid") {
-                li.classList.add("searchResultItemSquareSmall");
-            }
-            itemInfoWrapper.style.display = "none";
+        if (display == "searchResultOptionbig-grid") {
+            li.classList.add("searchResultItemSquare");
         }
     }
 }
@@ -362,7 +363,7 @@ const loadMoreButton = (index, offset, searchResultsWrapper, content, display) =
         loadMore.appendChild(document.createTextNode("Load more..."));
         index += offset;
         loadMore.addEventListener("click", () => {
-            displayResults(searchResultsWrapper, content, index, index+offset, display);
+            displayResults(searchResultsWrapper.querySelector("ul"), content, index, index+offset, display);
             loadMore.remove();
             
             loadMoreButton(index, offset, searchResultsWrapper, content, display);
@@ -389,26 +390,32 @@ document.addEventListener("click", e => {
 		const removeSquareClasses = elem => {
 			const classes = elem.classList;
 			if (classes.contains("searchResultItemSquare")) classes.remove("searchResultItemSquare");
-			if (classes.contains("searchResultItemSquareSmall")) classes.remove("searchResultItemSquareSmall");
 		}
 
-		if (["searchResultOptionbig-grid", "searchResultOptionsmall-grid"].includes(target.id)) {
+        const wrapper = document.querySelector("#searchResultItemWrapper");
+        // clicked in the grid option
+		if (target.id == "searchResultOptionbig-grid") {
 			Array.from(document.getElementsByClassName("searchResultItemInfo")).forEach(elem => {
-				const parent = elem.parentElement;
+				const parent = elem.parentElement.parentElement;
 				removeSquareClasses(parent);
-				parent.classList.add(target.id == "searchResultOptionbig-grid" ? "searchResultItemSquare" : "searchResultItemSquareSmall");
+				parent.classList.add("searchResultItemSquare");
 				elem.style.display = "none";
 			});
 			
-			const newClass = target.id === "searchResultOptionbig-grid" ? "searchResultItemType-small" : "searchResultItemType-tiny"; 
+			const newClass = "searchResultItemType-small";
 			Array.from(document.getElementsByClassName("searchResultItemType")).forEach(elem => elem.classList.replace(elem.classList[2], newClass));
+
+            wrapper.classList.add("justify-list");
 		}
+        // clicked in the list option
 		else {
 			Array.from(document.getElementsByClassName("searchResultItemLine")).forEach(elem => {
 				elem.getElementsByClassName("searchResultItemInfo")[0].style.display = "grid";
 				removeSquareClasses(elem);
 			});
 			Array.from(document.getElementsByClassName("searchResultItemType")).forEach(elem => elem.classList.replace(elem.classList[2], "searchResultItemType-normal"));
+
+            wrapper.classList.remove("justify-list");
 		}
 	}
 

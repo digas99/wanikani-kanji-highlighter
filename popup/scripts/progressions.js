@@ -64,7 +64,7 @@ if (srsStage != null && srsStage >= -1 && srsStage <= 9) {
 							item: (elem, value) => dataTile(subjects, elem, value),
 							section: (wrapper, title, content) => headerSubjectDecoration(title, type)
 						},
-						fillWidth: !type.includes("vocab")
+						justify: type.includes("vocab")
 					};
 				}));
 	
@@ -92,12 +92,12 @@ if (level != null && level >= 1 && level <= 60 && subjectType != null && ["radic
 				[],
 				{
 					title: `<b>0</b> Subjects on <b>Level ${level}</b>`,
-					height: 500,
+					height: 480,
 					bars: {
 						labels: true
 					},
 					sections: {
-						fillWidth: false,
+						fillWidth: true,
 						join: false,
 						notFound: "No subjects found in this Level."
 					}
@@ -126,7 +126,8 @@ if (level != null && level >= 1 && level <= 60 && subjectType != null && ["radic
 					callbacks: {
 						item: (elem, value) => dataTile(subjects, elem, value),
 						section: (wrapper, title, content) => headerSRSDecoration(title, srs < 5 ? srs : 8)
-					}
+					},
+					justify: subjectType.includes("vocab")
 				};
 			}));
 

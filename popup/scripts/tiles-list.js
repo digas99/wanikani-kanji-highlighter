@@ -53,14 +53,6 @@
 			else
 				this.sections.forEach(s => this.list.appendChild(section(s)));
 
-			// make tiles fill entire width
-			if (this.options.sections.fillWidth) {
-				Array.from(this.list.querySelectorAll("ul")).forEach(ul => {
-					if (ul.dataset.fillWidth != "false")
-						ul.classList.add("fill-width");
-				});
-			}
-
 			// add bars
 			if (this.options.bars)
 				this.setBar();
@@ -165,7 +157,7 @@
 	}
 
 	const section = (section_data) => {
-		const {title, data, color, callbacks, fillWidth} = section_data;
+		const {title, data, color, callbacks, justify} = section_data;
 		
 		if (data.length == 0)
 			return new DocumentFragment();
@@ -185,9 +177,16 @@
 		arrow.classList.add("up", "tiles-list-section-arrow");
 		const sectionContent = document.createElement("ul");
 		section.appendChild(sectionContent);
-		if (fillWidth == false)
-			sectionContent.setAttribute("data-fill-width", false);
+		if (justify == true)
+			sectionContent.classList.add("justify-list");
+		else if (data.every(item => item.length == 1 || item.includes("<img")))
+			sectionContent.classList.add("fill-width");
+		
 		data.forEach(item => sectionContent.appendChild(tile(item, color, callbacks?.item)));
+
+		if (!sectionContent.classList.contains("fill-width")) {
+			unjustifyLastRow(sectionContent);
+		}
 
 		// title click
 		sectionTitle.addEventListener("click", e => {
@@ -221,3 +220,20 @@
 
 	window.TilesList = TilesList;
 }());
+
+// Public methods
+
+const isLastRow = (list, tile) => {
+	const distanceToTop = tile.offsetTop + tile.offsetHeight + Number(getComputedStyle(tile)["margin-bottom"].replace("px", ""));
+	return distanceToTop + tile.offsetHeight > list.offsetHeight;
+}
+
+const unjustifyLastRow = list => {
+	// use timeout to wait for tiles to be rendered
+	setTimeout(() => {
+		const lastRowTiles = Array.from(list.children).filter(tile => isLastRow(list, tile));
+		const newWrapper = document.createElement("div");
+		list.appendChild(newWrapper);
+		lastRowTiles.forEach(tile => newWrapper.appendChild(tile));
+	});
+}

@@ -168,7 +168,7 @@ const kanjiListUpdate = (learned, notLearned, kanjiAssoc) => {
 			data: learned,
 			callbacks: {
 				item: itemCallback
-			}
+			},
 		},
 		{
 			title: "Not learned",
@@ -176,7 +176,7 @@ const kanjiListUpdate = (learned, notLearned, kanjiAssoc) => {
 			data: notLearned,
 			callbacks: {
 				item: itemCallback
-			}
+			},
 		}
 	]);
 }

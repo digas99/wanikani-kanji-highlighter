@@ -14,6 +14,7 @@
 - Loading data from Wanikani is now also being done from the extension Popup (no need to browse a web page)
 - Progression Bar, Progression Stats and Levels in Progress now show a list of all the related subjects when clicked
 - Improved interface in general
+- Lists of subject tiles are now justified to fill the entire width
 
 ## Data
 - Added new Kana Vocabulary from Wanikani

@@ -105,7 +105,6 @@
 
 .searchResultItemLine {
 	display: flex;
-    padding: 10px 0px;
 	transition: 0.2s;
 	position: relative;
     margin: 2px 3px;
@@ -116,34 +115,46 @@
 	min-height: 100px;
 }
 
+.searchResultItemLine .kanjiDetails {
+	display: flex;
+    width: 364px;
+    cursor: pointer;
+    flex-direction: column;
+}
+
 .searchResultItemLine span {
 	padding: 0px 4px;
 	
 }
 
-.searchResultItemSquare,
-.searchResultItemSquareSmall {
+.searchResultItemSquare {
 	display: inline-flex !important;
-	padding: 0px;
+	padding: 7px !important;
+	min-height: unset !important;
 }
 
-.searchResultItemSquare > span,
-.searchResultItemSquareSmall > span {
-	padding: 4px !important;
+.searchResultItemSquare > div {
+	width: unset !important;
 }
 
-.searchResultItemSquare > span {
-	font-size: 42px !important;
-}
-
-.searchResultItemSquareSmall > span {
-	font-size: 22px !important;
+.searchResultItemSquare .searchResultItem {
+	margin: 0 !important;
+	padding: 0 !important;
 }
 	
+.searchResultItemSquare .searchResultType, .searchResultItemSquare .searchResultItemInfo, .searchResultItemSquare .searchResultItemType {
+	display: none !important;
+}
+
 .searchResultItem {
     font-size: 35px;
     padding-right: 0px !important;
     margin-left: 5px;
+}
+
+.searchResultType {
+	margin-left: 10px;
+    margin-bottom: 5px;
 }
 
 .searchResultVocab {
@@ -180,11 +191,11 @@
 .searchResultItemInfo {
 	display: grid;
     background-color: white;
-    padding: 2px;
-    margin: 0 7px;
+	padding: 2px 6px;
 	pointer-events: none;
 	color: black;
 	min-height: 45px;
+	border-bottom: 4px solid var(--default-color);
 }
 
 .searchResultItemType {
@@ -199,10 +210,15 @@
     flex-direction: column;
 	text-align: center;
 	background-color: var(--default-color);
+	border-left: 1px solid #a3a3a3;
 }
 
 .searchResultItemType > div {
 	padding: 5px;
+}
+
+.searchResultItemType > div:first-child {
+	margin-top: 4px;
 }
 
 .searchResultItemType > div:not(:last-child) {
@@ -287,4 +303,5 @@
     border: 1px solid silver;
     background-color: var(--default-color);
     color: white;
+	text-align: center;
 }

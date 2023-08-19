@@ -26,7 +26,7 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings"], async result => {
         fetchUserInfo(apiKey);
     
         if (userInfo) {
-            const level = Number(url.searchParams.get("level") || userInfo["level"]);
+            let level = userInfo["level"];
             const link = "https://www.wanikani.com/users/"+userInfo["username"];
 
             const avatar = document.querySelector("#profile-pic img");
@@ -48,6 +48,8 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings"], async result => {
             topLevel.children[level-1].classList.add("current-level");
             for (let i = 1; i < level; i++)
                 topLevel.children[i-1].classList.add("passed-level");
+
+            level = Number(url.searchParams.get("level") || userInfo["level"]);
             
             topLevel.addEventListener("click", async e => {
                 if (e.target.classList.contains("clickable")) {
@@ -161,6 +163,9 @@ const updateTypeContainer = (type, container, subjects) => {
     // subject tiles
     const subjectsList = container.querySelector(".subject-container > ul");
     subjects.forEach(subject => subjectsList.appendChild(subjectTile(type, subject)));
+
+    if (type == "vocabulary")
+        unjustifyLastRow(subjectsList);
 }
 
 const subjectTile = (type, subject) => {
@@ -321,8 +326,7 @@ const clearData = () => {
         // subjects progress
         container.querySelector(".subject-tab > span").innerText = "";
         // subjects tiles
-        container.querySelector(".subject-container > ul").remove();
-        container.querySelector(".subject-container").appendChild(document.createElement("ul"));
+        container.querySelector(".subject-container > ul").innerHTML = "";
         // subjects close arrow
         closeArrow = container.querySelector(".menu-icons > div[title='Close']");
         if (closeArrow.querySelector("i").classList.contains("down"))

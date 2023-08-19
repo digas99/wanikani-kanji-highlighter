@@ -48,7 +48,8 @@ chrome.storage.local.get(["lessons"], async result => {
 				callbacks: {
 					item: (elem, value) => dataTile(subjects, elem, value),
 					section: (wrapper, title, content) => headerSRSDecoration(title, type)
-				} 
+				},
+				justify: type.includes("vocab")
 			};
 		}));
 

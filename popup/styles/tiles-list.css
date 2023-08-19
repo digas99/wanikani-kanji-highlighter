@@ -69,7 +69,7 @@
 
 }
 
-.tiles-list-section > ul > li {
+.tiles-list-section > ul li {
 	padding: 6px;
     display: inline-block;
     margin: 2px;
@@ -94,4 +94,5 @@
 
 .fill-width > li {
 	padding: 6px 2px !important;
+	text-align: center;
 }
