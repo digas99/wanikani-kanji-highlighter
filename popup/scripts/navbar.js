@@ -49,11 +49,6 @@ document.addEventListener("scriptsLoaded", () => {
             runButton.style = "width: 20px;";
             wrapper.style.paddingLeft = "4px";         
         }
-
-        // remove highlighted kanji container
-        const highlightedKanjiCounter = document.querySelector(".highlightedKanjiContainer");
-        if (highlightedKanjiCounter)
-            highlightedKanjiCounter.remove();
     }
 
     // if site is wanikani
@@ -66,12 +61,6 @@ document.addEventListener("scriptsLoaded", () => {
         const searchArea = document.querySelector(".searchArea");
         if (searchArea)
             searchArea.remove();
-
-        // remove highlighted kanji container
-        const highlightedKanjiCounter = document.querySelector(".highlightedKanjiContainer");
-        if (highlightedKanjiCounter)
-            highlightedKanjiCounter.remove();
-
     }
 
     // if not valid site
@@ -79,11 +68,6 @@ document.addEventListener("scriptsLoaded", () => {
         // remove some buttons
         const buttons = document.querySelectorAll("#blacklist, #run, #random");
         buttons.forEach(button => button?.parentElement.remove());
-
-        // remove highlighted kanji container
-        const highlightedKanjiCounter = document.querySelector(".highlightedKanjiContainer");
-        if (highlightedKanjiCounter)
-            highlightedKanjiCounter.remove();
     }
     
     if (!blacklistedSite && !atWanikani) {

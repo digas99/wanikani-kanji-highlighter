@@ -66,6 +66,16 @@
 				this.wrapper.style.removeProperty("height");
 		},
 
+		// remove list
+		remove: function() {
+			this.wrapper.remove();
+		},
+
+		// check if exists
+		exists: function() {
+			return this.wrapper;
+		},
+
 		// update title
 		updateTitle: function(title) {
 			if (this.header)

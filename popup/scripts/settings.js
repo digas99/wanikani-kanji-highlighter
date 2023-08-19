@@ -124,7 +124,6 @@ const handleSettingsAction = (target, value, callback) => {
 		const group = settingsID[0];
 		const setting = settingsID[1];
 		settings[group][setting] = value;
-		console.log(settings);
 
 		await callback(group, setting);
 
@@ -296,7 +295,6 @@ document.addEventListener('input', e => {
 	const target = e.target;
 	
 	const type = target.getAttribute("type") || target.type;
-	console.log(type);
 
 	if (target.classList.contains("settingsItemInput")) {
 		// SELECT ACTIONS
@@ -318,7 +316,7 @@ document.addEventListener('input', e => {
 		// RANGE ACTIONS
 		if (type === "range") {
 			const value = target.value;
-			handleSettingsAction(target, value, (group, setting) => {
+			handleSettingsAction(target, Number(value), (group, setting) => {
 				switch(group) {
 					case "kanji_details_popup":
 						switch (setting) {
@@ -333,10 +331,9 @@ document.addEventListener('input', e => {
 						break;
 					case "miscellaneous":
 						switch (setting) {
-							case "extension_popup_width":
+							case "update_interval":
 								if (target.nextElementSibling)
 									target.nextElementSibling.innerText = value;
-								document.documentElement.style.setProperty('--body-base-width', value+'px');
 								break;
 						}
 				}

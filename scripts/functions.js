@@ -515,9 +515,9 @@ const loadData = async (apiToken, tabId, callback) => {
 			const result = await setupSubjects(apiToken, RADICAL_SETUP, (subjects, assocs, records, subject) => setupRadicals(subjects, records, subject));
 			const [radicals, fetched] = result;
 			
-			resolve(radicals);
-
 			await subjectsAssignmentStats(radicals);	
+
+			resolve(radicals);
 			
 			const messageText = "✔ Loaded Radicals data.";
 			console.log("[LOADED]:", messageText);
@@ -533,9 +533,9 @@ const loadData = async (apiToken, tabId, callback) => {
 			const result = await setupSubjects(apiToken, VOCAB_SETUP, (subjects, assocs, records, subject) => setupVocab(subjects, assocs, records, subject));
 			const [vocab, fetched] = result;
 
-			resolve(vocab);
-
 			await subjectsAssignmentStats(vocab);	
+
+			resolve(vocab);
 			
 			const messageText = "✔ Loaded Vocabulary data.";
 			console.log("[LOADED]:", messageText);
@@ -551,9 +551,9 @@ const loadData = async (apiToken, tabId, callback) => {
 			const result = await setupSubjects(apiToken, KANA_VOCAB_SETUP, (subjects, assocs, records, subject) => setupKanaVocab(subjects, assocs, records, subject));
 			const [vocab, fetched] = result;
 
-			resolve(vocab);
-
 			await subjectsAssignmentStats(vocab);	
+
+			resolve(vocab);
 			
 			const messageText = "✔ Loaded Kana Vocabulary data.";
 			console.log("[LOADED]:", messageText);
@@ -567,9 +567,9 @@ const loadData = async (apiToken, tabId, callback) => {
 			const result = await setupSubjects(apiToken, KANJI_SETUP, (subjects, assocs, records, subject) => setupKanji(subjects, assocs, records, subject));
 			const [kanji, fetched] = result;
 
-			resolve(kanji);
-
 			await subjectsAssignmentStats(kanji);	
+
+			resolve(kanji);
 			
 			const messageText = "✔ Loaded Kanji data.";
 			console.log("[LOADED]:", messageText);

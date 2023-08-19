@@ -122,12 +122,12 @@ const updateHomeInterface = async (result) => {
 				);
 			});
 
-			// clear previous bars
-			const levelsInProgress = document.querySelector("#levels-progress");
-			levelsInProgress.innerHTML = "";
-				
 			// put bars in correct order
 			Promise.all(progressBarWrappers).then(bars => {
+				// clear previous bars
+				const levelsInProgress = document.querySelector("#levels-progress");
+				levelsInProgress.innerHTML = "";
+
 				bars.flat(1).sort((a,b) => Number(a.dataset.order) - Number(b.dataset.order))
 					.forEach(bar => levelsInProgress.appendChild(bar));
 			});
@@ -141,19 +141,26 @@ const updateHomeInterface = async (result) => {
 }
 
 chrome.storage.local.get(["apiKey", ...HOME_FETCH_KEYS], result => {
+	const settings = result["settings"] ? result["settings"] : defaultSettings;
+
 	if (popupLoading) popupLoading.remove();
 	
 	apiKey = result["apiKey"];
 	
 	if (apiKey) {
 		updateHomeInterface(result);
+		// check for updates every minute
 		chrome.runtime.sendMessage({loadData: apiKey});
+		setInterval(() => chrome.runtime.sendMessage({loadData: apiKey}), settings["miscellaneous"]["update_interval"]*1000);
 	}
 	else
 		window.location.href = "auth.html";	
 });
 
 const kanjiListUpdate = (learned, notLearned, kanjiAssoc) => {
+	if (highlightList && !highlightList.exists())
+		highlightList.create();
+
 	const itemCallback = (elem, value) => {
 		elem.classList.add("kanjiDetails");
 		if (kanjiAssoc && kanjiAssoc[value])
@@ -270,7 +277,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	// scripts uptime
 	if (request.uptimeDetailsPopup || request.uptimeHighlight) {
 		const uptimeSignals = document.querySelectorAll("#scripts_status div");
-		if (uptimeSignals) {
+		if (uptimeSignals && uptimeSignals.length > 0) {
 			if (request.uptimeHighlight) 
 				uptimeSignals[0].style.backgroundColor = "var(--wanikani-sec)";
 
@@ -284,8 +291,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		chrome.storage.local.get(["kanji_assoc"], result => {
 			const kanjiAssoc = result["kanji_assoc"];
 			const {learned, notLearned} = request.kanjiHighlighted;
-			if (learned.length > 0 || notLearned.length > 0)
+			if (learned.length > 0 || notLearned.length > 0) {
 				kanjiListUpdate(learned, notLearned, kanjiAssoc);
+				document.querySelector("#enhancedMessage")?.remove();
+			}
 		});
 	}
 });
@@ -293,10 +302,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 document.addEventListener("scriptsLoaded", () => {
 	const main = document.getElementById("main");
 	const userInfoWrapper = document.querySelector("#userInfoWrapper");
+	
+	if (atWanikani || blacklistedSite || !validSite) {
+		if (atWanikani) main.insertBefore(enhancedWarning("Limited features at wanikani, sorry!", "var(--wanikani)"), userInfoWrapper);
+		else if (blacklistedSite) main.insertBefore(enhancedWarning("Site blacklisted by you!", "red"), userInfoWrapper);
+		else if (!validSite) main.insertBefore(enhancedWarning("Can't inject highlighter (maybe reload the page?)", "#b3b3b3"), userInfoWrapper);
 
-	if (atWanikani) main.insertBefore(enhancedWarning("Limited features at wanikani, sorry!", "var(--wanikani)"), userInfoWrapper);
-	else if (blacklistedSite) main.insertBefore(enhancedWarning("Site blacklisted by you!", "red"), userInfoWrapper);
-	else if (!validSite) main.insertBefore(enhancedWarning("Can't inject highlighter (maybe reload the page?)", "#b3b3b3"), userInfoWrapper);
+		// remove highlighted kanji container
+		if (highlightList)
+			highlightList.remove();
+	}
+
 });
 
 const enhancedWarning = (text, color) => {

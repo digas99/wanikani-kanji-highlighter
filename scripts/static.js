@@ -73,7 +73,7 @@ const defaultSettings = {
 	},
 	"miscellaneous": {
 		time_in_12h_format: true,
-		kana_writing: false,
+		update_interval: 60,
 		//extension_popup_width: 400,
 		// srs_info_on_reviews: false
 	},
