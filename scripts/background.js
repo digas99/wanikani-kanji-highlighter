@@ -274,9 +274,6 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 				else {
 					chrome.action.setBadgeText({text: "W", tabId:thisTabId});
 					chrome.action.setBadgeBackgroundColor({color: "#f100a1", tabId:thisTabId});
-
-					// if (settings && settings["miscellaneous"]["srs_info_on_reviews"])
-					// 	tabs.executeScript(thisTabId, {file: 'scripts/wanikani.js'});
 				}
 			}
 		});

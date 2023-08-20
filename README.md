@@ -192,5 +192,5 @@ By clicking in the gear icon in the main page of the extension popup, you will f
 
 ## Pictures
 
-![howto](images/picture1.png)
-![features1](images/picture2.png)
+![howto](images/picture1.jpg)
+![features1](images/picture2.jpg)
