@@ -71,8 +71,8 @@
 }
 
 .topNav-lessons .lessons-icon, .topNav-lessons .reviews-icon {
-	width: 20px;
-    height: 20px;
+	width: 21px;
+    height: 21px;
     overflow: hidden;
     border-top-left-radius: 50%;
     border-bottom-left-radius: 50%;
@@ -100,11 +100,14 @@
 
 .topNav-lessons .lessons-count {
     color: white;
-    padding: 3px 10px;
+    padding: 0px 10px;
     border-top-right-radius: 20px;
     border-bottom-right-radius: 20px;
     font-weight: bold;
     border: 2px solid white;
+    height: 21px;
+    display: flex;
+    align-items: center;
 }
 
 .topNav-lessons > a:hover .lessons-count {
