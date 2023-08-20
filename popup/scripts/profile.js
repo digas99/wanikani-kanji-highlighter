@@ -195,7 +195,7 @@ const subjectTile = (type, subject) => {
         wrapperForLi.appendChild(document.createTextNode(characters));
     }
     if (characters !== "L" && subjectWrapper.children.length > 0 && subjectWrapper.style.color == "rgb(255, 255, 255)")
-        subjectWrapper.children[0].style.filter = "invert(1)";
+        subjectWrapper.children[0].style.filter = "invert(1) drop-shadow(-1px 1px 0px gray)";
 
     if (subject["passed_at"]) {
         const check = document.createElement("img");

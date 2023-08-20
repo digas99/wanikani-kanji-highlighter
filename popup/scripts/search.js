@@ -1,4 +1,4 @@
-let settings;
+let settings, kanjiList, vocabularyList;
 
 const searchBar = document.querySelector("#kanjiSearchInput");
 if (searchBar) {
@@ -41,18 +41,12 @@ if (searchBar) {
         if (opened) {
             const data = await db.getAll("subjects", "subject_type", ["kanji", "vocabulary", "kana_vocabulary"]);
             
-            const kanji = data["kanji"];
-            const vocabulary = [...data["vocabulary"], ...data["kana_vocabulary"]];
+            kanjiList = data["kanji"];
+            vocabularyList = [...data["vocabulary"], ...data["kana_vocabulary"]];
             
             const urlParams = new URLSearchParams(window.location.search);
 
-            searchBar.addEventListener("input", () => {
-                searchSubject(kanji, vocabulary, searchBar, null, settings["search"]["targeted_search"], settings["search"]["results_display"]);
-
-                // update url
-                urlParams.set('search', searchBar.value);
-                window.history.replaceState({}, '', `${location.pathname}?${urlParams}`);
-            });
+            searchBar.addEventListener("input", e => searchSubject(e.target.value, e.target, null, settings["search"]["targeted_search"], settings["search"]["results_display"]));
 
             // get search query from url
             const search = urlParams.get('search');
@@ -88,7 +82,16 @@ const changeInput = (inputWrapper, type) => {
 if (urlParams.get('type'))
     changeInput(document.querySelector("#kanjiSearchInputWrapper"), urlParams.get('type'));
 
-const searchSubject = (kanji, vocabulary, input, searchType, targeted, display) => {
+const searchSubject = (value, input, searchType, targeted, display) => {
+    input.value = value;
+	value = value.toLowerCase().trim();
+    changeInput(input.parentElement, searchType);
+    
+    // update url
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('search', value);
+    window.history.replaceState({}, '', `${location.pathname}?${urlParams}`);
+
     let searchResultUL = document.getElementById("searchResultItemWrapper");
 	if (searchResultUL) searchResultUL.innerHTML = "";
     Array.from(document.querySelectorAll(".loadMore")).forEach(elem => elem.remove());
@@ -106,8 +109,6 @@ const searchSubject = (kanji, vocabulary, input, searchType, targeted, display) 
 	else
 		type = document.getElementById("kanjiSearchType").innerText;
 	
-	const value = (type == "A" ? input.value : input.value.toLowerCase()).trim();
-
 	let filteredKanji = [];
 	let filteredVocab = [];
 
@@ -117,37 +118,37 @@ const searchSubject = (kanji, vocabulary, input, searchType, targeted, display) 
         // if it is hiragana
         if (hasKana(value)) {
             //const filterByReadings = (itemList, value) => itemList.filter(item => matchesReadings(value, item["readings"], targeted));
-            filteredKanji = kanji.filter(subject => matchesReadings(input.value, subject.readings, targeted));
-            filteredVocab = vocabulary.filter(subject => matchesReadings(input.value, subject.readings, targeted) || new RegExp(input.value, "g").test(subject.characters));
+            filteredKanji = kanjiList.filter(subject => matchesReadings(input.value, subject.readings, targeted));
+            filteredVocab = vocabularyList.filter(subject => matchesReadings(input.value, subject.readings, targeted) || new RegExp(input.value, "g").test(subject.characters));
         }
     }
     else {
         // if it is a chinese character
         if (hasKanji(value)) {
-            filteredKanji = filteredKanji.concat(kanji.filter(subject => value == subject.characters));
+            filteredKanji = filteredKanji.concat(kanjiList.filter(subject => value == subject.characters));
                     
             if (filteredKanji.length > 0 && !targeted) {
-                filteredKanji[0]["visually_similar_subject_ids"].forEach(id => filteredKanji.push(kanji.filter(subject => id == subject.id)));
-                filteredKanji[0]["amalgamation_subject_ids"].forEach(id => filteredVocab.push(vocabulary.filter(subject => id == subject.id)));
+                filteredKanji[0]["visually_similar_subject_ids"].forEach(id => filteredKanji.push(kanjiList.filter(subject => id == subject.id)));
+                filteredKanji[0]["amalgamation_subject_ids"].forEach(id => filteredVocab.push(vocabularyList.filter(subject => id == subject.id)));
             }
 
-            filteredVocab = filteredVocab.concat(vocabulary.filter(subject => value == subject.characters)).flat();
+            filteredVocab = filteredVocab.concat(vocabularyList.filter(subject => value == subject.characters)).flat();
             if (filteredVocab.length > 0)
-                filteredVocab[0]["component_subject_ids"].forEach(id => filteredKanji.push(kanji.filter(subject => id == subject.id)));
+                filteredVocab[0]["component_subject_ids"].forEach(id => filteredKanji.push(kanjiList.filter(subject => id == subject.id)));
         }
         // if is number check for level
         else if (!isNaN(value)) {
-            filteredKanji = kanji.filter(subject => subject["level"] == value);
-            filteredVocab = vocabulary.filter(subject => subject["level"] == value);
+            filteredKanji = kanjiList.filter(subject => subject["level"] == value);
+            filteredVocab = vocabularyList.filter(subject => subject["level"] == value);
         }
         else if (value == "legacy") {
-            filteredKanji = kanji.filter(subject => subject.hidden_at !== null);
-            filteredVocab = vocabulary.filter(subject => subject.hidden_at !== null);
+            filteredKanji = kanjiList.filter(subject => subject.hidden_at !== null);
+            filteredVocab = vocabularyList.filter(subject => subject.hidden_at !== null);
         }
         else {
             const cleanInput = input.value.toLowerCase().trim();
-            filteredKanji = kanji.filter(subject => matchesMeanings(cleanInput, subject.meanings, targeted));
-            filteredVocab = vocabulary.filter(subject => matchesMeanings(value, subject.meanings, targeted));
+            filteredKanji = kanjiList.filter(subject => matchesMeanings(cleanInput, subject.meanings, targeted));
+            filteredVocab = vocabularyList.filter(subject => matchesMeanings(value, subject.meanings, targeted));
         }
     }
 
@@ -321,6 +322,15 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         const audio = document.createElement("img");
         audioWrapper.appendChild(audio);
         audio.src = chrome.runtime.getURL("/images/volume.png");
+        // search icon
+        const searchWrapper = document.createElement("div");
+        subjectType.appendChild(searchWrapper);
+        searchWrapper.classList.add("clickable");
+        searchWrapper.title = "Search for "+(data["characters"]);
+        searchWrapper.addEventListener("click", () => searchSubject(data["characters"], searchBar, hasKana(data["characters"]) ? "A" : "あ", settings["search"]["targeted_search"], settings["search"]["results_display"]));        
+        const search = document.createElement("img");
+        searchWrapper.appendChild(search);
+        search.src = chrome.runtime.getURL("/images/search.png");
         // copy icon
         const copyWrapper = document.createElement("div");
         subjectType.appendChild(copyWrapper);

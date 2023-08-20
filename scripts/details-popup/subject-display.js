@@ -1076,10 +1076,12 @@
 			type = type.toLowerCase();
 			const valueCorrect = values[type+"_correct"];
 			const valueIncorrect = values[type+"_incorrect"];
+			const correctPercentage = (valueCorrect/(valueCorrect+valueIncorrect)*100).toFixed(0);
+			const incorrectPercentage = (valueIncorrect/(valueCorrect+valueIncorrect)*100).toFixed(0);
 			const valueBoth = valueCorrect+valueIncorrect;
 			const thisValues = [
-				valueCorrect+" ("+((valueCorrect/valueBoth*100).toFixed(0))+"%)",
-				valueIncorrect+" ("+((valueIncorrect/valueBoth*100).toFixed(0))+"%)",
+				valueCorrect+" ("+(correctPercentage == "NaN" ? "-" : correctPercentage)+"%)",
+				valueIncorrect+" ("+(incorrectPercentage == "NaN" ? "-" : incorrectPercentage)+"%)",
 				valueBoth, 
 				values[type+"_current_streak"]+" ("+values[type+"_max_streak"]+")"
 			];			
@@ -1087,12 +1089,12 @@
 				const row = dataRow(title, thisValues[j]);
 				wrapper.appendChild(row);
 				if (title === "Correct") {
-					const percentage = valueCorrect/valueBoth*100;
+					const percentage = (valueCorrect/valueBoth*100).toFixed(0);
 					const stateValue = row.getElementsByTagName("span")[0];
 					stateValue.style.setProperty("color", percentageColor(percentage), "important");
 
 					const quickStatsVal = quickStatsUl.getElementsByTagName("li")[i+1].getElementsByTagName("span")[0];
-					quickStatsVal.appendChild(document.createTextNode(percentage.toFixed(0)+"%"));
+					quickStatsVal.appendChild(document.createTextNode((percentage == "NaN" ? "-" : percentage)+"%"));
 					quickStatsVal.style.setProperty("color", percentageColor(percentage), "important");
 				}
 			});

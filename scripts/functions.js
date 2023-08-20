@@ -834,10 +834,12 @@ const progressionStats = (wrapper, progresses, colors, line, menuCallback) => {
 	if (wrapper) wrapper.innerHTML = "";
 
 	Object.keys(srsStages).forEach(stage => {
-		stageValue = (progresses["radical"] && progresses["radical"][stage] ? progresses["radical"][stage] : 0)
-			+ (progresses["kanji"] && progresses["kanji"][stage] ? progresses["kanji"][stage] : 0)
-			+ (progresses["vocabulary"] && progresses["vocabulary"][stage] ? progresses["vocabulary"][stage] : 0);
-	
+		stageValue = Object.keys(progresses).reduce((acc, type) => {
+			if (progresses[type] && progresses[type][stage])
+				acc += progresses[type][stage];
+			return acc;
+		}, 0);
+
 		stageColor = colors ? colors[srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
 
 		if (stage % line == 0) {
@@ -906,9 +908,11 @@ const progressionBar = (wrapper, progresses, size, colors) => {
 	if (wrapper) wrapper.innerHTML = "";
 
 	Object.keys(srsStages).forEach(stage => {
-		stageValue = (progresses["radical"] && progresses["radical"][stage] ? progresses["radical"][stage] : 0)
-			+ (progresses["kanji"] && progresses["kanji"][stage] ? progresses["kanji"][stage] : 0)
-			+ (progresses["vocabulary"] && progresses["vocabulary"][stage] ? progresses["vocabulary"][stage] : 0);
+		stageValue = Object.keys(progresses).reduce((acc, type) => {
+			if (progresses[type] && progresses[type][stage])
+				acc += progresses[type][stage];
+			return acc;
+		}, 0);
 		
 		stageColor = colors ? colors[srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
 		unlockedSize += stageValue;

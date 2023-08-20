@@ -80,12 +80,17 @@ const updateHomeInterface = async (result) => {
 	// PROGRESSIONS
 	const allSize = (result["radicals_size"] || 0)
 		+ (result["kanji_size"] || 0)
-		+ (result["vocabulary_size"] || 0);
+		+ (result["vocabulary_size"] || 0)
+		+ (result["kana_vocab_size"] || 0);
 
 	const progresses = {
-		"radical": result["radical_progress"],
-		"kanji": result["kanji_progress"],
-		"vocabulary": result["vocabulary_progress"]
+		"radical": result["radical_progress"] || [],
+		"kanji": result["kanji_progress"] || [],
+		"vocabulary": [result["vocabulary_progress"] || [], result["kana_vocabulary_progress"] || []]
+			.reduce((acc, obj) => {
+				Object.keys(obj).forEach(key => acc[key] = (acc[key] || 0) + obj[key]);
+				return acc
+			}, {})
 	};
 
 	if (interface["overall_progression_bar"])

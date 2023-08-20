@@ -14,11 +14,15 @@ if (srsStage != null && srsStage >= -1 && srsStage <= 9) {
 	chrome.storage.local.get(["settings"], ({settings}) => {
 		progressionStats(document.querySelector("#progression-stats"), {radical: [], kanji: [], vocabulary: []}, settings["appearance"], 10);
 
-		chrome.storage.local.get(["radical_progress", "kanji_progress", "vocabulary_progress"], result => {
+		chrome.storage.local.get(["radical_progress", "kanji_progress", "vocabulary_progress", "kana_vocabulary_progress"], result => {
 			const progresses = {
 				"radical": result["radical_progress"],
 				"kanji": result["kanji_progress"],
-				"vocabulary": result["vocabulary_progress"]
+				"vocabulary": [result["vocabulary_progress"], result["kana_vocabulary_progress"]]
+					.reduce((acc, obj) => {
+						Object.keys(obj).forEach(key => acc[key] = (acc[key] || 0) + obj[key]);
+						return acc
+					}, {})
 			};
 			
 			progressionStats(document.querySelector("#progression-stats"), progresses, settings["appearance"], 10,
@@ -43,7 +47,6 @@ if (srsStage != null && srsStage >= -1 && srsStage <= 9) {
 							labels: true
 						},
 						sections: {
-							fillWidth: true,
 							join: false,
 							notFound: "No subjects found in this SRS Stage."
 						}
@@ -97,7 +100,6 @@ if (level != null && level >= 1 && level <= 60 && subjectType != null && ["radic
 						labels: true
 					},
 					sections: {
-						fillWidth: true,
 						join: false,
 						notFound: "No subjects found in this Level."
 					}

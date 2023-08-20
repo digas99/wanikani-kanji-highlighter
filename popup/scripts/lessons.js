@@ -19,7 +19,6 @@ let list = new TilesList(
 			labels: true
 		},
 		sections: {
-			fillWidth: false,
 			join: false,
 			notFound: "No lessons found. You're all caught up!"
 		}

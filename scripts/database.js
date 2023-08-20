@@ -20,7 +20,12 @@
                 request.onupgradeneeded = e => {
                     that.db = e.target.result;
 
-                    let objectStore = that.db.openObjectStore(table, {keyPath: key});
+                    let objectStore;
+                    if (typeof that.db.openObjectStore !== 'function')
+                        objectStore = that.db.createObjectStore(table, {keyPath: key});
+                    else
+                        objectStore = that.db.openObjectStore(table, {keyPath: key});
+                    
                     if (indexes)
                         indexes.forEach(index => objectStore.createIndex(index, [index], {unique: false}));
 

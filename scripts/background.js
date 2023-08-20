@@ -42,7 +42,7 @@ db.open("subjects", "id", ["level", "subject_type", "srs_stage"]);
 // set settings
 const setSettings = () => {
 	chrome.storage.local.get(["settings"], result => {
-		const settings = result["settings"];
+		let settings = result["settings"];
 		
 		if (!settings)
 			settings = defaultSettings;

@@ -6,7 +6,7 @@
 .searchMenu {
 	display: flex;
     align-items: center;
-    column-gap: 20px;
+    column-gap: 10px;
     position: fixed;
     top: 50px;
     z-index: 10;
@@ -112,7 +112,7 @@
 	color: white;
 	background-color: var(--default-color);
 	border-bottom-right-radius: 10px;
-	min-height: 100px;
+	min-height: 148px;
 }
 
 .searchResultItemLine .kanjiDetails {
@@ -186,6 +186,7 @@
 	padding-right: 20px !important;
 	border-bottom: 1px solid #a3a3a3;
     padding-bottom: 2px !important;
+	height: fit-content;
 }
 
 .searchResultItemInfo {
@@ -194,7 +195,7 @@
 	padding: 2px 6px;
 	pointer-events: none;
 	color: black;
-	min-height: 45px;
+	min-height: 67px;
 	border-bottom: 4px solid var(--default-color);
 }
 
@@ -226,7 +227,7 @@
 }
 
 .searchResultItemType img {
-	width: 17px;
+	width: 15px;
 	filter: invert(1);
 }
 
@@ -292,6 +293,7 @@
 	width: 100%;
 	margin: auto;
 	font-size: 14px;
+	text-align: center;
 }
 
 #nmrKanjiFound > span {
