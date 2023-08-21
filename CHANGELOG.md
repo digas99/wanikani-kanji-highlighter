@@ -8,12 +8,12 @@
 - Popup is no longer entirely created with Javascript (it is now more organized and with each page on a different HTML file)
 
 ## Popup
+- Improved interface in general
 - Added navbar to Changelogs list in the About page
 - Added "load more" button to Search Results to limit the number of results and reduce lag while writing on search bar
 - Added loading feedback popup for the user to understand the loading stages of data from wanikani
 - Loading data from Wanikani is now also being done from the extension Popup (no need to browse a web page)
 - Progression Bar, Progression Stats and Levels in Progress now show a list of all the related subjects when clicked
-- Improved interface in general
 - Lists of subject tiles are now justified to fill the entire width
 
 ## Data

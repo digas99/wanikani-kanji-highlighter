@@ -25,7 +25,7 @@ if [ -f "$FILENAME" ]; then
 		ZIPNAME="wk_$formated.zip"
 
 		# pick files and folders to zip
-		zip -r "$ZIPNAME" CHANGELOG.md manifest.json popup.html images lib logo scripts styles
+		zip -r "$ZIPNAME" CHANGELOG.md manifest.json popup.html images lib logo scripts styles popup
 
 		break
 	fi
