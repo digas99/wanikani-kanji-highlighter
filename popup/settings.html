@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">	
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width">
+	<title>WKHighlighter</title>
+	<link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="styles/navbar.css">
+    <link rel="stylesheet" href="styles/message-popup.css">
+	<link rel="stylesheet" href="styles/settings.css">
+</head>
+<body>
+	<!-- TOP NAVBAR -->
+	<div class="topNav">
+		<a href="home.html" title="Go back" class="clickable">
+			<div>
+				<i class="left"></i>
+				<div>Settings</div>
+			</div>
+		</a>
+
+        <div class="topNav-lessons">
+			<a title="Lessons" href="/popup/lessons.html">
+                <div class="lessons-icon"><div></div></div>
+                <div class="lessons-count">0</div>
+            </a>
+            <a title="Reviews" href="/popup/reviews.html">
+                <div class="reviews-icon"><div></div></div>
+                <div class="lessons-count">0</div>
+            </a>
+        </div>
+    </div>
+
+	<!-- PAGE CONTENT -->
+	<div id="sec-page">
+		<div id="settingsContent" style="margin-top: 45px">
+			<div class="settingsOptionsWrapper">
+				<!-- BLACKLISTED SITES -->
+				<div class="section settingsSection">
+					<p id="blacklistedSitesList" class="button clickable">
+						Blacklisted Sites (0)
+						<i class="blacklisted_title_arrow arrow down"></i>
+					</p>
+					<div id="blacklistedSitesWrapper" style="display: none;"></div>
+				</div>
+
+				<!-- KANJI DETAILS POPUP -->
+				<div class="section settingsSection">
+					<p>Kanji Details Popup</p>
+					<!-- ACTIVATED -->
+					<div title="Activate Details Popup script (side panel with subject information)">
+						<label for="settings-kanji_details_popup-activated" class="settingsItemLabel">Activated</label>
+						<div class="checkbox_wrapper clickable">
+							<input type="checkbox" class="settingsItemInput" id="settings-kanji_details_popup-activated" style="display: none;">
+							<div class="custom-checkbox-ball"></div>
+							<div class="custom-checkbox-back"></div>
+						</div>
+					</div>
+					<!-- KEY BINDINGS -->
+					<div title="Enable Hotkeys within Details Popup">
+						<label for="settings-kanji_details_popup-key_bindings" class="settingsItemLabel">Key Bindings</label>
+						<div class="checkbox_wrapper clickable">
+							<input type="checkbox" class="settingsItemInput" id="settings-kanji_details_popup-key_bindings" style="display: none;">
+							<div class="custom-checkbox-ball"></div>
+							<div class="custom-checkbox-back"></div>
+						</div>
+					</div>
+					<!-- RANDOM SUBJECT -->
+					<div title="Type of subject that will appear upon clicking on the button Random on the Extension Popup side panel">
+						<label for="settings-kanji_details_popup-random_subject" class="settingsItemLabel">Random Subject</label>
+						<div class="checkbox_wrapper clickable">
+							<select class="settingsItemInput select" id="settings-kanji_details_popup-random_subject">
+								<option value="Any">Any</option>
+								<option value="Kanji">Kanji</option>
+								<option value="Vocabulary">Vocabulary</option>
+							</select>
+						</div>
+					</div>
+					<!-- POPUP OPACITY -->
+					<div title="Opacity of the small Details Popup that shows up when hovering a kanji.&#10;Tip: opacity changes in real time if small popup is open (hover a kanji or get a random subject).">
+						<label for="settings-kanji_details_popup-popup_opacity" class="settingsItemLabel">Popup Opacity</label>
+						<div class="slider" title="Mouse Wheel: +1&#10;Shift + Mouse Wheel: +10&#10;Ctrl + Mouse Wheel: +100">
+							<input type="range" class="settingsItemInput" value="0" min="0" max="10" id="settings-kanji_details_popup-popup_opacity">
+							<span>0</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- Notifications -->
+				<div class="section settingsSection">
+					<p>Notifications</p>
+					<!-- NEW REVIEWS -->
+					<div title="Be notified whenever new reviews are available (browser needs to be open)">
+						<label for="settings-notifications-new_reviews" class="settingsItemLabel">New Reviews</label>
+						<div class="checkbox_wrapper clickable">
+							<input type="checkbox" class="settingsItemInput" id="settings-notifications-new_reviews" style="display: none;">
+							<div class="custom-checkbox-ball"></div>
+							<div class="custom-checkbox-back"></div>
+						</div>
+					</div>
+					<!-- PRACTICE REMINDER -->
+					<div title="Be notified at a specific time of the day to practice Japanese (browser needs to be open)" style="align-items: unset !important;">
+						<label for="settings-notifications-practice_reminder" class="settingsItemLabel" style="display: flex; flex-direction: column;">
+							Practice Reminder
+							<input type="time" class="settingsItemInput practice-reminder-time disabled" id="settings-notifications-practice_reminder_timestamp">
+						</label>
+						<div class="checkbox_wrapper clickable">
+							<input type="checkbox" class="settingsItemInput" id="settings-notifications-practice_reminder" style="display: none;">
+							<div class="custom-checkbox-ball"></div>
+							<div class="custom-checkbox-back"></div>
+						</div>
+					</div>
+					<!-- WEBPAGE WORD -->
+					<div title="Get a notification when searching a word from a webpage on the extension">
+						<label for="settings-notifications-searching_a_webpage_word" class="settingsItemLabel">Searching a Webpage Word</label>
+						<div class="checkbox_wrapper clickable">
+							<input type="checkbox" class="settingsItemInput" id="settings-notifications-searching_a_webpage_word" style="display: none;">
+							<div class="custom-checkbox-ball"></div>
+							<div class="custom-checkbox-back"></div>
+						</div>
+					</div>
+				</div>
+
+				<!-- EXTENSION POPOUP INTERFACE -->
+				<div class="section settingsSection">
+					<p>Extension Popup Interface</p>
+					<!-- SCRIPT STATUS -->
+					<div title="Show scripts status in the extension popup home.">
+						<label for="settings-extension_popup_interface-scripts_status" class="settingsItemLabel">Scripts Status</label>
+						<div class="checkbox_wrapper clickable">
+							<input type="checkbox" class="settingsItemInput" id="settings-extension_popup_interface-scripts_status" style="display: none;">
+							<div class="custom-checkbox-ball"></div>
+							<div class="custom-checkbox-back"></div>
+						</div>
+					</div>
+					<!-- SEARCH BAR -->
+					<div title="Show search bar in the extension popup home.">
+						<label for="settings-extension_popup_interface-search_bar" class="settingsItemLabel">Search Bar</label>
+						<div class="checkbox_wrapper clickable">
+							<input type="checkbox" class="settingsItemInput" id="settings-extension_popup_interface-search_bar" style="display: none;">
+							<div class="custom-checkbox-ball"></div>
+							<div class="custom-checkbox-back"></div>
+						</div>
+					</div>
+					<!-- HIGHLIGHTED KANJI -->
+					<div title="Show kanji highlighted in the current page in the extension popup home.">
+						<label for="settings-extension_popup_interface-highlighted_kanji" class="settingsItemLabel">Highlighted Kanji</label>
+						<div class="checkbox_wrapper clickable">
+							<input type="checkbox" class="settingsItemInput" id="settings-extension_popup_interface-highlighted_kanji" style="display: none;">
+							<div class="custom-checkbox-ball"></div>
+							<div class="custom-checkbox-back"></div>
+						</div>
+					</div>
+					<!-- LESSONS AND REVIEWS -->
+					<div title="Show number of lessons and reviews in the extension popup home.">
+						<label for="settings-extension_popup_interface-lessons_and_reviews" class="settingsItemLabel">New Reviews</label>
+						<div class="checkbox_wrapper clickable">
+							<input type="checkbox" class="settingsItemInput" id="settings-extension_popup_interface-lessons_and_reviews" style="display: none;">
+							<div class="custom-checkbox-ball"></div>
+							<div class="custom-checkbox-back"></div>
+						</div>
+					</div>
+					<!-- OVERALL PROGRESS BAR -->
+					<div title="Show progression bar for each SRS Stage in the extension popup home.&#10;Tip: the higher your level, the better the progress bar is to understand.">
+						<label for="settings-extension_popup_interface-overall_progression_bar" class="settingsItemLabel">Overall Progression Bar</label>
+						<div class="checkbox_wrapper clickable">
+							<input type="checkbox" class="settingsItemInput" id="settings-extension_popup_interface-overall_progression_bar" style="display: none;">
+							<div class="custom-checkbox-ball"></div>
+							<div class="custom-checkbox-back"></div>
+						</div>
+					</div>
+					<!-- OVERALL PROGRESSION STATS -->
+					<div title="Show numbers for each SRS Stage in the extension popup home.">
+						<label for="settings-extension_popup_interface-overall_progression_stats" class="settingsItemLabel">Overall Progression Stats</label>
+						<div class="checkbox_wrapper clickable">
+							<input type="checkbox" class="settingsItemInput" id="settings-extension_popup_interface-overall_progression_stats" style="display: none;">
+							<div class="custom-checkbox-ball"></div>
+							<div class="custom-checkbox-back"></div>
+						</div>
+					</div>
+					<!-- LEVELS IN PROGRESS -->
+					<div title="Show which levels still have subjects in progress in the extension popup home.">
+						<label for="settings-extension_popup_interface-levels_in_progress" class="settingsItemLabel">Levels In Progress</label>
+						<div class="checkbox_wrapper clickable">
+							<input type="checkbox" class="settingsItemInput" id="settings-extension_popup_interface-levels_in_progress" style="display: none;">
+							<div class="custom-checkbox-ball"></div>
+							<div class="custom-checkbox-back"></div>
+						</div>
+					</div>
+				</div>
+
+				<!-- MISCELLANEOUS -->
+				<div class="section settingsSection">
+					<p>Miscellaneous</p>
+					<!-- TIME FORMAT -->
+					<div title="Set timestamps within the Extension Popup to be on 12h Format">
+						<label for="settings-miscellaneous-time_in_12h_format" class="settingsItemLabel">Time in 12h Format</label>
+						<div class="checkbox_wrapper clickable">
+							<input type="checkbox" class="settingsItemInput" id="settings-miscellaneous-time_in_12h_format" style="display: none;">
+							<div class="custom-checkbox-ball"></div>
+							<div class="custom-checkbox-back"></div>
+						</div>
+					</div>
+					<!-- UPDATE INTERVAL -->
+					<div title="Interval in seconds between each update checking task">
+						<label for="settings-miscellaneous-update_interval" class="settingsItemLabel">Update Interval</label>
+						<div class="slider" title="Mouse Wheel: +1&#10;Shift + Mouse Wheel: +10&#10;Ctrl + Mouse Wheel: +100">
+							<input type="range" class="settingsItemInput" value="60" min="30" max="300" id="settings-miscellaneous-update_interval">
+							<span>60</span>
+						</div>
+					</div>
+					<!-- KANA WRITING -->
+					<!--
+					<div title="Write Kana on text inputs on a webpage. Some inputs might not work.">
+						<label for="settings-miscellaneous-kana_writing" class="settingsItemLabel">Kana Writing</label>
+						<div class="checkbox_wrapper clickable">
+							<input type="checkbox" class="settingsItemInput" id="settings-miscellaneous-kana_writing" style="display: none;">
+							<div class="custom-checkbox-ball"></div>
+							<div class="custom-checkbox-back"></div>
+						</div>
+					</div>
+					-->
+					<!-- EXTENSION POPUP WIDTH -->
+					<!--
+					<div title="Width of the Extension Popup window.">
+						<label for="settings-miscellaneous-extension_popup_width" class="settingsItemLabel">Extension Popup Width</label>
+						<div class="slider" title="Mouse Wheel: +1&#10;Shift + Mouse Wheel: +10&#10;Ctrl + Mouse Wheel: +100" style="display: flex; text-align: center;">
+							<input type="range" class="settingsItemInput" value="400" min="400" max="725" id="settings-miscellaneous-extension_popup_width">
+							<span>400</span>
+						</div>
+					</div>
+					-->
+				</div>
+
+				<!-- EXTENSION ICON -->
+				<div class="section settingsSection">
+					<p>Extension Icon</p>
+					<!-- TIME FORMAT -->
+					<div title="Show Kanji Counter on the Extension icon">
+						<label for="settings-extension_icon-kanji_counter" class="settingsItemLabel">Kanji Counter</label>
+						<div class="checkbox_wrapper clickable">
+							<input type="checkbox" class="settingsItemInput" id="settings-extension_icon-kanji_counter" style="display: none;">
+							<div class="custom-checkbox-ball"></div>
+							<div class="custom-checkbox-back"></div>
+						</div>
+					</div>
+				</div>
+
+				<!-- HIGHLIGHT STYLE -->
+				<div class="section settingsSection">
+					<p>Highlight Style</p>
+					<!-- LEARNED -->
+					<div>
+						<label class="settingsItemLabel">Learned</label>
+						<div class="checkbox_wrapper" style="display: flex; column-gap: 10px;" id="settings-highlight_style-learned" type="pick">
+							<span class="wkhighlighter_highlighted settings_highlight_style_option clickable settingsItemInput">A</span>
+							<span class="wkhighlighter_highlighted_underlined settings_highlight_style_option clickable settingsItemInput">A</span>
+							<span class="wkhighlighter_highlighted_bold settings_highlight_style_option clickable settingsItemInput">A</span>
+						</div>
+					</div>
+					<!-- NOT LEARNED -->
+					<div>
+						<label class="settingsItemLabel">Not Learned</label>
+						<div class="checkbox_wrapper" style="display: flex; column-gap: 10px;" id="settings-highlight_style-not_learned" type="pick">
+							<span class="wkhighlighter_highlightedNotLearned settings_highlight_style_option clickable settingsItemInput">A</span>
+							<span class="wkhighlighter_highlightedNotLearned_underlined settings_highlight_style_option clickable settingsItemInput">A</span>
+							<span class="wkhighlighter_highlightedNotLearned_bold settings_highlight_style_option clickable settingsItemInput">A</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- APPEARANCE -->
+				<div class="section settingsSection">
+					<p>Appearance</p>
+					<!-- HIGHLIGHT -->
+					<div>
+						<label class="settingsItemLabel">Highlight</label>
+						<div class="checkbox_wrapper" style="display: inline-flex;">
+							<input type="color" id="settings-appearance-highlight_learned" class="settingsItemInput clickable" style="width: 40px;">
+							<input type="color" id="settings-appearance-highlight_not_learned" class="settingsItemInput clickable" style="width: 40px;">
+						</div>
+					</div>
+					<!-- DETAILS POPUP -->
+					<div>
+						<label class="settingsItemLabel">Details Popup</label>
+						<div class="checkbox_wrapper" style="display: inline-flex;">
+							<input type="color" id="settings-appearance-details_popup" class="settingsItemInput clickable" style="width: 80px;">
+						</div>
+					</div>
+					<!-- SUBJECTS -->
+					<div>
+						<label class="settingsItemLabel">Subjects (R/K/V)</label>
+						<div class="checkbox_wrapper" style="display: inline-flex;">
+							<input type="color" id="settings-appearance-radical_color" class="settingsItemInput clickable" style="width: 26.6667px;">
+							<input type="color" id="settings-appearance-kanji_color" class="settingsItemInput clickable" style="width: 26.6667px;">
+							<input type="color" id="settings-appearance-vocab_color" class="settingsItemInput clickable" style="width: 26.6667px;">
+						</div>
+					</div>
+					<!-- APPRENTICE -->
+					<div>
+						<label class="settingsItemLabel">Apprentice (1/2/3/4)</label>
+						<div class="checkbox_wrapper" style="display: inline-flex;">
+							<input type="color" id="settings-appearance-ap1_color" class="settingsItemInput clickable" style="width: 20px;">
+							<input type="color" id="settings-appearance-ap2_color" class="settingsItemInput clickable" style="width: 20px;">
+							<input type="color" id="settings-appearance-ap3_color" class="settingsItemInput clickable" style="width: 20px;">
+							<input type="color" id="settings-appearance-ap4_color" class="settingsItemInput clickable" style="width: 20px;">
+						</div>
+					</div>
+					<!-- GURU -->
+					<div>
+						<label class="settingsItemLabel">Guru (1/2)</label>
+						<div class="checkbox_wrapper" style="display: inline-flex;">
+							<input type="color" id="settings-appearance-gr1_color" class="settingsItemInput clickable" style="width: 40px;">
+							<input type="color" id="settings-appearance-gr2_color" class="settingsItemInput clickable" style="width: 40px;">
+						</div>
+					</div>
+					<!-- MASTER/ENLIGHTENED -->
+					<div>
+						<label class="settingsItemLabel">Master/Enlightened</label>
+						<div class="checkbox_wrapper" style="display: inline-flex;">
+							<input type="color" id="settings-appearance-mst_color" class="settingsItemInput clickable" style="width: 40px;">
+							<input type="color" id="settings-appearance-enl_color" class="settingsItemInput clickable" style="width: 40px;">
+						</div>
+					</div>
+					<!-- BURNED/INITIATE -->
+					<div>
+						<label class="settingsItemLabel">Burned/Initiate</label>
+						<div class="checkbox_wrapper" style="display: inline-flex;">
+							<input type="color" id="settings-appearance-brn_color" class="settingsItemInput clickable" style="width: 40px;">
+							<input type="color" id="settings-appearance-lkd_color" class="settingsItemInput clickable" style="width: 40px;">
+						</div>
+					</div>
+					<!-- COLOR TEMPLATES -->
+					<div class="appearence-buttons" style="margin: 10px auto 0px;">
+						<div class="button" style="margin-right: 5px;">Reset</div>
+						<div class="button" style="margin-right:5px; background-color:white; color: red; border: 1px solid black; font-weight: bold;">Flaming Durtles</div>
+						<div class="button" style="background-color: gray; color: white; border: 1px solid silver;">Grays</div>
+					</div>
+				</div>
+
+				<!-- DANGER -->
+				<div class="section settingsSection">
+					<p>Danger Section</p>
+					<div class="dangerItem">
+						<div class="button" id="clearSubjectsData" style="border-bottom-left-radius: unset; border-bottom-right-radius: unset;">Clear Subjects Data</div>
+						<div class="dangerItemDescription">Clears only the data related to subjects from WaniKani. This will NOT affect your WaniKani account!</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- SIDEBAR -->
+	<div class="side-panel">
+        <a href="profile.html" class="clickable" id="profile">
+            <div>
+                <img src="/images/wanikani-default.png">
+            </div>
+            <p title="Level"></p>
+        </a>
+        <ul>
+            <li class="clickable" style="position: relative;">
+                <a href="settings.html" class="navbar_icon disabled" style="padding: 0px 5px;">
+                    <img id="settings" src="../images/settings.png" title="Settings" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="search.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="search" src="../images/search.png" title="Search" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative; padding-right: 3px;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="blacklist" src="../images/blacklist.png" title="Blacklist" style="width: 20px;">
+                    <span class="side-panel-info-alert" style="background-color: #f100a1; color: white; filter: invert(1);">0</span>
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="about.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="about" src="../images/about.png" title="About" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="random" src="../images/random.png" title="Random" data-item-id="rand" class="kanjiDetails" style="width: 20px;">
+                    <span id="random-subject-type" class="side-panel-info-alert">A</span>
+                </a>
+            </li>
+            <li class="clickable" style="position: relative; padding-left: 3px;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="exit" src="../images/exit.png" title="Exit" style="width: 20px;">
+                </a>
+            </li>
+        </ul>
+        <div class="clickable">
+            <div id="side-panel-logo" title="Wanikani Kanji Highlighter">
+                <img src="../logo/logo.png" style="pointer-events: none;">
+            </div>
+        </div>
+    </div>
+
+	<script src="/scripts/static.js"></script>
+	<script src="/scripts/time.js"></script>
+	<script src="/scripts/fetch/data-fetch.js"></script>
+    <script src="/scripts/fetch/wk-fetch.js"></script>
+	<script src="/scripts/kana.js"></script>
+	<script src="/scripts/functions.js"></script>
+	<script src="/scripts/database.js"></script>
+    <script src="scripts/message-popup.js"></script>
+	<script src="scripts/scripts.js"></script>
+	<script src="scripts/navbar.js"></script>
+	<script src="scripts/settings.js"></script>
+</body>

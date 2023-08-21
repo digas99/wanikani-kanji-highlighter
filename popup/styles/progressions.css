@@ -1,0 +1,12 @@
+#progression-stats > ul > li {
+    font-size: 16px;
+    font-weight: bold;}
+
+#progression-stats > ul > li > div:not(.progression-menu) {
+	height: 50px;
+}
+
+.progression-menu {
+	top: 45px;
+    left: -40px;
+}

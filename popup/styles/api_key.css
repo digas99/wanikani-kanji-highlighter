@@ -1,0 +1,35 @@
+body {
+    padding-right: unset !important;
+}
+
+.apiKeyStep-wrapper {
+    margin-top: 45px;
+    padding: 5px 0px;
+}
+
+.apiKeyStep-wrapper > div:not(.apiKeyStep) {
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.apiKeyStep,
+.apiKeyStep img {
+    margin-top: 6px;
+}
+
+.apiKeyStep img {
+    width: 95%;
+    margin: 10px;
+    border-radius: 5px;
+}
+
+.apiKeyStep {
+	background-color: var(--default-color);
+    color: white;
+    padding: 6px;
+	border-radius: 5px;
+}
+
+.apiKeyStep > p {
+    padding: 3px;
+}

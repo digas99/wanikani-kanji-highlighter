@@ -1,4 +1,7 @@
+chrome.runtime.connect();
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	console.log("[from content script]", request);
 
 	if (request.reloadPage)
 		window.location.reload();
@@ -18,6 +21,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		return true;
 	}
 
+	// handle wanikani data setup completion
+	if (request.setup) {
+		// send this to popup.js
+		chrome.runtime.sendMessage({setup: request.setup});
+		return true;
+	}
+
 	// check if page was reloaded
 	if (request.reloaded) {
 		sendResponse({reloaded:sessionStorage.getItem("is_reloaded") ? true : false});
@@ -32,8 +42,8 @@ window.onbeforeunload = () => {
 }
 
 // setup css vars
-chrome.storage.local.get("wkhighlight_settings", result => {
-	const settings = result["wkhighlight_settings"];
+chrome.storage.local.get("settings", result => {
+	const settings = result["settings"];
 	if (settings) {
 		const appearance = settings["appearance"];
 		const documentStyle = document.documentElement.style;
@@ -42,7 +52,7 @@ chrome.storage.local.get("wkhighlight_settings", result => {
 		documentStyle.setProperty('--default-color', appearance["details_popup"]);
 		documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
 		documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
-		documentStyle.setProperty('--vocab-tag-color', appearance["vocab_color"]);
+		documentStyle.setProperty('--vocabulary-tag-color', appearance["vocab_color"]);
 		Object.values(srsStages).map(srs => srs["short"].toLowerCase())
 			.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
 	}

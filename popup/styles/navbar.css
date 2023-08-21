@@ -1,0 +1,281 @@
+/* TOP NAVBAR */
+
+.topNav {
+    position: fixed;
+    background-color: var(--default-color);
+    border-top: 5px solid var(--wanikani);
+    top: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    color: white;
+    margin-left: -8px;
+    z-index: 10;
+    border-bottom: 2px solid white;
+    height: 45px;
+    padding: 0 15px;
+}
+
+.topNav > a {
+    margin: 2px;
+    cursor: pointer;
+    height: 100%;
+    align-items: center;
+    display: flex;
+}
+
+.topNav > a * {
+    pointer-events: none;
+}
+
+.topNav > a > div {
+    display: flex;
+    align-items: center;
+}
+
+.topNav > a > div > i {
+    border-color: white;
+    padding: 4px;
+}
+
+.topNav > a > div > div {
+    margin-left: 10px;
+    color: white;
+}
+
+.topNav .star {
+    position: absolute;
+    right: 70px;
+    filter: invert(1);
+}
+
+.topNav .star > img {
+    width: 20px;
+}
+
+.topNav-lessons {
+	position: absolute;
+    right: 90px;
+    top: 0;
+    display: flex;
+    column-gap: 15px;
+    height: 100%;
+    align-items: center;
+}
+
+.topNav-lessons > a {
+    display: flex;
+	align-items: center;
+	color: white;
+    opacity: 1;
+}
+
+.topNav-lessons .lessons-icon, .topNav-lessons .reviews-icon {
+	width: 21px;
+    height: 21px;
+    overflow: hidden;
+    border-top-left-radius: 50%;
+    border-bottom-left-radius: 50%;
+}
+
+.topNav-lessons .lessons-icon {
+	background-color: var(--wanikani);
+	border: 2px solid var(--wanikani);
+}
+
+.topNav-lessons .reviews-icon {
+	background-color: var(--wanikani-sec);
+	border: 2px solid var(--wanikani-sec);
+}
+
+.topNav-lessons .lessons-icon > div, .topNav-lessons .reviews-icon > div {
+	width: 30px;
+    height: 30px;
+    background-size: cover;
+    background-position: center;
+    margin: auto;
+    text-align: center;
+    margin-left: -6px;
+}
+
+.topNav-lessons .lessons-count {
+    color: white;
+    padding: 0px 10px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    font-weight: bold;
+    border: 2px solid white;
+    height: 21px;
+    display: flex;
+    align-items: center;
+}
+
+.topNav-lessons > a:hover .lessons-count {
+    background-color: white;
+    color: var(--default-color);
+}
+
+#goBack {
+	margin: 2px;
+	cursor: pointer;
+}
+
+#goBack i {
+	border-color: white;
+	padding: 4px;
+}
+
+#goBack * {
+	pointer-events: none;
+}
+
+/* SIDE NAVBAR */
+
+.burger-menu {
+	width: 25px;
+    padding: 4px;
+}
+
+.burger-menu > div:not(:last-child) {
+	margin-bottom: 2px;
+}
+
+.burger-menu > div {
+	pointer-events: none;
+	width: 100%;
+    height: 4px;
+    background-color: black;
+    border-radius: 5px;
+}
+
+.burger-menu-clicked {
+	width: 18px;
+	height: 18px;
+	position: relative;
+	transition: 0.2s;
+	right: -3px;
+}
+
+.burger-menu-clicked > div:nth-child(1) {
+	transform: rotate(45deg);
+}
+
+.burger-menu-clicked > div:nth-child(2) {
+	display: none;
+}
+
+.burger-menu-clicked > div:nth-child(3) {
+	transform: rotate(-45deg);
+}
+
+.burger-menu-clicked > div{
+	position: absolute;
+	top: 11px;
+    right: 0px;
+	height: 3px;
+}
+
+.side-panel {
+	height: 100%;
+	width: 45px;
+	position: fixed;
+	right: 0;
+	top: 0;
+	background-color: var(--default-color);
+	border-top: 5px solid var(--wanikani);
+	text-align: center;
+	z-index: 11;
+	transition: 0.5s;
+}
+
+.side-panel > ul {
+	filter: invert(1);
+}
+
+.side-panel > ul > li {
+	margin-top: 15px;
+}
+
+.side-panel > div > a  {
+	display: inline-block;
+}
+
+.side-panel > div > a > img {
+    width: 26px;
+    border-radius: 15px;
+    pointer-events: none;
+    border: 2px solid white;
+	transition: 0.5s;
+}
+
+#side-panel-logo {
+	bottom: 10px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
+#side-panel-logo > img {
+	width: 34px;
+}
+
+.side-panel-focus {
+	width: 110px;
+	box-shadow: 0px 0px 4px 0px black;
+}
+
+.side-panel-focus > ul {
+	text-align: left;
+	padding-left: 12px;
+}
+
+.side-panel-focus > ul > li > a {
+	display: inline-flex;
+}
+
+.side-panel-focus > ul > li > a > p {
+	color: black;
+    padding-left: 12px;
+}
+
+.side-panel-focus > div > a > img {
+	width: 45px;
+	border-radius: 30px;
+}
+
+.side-panel-info-alert {
+    padding: 3px;
+    position: absolute;
+    top: -7px;
+    left: 26px;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+#random-subject-type {
+	background-color: #997474;
+    color: black;
+}
+
+#profile > div {
+    margin-top: 10px;
+}
+
+#profile img {
+    border-radius: 50%;
+    border: 3px solid white;
+    width: 26px;
+}
+
+#profile p {
+    font-weight: bold;
+    color: rgb(204, 204, 204);
+}
+
+.separator {
+    height: 1px;
+    background-color: black;
+    margin: 20px 10px;
+}

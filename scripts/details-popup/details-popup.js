@@ -1,16 +1,16 @@
 (() => {
-	chrome.storage.local.get(["wkhighlight_allkanji", "wkhighlight_allradicals", "wkhighlight_allvocab", "wkhighlight_settings"], result => {
+	chrome.storage.local.get(["kanji", "radicals", "vocabulary", "kana_vocabulary", "settings"], result => {
 		chrome.runtime.sendMessage({uptimeDetailsPopup:true});
 
-		const settings = result["wkhighlight_settings"];
+		const settings = result["settings"];
 		if (settings["kanji_details_popup"]["popup_opacity"])
 			document.documentElement.style.setProperty('--detailsPopup-opacity', settings["kanji_details_popup"]["popup_opacity"]/10);
 
 		const atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(window.location.origin);
 		
-		const allKanji = result["wkhighlight_allkanji"];
-		const allRadicals = result["wkhighlight_allradicals"];
-		const allVocab = result["wkhighlight_allvocab"];
+		const allKanji = result["kanji"];
+		const allRadicals = result["radicals"];
+		const allVocab = {...result["vocabulary"], ...result["kana_vocabulary"]};
 		if (allKanji && allRadicals && allVocab) {
 			const detailsPopup = new SubjectDisplay(allRadicals, allKanji, allVocab, 275, document.documentElement);
 			
@@ -25,10 +25,11 @@
 				// create kanji details popup coming from search
 				if (request.infoPopupFromSearch && !atWanikani)  {
 					let id = request.infoPopupFromSearch;
+					console.log(request);
 					if (id.split("-")[0] === "rand") {
 						let allSubjectsKeys = [Object.keys(allKanji), Object.keys(allVocab)].flat(1);
 						if (id.split("-")[1] === "kanji") allSubjectsKeys = Object.keys(allKanji);
-						else if (id.split("-")[1] === "vocab") allSubjectsKeys = Object.keys(allVocab);
+						else if (id.split("-")[1] === "vocabulary") allSubjectsKeys = Object.keys(allVocab);
 
 						if (allSubjectsKeys)
 							id = allSubjectsKeys[rand(0, allSubjectsKeys.length-1)];
@@ -56,8 +57,8 @@
 					if (!detailsPopup.detailsPopup)
 						detailsPopup.create();
 						
-					chrome.storage.local.get(["wkhighlight_kanji_assoc"], data => {
-						const info = data["wkhighlight_kanji_assoc"];
+					chrome.storage.local.get(["kanji_assoc"], data => {
+						const info = data["kanji_assoc"];
 						if (info)
 							detailsPopup.update(info[node.textContent], true);
 					});
@@ -76,8 +77,8 @@
 					// clicked in a highlighted kanji (within the info popup)
 					if (node.classList.contains(highlightingClass) || node.classList.contains(notLearnedHighlightingClass)) {
 						const character = node.textContent;
-						chrome.storage.local.get(["wkhighlight_kanji_assoc"], data => {
-							const assocList = data["wkhighlight_kanji_assoc"];
+						chrome.storage.local.get(["kanji_assoc"], data => {
+							const assocList = data["kanji_assoc"];
 							if (assocList)
 								detailsPopup.update(assocList[character], true);
 						});
@@ -87,8 +88,8 @@
 				
 			document.addEventListener("keydown", e => {
 				const key = e.key;
-				chrome.storage.local.get(["wkhighlight_settings"], result => {
-					const settings = result["wkhighlight_settings"];
+				chrome.storage.local.get(["settings"], result => {
+					const settings = result["settings"];
 					const keyBindingsActive = settings["kanji_details_popup"] ? settings["kanji_details_popup"]["key_bindings"] : defaultSettings["kanji_details_popup"]["key_bindings"];
 					if (detailsPopup.detailsPopup && keyBindingsActive) {
 						if (key == 'x' || key == 'X') {

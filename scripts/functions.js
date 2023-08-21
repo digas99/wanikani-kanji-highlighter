@@ -28,79 +28,6 @@ const ordinalSuffix = number => {
 	}
 }
 
-const msToDays = ms => {
-	return ms / (1000 * 60 * 60 * 24);
-}
-
-// millisecond to readable format
-// stole from: https://stackoverflow.com/questions/19700283/how-to-convert-time-in-milliseconds-to-hours-min-sec-format-in-javascript/32180863#32180863
-function msToTime(ms) {
-  let seconds = (ms / 1000).toFixed(1);
-  let minutes = (ms / (1000 * 60)).toFixed(1);
-  let hours = (ms / (1000 * 60 * 60)).toFixed(1);
-  let days = (ms / (1000 * 60 * 60 * 24)).toFixed(1);
-  if (seconds < 60) return seconds + " Sec";
-  else if (minutes < 60) return minutes + " Min";
-  else if (hours < 24) return hours + " Hrs";
-  else return days + " Days"
-}
-
-// format date into <day-name>, <day> <month> <year> <hour>:<minute>:<second> GMT
-const formatDate = date => {
-	const split = date.toString().split(" ");
-	return `${split[0]}, ${split[2]} ${split[1]} ${split[3]} ${split[4]} GMT`;
-}
-
-// setup two new functions to Date
-var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-
-var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-
-Date.prototype.getMonthName = function() {
-	return months[ this.getMonth() ];
-};
-
-Date.prototype.getWeekDay = function() {
-	return days[ this.getDay() ];
-};
-
-const simpleFormatDate = (date, format) => {
-	// make sure it is a Date object
-	date = new Date(date);
-	let dd = date.getDate();
-	let mm = date.getMonth()+1;
-	const yyyy = date.getFullYear();
-	dd = dd < 10 ? '0'+dd : dd;
-	mm = mm < 10 ? '0'+mm : mm;
-	let value;
-	switch(format) {
-		case "mdy":
-			value = `${mm}-${dd}-${yyyy}`
-			break;
-		case "dmy":
-			value = `${dd}-${mm}-${yyyy}`
-			break;
-		case "ymd":
-			value = `${yyyy}-${mm}-${dd}`; 
-			break;
-	}
-	return value;
-}
-
-const time12h = hours => new Date('1970-01-01T'+hours+'Z').toLocaleTimeString({}, {timeZone:'UTC', hour12:true, hour:'numeric', minute:'numeric'});
-
-const setExactHour = (date, hour) => {
-	return new Date(new Date(new Date(new Date(date).setHours(hour)).setMinutes(0)).setSeconds(0));
-}
-
-const nextExactHour = (date, hours) => {
-	return new Date(new Date(new Date(new Date(date).setHours(new Date(date).getHours()+hours)).setMinutes(0)).setSeconds(0));
-}
-
-const changeDay = (date, days) => {
-	return new Date(new Date(date).setDate((new Date(date).getDate())+days));
-}
-
 const setupReviewsDataForChart = (reviews, today, days, hoursAhead, time12h_format) => {
 	const currentHour = today.getHours();
 	let currentDay = today.getDate();
@@ -199,32 +126,33 @@ const filterAssignmentsByTime = (list, currentDate, capDate) => {
 }
 
 // clears cache of this extension from chrome storage
-const clearCache = () => {
-	chrome.storage.local.get(null, data => {
-		let keysToRemove = [];
-		Object.keys(data).forEach(key => {
-			if (/^wkhighlight_.*/g.test(key)) {
-				keysToRemove.push(key);
-			}
+const clearCache = async (keysToKeep) => {
+	if (keysToKeep) {
+		const dataToKeep = {};
+
+		// Get the data from chrome.storage.local
+		const data = await new Promise(resolve => {
+			chrome.storage.local.get(keysToKeep, data => {
+				resolve(data);
+			});
 		});
-		window.location.reload();
-		chrome.storage.local.remove(keysToRemove);
-		localStorage.clear("db_subjects");
-	});
+	
+		keysToKeep.forEach(key => (dataToKeep[key] = data[key]));
+	
+		// Clear chrome.storage.local and set the data to keep
+		await new Promise(resolve => {
+			chrome.storage.local.clear(() => {
+				chrome.storage.local.set(dataToKeep, () => {
+					resolve();
+				});
+			});
+		});
+	}
+
 }
 
-const clearSubjects = () => {
-	chrome.storage.local.get(null, data => {
-		let keysToRemove = [];
-		Object.keys(data).forEach(key => {
-			if (/^wkhighlight_all.*/g.test(key)) {
-				keysToRemove.push(key);
-			}
-		});
-		window.location.reload();
-		chrome.storage.local.remove(keysToRemove);
-		localStorage.clear("db_subjects");
-	});
+const clearSubjects = async () => {
+	await clearCache(["apiKey", "settings", "userInfo", "userInfo_updated"]);
 }
 
 const rand = (min, max) => {
@@ -247,17 +175,10 @@ const mdToHTML = lineText => {
 	}
 
 	let elem;
-	if (hCounter == 1) {
+	if (hCounter == 1)
 		elem = document.createElement("p");
-		elem.style.fontSize = "14px";
-	}
-	else {
+	else
 		elem = document.createElement("h"+hCounter);
-		if (hCounter == 2)
-			elem.style.marginTop = "10px";
-		
-		if (hCounter == 3) elem.style.fontSize = "16px";
-	}
 
 	// detect links headers
 	let insideLink = false;
@@ -270,13 +191,24 @@ const mdToHTML = lineText => {
 		
 		if (insideLink) newLine+=line.charAt(i);
 
-		if (line.charAt(i) == '[') insideLink = true;
+		if (line.charAt(i) == '[') {
+			if (i !== 1) break;
+
+			insideLink = true;
+		}
 	}
+
+	if (line == "---") line = "";
 
 	if (lineText.charAt(0) === ' ')
 		elem.style.paddingLeft = "10px";
 
-		line.replaceAll('*', '');
+	if (line.slice(0, 3) === "***") {
+		elem.classList.add("md-extra-highlighted");
+	}
+
+	line = line.replaceAll('*', '');
+
 
 	elem.appendChild(document.createTextNode(line));
 
@@ -338,115 +270,485 @@ const flipArrow = (arrow, sourceDir, destDir, paddingValue) => {
 	}
 }
 
-const assignUponSubjects = list => {
-	const type = list[Object.keys(list)[0]]["subject_type"];
-	if (list && type) {
-		chrome.storage.local.get("wkhighlight_assignments", result => {
-			const allAssignments = result["wkhighlight_assignments"]["all"];
-			const progress = Object.fromEntries(Object.keys(srsStages).map(stage => [stage, 0]));
-			const levelsInProgress = [];
-			if (allAssignments) {
-				console.log(`Associating assignments with ${type} ...`);
+const setupRadicals = (radicals, records, radical) => {
+	const data = radical["data"];
 
-				const lib = new localStorageDB("subjects", localStorage);
-				allAssignments.forEach(assignment => {
-					const data = assignment["data"];
+	radicals[radical.id] = {
+		"characters" : data.characters,
+		"character_images" : data.character_images,
+		"document_url" : data.document_url,
+		"level" : data.level,
+		"id":radical.id,
+		"meanings": data.meanings.map(data => data.meaning),
+		"subject_type":radical.object,
+		"hidden_at":data.hidden_at
+	};
+
+	records.push({
+		"characters" : data.characters,
+		"character_images" : data.character_images,
+		"level" : data.level,
+		"id":radical.id,
+		"meanings": data.meanings.map(data => data.meaning),
+		"subject_type":radical.object,
+		"hidden_at":data.hidden_at,
+		"srs_stage" : -1,
+		"hidden" : null,
+		"passed_at" : null,
+		"available_at" : null
+	});
+}
+
+const setupVocab = (vocabs, assocs, records, vocab) => {
+	const data = vocab["data"];
+
+	vocabs[vocab.id] = {
+		"characters" : data.characters,
+		"component_subject_ids" : data.component_subject_ids, 
+		"context_sentences" : data.context_sentences,
+		"document_url" : data.document_url,
+		"level" : data.level,
+		"meaning_mnemonic" : data.meaning_mnemonic,
+		"meanings" : data.meanings.map(data => data.meaning),
+		"parts_of_speech" : data.parts_of_speech,
+		"reading_mnemonic" : data.reading_mnemonic,
+		"readings" : data.readings.map(data => data.reading),
+		"pronunciation_audios" : data.pronunciation_audios,
+		"id":vocab.id,
+		"subject_type":vocab.object,
+		"hidden_at":data.hidden_at
+	};
+
+	records.push({
+		"characters" : data.characters,
+		"component_subject_ids" : data.component_subject_ids, 
+		"level" : data.level,
+		"meanings" : data.meanings.map(data => data.meaning),
+		"readings" : data.readings.map(data => data.reading),
+		"id":vocab.id,
+		"subject_type":vocab.object,
+		"hidden_at":data.hidden_at,
+		"pronunciation_audios" : data.pronunciation_audios,
+		"srs_stage" : -1,
+		"hidden" : null,
+		"passed_at" : null,
+		"available_at" : null
+	});
+
+	assocs[data.characters] = vocab.id;
+}
+
+const setupKanaVocab = (vocabs, assocs, records, vocab) => {
+	const data = vocab["data"];
+
+	vocabs[vocab.id] = {
+		"characters" : data.characters,
+		"context_sentences" : data.context_sentences,
+		"document_url" : data.document_url,
+		"level" : data.level,
+		"meaning_mnemonic" : data.meaning_mnemonic,
+		"meanings" : data.meanings.map(data => data.meaning),
+		"parts_of_speech" : data.parts_of_speech,
+		"pronunciation_audios" : data.pronunciation_audios,
+		"id":vocab.id,
+		"subject_type":vocab.object,
+		"hidden_at":data.hidden_at
+	};
+
+	records.push({
+		"characters" : data.characters,
+		"level" : data.level,
+		"meanings" : data.meanings.map(data => data.meaning),
+		"id":vocab.id,
+		"subject_type":vocab.object,
+		"hidden_at":data.hidden_at,
+		"pronunciation_audios" : data.pronunciation_audios,
+		"srs_stage" : -1,
+		"hidden" : null,
+		"passed_at" : null,
+		"available_at" : null
+	});
+
+	assocs[data.characters] = vocab.id;
+}
+
+const setupKanji = (kanjis, assocs, records, kanji) => {
+	const data = kanji["data"];
+
+	kanjis[kanji.id] = {
+		"amalgamation_subject_ids" : data.amalgamation_subject_ids,
+		"characters" : data.characters,
+		"component_subject_ids" : data.component_subject_ids,
+		"document_url" : data.document_url,
+		"level" : data.level,
+		"meaning_hint" : data.meaning_hint,
+		"meaning_mnemonic" : data.meaning_mnemonic,
+		"meanings" : data.meanings.map(data => data.meaning),
+		"reading_hint" : data.reading_hint,
+		"reading_mnemonic" : data.reading_mnemonic,
+		"readings" : data.readings,
+		"visually_similar_subject_ids" : data.visually_similar_subject_ids,
+		"slug": data.slug,
+		"id":kanji.id,
+		"subject_type":kanji.object,
+		"hidden_at":data.hidden_at
+	};
+	
+	records.push({
+		"amalgamation_subject_ids" : data.amalgamation_subject_ids,
+		"characters" : data.characters,
+		"component_subject_ids" : data.component_subject_ids,
+		"level" : data.level,
+		"meanings" : data.meanings.map(data => data.meaning),
+		"readings" : data.readings,
+		"visually_similar_subject_ids" : data.visually_similar_subject_ids,
+		"id" : kanji.id,
+		"subject_type" : kanji.object,
+		"hidden_at" : data.hidden_at,
+		"srs_stage" : -1,
+		"hidden" : null,
+		"passed_at" : null
+	});
+
+	assocs[data.slug] = kanji.id;
+}
+
+let progress = 0, fetches = 0;
+
+const loadEvent = new CustomEvent("loadData", {text: "", progress: progress, fetches: fetches});
+
+const sendSetupProgress = (text, progress, tab) => {
+	loadEvent.progress = progress;
+	loadEvent.text = text;
+	loadEvent.fetches = fetches;
+	
+	if (typeof window === "object")
+		document.dispatchEvent(loadEvent);
+
+	const messageData = {
+		setup: {
+			text: text,
+			progress: progress,
+			fetches: fetches
+		}
+	}
+	if (tab)
+		chrome.tabs.sendMessage(tab, messageData);
+	else
+		chrome.runtime.sendMessage(messageData);
+}
+
+// check if bulk fetch was done less than 1 minute ago
+const canFetch = async () => {
+	const bulkFetch = await new Promise(resolve => {
+		chrome.storage.local.get(["bulk_fetch"], resolve);
+	});
+	return !bulkFetch["bulk_fetch"] || new Date().getTime() - bulkFetch["bulk_fetch"] > 60000;
+}
+
+const sizeToFetch = async apiToken => {
+	return new Promise(resolve => {
+		chrome.storage.local.get([RADICAL_SETUP.storage.updated, VOCAB_SETUP.storage.updated, KANA_VOCAB_SETUP.storage.updated, KANJI_SETUP.storage.updated, ASSIGNMENTS_SETUP.storage.updated, REVIEWSTATS_SETUP.storage.updated], async result => {
+			const fetches = await Promise.all(
+				[RADICAL_SETUP, VOCAB_SETUP, KANA_VOCAB_SETUP, KANJI_SETUP, ASSIGNMENTS_SETUP, REVIEWSTATS_SETUP]
+				  .map(async setup => await modifiedSince(apiToken, result[setup.storage.updated], setup.endpoint))
+			);
+	
+			const filteredFetches = fetches.filter(Boolean);
+			resolve(filteredFetches.length);
+		});
+	});
+}
+
+const getTab = () => {
+    return new Promise((resolve, reject) => {
+        chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
+            if (tabs && tabs.length > 0) {
+                resolve(tabs[0]);
+            } else {
+                reject(new Error("No active tab found."));
+            }
+        });
+    });
+}
+
+// get all assignments if there are none in storage or if they were modified
+// see if all subjects are already saved in storage
+const loadData = async (apiToken, tabId, callback) => {
+	const returnObject = (assignments, radicals, vocab, kana_vocabulary, kanji) => ({
+			assignments: assignments,
+			radicals: radicals,
+			vocab: vocab,
+			kana_vocabulary: kana_vocabulary,
+			kanji: kanji
+	});
+
+	// get number of fetches that will be done
+	fetches = await sizeToFetch(apiToken); 
+	console.log("[FETCHES]: ", fetches);
+
+	if (fetches > 0) 
+		chrome.runtime.sendMessage({loading: true, setup: {fetches: fetches}});
+	else {
+		if (!callback)
+			return;
+	}		
+
+	// assignments
+	const result = await setupAssignments(apiToken);
+	setupAvailableAssignments(apiToken);
+	const assignments = result[0];
+	const fetched = result[1];			
+	
+	const messageText = "✔ Loaded Assignments data.";
+	console.log("[LOADED]:", messageText);
+	if (fetched) {
+		progress++;
+		sendSetupProgress(messageText, progress/fetches, tabId);
+	}	
+
+	if (progress == fetches) progress = 0;
+
+	const setups = [
+		// radicals
+		new Promise(async (resolve, reject) => {
+			const result = await setupSubjects(apiToken, RADICAL_SETUP, (subjects, assocs, records, subject) => setupRadicals(subjects, records, subject));
+			const [radicals, fetched] = result;
+			
+			await subjectsAssignmentStats(radicals);	
+
+			resolve(radicals);
+			
+			const messageText = "✔ Loaded Radicals data.";
+			console.log("[LOADED]:", messageText);
+			if (fetched) {
+				progress++;
+				sendSetupProgress(messageText, progress/fetches, tabId);
+			}
+
+			if (progress == fetches) progress = 0;
+		}),
+		// vocabulary
+		new Promise(async (resolve, reject) => {
+			const result = await setupSubjects(apiToken, VOCAB_SETUP, (subjects, assocs, records, subject) => setupVocab(subjects, assocs, records, subject));
+			const [vocab, fetched] = result;
+
+			await subjectsAssignmentStats(vocab);	
+
+			resolve(vocab);
+			
+			const messageText = "✔ Loaded Vocabulary data.";
+			console.log("[LOADED]:", messageText);
+			if (fetched) {
+				progress++;
+				sendSetupProgress(messageText, progress/fetches, tabId);
+			}
+		
+			if (progress == fetches) progress = 0;
+		}),
+		// kana vocabulary
+		new Promise(async (resolve, reject) => {
+			const result = await setupSubjects(apiToken, KANA_VOCAB_SETUP, (subjects, assocs, records, subject) => setupKanaVocab(subjects, assocs, records, subject));
+			const [vocab, fetched] = result;
+
+			await subjectsAssignmentStats(vocab);	
+
+			resolve(vocab);
+			
+			const messageText = "✔ Loaded Kana Vocabulary data.";
+			console.log("[LOADED]:", messageText);
+			if (fetched) {
+				progress++;
+				sendSetupProgress(messageText, progress/fetches, tabId);
+			}
+		}),
+		// kanji
+		new Promise(async (resolve, reject) => {
+			const result = await setupSubjects(apiToken, KANJI_SETUP, (subjects, assocs, records, subject) => setupKanji(subjects, assocs, records, subject));
+			const [kanji, fetched] = result;
+
+			await subjectsAssignmentStats(kanji);	
+
+			resolve(kanji);
+			
+			const messageText = "✔ Loaded Kanji data.";
+			console.log("[LOADED]:", messageText);
+			if (fetched) {
+				progress++;
+				sendSetupProgress(messageText, progress/fetches, tabId);
+			}
+		})
+	];
+	
+	Promise.all(setups).then(async results => {
+		// add bulk fetch timestamp to storage
+		chrome.storage.local.set({bulk_fetch: new Date().getTime()});
+		if (callback)
+			callback(returnObject(assignments, results[0], results[1], results[2], results[3]));
+
+		const fetched = await subjectsReviewStats(apiToken, results);
+		const messageText = "✔ Loaded Review Statistics data.";
+		console.log("[LOADED]:", messageText);
+		if (fetched) {
+			progress++;
+			sendSetupProgress(messageText, progress/fetches, tabId);
+		}
+
+		if (progress == fetches) progress = 0;
+	});
+}
+
+const subjectsAssignmentStats = async list => {
+    const type = list[Object.keys(list)[0]]["subject_type"];
+    if (list && type) {
+        const db = new Database("wanikani");
+        const opened = await db.open("subjects");
+
+        if (opened) {
+            const result = await new Promise(resolve => {
+                chrome.storage.local.get("assignments", resolve);
+            });
+
+            const allAssignments = result["assignments"]["all"];
+            const progress = Object.fromEntries(Object.keys(srsStages).map(stage => [stage, 0]));
+            const levelsInProgress = [];
+
+            if (allAssignments) {
+                console.log(`[ASSIGNMENTS]: Associating assignments with ${type} ...`);
+
+                const updatePromises = allAssignments.map(assignment => {
+                    const data = assignment["data"];
+                    const subjectId = data["subject_id"];
+
+                    if (subjectId && list[subjectId]) {
+                        const subject = list[subjectId];
+
+                        const timestamps = {
+                            data_updated_at: assignment["data_updated_at"],
+                            available_at: data["available_at"],
+                            burned_at: data["burned_at"],
+                            created_at: data["created_at"],
+                            passed_at: data["passed_at"],
+                            resurrected_at: data["resurrected_at"],
+                            started_at: data["started_at"],
+                            unlocked_at: data["unlocked_at"]
+                        };
+                        subject["timestamps"] = timestamps;
+                        subject["srs_stage"] = data["srs_stage"];
+                        subject["hidden"] = data["hidden"];
+                        progress[data["srs_stage"]]++;
+					
+						if (!data["passed_at"] && !levelsInProgress.includes(subject["level"])) {
+							levelsInProgress.push(subject["level"]);
+						}
+
+                        return db.get("subjects", subjectId).then(result => {
+                            if (result) {
+                                ["srs_stage", "hidden", "passed_at", "available_at"].forEach(key => result[key] = data[key]);
+                                return db.update("subjects", result);
+                            }
+                        });
+                    }
+                });
+
+                await Promise.all(updatePromises);
+
+				const storageData = {
+					[type]: list,
+					["" + type + "_progress"]: progress,
+					["" + type + "_levelsInProgress"]: levelsInProgress
+				};
+				await new Promise(resolve => {
+					chrome.storage.local.set(storageData, resolve);
+				});
+            }
+        }
+    }
+}
+
+const subjectsReviewStats = async (apiToken, lists) => {
+	return new Promise(async (resolve) => {
+		chrome.storage.local.get("reviewStats_updated", async result => {
+			const updated = result["reviewStats_updated"];
+			const stats = await fetchAllPages(apiToken, "https://api.wanikani.com/v2/review_statistics", updated);
+
+			if (stats.error) {
+				resolve(false);
+				return;
+			}
+
+			console.log(lists);
+			for (const list of lists) {
+				const type = list[Object.keys(list)[0]]["subject_type"];
+				console.log(`[REVIEW STATS]: Associating review statistics with ${type} ...`);
+
+				stats.map(coll => coll["data"]).flat(1).forEach(stat => {
+					const data = stat["data"];
 					const subjectId = data["subject_id"];
 					if (subjectId && list[subjectId]) {
 						const subject = list[subjectId];
-
-						const timestamps = {
-							data_updated_at: assignment["data_updated_at"],
-							available_at: data["available_at"],
-							burned_at: data["burned_at"],
-							created_at: data["created_at"],
-							passed_at: data["passed_at"],
-							resurrected_at: data["resurrected_at"],
-							started_at: data["started_at"],
-							unlocked_at: data["unlocked_at"]
-						}
-						subject["timestamps"] = timestamps;
-						subject["srs_stage"] = data["srs_stage"];
-						subject["hidden"] = data["hidden"];
-						progress[data["srs_stage"]]++;
-
-						lib.update(type, {id:subjectId}, row => {
-							row.srs_stage = data["srs_stage"];
-							row.hidden = data["hidden"];
-							row.passed_at = data["passed_at"];
-							row.available_at = data["available_at"];
-							return row;
-						});
-
-						if (!data["passed_at"] && !levelsInProgress.includes(subject["level"]))
-							levelsInProgress.push(subject["level"]);
+						subject["stats"] = {
+							meaning_correct: data["meaning_correct"],
+							meaning_current_streak: data["meaning_current_streak"],
+							meaning_incorrect: data["meaning_incorrect"],
+							meaning_max_streak: data["meaning_max_streak"],
+							percentage_correct: data["percentage_correct"],
+							reading_correct: data["reading_correct"],
+							reading_current_streak: data["reading_current_streak"],
+							reading_incorrect: data["reading_incorrect"],
+							reading_max_streak: data["reading_max_streak"]
+						};
 					}
 				});
 
-				console.log("commit from assignments");
-				console.log(lib.commit());
-
-				let storageId;
-				switch(type) {
-					case "radical":
-						storageId = "wkhighlight_allradicals";
-						break;
-					case "kanji":
-						storageId = "wkhighlight_allkanji";
-						break;
-					case "vocabulary":
-						storageId = "wkhighlight_allvocab";
-						break;
-				}
-				if (storageId)
-					chrome.storage.local.set({...{[storageId]:list, ["wkhighlight_"+type+"_progress"]: progress, ["wkhighlight_"+type+"_levelsInProgress"]: levelsInProgress}});
+				chrome.storage.local.set({ [type]: list }, () => console.log(`[REVIEW STATS]: ${type} updated`));
 			}
+
+			chrome.storage.local.set({ reviewStats_updated: formatDate(addHours(new Date(), -1)) }, () => resolve(true));
 		});
-	}
+	});
 }
 
-const revStatsUponSubjects = (apiToken, list) => {
-	const type = list[Object.keys(list)[0]]["subject_type"];
-	if (list && type) {
-		console.log(`Associating review statistics with ${type} ...`);
-		fetchAllPages(apiToken, "https://api.wanikani.com/v2/review_statistics")
-			.then(stats => {
-				stats.map(coll => coll["data"])
-					.flat(1)
-					.forEach(stat => {
-						const data = stat["data"];
-						const subjectId = data["subject_id"];
-						if (subjectId && list[subjectId]) {
-							const subject = list[subjectId];
-							subject["stats"] = {
-								meaning_correct: data["meaning_correct"],
-								meaning_current_streak: data["meaning_current_streak"],
-								meaning_incorrect: data["meaning_incorrect"],
-								meaning_max_streak: data["meaning_max_streak"],
-								percentage_correct: data["percentage_correct"],
-								reading_correct: data["reading_correct"],
-								reading_current_streak: data["reading_current_streak"],
-								reading_incorrect: data["reading_incorrect"],
-								reading_max_streak: data["reading_max_streak"]
-							}
-						}
-					});
-					let storageId;
-					switch(type) {
-						case "radical":
-							storageId = "wkhighlight_allradicals";
-							break;
-						case "kanji":
-							storageId = "wkhighlight_allkanji";
-							break;
-						case "vocabulary":
-							storageId = "wkhighlight_allvocab";
-							break;
-					}
-					if (storageId)
-						chrome.storage.local.set({[storageId]:list});
+const blacklist = async url => {
+	if (!url) {
+		url = await new Promise(resolve => {
+			chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+				activeTab = tabs[0];
+				chrome.tabs.sendMessage(activeTab.id, {windowLocation: "host"}, response => {
+					if (!window.chrome.runtime.lastError && response["windowLocation"])
+						resolve(response["windowLocation"]);
+					else
+						resolve(null);
+				});
 			});
+		});
 	}
+
+    const blacklistData = await new Promise(resolve => {
+        chrome.storage.local.get(["blacklist"], blacklist => {
+            resolve(blacklist);
+        });
+    });
+
+    let blacklistedUrls = blacklistData["blacklist"] ? blacklistData["blacklist"] : [];
+    blacklistedUrls.push(url.replace("www.", "").replace(".", "\\."));
+    
+    chrome.storage.local.set({"blacklist": [...new Set(blacklistedUrls)]});
+}
+
+const blacklistRemove = url => {
+	return new Promise(resolve => {
+		chrome.storage.local.get(["blacklist"], data => {
+			const blacklist = data["blacklist"];
+			const index = blacklist.indexOf(url.replace("www.", "").replace(".", "\\."));
+			if (index > -1) {
+				blacklist.splice(index, 1);
+				chrome.storage.local.set({"blacklist":blacklist});
+				resolve(blacklist.length);
+			} else
+				resolve(-1);
+		});
+	});
 }
 
 const blacklisted = (blacklist, url) => {
@@ -455,4 +757,367 @@ const blacklisted = (blacklist, url) => {
 		return regex.test(url);
 	}
 	return false;
+}
+
+const dataTile = (subjects, elem, value) => {
+	const subject = subjects.find(subject => 
+		subject["characters"] === value ||
+		subject?.character_images?.find(image => image["url"] == elem.querySelector("img")?.src));
+		
+	if (subject) {
+		const meaning = subject["meanings"][0];
+		let reading = subject["readings"] ? subject["readings"][0] : subject["readings"];
+		if (reading && typeof reading !== "string")
+			reading = subject["readings"].find(reading => reading["primary"])["reading"];
+
+		const type = subject["subject_type"];
+
+		if (type !== "radical")
+			elem.classList.add("kanjiDetails");
+
+		elem.title = `${meaning} ${reading ? `| ${reading}` : ""}\x0D${type.split("_").map(word => word[0].toUpperCase() + word.slice(1)).join(" ")}`;
+		elem.setAttribute("data-item-id", subject["id"]);
+	}
+}
+
+const headerSRSDecoration = (header, srs) => {
+	const egg = document.createElement("div");
+	egg.classList.add("srsTitleEgg");
+	if (srs > 4 && srs < 7)
+		egg.style.backgroundPositionX = "-22px";
+	if (srs == 7)
+		egg.style.backgroundPositionX = "-45px";
+	if (srs == 8)
+		egg.style.backgroundPositionX = "-67px";
+
+	header.insertBefore(egg, header.firstChild);
+}
+
+const headerSubjectDecoration = (header, type) => {
+	const typeElem = document.createElement("span");
+	header.insertBefore(typeElem, header.firstChild);
+	typeElem.style.fontWeight = "bold";
+	let text;
+	switch(type) {
+		case "radical":
+			text = "部首";
+			break;
+		case "kanji":
+			text = "漢字";
+			break;
+		case "vocabulary":
+		case "kana_vocabulary":
+			text = "単語";
+			break;
+	}
+	typeElem.textContent = text;
+}
+
+const getCharacter = subject => {
+	if (subject["characters"])
+		return subject["characters"];
+	else {
+		const img = subject["character_images"].find(image => image["metadata"]["style_name"] == 'original');
+		if (img) {
+			return `<img class="radical-image" src="${img["url"]}" />`;	
+		}
+
+		return "";
+	}
+}
+
+const progressionStats = (wrapper, progresses, colors, line, menuCallback) => {
+	let row, stageValue, stageColor;
+	console.log(progresses);
+
+	// clear stats beforehand if needed
+	if (wrapper) wrapper.innerHTML = "";
+
+	Object.keys(srsStages).forEach(stage => {
+		stageValue = Object.keys(progresses).reduce((acc, type) => {
+			if (progresses[type] && progresses[type][stage])
+				acc += progresses[type][stage];
+			return acc;
+		}, 0);
+
+		stageColor = colors ? colors[srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
+
+		if (stage % line == 0) {
+			row = document.createElement("ul");
+			wrapper.appendChild(row);
+		}
+
+		const stageSquareWrapper = document.createElement("li");
+		row.appendChild(stageSquareWrapper);
+		const stageSquare = document.createElement("div");
+		stageSquareWrapper.appendChild(stageSquare);
+		stageSquare.classList.add("clickable");
+		const stageLink = document.createElement("a");
+		stageSquare.title = srsStages[stage]["name"];
+		stageSquare.style.backgroundColor = stageColor;
+		stageLink.href = "/popup/progressions.html?srs="+stage;
+		stageSquare.appendChild(stageLink);
+		stageLink.appendChild(document.createTextNode(stageValue));
+
+		const infoMenu = progressionMenu(stage, progresses, stageValue, {stage: stageColor, type: colors});
+		stageSquareWrapper.appendChild(infoMenu);
+
+		if (menuCallback)
+			menuCallback(infoMenu, stage);
+
+		stageSquareWrapper.addEventListener("mouseover", () => infoMenu.classList.remove("hidden"));
+		stageSquareWrapper.addEventListener("mouseout", () => infoMenu.classList.add("hidden"));
+	});
+}
+
+const progressionMenu = (stage, progresses, value, colors) => {
+	const infoMenu = document.createElement("div");
+	infoMenu.classList.add("progression-menu", "hidden");
+	const infoMenuTitle = document.createElement("p");
+	infoMenu.appendChild(infoMenuTitle);
+	infoMenuTitle.appendChild(document.createTextNode(srsStages[stage]["name"]));
+	infoMenuTitle.style.color = colors.stage;
+	const infoMenuBar = document.createElement("div");
+	infoMenu.appendChild(infoMenuBar);
+	const infoMenuListing = document.createElement("ul");
+	infoMenu.appendChild(infoMenuListing);
+	["Radical", "Kanji", "Vocabulary"].forEach(type => {
+		let typeProgress = progresses[type.toLowerCase()];
+
+		const bar = document.createElement("div");
+		infoMenuBar.appendChild(bar);
+		bar.style.width = (typeProgress && typeProgress[stage] ? typeProgress[stage] / value *100 : 0)+"%";
+		const colorId = (type == "Radical" ? "radical" : type == "Kanji" ? "kanji" : "vocab")+"_color";
+		bar.style.backgroundColor = colors.type[colorId];
+
+		const infoMenuType = document.createElement("li");
+		infoMenuListing.appendChild(infoMenuType);
+		const typeTitle = document.createElement("b");
+		infoMenuType.appendChild(typeTitle);
+		typeTitle.appendChild(document.createTextNode(type+": "));
+		infoMenuType.appendChild(document.createTextNode(typeProgress && typeProgress[stage] ? typeProgress[stage] : 0));
+	});
+
+	return infoMenu;
+}
+
+const progressionBar = (wrapper, progresses, size, colors) => {
+	let unlockedSize = 0, stageValue, stageColor;
+
+	// clear bar beforehand if needed
+	if (wrapper) wrapper.innerHTML = "";
+
+	Object.keys(srsStages).forEach(stage => {
+		stageValue = Object.keys(progresses).reduce((acc, type) => {
+			if (progresses[type] && progresses[type][stage])
+				acc += progresses[type][stage];
+			return acc;
+		}, 0);
+		
+		stageColor = colors ? colors[srsStages[stage]["short"].toLowerCase()+"_color"] : srsStages[stage]["color"];
+		unlockedSize += stageValue;
+
+		// add bar to progress bar
+		if (wrapper && size) {
+			const progressBarBar = document.createElement("li");
+			wrapper.appendChild(progressBarBar);
+			progressBarBar.classList.add("clickable");
+			const percentageValue = stageValue/size*100;
+			progressBarBar.style.width = percentageValue+"%";
+			progressBarBar.style.backgroundColor = stageColor;
+			progressBarBar.title = srsStages[stage]["name"]+": "+stageValue+" / "+percentageValue.toFixed(1)+"%";
+			const progressBarLink = document.createElement("a");
+			progressBarBar.appendChild(progressBarLink);
+			progressBarLink.href = "/popup/progressions.html?srs="+stage;
+			if (percentageValue > 8.1) {
+				const percentage = document.createElement("div");
+				progressBarLink.appendChild(percentage);
+				percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
+			}
+		}
+	});
+
+	// add locked subjects bar
+	const lockedSubjectsBar = document.createElement("li");
+	wrapper.appendChild(lockedSubjectsBar);
+	const percentageValue = (size-unlockedSize)/size*100
+	lockedSubjectsBar.style.width = percentageValue+"%";
+	lockedSubjectsBar.classList.add("clickable");
+	lockedSubjectsBar.style.backgroundColor = "white";
+	lockedSubjectsBar.title = "Locked: "+(size-unlockedSize)+" / "+percentageValue.toFixed(1)+"%";
+	const progressBarLink = document.createElement("a");
+	lockedSubjectsBar.appendChild(progressBarLink);
+	progressBarLink.href = "/popup/progressions.html?srs="+-1;
+	if (percentageValue > 8.1) {
+		const percentage = document.createElement("div");
+		progressBarLink.appendChild(percentage);
+		percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
+	}
+}
+
+const levelProgressBar = (currentLevel, values, level, type, colors) => {
+	const all = values.length;
+	const passed = values.filter(subject => subject["passed_at"]).length;
+	const notPassed = values.filter(subject => !subject["passed_at"]);
+	const locked = notPassed.filter(subject => subject["srs_stage"] == -1).length;
+
+	const progressBarWrapper = document.createElement("ul");
+
+	// set order value
+	const levelValue = Number(level);
+	progressBarWrapper.setAttribute("data-order", levelValue);
+
+	// bar for passed
+	progressBarWrapper.appendChild(levelProgressBarSlice(passed/all*100, {background: "black", text: "white"}, "Passed: "+passed, {level: level, type: type, srs: "passed"}));
+
+	// traverse from initiate until apprentice IV
+	for (let i = 5; i >= 0; i--) {
+		const stageSubjects = notPassed.filter(subject => subject["srs_stage"] == i).length;
+		progressBarWrapper.appendChild(levelProgressBarSlice(stageSubjects/all*100, {background: colors[srsStages[i]["short"].toLowerCase()+"_color"], text: "white"}, srsStages[i]["name"]+": "+stageSubjects, {level: level, type: type, srs: srsStages[i]["name"]}));
+	}
+
+	// bar for locked
+	progressBarWrapper.appendChild(levelProgressBarSlice(locked/all*100, {background: "white", text: "black"}, "Locked: "+locked, {level: level, type: type, srs: "locked"}));
+
+	// bar id
+	const barTitle = document.createElement("span");
+	progressBarWrapper.appendChild(barTitle);
+	barTitle.appendChild(document.createTextNode(levelValue+" "+type.charAt(0).toUpperCase()+type.substring(1, 3)));
+
+	// levelup marker
+	if (type == "kanji" && levelValue == currentLevel)
+		progressBarWrapper.appendChild(levelUpMarker(all));
+
+	return progressBarWrapper;
+}
+
+const levelProgressBarSlice = (value, color, title, info) => {
+	const {level, type, srs} = info;
+
+	const progressBarBar = document.createElement("li");
+	progressBarBar.classList.add("clickable");
+	const percentageValue = value;
+	progressBarBar.style.width = percentageValue+"%";
+	progressBarBar.style.backgroundColor = color["background"];
+	progressBarBar.title = title;
+	progressBarLink = document.createElement("a");
+	progressBarBar.appendChild(progressBarLink);
+	progressBarLink.href = `/popup/progressions.html?level=${level}&type=${type}&jump=${srs}`;
+	if (percentageValue > 8.1) {
+		const percentage = document.createElement("div");
+		progressBarLink.appendChild(percentage);
+		percentage.style.color = color["text"];
+		percentage.appendChild(document.createTextNode(percentageValue.toFixed(percentageValue > 11 ? 1 : 0)+"%"));
+	}
+	return progressBarBar;
+}
+
+const levelUpMarker = numberKanji => {
+	const levelupMarkerWrapper = document.createElement("div");
+	levelupMarkerWrapper.classList.add("levelup-marker");
+	levelupMarkerWrapper.style.width = "87%";
+	const levelupMarker = document.createElement("div");
+	levelupMarkerWrapper.appendChild(levelupMarker);
+	
+	// calculate number of kanji to get atleast 90%
+	let final = numberKanji;
+	for (let k = numberKanji; k > 0; k--) {
+		if (k/numberKanji*100 < 90) break;
+		final = k;
+	}
+	levelupMarker.style.width = final/numberKanji*100+"%";
+	return levelupMarkerWrapper;
+}
+
+const notFound = (title) => {
+	const wrapper = document.createElement("div");
+	wrapper.classList.add("not-found");
+	const kanji = document.createElement("p");
+	wrapper.appendChild(kanji);
+	kanji.appendChild(document.createTextNode("金"));
+	const text = document.createElement("p");
+	wrapper.appendChild(text);
+	text.appendChild(document.createTextNode(title));
+	return wrapper;
+}
+
+
+const setupReviewsAlarm = reviews => {
+	if (reviews && reviews["next_reviews"]) {
+		const next_date = setNextReviewsBundle(reviews["next_reviews"])["date"];
+		if (next_date) {
+			// create alarm for the time of the next reviews
+			chrome.alarms.create("next-reviews", {
+				when: next_date.getTime()
+			});
+			return next_date;
+		}
+	}
+}
+
+const setupPracticeAlarm = time => {
+	time = time?.split(":");
+	if (time?.length === 2) {
+		let date = new Date(setExactHour(new Date(), time[0]).getTime() + time[1]*60000);
+		if (date?.getTime() <= new Date().getTime()) date = changeDay(date, 1);
+		if (date) {
+			chrome.alarms.create("practice", {
+				when: date.getTime(),
+				periodInMinutes: 1440
+			});
+			console.log("[PRACTICE]: Alarm set for", date);
+			return date;
+		}
+	}
+}
+
+const setNextReviewsBundle = next_reviews => {
+	const next_revs_dates = next_reviews.map(review => new Date(review["available_at"]));
+	const next_date = new Date(Math.min.apply(null, next_revs_dates));
+	const next_revs = filterAssignmentsByTime(next_reviews, new Date(), next_date);
+
+	chrome.storage.local.set({"next-reviews-bundle":next_revs});
+
+	return {
+		date: next_date,
+		reviews: next_revs
+	}
+}
+
+const playSubjectAudio = (audioList, wrapper) => {
+	if (audioList && audioList.length > 0) {
+		const audio = new Audio();
+		audio.src = audioList[Math.floor(Math.random() * audioList.length)].url;
+		const play = audio.play();
+		if (play !== undefined) {
+			play.then(() => console.log("Audio played"))
+			.catch(e => {
+				let failAudioPlay;
+				if (wrapper.getElementsByClassName("fail-audio-play").length == 0) {
+					wrapper.getElementsByClassName("fail-audio-play");
+					failAudioPlay = document.createElement("div");
+					wrapper.appendChild(failAudioPlay);
+					failAudioPlay.classList.add("fail-audio-play");
+					failAudioPlay.appendChild(document.createTextNode("Could not play audio"));
+					console.log("Could not play audio!");
+
+					setTimeout(() => failAudioPlay.remove(), 1500);
+				}
+			});
+		}
+	}
+}
+
+const copyToClipboard = async (text, wrapper) => {
+	if (window.navigator.clipboard) {
+		await window.navigator.clipboard.writeText(text);
+		Array.from(document.getElementsByClassName("copiedMessage")).forEach(elem => elem.remove());
+		const copiedMessage = document.createElement("div");
+		wrapper.parentElement.appendChild(copiedMessage);
+		copiedMessage.appendChild(document.createTextNode("Copied!"));
+		copiedMessage.classList.add("copiedMessage");
+		copiedMessage.style.color = "gray";
+		copiedMessage.style.fontSize = "12px";
+		setTimeout(() => copiedMessage.remove(), 1500);
+	}
 }

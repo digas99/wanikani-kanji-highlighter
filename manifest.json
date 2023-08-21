@@ -1,8 +1,8 @@
 {
     "name": "WaniKani Kanji Highlighter",
     "description": "Unofficial kanji highlighter, matching kanji learned with WaniKani.",
-    "version": "0.6.6",
-    "manifest_version": 2,
+    "version": "1.0.1",
+    "manifest_version": 3,
     "icons": {
         "16":  "logo/logo_bb_16x16.png",
         "32":  "logo/logo_bb_32x32.png",
@@ -10,13 +10,7 @@
         "128": "logo/logo_bb.png"
     },
     "background": {
-        "scripts": ["scripts/fetch/data-fetch.js",
-                    "scripts/fetch/wk-fetch.js",
-                    "scripts/functions.js",
-                    "scripts/static.js",
-                    "scripts/kana.js",
-                    "scripts/background.js",
-                    "lib/localstoragedb.min.js"]
+        "service_worker": "scripts/background.js"
     },
     "content_scripts": [
         {
@@ -24,21 +18,25 @@
             "js": ["scripts/essentials.js",
                     "scripts/functions.js",
                     "scripts/static.js",
-                    "lib/localstoragedb.min.js"]
+                "scripts/time.js"
+                ]
         }
     ],
-    "browser_action": {
-        "default_popup": "popup.html"
+    "action": {
+        "default_popup": "popup/auth.html"
     },
     "permissions": [
         "tabs",
-        "http://*/",
-        "https://*/",
         "storage",
         "unlimitedStorage",
         "contextMenus",
         "notifications",
         "alarms",
-        "webNavigation"
+        "webNavigation",
+        "scripting"
+    ],
+    "host_permissions": [
+        "http://*/",
+        "https://*/"
     ]
 }

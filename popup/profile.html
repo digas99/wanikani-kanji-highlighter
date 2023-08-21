@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">	
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width">
+	<title>WKHighlighter</title>
+	<link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="styles/navbar.css">
+    <link rel="stylesheet" href="styles/settings.css">
+	<link rel="stylesheet" href="styles/profile.css">
+    <link rel="stylesheet" href="styles/message-popup.css">
+    <link rel="stylesheet" href="styles/tiles-list.css">
+</head>
+<body>
+    <!-- TOP NAVBAR -->
+    <div class="topNav">
+        <a href="home.html" title="Go back" class="clickable">
+            <div>
+                <i class="left"></i>
+                <div>Profile</div>
+            </div>
+        </a>
+
+        <div class="topNav-lessons">
+			<a title="Lessons" href="/popup/lessons.html">
+                <div class="lessons-icon"><div></div></div>
+                <div class="lessons-count">0</div>
+            </a>
+            <a title="Reviews" href="/popup/reviews.html">
+                <div class="reviews-icon"><div></div></div>
+                <div class="lessons-count">0</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- PAGE CONTENT -->
+    <div id="sec-page">
+        <!-- TOP LEVEL LIST 1-60 -->
+        <div class="top-level-list top-level-list-hidden">
+            <div class="clickable">1</div><div class="clickable">2</div><div class="clickable">3</div><div class="clickable">4</div><div class="clickable">5</div>
+            <div class="clickable">6</div><div class="clickable">7</div><div class="clickable">8</div><div class="clickable">9</div><div class="clickable">10</div>
+            <div class="clickable">11</div><div class="clickable">12</div><div class="clickable">13</div><div class="clickable">14</div><div class="clickable">15</div>
+            <div class="clickable">16</div><div class="clickable">17</div><div class="clickable">18</div><div class="clickable">19</div><div class="clickable">20</div>
+            <div class="clickable">21</div><div class="clickable">22</div><div class="clickable">23</div><div class="clickable">24</div><div class="clickable">25</div>
+            <div class="clickable">26</div><div class="clickable">27</div><div class="clickable">28</div><div class="clickable">29</div><div class="clickable">30</div>
+            <div class="clickable">31</div><div class="clickable">32</div><div class="clickable">33</div><div class="clickable">34</div><div class="clickable">35</div>
+            <div class="clickable">36</div><div class="clickable">37</div><div class="clickable">38</div><div class="clickable">39</div><div class="clickable">40</div>
+            <div class="clickable">41</div><div class="clickable">42</div><div class="clickable">43</div><div class="clickable">44</div><div class="clickable">45</div>
+            <div class="clickable">46</div><div class="clickable">47</div><div class="clickable">48</div><div class="clickable">49</div><div class="clickable">50</div>
+            <div class="clickable">51</div><div class="clickable">52</div><div class="clickable">53</div><div class="clickable">54</div><div class="clickable">55</div>
+            <div class="clickable">56</div><div class="clickable">57</div><div class="clickable">58</div><div class="clickable">59</div><div class="clickable">60</div>
+        </div>
+
+        <!-- PROFILE -->
+        <div class="levels-chooser-wrapper">
+            <div class="levels-chooser-cover"></div>
+            <div id="profile-pic">
+                <a target="_blank"><img src="/images/wanikani-default.png"></a>
+            </div>
+            <div id="username"></div>
+            <div id="edit"><a href="https://www.wanikani.com/settings/profile" target="_blank" title="https://www.wanikani.com/settings/profile"><img src="/images/edit.png"></a></div>
+            <ul class="levels-chooser" style="padding-top: 175px;"></ul>
+            <div id="level-progress">
+                <p>Level Progress</p>
+                <div class="level-progress-bar">
+                    <div class="clickable" title="Passed Kanji: 0 / 0%" style="width: 0%"><p></p></div>
+                    <span></span>
+                </div>
+            </div>
+            <div class="clickable scroll-down" title="Scroll Down"><i class="down"></i></div>
+            
+            <!-- SUBJECTS -->
+            <div>
+                <div class="subject-tab" style="border-top: 2px solid white;" >
+                    <div>All</div><span></span>
+                    <div class="menu-icons">
+                        <img src="/images/sort.png" class="clickable" title="Sort" alt="sort">
+                        <img src="/images/filter.png" class="clickable" title="Filter" alt="filter">
+                        <img src="/images/menu.png" class="clickable" title="Menu" alt="menu">
+                        <div class="clickable" title="Close">
+                            <i class="up"></i>
+                        </div>
+                    </div>
+                    <div class="menu-popup hidden">
+                        <p></p>
+                        <ul></ul>
+                    </div>
+                </div>
+                <div class="subject-types">
+                    <div id="radical-container">
+                        <div class="subject-tab" style="border-top: 2px solid white;" >
+                            <div>Radicals</div><span></span>
+                            <div class="menu-icons">
+                                <img src="/images/sort.png" class="clickable" title="Sort" alt="sort">
+                                <img src="/images/filter.png" class="clickable" title="Filter" alt="filter">
+                                <img src="/images/menu.png" class="clickable" title="Menu" alt="menu">
+                                <div class="clickable" title="Close">
+                                    <i class="up"></i>
+                                </div>
+                            </div>
+                            <div class="menu-popup hidden">
+                                <p></p>
+                                <ul></ul>
+                            </div>
+                        </div>
+                        <div class="subject-container simple-grid"><ul class="fill-width"></ul></div>
+                    </div>
+                    <div id="kanji-container">
+                        <div class="subject-tab" style="border-top: 2px solid white;" >
+                            <div>Kanji</div><span></span>
+                            <div class="menu-icons">
+                                <img src="/images/sort.png" class="clickable" title="Sort" alt="sort">
+                                <img src="/images/filter.png" class="clickable" title="Filter" alt="filter">
+                                <img src="/images/menu.png" class="clickable" title="Menu" alt="menu">
+                                <div class="clickable" title="Close">
+                                    <i class="up"></i>
+                                </div>
+                            </div>
+                            <div class="menu-popup hidden">
+                                <p></p>
+                                <ul></ul>
+                            </div>
+                        </div>
+                        <div class="subject-container simple-grid"><ul class="fill-width"></ul></div>
+                    </div>
+                    <div id="vocabulary-container">
+                        <div class="subject-tab" style="border-top: 2px solid white;" >
+                            <div>Vocabulary</div><span></span>
+                            <div class="menu-icons">
+                                <img src="/images/sort.png" class="clickable" title="Sort" alt="sort">
+                                <img src="/images/filter.png" class="clickable" title="Filter" alt="filter">
+                                <img src="/images/menu.png" class="clickable" title="Menu" alt="menu">
+                                <div class="clickable" title="Close">
+                                    <i class="up"></i>
+                                </div>
+                            </div>
+                            <div class="menu-popup hidden">
+                                <p></p>
+                                <ul></ul>
+                            </div>
+                        </div>
+                        <div class="subject-container simple-grid"><ul class="justify-list"></ul></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+	</div>
+
+    <!-- SIDEBAR -->
+    <div class="side-panel">
+        <a href="profile.html" class="clickable" id="profile">
+            <div>
+                <img src="/images/wanikani-default.png">
+            </div>
+            <p title="Level"></p>
+        </a>
+        <ul>
+            <li class="clickable" style="position: relative;">
+                <a href="settings.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="settings" src="../images/settings.png" title="Settings" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="search.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="search" src="../images/search.png" title="Search" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative; padding-right: 3px;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="blacklist" src="../images/blacklist.png" title="Blacklist" style="width: 20px;">
+                    <span class="side-panel-info-alert" style="background-color: #f100a1; color: white; filter: invert(1);">0</span>
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="about.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="about" src="../images/about.png" title="About" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="random" src="../images/random.png" title="Random" data-item-id="rand" class="kanjiDetails" style="width: 20px;">
+                    <span id="random-subject-type" class="side-panel-info-alert">A</span>
+                </a>
+            </li>
+            <li class="clickable" style="position: relative; padding-left: 3px;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="exit" src="../images/exit.png" title="Exit" style="width: 20px;">
+                </a>
+            </li>
+        </ul>
+        <div class="clickable">
+            <div id="side-panel-logo" title="Wanikani Kanji Highlighter">
+                <img src="../logo/logo.png" style="pointer-events: none;">
+            </div>
+        </div>
+    </div>
+
+    <script src="/scripts/static.js"></script>
+    <script src="/scripts/time.js"></script>
+    <script src="/scripts/fetch/data-fetch.js"></script>
+    <script src="/scripts/fetch/wk-fetch.js"></script>
+    <script src="/scripts/kana.js"></script>
+    <script src="/scripts/functions.js"></script>
+    <script src="/scripts/database.js"></script>
+    <script src="scripts/message-popup.js"></script>
+    <script src="scripts/scripts.js"></script>
+    <script src="scripts/navbar.js"></script>
+    <script src="scripts/tiles-list.js"></script>
+	<script src="scripts/profile.js"></script>
+</body>
+</html>

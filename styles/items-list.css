@@ -1,25 +1,25 @@
 /* BAR */
 
-.items-list-bar {
+.tiles-list-bar {
 	height: 20px;
 }
 
-.items-list-bar > ul {
+.tiles-list-bar > ul {
 	height: 100%;
 	display: flex;
 }
 
-.items-list-bar > ul > li {
+.tiles-list-bar > ul > li {
 	position: relative;
 }
 
-.items-list-bar > ul > li > a {
+.tiles-list-bar > ul > li > a {
 	height: 100%;
 	display: block;
 }
 
 	/* bar popup */
-.items-list-bar > ul > li > div {
+.tiles-list-bar > ul > li > div {
 	position: absolute;
     width: 60px;
     height: 24px;

@@ -1,0 +1,215 @@
+#userInfoWrapper {
+	margin: 0px 7px;
+	padding-top: 5px;
+	position: relative;
+    margin-bottom: 200px;
+}
+
+#userInfoWrapper > div {
+	margin-bottom: 10px;
+	overflow: hidden;
+}
+
+.userInfoWrapper-title {
+	text-align: center;
+    background-color: var(--default-color);
+    color: white;
+    padding: 7px;
+    font-size: 14px;
+}
+
+.userInfoWrapper-wrapper {
+    border-radius: 0px 0px 5px 5px;
+    background-color: white;
+}
+
+#scripts_status {
+    background-color: #2a2d48;
+    color: white;
+    padding: 6px;
+    border-radius: 4px;
+}
+
+#scripts_status > ul {
+	display: flex;
+}
+
+#scripts_status > ul > li {
+	display: flex;
+	margin: auto;
+}
+
+#scripts_status > ul > li > div {
+	display: flex;
+    width: 13px;
+    height: 13px;
+	background-color: var(--wanikani);
+    border-radius: 15px;
+    margin-left: 10px;
+}
+
+.searchArea .textInputWrapper {
+    width: 97%;
+}
+
+.summaryValue {
+	font-size: 35px;
+    padding: 7px 17px;
+    display: block;
+    color: white;
+}
+
+#progression-bar {
+    height: 25px;
+    display: flex;
+    flex-direction: row;
+}
+
+#progression-bar > li > a {
+    color: white;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    height: 100%;
+}
+
+#progression-bar > li:last-child > a {
+    color: black;
+}
+
+#progression-stats > ul {
+	display: flex;
+	flex-direction: row;
+	margin-bottom: 2px;
+}
+
+#progression-stats > ul > li {
+    color: white;
+    width: 100%;
+    text-align: center;
+    font-size: 25px;
+	margin: 0 1px;
+	position: relative;
+}
+
+#progression-stats > ul > li > div:not(.progression-menu) {
+    width: 100%;
+    height: 75px;
+}
+
+#progression-stats a {
+    color: white !important;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.progression-menu {
+	position: absolute;
+    background-color: var(--default-color);
+    font-size: 13px;
+    border: 2px solid white;
+    border-radius: 10px;
+	top: -75px;
+    left: -50px;
+    margin: auto;
+    width: max-content;
+	pointer-events: none;
+	z-index: 1;
+}
+
+.progression-menu > p {
+	background-color: white;
+    padding: 3px;
+    font-weight: bold;
+}
+
+.progression-menu > div {
+	width: 100%;
+    height: 10px;
+    display: flex;
+    flex-direction: row;
+}
+
+.progression-menu > ul {
+	display: flex;
+    flex-direction: column;
+    text-align: left;
+	padding: 7px;
+}
+
+#levels-progress > ul {
+    display: flex;
+    margin: 1px 0px;
+}
+
+#levels-progress > ul > li {
+    height: 25px;
+    overflow: hidden;
+}
+
+#levels-progress > ul > li > a {
+    color: white;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    height: 100%;
+}
+
+#levels-progress > ul > span {
+    position: absolute;
+    right: 0px;
+    background-color: var(--default-color);
+    color: white;
+    padding: 5px;
+    width: 42px;
+}
+
+.levelup-marker {
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+    height: 25px;
+}
+
+.levelup-marker > div {
+	border-right: 2px solid black;
+    height: 25px;
+}
+
+
+#kanjiHighlightedList {
+	overflow-y: auto !important;
+    max-height: 150px;
+}
+
+#kanjiHighlightedList ul {
+    padding: 0px 0px 4px 4px;
+}
+
+#kanjiHighlightedList li {
+	font-size: 25.2px;
+}
+
+.kanjiHighlightedLearned {
+	background-color: var(--highlight-default-color);
+}
+
+.kanjiHighlightedNotLearned {
+	background-color: var(--notLearned-color);
+}
+
+.kanjiHighlightedLearned, .kanjiHighlightedNotLearned {
+	color: white;
+}
+
+#enhancedMessage {
+    font-size: 14px;
+	border-radius: 4px;
+	text-align: center;
+	border-bottom: 4px solid;
+    background-color: var(--default-color);
+    padding: 7px;
+}

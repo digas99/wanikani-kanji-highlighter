@@ -5,21 +5,14 @@
 	let blacklistedSite = false;
 	let url = window.location.href;
 
-	chrome.storage.local.get(["wkhighlight_highlight_setup", "wkhighlight_blacklist"], result => {
+	chrome.storage.local.get(["highlight_setup", "blacklist"], result => {
 		atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url);
-		blacklistedSite = blacklisted(result["wkhighlight_blacklist"], url);
+		blacklistedSite = blacklisted(result["blacklist"], url);
 		
 		if (!atWanikani && !blacklistedSite) {
-		//if (true) {
 			chrome.runtime.sendMessage({uptimeHighlight:true});
 
-			result = result["wkhighlight_highlight_setup"];
-
-			// youtube temporary fix
-			window.addEventListener('yt-page-data-updated', () => {
-				if (totalHighlighted > 0)
-					window.location.reload();
-			});
+			result = result["highlight_setup"];
 
 			const otherClasses = ["wkhighlighter_clickable", "wkhighlighter_hoverable"];
 			const tagFilter = tag => !(tag.closest(".sd-detailsPopup") && !tag.closest(".sd-detailsPopup_sentencesWrapper") && !tag.closest(".sd-popupDetails_p"));
@@ -61,7 +54,7 @@
 						totalHighlighted = learned.size() + notLearned.size();
 						contentHighlighted = {learned:learned.highlightedSet(), notLearned:notLearned.highlightedSet()};
 						chrome.runtime.sendMessage({badge:totalHighlighted, nmrKanjiHighlighted:totalHighlighted, kanjiHighlighted:contentHighlighted});
-						chrome.storage.local.set({"wkhighlight_nmrHighLightedKanji":totalHighlighted, "wkhighlight_allHighLightedKanji":contentHighlighted});
+						chrome.storage.local.set({"nmrHighLightedKanji":totalHighlighted, "highlighted_kanji":contentHighlighted});
 					}, delay);
 
 					// only delay the first time
@@ -104,6 +97,44 @@
 					iframe.contentDocument.styleSheets[0].insertRule(`.${className}_bold {color: ${color} !important;}`, iframe.contentDocument.styleSheets[0].cssRules.length);
 				}
 			}
+		
+			clearHighlight = () => {
+				console.log("clearing highlight");
+				const highlighted = document.querySelectorAll(".wkhighlighter_clickable");
+				if (highlighted) {
+					Array.from(highlighted).forEach(elem => {
+						if (elem && elem.parentElement) {
+							Array.from(elem.parentElement.childNodes).forEach(child => child.remove());
+						}
+					});
+				}
+			}
+	
+			// soomther youtube temporary fix
+			// Select the video element
+			const videoElement = document.querySelector('#movie_player video');
+			if (videoElement) {
+				// Create a new MutationObserver
+				const observer = new MutationObserver(function(mutationsList) {
+					for (const mutation of mutationsList) {
+						if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+							// if in between videos, reload page
+							if (mutation.target.src == "" && totalHighlighted > 0) {
+							window.location.reload();	
+							}
+						}
+					}
+				});
+		
+				// Configure the observer to watch for changes to the 'src' attribute
+				const config = { attributes: true, attributeFilter: ['src'] };
+		
+				// Start observing the video element
+				observer.observe(videoElement, config);
+			}
+		}
+		else {
+			chrome.runtime.sendMessage({uptimeHighlight:false});
 		}
 	});
 })();

@@ -158,11 +158,11 @@
 				}
 
 				if (node.id == "sd-detailsPopupKeyBindings") {
-					chrome.storage.local.get(["wkhighlight_settings"], result => {
-						const settings = result["wkhighlight_settings"];
+					chrome.storage.local.get(["settings"], result => {
+						const settings = result["settings"];
 						if (settings) {
 							settings["kanji_details_popup"]["key_bindings"] = !settings["kanji_details_popup"]["key_bindings"];
-							chrome.storage.local.set({"wkhighlight_settings":settings});
+							chrome.storage.local.set({"settings":settings});
 						}
 					});
 				}
@@ -238,7 +238,7 @@
 					this.detailsPopup.style.setProperty("border-top", "4px solid yellow", "important");	
 				else {
 					const srsId = item["srs_stage"];
-					this.detailsPopup.style.setProperty("border-top", "4px solid "+(srsId != undefined ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "black"), "important");	
+					this.detailsPopup.style.setProperty("border-top", "4px solid "+(srsId != undefined ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "white"), "important");	
 				}
 				
 				const detailedInfoWrapper = this.detailsPopup.getElementsByClassName("sd-popupDetails_detailedInfoWrapper");
@@ -415,7 +415,7 @@
 			// similar kanji cards
 			details.appendChild(itemCardsSection(kanjiInfo, "visually_similar_subject_ids", "Similar Kanji", "sd-detailsPopup_kanji_row", this.allKanji));
 		
-			// vocab with that kanji
+			// vocabulary with that kanji
 			details.appendChild(itemCardsSection(kanjiInfo, "amalgamation_subject_ids", "Vocabulary", "sd-detailsPopup_vocab_row", this.allVocab));
 		
 			const statsSection = document.createElement("div");
@@ -469,7 +469,8 @@
 				}, 200);
 			}
 
-			const sections = [["Info", "https://i.imgur.com/E6Hrw7w.png"], ["Cards", "https://i.imgur.com/r991llA.png"]];
+			const sections = [["Info", "https://i.imgur.com/E6Hrw7w.png"]];
+			if (vocabInfo["subject_type"] == "vocabulary") sections.push(["Cards", "https://i.imgur.com/r991llA.png"]);
 			if (vocabInfo["stats"]) sections.push(["Statistics", "https://i.imgur.com/Ufz4G1K.png"]);
 			if (vocabInfo["timestamps"]) sections.push(["Timestamps", "https://i.imgur.com/dcT0L48.png"]);		
 			// navbar
@@ -553,16 +554,18 @@
 			// meaning mnemonic container
 			details.appendChild(infoTable("Meaning Mnemonic", [parseTags(vocabInfo["meaning_mnemonic"])]));
 
-			// reading mnemonic container
-			details.appendChild(infoTable("Reading Mnemonic", [parseTags(vocabInfo["reading_mnemonic"])]));
-
-			const cardsSection = document.createElement("div");
-			details.appendChild(cardsSection);
-			cardsSection.id = "sd-popupDetails_CardsSection";
-			cardsSection.classList.add("sd-popupDetails_anchor");
-
-			// used kanji
-			details.appendChild(itemCardsSection(vocabInfo, "component_subject_ids", "Used Kanji", "sd-detailsPopup_kanji_row", this.allKanji));
+			if (vocabInfo["subject_type"] == "vocabulary") {
+				// reading mnemonic container
+				details.appendChild(infoTable("Reading Mnemonic", [parseTags(vocabInfo["reading_mnemonic"])]));
+	
+				const cardsSection = document.createElement("div");
+				details.appendChild(cardsSection);
+				cardsSection.id = "sd-popupDetails_CardsSection";
+				cardsSection.classList.add("sd-popupDetails_anchor");
+	
+				// used kanji
+				details.appendChild(itemCardsSection(vocabInfo, "component_subject_ids", "Used Kanji", "sd-detailsPopup_kanji_row", this.allKanji));
+			}
 
 			// sentences
 			const sentencesTable = infoTable("Example Sentences", []); 
@@ -675,8 +678,8 @@
 				wrapper.appendChild(img);
 			}
 
-			chrome.storage.local.get(["wkhighlight_settings"], result => {
-				const settings = result["wkhighlight_settings"];
+			chrome.storage.local.get(["settings"], result => {
+				const settings = result["settings"];
 				const keyBindingsButton = document.getElementById("sd-detailsPopupKeyBindings");
 				if (settings && keyBindingsButton) {
 					const keyBindingsActive = settings["kanji_details_popup"] ? settings["kanji_details_popup"]["key_bindings"] : defaultSettings["kanji_details_popup"]["key_bindings"];
@@ -717,29 +720,31 @@
 			ul.classList.add("sd-popupDetails_readings");
 					
 			const readings = item["readings"];
-			if (type == "kanji") {
-				([["ON", "onyomi"], ["KUN", "kunyomi"]]).forEach(type => {
+			if (readings) {
+				if (type == "kanji") {
+					([["ON", "onyomi"], ["KUN", "kunyomi"]]).forEach(type => {
+						const li = document.createElement("li");
+						li.innerHTML = `<strong>${type[0]}: </strong>`;
+						li.classList.add("sd-popupDetails_readings_row");
+						const span = document.createElement("span");
+						const readingsString = readings.filter(reading => reading.type===type[1]).map(reading => reading.reading).join(", ");
+						span.appendChild(document.createTextNode(readingsString));
+						if (readingsString === '') li.classList.add("sd-detailsPopup_faded");
+						li.appendChild(span);
+						if (readingsString.length > 8) {
+							const overflowSpan = document.createElement("span");
+							if (!this.expanded) overflowSpan.appendChild(document.createTextNode("..."));
+							li.appendChild(overflowSpan);
+						}
+						ul.appendChild(li);
+					});
+				}
+				else {
 					const li = document.createElement("li");
-					li.innerHTML = `<strong>${type[0]}: </strong>`;
 					li.classList.add("sd-popupDetails_readings_row");
-					const span = document.createElement("span");
-					const readingsString = readings.filter(reading => reading.type===type[1]).map(reading => reading.reading).join(", ");
-					span.appendChild(document.createTextNode(readingsString));
-					if (readingsString === '') li.classList.add("sd-detailsPopup_faded");
-					li.appendChild(span);
-					if (readingsString.length > 8) {
-						const overflowSpan = document.createElement("span");
-						if (!this.expanded) overflowSpan.appendChild(document.createTextNode("..."));
-						li.appendChild(overflowSpan);
-					}
+					li.appendChild(document.createTextNode(readings.join(", ")));
 					ul.appendChild(li);
-				});
-			}
-			else {
-				const li = document.createElement("li");
-				li.classList.add("sd-popupDetails_readings_row");
-				li.appendChild(document.createTextNode(readings.join(", ")));
-				ul.appendChild(li);
+				}
 			}
 			kanjiContainerWrapper.appendChild(ul);
 		
@@ -851,7 +856,7 @@
 	
 		}
 
-		li.style.setProperty("border-top", "4px solid "+(srsId != undefined ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "black"), "important");
+		li.style.setProperty("border-top", "4px solid " + (srsId != undefined ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "white"), "important");
 
 		if (level) {
 			const levelDiv = document.createElement("div");
@@ -927,10 +932,10 @@
 			const statsSection = document.getElementById("sd-popupDetails_StatisticsSection");
 			const timestampsSection = document.getElementById("sd-popupDetails_TimestampsSection");
 
-			if (scrollTop < cardsSection.offsetTop) navbarHighlightChanger(navbarUl.children[0]);
-			if (scrollTop >= cardsSection.offsetTop && scrollTop < statsSection.offsetTop) navbarHighlightChanger(navbarUl.children[1]);
-			if (scrollTop >= statsSection.offsetTop && scrollTop < timestampsSection.offsetTop) navbarHighlightChanger(navbarUl.children[2]);
-			if (scrollTop >= timestampsSection.offsetTop) navbarHighlightChanger(navbarUl.children[3]);
+			if (cardsSection && scrollTop < cardsSection.offsetTop) navbarHighlightChanger(navbarUl.children[0]);
+			if (cardsSection && statsSection && scrollTop >= cardsSection.offsetTop && scrollTop < statsSection.offsetTop) navbarHighlightChanger(navbarUl.children[1]);
+			if (statsSection && timestampsSection && scrollTop >= statsSection.offsetTop && scrollTop < timestampsSection.offsetTop) navbarHighlightChanger(navbarUl.children[2]);
+			if (timestampsSection && scrollTop >= timestampsSection.offsetTop) navbarHighlightChanger(navbarUl.children[3]);
 		});
 
 		return navbar;
@@ -1071,10 +1076,12 @@
 			type = type.toLowerCase();
 			const valueCorrect = values[type+"_correct"];
 			const valueIncorrect = values[type+"_incorrect"];
+			const correctPercentage = (valueCorrect/(valueCorrect+valueIncorrect)*100).toFixed(0);
+			const incorrectPercentage = (valueIncorrect/(valueCorrect+valueIncorrect)*100).toFixed(0);
 			const valueBoth = valueCorrect+valueIncorrect;
 			const thisValues = [
-				valueCorrect+" ("+((valueCorrect/valueBoth*100).toFixed(0))+"%)",
-				valueIncorrect+" ("+((valueIncorrect/valueBoth*100).toFixed(0))+"%)",
+				valueCorrect+" ("+(correctPercentage == "NaN" ? "-" : correctPercentage)+"%)",
+				valueIncorrect+" ("+(incorrectPercentage == "NaN" ? "-" : incorrectPercentage)+"%)",
 				valueBoth, 
 				values[type+"_current_streak"]+" ("+values[type+"_max_streak"]+")"
 			];			
@@ -1082,41 +1089,17 @@
 				const row = dataRow(title, thisValues[j]);
 				wrapper.appendChild(row);
 				if (title === "Correct") {
-					const percentage = valueCorrect/valueBoth*100;
+					const percentage = (valueCorrect/valueBoth*100).toFixed(0);
 					const stateValue = row.getElementsByTagName("span")[0];
 					stateValue.style.setProperty("color", percentageColor(percentage), "important");
 
 					const quickStatsVal = quickStatsUl.getElementsByTagName("li")[i+1].getElementsByTagName("span")[0];
-					quickStatsVal.appendChild(document.createTextNode(percentage.toFixed(0)+"%"));
+					quickStatsVal.appendChild(document.createTextNode((percentage == "NaN" ? "-" : percentage)+"%"));
 					quickStatsVal.style.setProperty("color", percentageColor(percentage), "important");
 				}
 			});
 		});
 		return stats;
-	}
-
-	const playSubjectAudio = (audioList, wrapper) => {
-		if (audioList && audioList.length > 0) {
-			const audio = new Audio();
-			audio.src = audioList[Math.floor(Math.random() * audioList.length)].url;
-			const play = audio.play();
-			if (play !== undefined) {
-				play.then(() => console.log("Audio played"))
-				.catch(e => {
-					let failAudioPlay;
-					if (wrapper.getElementsByClassName("sd-detailsPopup_fail-audio-play").length == 0) {
-						wrapper.getElementsByClassName("sd-detailsPopup_fail-audio-play");
-						failAudioPlay = document.createElement("div");
-						wrapper.appendChild(failAudioPlay);
-						failAudioPlay.classList.add("sd-detailsPopup_fail-audio-play");
-						failAudioPlay.appendChild(document.createTextNode("Could not play audio"));
-						console.log("Could not play audio!");
-					}
-
-					wrapper.addEventListener("mouseout", () => failAudioPlay.remove());
-				});
-			}
-		}
 	}
 
 	window.SubjectDisplay = SubjectDisplay;

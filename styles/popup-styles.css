@@ -34,15 +34,15 @@ Table Of Contents
 	--radical-tag-color-font: #000000;
 	--kanji-tag-color: #e7e485;
 	--kanji-tag-color-font: #000000;
-	--vocab-tag-color: #fc759b;
-	--vocab-tag-color-font: #000000;
+	--vocabulary-tag-color: #fc759b;
+	--vocabulary-tag-color-font: #000000;
 	--highlight-default-color: #2c5091;
 	--highlight-default-color-font: #000000;
 	--notLearned-color: #a32727;
 	--notLearned-color-font: #000000;
 	--wanikani: #f100a1;
 	--dark-back: #383838;
-	--reviews-color: #2c7080;
+	--reviews-color: var(--wanikani-sec);
 	--int-color: #c0c0c0;
 	--int-color-font: #000000;
 	--ap1-color: #84bedb;
@@ -239,8 +239,8 @@ i {
 	background-color: var(--kanji-tag-color) !important;
 }
 
-.vocab_back {
-	background-color: var(--vocab-tag-color) !important;
+.vocabulary_back {
+	background-color: var(--vocabulary-tag-color) !important;
 }
 
 .bellow-border {
@@ -564,23 +564,23 @@ i {
 	min-height: 150px;
 }
 
-#scriptsUptime {
+#scripts_status {
     background-color: #2a2d48;
     color: white;
     padding: 6px;
     border-radius: 4px;
 }
 
-#scriptsUptime > ul {
+#scripts_status > ul {
 	display: flex;
 }
 
-#scriptsUptime > ul > li {
+#scripts_status > ul > li {
 	display: flex;
 	margin: auto;
 }
 
-#scriptsUptime > ul > li > div {
+#scripts_status > ul > li > div {
 	display: flex;
     width: 13px;
     height: 13px;
@@ -674,6 +674,7 @@ i {
 
 ::-webkit-scrollbar, #reviewsMaterialList > ul::-webkit-scrollbar {
 	width: 15px;
+	height: 5px;
 }
 
 ::-webkit-scrollbar-track, #reviewsMaterialList > ul::-webkit-scrollbar-track {
@@ -1694,4 +1695,25 @@ i {
 
 .message-popup>div:nth-of-type(2)>div:first-of-type {
 	padding: 10px;
+}
+
+.readme-navbar {
+    display: flex;
+    font-size: 12px;
+    overflow: auto;
+    margin-bottom: 4px;
+    column-gap: 2px;
+    padding-bottom: 2px;
+}
+
+.readme-navbar > div {
+	padding: 5px;
+    border: 2px solid var(--default-color);
+    color: var(--default-color);
+	font-weight: bold;
+}
+
+.readme-navbar-selected, .readme-navbar > div:hover {
+    background-color: var(--default-color);
+	color: white !important;
 }
