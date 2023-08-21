@@ -5,22 +5,23 @@
 	let blacklistedSite = false;
 	let url = window.location.href;
 
-	chrome.storage.local.get(["highlight_setup", "blacklist"], result => {
+	chrome.storage.local.get(["highlight_setup", "blacklist", "vocabulary"], result => {
 		atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url);
 		blacklistedSite = blacklisted(result["blacklist"], url);
 		
 		if (!atWanikani && !blacklistedSite) {
 			chrome.runtime.sendMessage({uptimeHighlight:true});
 
-			result = result["highlight_setup"];
-
 			const otherClasses = ["wkhighlighter_clickable", "wkhighlighter_hoverable"];
 			const tagFilter = tag => !(tag.closest(".sd-detailsPopup") && !tag.closest(".sd-detailsPopup_sentencesWrapper") && !tag.closest(".sd-popupDetails_p"));
 
-			const learned = new Highlight(result.learned, result.learnedClass, otherClasses, result.unwantedTags, tagFilter);
-			const notLearned = new Highlight(result.notLearned, result.notLearnedClass, otherClasses, result.unwantedTags, tagFilter);
+			//const learned = new Highlight(result.learned, result.learnedClass, otherClasses, result.unwantedTags, tagFilter);
+			//const notLearned = new Highlight(result.notLearned, result.notLearnedClass, otherClasses, result.unwantedTags, tagFilter);
+			const characters = Object.values(result["vocabulary"]).map(vocab => vocab.characters);
+			const vocabs = new Highlight(characters, result["highlight_setup"].learnedClass, otherClasses, result["highlight_setup"].unwantedTags, tagFilter);
+			vocabs.sentences(document.getElementsByTagName("*"));
 
-			let delay = result.functionDelay;
+			let delay = result["highlight_setup"].functionDelay;
 			let interval = 0;
 			let nElemsLast = 0;
 
@@ -46,7 +47,7 @@
 				// only highlight when there is a change in the number of tags
 				if (allTags.length !== nElemsLast) {
 					nElemsLast = allTags.length;
-
+/*
 					setTimeout(() => {
 						learned.highlighter(allTags);
 						notLearned.highlighter(allTags);
@@ -56,7 +57,7 @@
 						chrome.runtime.sendMessage({badge:totalHighlighted, nmrKanjiHighlighted:totalHighlighted, kanjiHighlighted:contentHighlighted});
 						chrome.storage.local.set({"nmrHighLightedKanji":totalHighlighted, "highlighted_kanji":contentHighlighted});
 					}, delay);
-
+*/
 					// only delay the first time
 					if (delay !== 0) delay = 0;
 				}
@@ -98,17 +99,6 @@
 				}
 			}
 		
-			clearHighlight = () => {
-				console.log("clearing highlight");
-				const highlighted = document.querySelectorAll(".wkhighlighter_clickable");
-				if (highlighted) {
-					Array.from(highlighted).forEach(elem => {
-						if (elem && elem.parentElement) {
-							Array.from(elem.parentElement.childNodes).forEach(child => child.remove());
-						}
-					});
-				}
-			}
 	
 			// soomther youtube temporary fix
 			// Select the video element

@@ -2,6 +2,9 @@ let settings, apiKey, userInfo, lastReviewsValue = 0, lastLessonsValue = 0;
 
 let activeTab;
 
+//var segmenter = new TinySegmenter(); // インスタンス生成
+//var segs = segmenter.segment("私の名前は中野です");
+
 let popupLoading;
 if (!messagePopup) {
 	popupLoading = new MessagePopup(document.body);

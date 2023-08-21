@@ -7,6 +7,8 @@
 		this.unwantedTags = unwantedTags;
 		this.tagFilter = tagFilter;
 		this.highlighted = [];
+
+		this.segmenter = new TinySegmenter();
 	}
 
 	Highlight.prototype = {
@@ -20,6 +22,36 @@
 			Array.from(tags).filter(tag => tag.textContent.match(regex)?.length > 0 && this.tagValidation(tag))
 				.forEach(node => this.highlighted = this.highlighted.concat(replaceMatchesWithElem(node, regex, span)));
 			
+		},
+
+		sentences: function(tags) {
+			const regex = new RegExp(`[${this.characters.join('')}]`, "g");
+
+			console.log(regex);
+			const span = document.createElement("span");
+			span.classList.add(this.highlightClass);
+			this.otherClasses.forEach(className => span.classList.add(className));
+
+			Array.from(tags).filter(tag => tag.textContent.match(regex)?.length > 0 && this.tagValidation(tag))
+				.forEach(node => {
+					console.log(node);
+					textChildNodes(node).forEach(textNode => {
+						const sentences = this.segmenter.segment(textNode.textContent);
+						const fragment = document.createDocumentFragment();
+						sentences.forEach(sentence => {
+							console.log(sentence);
+							if (this.characters.includes(sentence)) {
+								const clone = span.cloneNode(true);
+								clone.appendChild(document.createTextNode(sentence));
+								fragment.appendChild(clone);
+							}
+							else
+								fragment.appendChild(document.createTextNode(sentence));
+						});
+						if (textNode.parentElement)
+							textNode.parentElement.replaceChild(fragment, textNode);
+					});
+				});
 		},
 
 		// check if given tag is of interest

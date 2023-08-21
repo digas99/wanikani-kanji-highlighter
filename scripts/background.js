@@ -136,7 +136,7 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 			// inject highlighter
 			chrome.scripting.executeScript({
 				target: {tabId: thisTabId},
-				files: ['scripts/highlighter/highlight.js']
+				files: ['/lib/tiny_segmenter-0.2.js', 'scripts/highlighter/highlight.js']
 			}, () => {
 				chrome.scripting.insertCSS({
 					target: {tabId: thisTabId},
