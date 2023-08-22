@@ -19,6 +19,11 @@ chrome.storage.local.get(["settings"], result => {
 let messagePopup, blacklistedSite, atWanikani;
 window.onload = () => {
 	chrome.storage.local.get(["initialFetch", "blacklist", "contextMenuSelectedText"], async result => {
+		// adjust body width
+		if (window.innerWidth > 500) {
+			document.body.style.width = "unset";
+		}
+
 		if (result["contextMenuSelectedText"]) {
 			makeSearch(result["contextMenuSelectedText"]);
 			chrome.storage.local.remove("contextMenuSelectedText");

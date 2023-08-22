@@ -9,7 +9,7 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings", "lessons", "reviews"
     
     if (userInfo) {
         const avatar = document.querySelector("#profile img");
-        setAvatar(avatar, "https://www.wanikani.com/users/"+userInfo["username"], userInfo["avatar"], result["userInfo"]);
+        setAvatar(avatar, "https://www.wanikani.com/users/"+userInfo["username"], userInfo["avatar_data"] || userInfo["avatar"], result["userInfo"]);
 
         const level = document.querySelector("#profile p");
         if (level && userInfo["level"])
@@ -109,23 +109,49 @@ const setRandomSubjectType = (value) => {
 }
 
 const setAvatar = (elem, url, avatar, userInfo) => {
-    if (!avatar) {
-        fetch(url)
-            .then(result => result.text())
-            .then(content => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(content, 'text/html');
-                const avatarElem = doc.getElementsByClassName("avatar user-avatar-default")[0];
-                const avatarSrc = "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0];
-                userInfo["data"]["avatar"] = avatarSrc;
-                elem.src = avatarSrc;
-
-                if (userInfo)
-                    chrome.storage.local.set({"userInfo": userInfo});
-            });
-    }
-    else
+    if (avatar)
         elem.src = avatar;
+
+    fetch(url)
+        .then(result => result.text())
+        .then(async content => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(content, 'text/html');
+            const avatarElem = doc.getElementsByClassName("avatar user-avatar-default")[0];
+            const avatarSrc = "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0];
+            userInfo["data"]["avatar"] = avatarSrc;
+            elem.src = avatarSrc;
+
+            if (userInfo)
+                chrome.storage.local.set({"userInfo": userInfo});
+
+            const imageData = await fetchImageData(avatarSrc);
+            userInfo["data"]["avatar_data"] = imageData;
+            if (imageData)
+                elem.src = imageData;
+            chrome.storage.local.set({"userInfo": userInfo});
+        });
+}
+
+const fetchImageData = async url => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const imageData = event.target.result; // Base64-encoded image data
+          resolve(imageData);
+        };
+        reader.onerror = function(error) {
+          reject(error);
+        };
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      throw error;
+    }
 }
 
 window.addEventListener("click", async e => {

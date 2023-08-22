@@ -11,7 +11,7 @@
     top: 50px;
     z-index: 10;
     background-color: var(--body-color);
-    width: 416px;
+    width: 87%;
     left: 0;
     padding: 10px;
 }
@@ -117,7 +117,7 @@
 
 .searchResultItemLine .kanjiDetails {
 	display: flex;
-    width: 364px;
+    width: 90%; 
     cursor: pointer;
     flex-direction: column;
 }
