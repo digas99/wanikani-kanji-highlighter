@@ -341,14 +341,6 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 	}
 });
 
-const contextMenuItem = {
-	id: "wkhighlighterSearchKanji",
-	title: "Search With WKHighlighter",
-	contexts: ["selection"]
-};
-
-chrome.contextMenus.create(contextMenuItem);
-
 chrome.contextMenus.onClicked.addListener(data => {
 	let selectedText = data["selectionText"];
 	if (data["menuItemId"] == "wkhighlighterSearchKanji" && selectedText) {
@@ -418,4 +410,13 @@ chrome.alarms.onAlarm.addListener(alarm => {
 			});
 		});
 	}
+});
+
+// remove all first to avoid duplicates
+chrome.contextMenus.removeAll(function() {
+	chrome.contextMenus.create({
+		id: "wkhighlighterSearchKanji",
+		title: "Search With WKHighlighter",
+		contexts: ["selection"]
+	});
 });

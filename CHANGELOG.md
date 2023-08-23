@@ -5,6 +5,7 @@
 - Avatar now loads even when offline
 - Fixed the way the timestamp for new updates was being saved (it is now using UTC time)
 - Page width now ajusts to the width of the screen (for users in mobile devices, with Kiwi Browser, for example)
+- Fixed duplicate creation of Context Menus, which would lead to the extension's Service Worker to crash
 
 # [Changelog v1.0.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.0)
 
