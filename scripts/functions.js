@@ -708,7 +708,7 @@ const subjectsReviewStats = async (apiToken, lists) => {
 				chrome.storage.local.set({ [type]: list }, () => console.log(`[REVIEW STATS]: ${type} updated`));
 			}
 
-			chrome.storage.local.set({ reviewStats_updated: formatDate(addHours(new Date(), -1)) }, () => resolve(true));
+			chrome.storage.local.set({ reviewStats_updated: new Date().toUTCString() }, () => resolve(true));
 		});
 	});
 }

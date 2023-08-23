@@ -143,6 +143,7 @@
 #levels-progress > ul {
     display: flex;
     margin: 1px 0px;
+    margin-right: 54px;
 }
 
 #levels-progress > ul > li {

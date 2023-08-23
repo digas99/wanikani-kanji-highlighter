@@ -54,7 +54,7 @@ const setupSubjects = (apiToken, setup, build, callback) =>
 						chrome.storage.local.set({...{
 							[setup.storage.id]: subjects,
 							[setup.storage.association]: associations,
-							[setup.storage.updated]: formatDate(addHours(new Date(), -1)),
+							[setup.storage.updated]: new Date().toUTCString(),
 							[setup.storage.size]:Object.keys(subjects).length
 						}}, () => {
 							resolve([subjects, true]);
@@ -95,7 +95,7 @@ const fetchUserInfo = async(apiToken, callback) => {
 					return;
 				}
 
-				chrome.storage.local.set({"userInfo":user, "userInfo_updated":formatDate(addHours(new Date(), -1))});
+				chrome.storage.local.set({"userInfo":user, "userInfo_updated":new Date().toUTCString()});
 				if (callback)
 					callback(user);
 			});
@@ -134,7 +134,7 @@ const setupAssignments = async (apiToken, callback) =>
 						"all":allAssignments,
 						"future":allFutureAssignments,
 						"past":allAvailableReviews
-					}, "assignments_updated":formatDate(addHours(new Date(), -1))}, () => {
+					}, "assignments_updated":new Date().toUTCString()}, () => {
 						resolve([data, true]);
 						if (callback)
 							callback(data, true);
@@ -160,10 +160,7 @@ const setupAvailableAssignments = async (apiToken, callback) => {
 	
 			const promises = [];
 	
-			console.log(reviews, lessons);
-	
 			if (reviews[0]) {
-				console.log("[REVIEWS]: Updating reviews");
 				reviews = reviews.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
 				promises.push(new Promise(resolve => {
 					const updatedReviews = {
@@ -179,7 +176,6 @@ const setupAvailableAssignments = async (apiToken, callback) => {
 				promises.push(new Promise(resolve => resolve(result["reviews"])));
 	
 			if (lessons[0]) {
-				console.log("[LESSONS]: Updating lessons");
 				lessons = lessons.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
 				promises.push(new Promise(resolve => {
 					const updatedLessons = {

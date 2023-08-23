@@ -59,7 +59,7 @@ const submitAction = () => {
                     popupLoading.remove();
                 }
                 else {
-                    chrome.storage.local.set({"apiKey":apiKey, "userInfo":user, "userInfo_updated":formatDate(addHours(new Date(), -1))});
+                    chrome.storage.local.set({"apiKey":apiKey, "userInfo":user, "userInfo_updated":new Date().toUTCString()});
                     window.location.href = "home.html";
                 }
             } else {

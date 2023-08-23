@@ -96,7 +96,7 @@ const fetchReviewedKanjiID = async (apiToken, page) => {
 const setupLearnedKanji = async (apiToken, page, kanji) => {
 	const ids = await fetchReviewedKanjiID(apiToken, page);
 	const learnedKanji = ids.map(id => kanji[id].slug);
-	chrome.storage.local.set({"learnedKanji": learnedKanji, "learnedKanji_updated":formatDate(addHours(new Date(), -1))});
+	chrome.storage.local.set({"learnedKanji": learnedKanji, "learnedKanji_updated":new Date().toUTCString()});
 	return learnedKanji;
 }
 

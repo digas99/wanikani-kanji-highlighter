@@ -15,12 +15,6 @@ function msToTime(ms) {
   else return days + " Days"
 }
 
-// format date into <day-name>, <day> <month> <year> <hour>:<minute>:<second> GMT
-const formatDate = date => {
-	const split = date.toString().split(" ");
-	return `${split[0]}, ${split[2]} ${split[1]} ${split[3]} ${split[4]} GMT`;
-}
-
 // setup two new functions to Date
 var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 

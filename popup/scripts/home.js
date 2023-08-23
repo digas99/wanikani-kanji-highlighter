@@ -199,7 +199,6 @@ const setupSummary = (reviews, lessons) => {
 		const currentTime = new Date().getTime();
 		
 		const summaryReviews = document.querySelector("#summaryReviews");
-		console.log(summaryReviews);
 		const currentValue = parseInt(summaryReviews.innerText);
 		if (currentValue === 0)
 			summaryReviews.innerText = reviews["count"] ? reviews["count"] : 0;
