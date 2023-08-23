@@ -490,14 +490,18 @@ const loadData = async (apiToken, tabId, callback) => {
 	if (fetches > 0) 
 		chrome.runtime.sendMessage({loading: true, setup: {fetches: fetches}});
 	else {
+		let assignments = await new Promise(resolve => chrome.storage.local.get(["assignments"], result => resolve(result["assignments"])));
+		if (assignments)
+			setupAvailableAssignments(apiToken, (reviews, lessons) => chrome.runtime.sendMessage({reviews: reviews, lessons: lessons}));
+
 		if (!callback)
 			return;
 	}		
 
 	// assignments
 	const result = await setupAssignments(apiToken);
-	setupAvailableAssignments(apiToken);
-	const assignments = result[0];
+	await setupAvailableAssignments(apiToken);
+	assignments = result[0];
 	const fetched = result[1];			
 	
 	const messageText = "✔ Loaded Assignments data.";

@@ -194,10 +194,12 @@ const kanjiListUpdate = (learned, notLearned, kanjiAssoc) => {
 }
 
 const setupSummary = (reviews, lessons) => {
+	console.log("[SUMMARY]: Setting up summary ...", reviews, lessons);
 	if (reviews) {
 		const currentTime = new Date().getTime();
 		
 		const summaryReviews = document.querySelector("#summaryReviews");
+		console.log(summaryReviews);
 		const currentValue = parseInt(summaryReviews.innerText);
 		if (currentValue === 0)
 			summaryReviews.innerText = reviews["count"] ? reviews["count"] : 0;
@@ -329,3 +331,11 @@ const enhancedWarning = (text, color) => {
 	wrapper.style.color = color;
 	return wrapper;
 }
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	if (request.reviews || request.lessons) {
+		const reviews = request.reviews;
+		const lessons = request.lessons;
+		setupSummary(reviews, lessons);
+	}
+});

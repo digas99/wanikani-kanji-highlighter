@@ -144,36 +144,63 @@ const setupAssignments = async (apiToken, callback) =>
 	});
 
 const setupAvailableAssignments = async (apiToken, callback) => {
-	fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments?immediately_available_for_lessons")
-		.then(lessons => {
-			fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments?immediately_available_for_review")
-				.then(reviews => {
-					if (reviews[0] && lessons[0]) {
-						const countReviews = reviews[0]["total_count"];
-						const countLessons = lessons[0]["total_count"];
+	return new Promise((resolve, reject) => {
+		chrome.storage.local.get(["assignments", "reviews", "lessons"], async result => {
+			const assignments = result["assignments"];
 	
-						// get all assigments into one array
-						reviews = Array.prototype.concat.apply([], reviews.map(assignments => assignments["data"]))
-						lessons = Array.prototype.concat.apply([], lessons.map(assignments => assignments["data"]))
-						chrome.storage.local.get(["assignments"], result => {
-							const assignments = result["assignments"];
-							if (lessons && reviews && assignments) {
-								const updatedReviews = {
-									"count":countReviews,
-									"data":reviews,
-									"next_reviews":filterAssignmentsByTime(assignments["future"], new Date(), changeDay(new Date(), 14))
-								};
-								const updatedLessons = {
-									"count":countLessons,
-									"data":lessons
-								};
-								chrome.storage.local.set({"reviews": updatedReviews, "lessons": updatedLessons}, () => {
-									if (callback)
-										callback(updatedReviews, updatedLessons);
-								});
-							}
-						});
-					}
-				})
-		})
+			let lessons = await fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments?immediately_available_for_lessons");
+			let reviews = await fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments?immediately_available_for_review");
+	
+			if (!assignments) {
+				if (callback)
+					callback([result["reviews"], result["lessons"]], false);
+				
+				resolve([result["reviews"], result["lessons"]]);
+			}
+	
+			const promises = [];
+	
+			console.log(reviews, lessons);
+	
+			if (reviews[0]) {
+				console.log("[REVIEWS]: Updating reviews");
+				reviews = reviews.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
+				promises.push(new Promise(resolve => {
+					const updatedReviews = {
+						"count":reviews.length,
+						"data":reviews,
+						"next_reviews":filterAssignmentsByTime(assignments["future"], new Date(), changeDay(new Date(), 14))
+					};
+	
+					chrome.storage.local.set({"reviews": updatedReviews}, () => resolve(updatedReviews));
+				}));
+			}
+			else
+				promises.push(new Promise(resolve => resolve(result["reviews"])));
+	
+			if (lessons[0]) {
+				console.log("[LESSONS]: Updating lessons");
+				lessons = lessons.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
+				promises.push(new Promise(resolve => {
+					const updatedLessons = {
+						"count":lessons.length,
+						"data":lessons
+					};
+	
+					chrome.storage.local.set({"lessons": updatedLessons}, () => resolve(updatedLessons));
+				}));
+			}
+			else
+				promises.push(new Promise(resolve => resolve(result["lessons"])));
+	
+			Promise.all(promises).then(results => {
+				console.log(results);
+				if (callback)
+					callback(results[0], results[1], true);
+
+				resolve(results);
+			});
+	
+		});
+	});
 }

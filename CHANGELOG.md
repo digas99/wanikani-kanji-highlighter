@@ -1,3 +1,9 @@
+# [Changelog v1.0.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.2)
+
+## Bug Fixes
+- Fixed issue where Lessons and Reviews wouldn't always update on their own
+- Avatar now loads even when offline
+
 # [Changelog v1.0.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.0)
 
 ### - Migration to Manifest v3
