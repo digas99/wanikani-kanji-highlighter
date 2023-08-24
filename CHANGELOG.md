@@ -2,6 +2,7 @@
 
 ## Bug Fixes
 - Updating the extension now only clears all subject data if the previous version begins with 0
+- Leaving the extension while loading data no longer breaks the loading popup message progress (it is atleast more resilient now)
 
 # [Changelog v1.0.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.2)
 Released on 24/08/2023

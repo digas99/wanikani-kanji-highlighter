@@ -127,8 +127,12 @@
                         console.log("Problem getting records.", e.target.error);
                         resolve(false);
                     }
-            
-                    let request = objectStore.get(value);
+        
+                    let request;
+                    if (!Array.isArray(value))
+                        request = objectStore.get(value);
+                    else
+                        request = objectStore.getAll([value]);
             
                     request.onsuccess = () => resolve(request.result);
                 });

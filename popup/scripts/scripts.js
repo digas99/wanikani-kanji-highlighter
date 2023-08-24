@@ -1,3 +1,8 @@
+// adjust body width
+if (window.innerWidth > 500) {
+	document.body.style.width = "unset";
+}
+
 // handle color as soon as possible
 chrome.storage.local.get(["settings"], result => {
 	const settings = result["settings"];
@@ -19,11 +24,6 @@ chrome.storage.local.get(["settings"], result => {
 let messagePopup, blacklistedSite, atWanikani;
 window.onload = () => {
 	chrome.storage.local.get(["initialFetch", "blacklist", "contextMenuSelectedText"], async result => {
-		// adjust body width
-		if (window.innerWidth > 500) {
-			document.body.style.width = "unset";
-		}
-
 		if (result["contextMenuSelectedText"]) {
 			makeSearch(result["contextMenuSelectedText"]);
 			chrome.storage.local.remove("contextMenuSelectedText");
@@ -86,8 +86,20 @@ window.onscroll = () => {
 chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 	// show setup
 	if (request.setup) {
-		if (request.setup.text || request.setup.progress)
-			handleLoadingMessages(request.setup.text, request.setup.progress);
+		chrome.storage.local.get(["fetching"], result => {
+			const fetching = result["fetching"];
+			if (fetching) {
+				if (fetching.text)
+					handleLoadingMessages(fetching.text + ` (${fetching.progress}/${fetching.fetches})`, fetching.progress/fetching.fetches);
+
+				if (fetching.progress >= fetching.fetches) {
+					chrome.storage.local.remove("fetching");
+					chrome.storage.local.set({"initialFetch": false});
+				}
+			}
+		});
+		//if (request.setup.text || request.setup.progress)
+		//	handleLoadingMessages(request.setup.text, request.setup.progress);
 
 		if (request.setup.fetches && document.querySelector("#updates-loading"))
 			document.querySelector("#updates-loading").innerText = request.setup.fetches;
@@ -125,6 +137,11 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 		}
 	}
 
+	if (request.loading === false) {
+		if (messagePopup.exists())
+			messagePopup.remove();
+	}
+	
 	// selected text
 	if (request.selectedText) {
 		const selectedText = request.selectedText;

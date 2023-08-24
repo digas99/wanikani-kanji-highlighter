@@ -428,14 +428,18 @@ const sendSetupProgress = (text, progress, tab) => {
 	const messageData = {
 		setup: {
 			text: text,
-			progress: progress,
+			progress: progress/fetches,
 			fetches: fetches
 		}
 	}
+	chrome.storage.local.set({"fetching": {"text": text, "fetches": fetches, "progress": progress}});
+
 	if (tab)
 		chrome.tabs.sendMessage(tab, messageData);
 	else
 		chrome.runtime.sendMessage(messageData);
+
+	evalProgress(progress, fetches);
 }
 
 // check if bulk fetch was done less than 1 minute ago
@@ -475,136 +479,178 @@ const getTab = () => {
 // get all assignments if there are none in storage or if they were modified
 // see if all subjects are already saved in storage
 const loadData = async (apiToken, tabId, callback) => {
-	const returnObject = (assignments, radicals, vocab, kana_vocabulary, kanji) => ({
-			assignments: assignments,
-			radicals: radicals,
-			vocab: vocab,
-			kana_vocabulary: kana_vocabulary,
-			kanji: kanji
-	});
+	chrome.storage.local.get(["fetching", "assignments_updated"], async response => {
+		const fetching = response["fetching"];
+		if (fetching) {
+			// if fetching has ended
+			if (fetching.progress >= fetching.fetches) {
+				chrome.storage.local.remove("fetching");
+				chrome.storage.local.set({"initialFetch": false});
+				chrome.runtime.sendMessage({loading: false});
+				progress = 0;
+				fetches = 0;		
+			}
+			// if fetching, update progress and fetches and don't fetch again
+			else {
+				progress = fetching.progress
+				fetches = fetching.fetches;
+				return;
+			}
+		}
+		// if not fetching anymore but initial fetch is still true
+		else {
+			if (response["assignments_updated"]) {
+				chrome.storage.local.set({"initialFetch": false});
+				chrome.runtime.sendMessage({loading: false});
+				progress = 0;
+				fetches = 0;		
+			}
+		}
 
-	// get number of fetches that will be done
-	fetches = await sizeToFetch(apiToken); 
-	console.log("[FETCHES]: ", fetches);
-
-	if (fetches > 0) 
-		chrome.runtime.sendMessage({loading: true, setup: {fetches: fetches}});
-	else {
-		let assignments = await new Promise(resolve => chrome.storage.local.get(["assignments"], result => resolve(result["assignments"])));
-		if (assignments)
-			setupAvailableAssignments(apiToken, (reviews, lessons) => chrome.runtime.sendMessage({reviews: reviews, lessons: lessons}));
-
-		if (!callback)
-			return;
-	}		
-
-	// assignments
-	const result = await setupAssignments(apiToken);
-	await setupAvailableAssignments(apiToken);
-	assignments = result[0];
-	const fetched = result[1];			
+		const returnObject = (assignments, radicals, vocab, kana_vocabulary, kanji) => ({
+				assignments: assignments,
+				radicals: radicals,
+				vocab: vocab,
+				kana_vocabulary: kana_vocabulary,
+				kanji: kanji
+		});
 	
-	const messageText = "✔ Loaded Assignments data.";
-	console.log("[LOADED]:", messageText);
-	if (fetched) {
-		progress++;
-		sendSetupProgress(messageText, progress/fetches, tabId);
-	}	
-
-	if (progress == fetches) progress = 0;
-
-	const setups = [
-		// radicals
-		new Promise(async (resolve, reject) => {
-			const result = await setupSubjects(apiToken, RADICAL_SETUP, (subjects, assocs, records, subject) => setupRadicals(subjects, records, subject));
-			const [radicals, fetched] = result;
-			
-			await subjectsAssignmentStats(radicals);	
-
-			resolve(radicals);
-			
-			const messageText = "✔ Loaded Radicals data.";
-			console.log("[LOADED]:", messageText);
-			if (fetched) {
-				progress++;
-				sendSetupProgress(messageText, progress/fetches, tabId);
-			}
-
-			if (progress == fetches) progress = 0;
-		}),
-		// vocabulary
-		new Promise(async (resolve, reject) => {
-			const result = await setupSubjects(apiToken, VOCAB_SETUP, (subjects, assocs, records, subject) => setupVocab(subjects, assocs, records, subject));
-			const [vocab, fetched] = result;
-
-			await subjectsAssignmentStats(vocab);	
-
-			resolve(vocab);
-			
-			const messageText = "✔ Loaded Vocabulary data.";
-			console.log("[LOADED]:", messageText);
-			if (fetched) {
-				progress++;
-				sendSetupProgress(messageText, progress/fetches, tabId);
-			}
+		// get number of fetches that will be done
+		fetches = await sizeToFetch(apiToken); 
+		console.log("[FETCHES]: ", fetches);
 		
-			if (progress == fetches) progress = 0;
-		}),
-		// kana vocabulary
-		new Promise(async (resolve, reject) => {
-			const result = await setupSubjects(apiToken, KANA_VOCAB_SETUP, (subjects, assocs, records, subject) => setupKanaVocab(subjects, assocs, records, subject));
-			const [vocab, fetched] = result;
-
-			await subjectsAssignmentStats(vocab);	
-
-			resolve(vocab);
-			
-			const messageText = "✔ Loaded Kana Vocabulary data.";
-			console.log("[LOADED]:", messageText);
-			if (fetched) {
-				progress++;
-				sendSetupProgress(messageText, progress/fetches, tabId);
-			}
-		}),
-		// kanji
-		new Promise(async (resolve, reject) => {
-			const result = await setupSubjects(apiToken, KANJI_SETUP, (subjects, assocs, records, subject) => setupKanji(subjects, assocs, records, subject));
-			const [kanji, fetched] = result;
-
-			await subjectsAssignmentStats(kanji);	
-
-			resolve(kanji);
-			
-			const messageText = "✔ Loaded Kanji data.";
-			console.log("[LOADED]:", messageText);
-			if (fetched) {
-				progress++;
-				sendSetupProgress(messageText, progress/fetches, tabId);
-			}
-		})
-	];
+		if (fetches > 0) {
+			chrome.storage.local.set({"fetching": {"fetches": fetches, "progress": 0}});
+			chrome.runtime.sendMessage({loading: true, setup: {fetches: fetches}});
+		}
+		else {
+			let assignments = await new Promise(resolve => chrome.storage.local.get(["assignments"], result => resolve(result["assignments"])));
+			if (assignments)
+				setupAvailableAssignments(apiToken, (reviews, lessons) => chrome.runtime.sendMessage({reviews: reviews, lessons: lessons}));
 	
-	Promise.all(setups).then(async results => {
-		// add bulk fetch timestamp to storage
-		chrome.storage.local.set({bulk_fetch: new Date().getTime()});
-		if (callback)
-			callback(returnObject(assignments, results[0], results[1], results[2], results[3]));
-
-		const fetched = await subjectsReviewStats(apiToken, results);
-		const messageText = "✔ Loaded Review Statistics data.";
+			if (!callback)
+				return;
+		}		
+	
+		// assignments
+		const result = await setupAssignments(apiToken);
+		await setupAvailableAssignments(apiToken);
+		assignments = result[0];
+		const fetched = result[1];			
+		
+		const messageText = "✔ Loaded Assignments data.";
 		console.log("[LOADED]:", messageText);
 		if (fetched) {
 			progress++;
-			sendSetupProgress(messageText, progress/fetches, tabId);
-		}
-
-		if (progress == fetches) progress = 0;
+			sendSetupProgress(messageText, progress, tabId);
+		}	
+	
+		evalProgress(progress, fetches);
+	
+		const setups = [
+			// radicals
+			new Promise(async (resolve, reject) => {
+				const result = await setupSubjects(apiToken, RADICAL_SETUP, (subjects, assocs, records, subject) => setupRadicals(subjects, records, subject));
+				const [radicals, fetched] = result;
+				
+				await subjectsAssignmentStats(radicals);	
+	
+				resolve(radicals);
+				
+				const messageText = "✔ Loaded Radicals data.";
+				console.log("[LOADED]:", messageText);
+				if (fetched) {
+					progress++;
+					sendSetupProgress(messageText, progress, tabId);
+				}
+	
+				evalProgress(progress, fetches);
+			}),
+			// vocabulary
+			new Promise(async (resolve, reject) => {
+				const result = await setupSubjects(apiToken, VOCAB_SETUP, (subjects, assocs, records, subject) => setupVocab(subjects, assocs, records, subject));
+				const [vocab, fetched] = result;
+	
+				await subjectsAssignmentStats(vocab);	
+	
+				resolve(vocab);
+				
+				const messageText = "✔ Loaded Vocabulary data.";
+				console.log("[LOADED]:", messageText);
+				if (fetched) {
+					progress++;
+					sendSetupProgress(messageText, progress, tabId);
+				}
+			
+				evalProgress(progress, fetches);
+			}),
+			// kana vocabulary
+			new Promise(async (resolve, reject) => {
+				const result = await setupSubjects(apiToken, KANA_VOCAB_SETUP, (subjects, assocs, records, subject) => setupKanaVocab(subjects, assocs, records, subject));
+				const [vocab, fetched] = result;
+	
+				await subjectsAssignmentStats(vocab);	
+	
+				resolve(vocab);
+				
+				const messageText = "✔ Loaded Kana Vocabulary data.";
+				console.log("[LOADED]:", messageText);
+				if (fetched) {
+					progress++;
+					sendSetupProgress(messageText, progress, tabId);
+				}
+	
+				evalProgress(progress, fetches);
+			}),
+			// kanji
+			new Promise(async (resolve, reject) => {
+				const result = await setupSubjects(apiToken, KANJI_SETUP, (subjects, assocs, records, subject) => setupKanji(subjects, assocs, records, subject));
+				const [kanji, fetched] = result;
+	
+				await subjectsAssignmentStats(kanji);	
+	
+				resolve(kanji);
+				
+				const messageText = "✔ Loaded Kanji data.";
+				console.log("[LOADED]:", messageText);
+				if (fetched) {
+					progress++;
+					sendSetupProgress(messageText, progress, tabId);
+				}
+	
+				evalProgress(progress, fetches);
+			})
+		];
+		
+		Promise.all(setups).then(async results => {
+			// add bulk fetch timestamp to storage
+			chrome.storage.local.set({bulk_fetch: new Date().getTime()});
+			if (callback)
+				callback(returnObject(assignments, results[0], results[1], results[2], results[3]));
+	
+			const fetched = await subjectsReviewStats(apiToken, results);
+			const messageText = "✔ Loaded Review Statistics data.";
+			console.log("[LOADED]:", messageText);
+			if (fetched) {
+				progress++;
+				sendSetupProgress(messageText, progress, tabId);
+			}
+	
+			evalProgress(progress, fetches);
+		});
 	});
 }
 
+const evalProgress = (progress, fetches) => {
+	if (progress >= fetches) {
+		progress = 0;
+		fetches = 0;
+	}
+}
+
 const subjectsAssignmentStats = async list => {
-    const type = list[Object.keys(list)[0]]["subject_type"];
-    if (list && type) {
+	if (list) {
+		const type = list[Object.keys(list)[0]]["subject_type"];
         const db = new Database("wanikani");
         const opened = await db.open("subjects");
 

@@ -34,6 +34,13 @@ chrome.runtime.onInstalled.addListener(details => {
 		clearSubjects();
 		chrome.storage.local.set({"initialFetch": true});
 	}
+
+	// setup context menu
+	chrome.contextMenus.create({
+		id: "wkhighlighterSearchKanji",
+		title: "Search With WKHighlighter",
+		contexts: ["selection"]
+	});
 });
 
 const db = new Database("wanikani");
@@ -133,33 +140,35 @@ const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
 				});
 			}
 	
-			// inject highlighter
-			chrome.scripting.executeScript({
-				target: {tabId: thisTabId},
-				files: ['scripts/highlighter/highlight.js']
-			}, () => {
-				chrome.scripting.insertCSS({
-					target: {tabId: thisTabId},
-					files: ['styles/highlight.css'],
-				});
+			if (kanji) {
+				// inject highlighter
 				chrome.scripting.executeScript({
 					target: {tabId: thisTabId},
-					files: ['scripts/highlighter/highlight-setup.js']
-				}, () => injectedHighlighter = true);
-	
-				const allKanji = result["learnable_kanji"];
-				const notLearnedKanji = allKanji.filter(k => !kanji.includes(k));
-				if (allKanji) {
-					chrome.storage.local.set({"highlight_setup": {
-						functionDelay: functionDelay, 
-						learned: kanji,
-						notLearned: notLearnedKanji,
-						unwantedTags: unwantedTags,
-						learnedClass: highlightingClass,
-						notLearnedClass: notLearnedHighlightingClass,
-					}});
-				}
-			});
+					files: ['scripts/highlighter/highlight.js']
+				}, () => {
+					chrome.scripting.insertCSS({
+						target: {tabId: thisTabId},
+						files: ['styles/highlight.css'],
+					});
+					chrome.scripting.executeScript({
+						target: {tabId: thisTabId},
+						files: ['scripts/highlighter/highlight-setup.js']
+					}, () => injectedHighlighter = true);
+		
+					const allKanji = result["learnable_kanji"];
+					const notLearnedKanji = allKanji.filter(k => !kanji.includes(k));
+					if (allKanji) {
+						chrome.storage.local.set({"highlight_setup": {
+							functionDelay: functionDelay, 
+							learned: kanji,
+							notLearned: notLearnedKanji,
+							unwantedTags: unwantedTags,
+							learnedClass: highlightingClass,
+							notLearnedClass: notLearnedHighlightingClass,
+						}});
+					}
+				});
+			}
 		});
 	}
 
@@ -410,13 +419,4 @@ chrome.alarms.onAlarm.addListener(alarm => {
 			});
 		});
 	}
-});
-
-// remove all first to avoid duplicates
-chrome.contextMenus.removeAll(function() {
-	chrome.contextMenus.create({
-		id: "wkhighlighterSearchKanji",
-		title: "Search With WKHighlighter",
-		contexts: ["selection"]
-	});
 });
