@@ -1,4 +1,10 @@
+# [Changelog v1.0.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.3)
+
+## Bug Fixes
+- Updating the extension now only clears all subject data if the previous version begins with 0
+
 # [Changelog v1.0.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.2)
+Released on 24/08/2023
 
 ## Bug Fixes
 - Fixed issue where Lessons and Reviews wouldn't always update on their own
@@ -8,6 +14,7 @@
 - Fixed duplicate creation of Context Menus, which would lead to the extension's Service Worker to crash
 
 # [Changelog v1.0.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.0)
+Released on 21/08/2023
 
 ### - Migration to Manifest v3
 

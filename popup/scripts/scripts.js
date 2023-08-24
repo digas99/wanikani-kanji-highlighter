@@ -41,21 +41,23 @@ window.onload = () => {
 		}
 
 		const activeTab = await getTab();
-		chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, url => {
-
-			if (url) {
-				url = url["windowLocation"];
-				validSite = true;
-				atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url);
-				blacklistedSite = blacklisted(result["blacklist"], url);
-			} else {
-				validSite = false;
-				atWanikani = false;
-				blacklistedSite = false;
-			}
-
-			document.dispatchEvent(new Event("scriptsLoaded"));
-		});
+		if (activeTab) {
+			chrome.tabs.sendMessage(activeTab.id, {windowLocation: "origin"}, url => {
+	
+				if (url) {
+					url = url["windowLocation"];
+					validSite = true;
+					atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url);
+					blacklistedSite = blacklisted(result["blacklist"], url);
+				} else {
+					validSite = false;
+					atWanikani = false;
+					blacklistedSite = false;
+				}
+	
+				document.dispatchEvent(new Event("scriptsLoaded"));
+			});
+		}
 	});
 }
 
@@ -190,7 +192,8 @@ const handleLoadingMessages = (text, progress) => {
 					
 					if (initialFetch) {
 						const tab = await getTab();
-						chrome.tabs.sendMessage(tab.id, {reloadPage: true});
+						if (tab)
+							chrome.tabs.sendMessage(tab.id, {reloadPage: true});
 					}
 				}
 			}, 1000);

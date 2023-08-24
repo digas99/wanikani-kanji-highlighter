@@ -29,11 +29,11 @@ chrome.runtime.onConnect.addListener(port => externalPort = port);
 chrome.runtime.onInstalled.addListener(details => {
 	console.log("Extension installed");
 
-	chrome.storage.local.set({"initialFetch": true, "context_menus": []});
-
-	// clear all subjects on extension update
-	if (details.reason == "update")
+	// clear all subjects on extension update if the major version begins with 0
+	if (details.reason == "update" && details.previousVersion.split('.')[0] == '0') {
 		clearSubjects();
+		chrome.storage.local.set({"initialFetch": true});
+	}
 });
 
 const db = new Database("wanikani");

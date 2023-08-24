@@ -175,20 +175,24 @@ window.addEventListener("click", async e => {
             await blacklist();
             
             const tab = await getTab();
-            chrome.tabs.sendMessage(tab.id, {reloadPage: true});
-            setTimeout(() => window.location.reload(), 500);
+            if (tab) {
+                chrome.tabs.sendMessage(tab.id, {reloadPage: true});
+                setTimeout(() => window.location.reload(), 500);
+            }
         }
 
         if (clickable.querySelector("#run")) {
             const tab = await getTab();
-            chrome.tabs.sendMessage(tab.id, {windowLocation: "host"}, async url => {
-                if (url) {
-                    await blacklistRemove(url["windowLocation"]);
-
-                    chrome.tabs.sendMessage(tab.id, {reloadPage: true});
-                    setTimeout(() => window.location.reload(), 500);
-                }
-            }); 
+            if (tab) {
+                chrome.tabs.sendMessage(tab.id, {windowLocation: "host"}, async url => {
+                    if (url) {
+                        await blacklistRemove(url["windowLocation"]);
+    
+                        chrome.tabs.sendMessage(tab.id, {reloadPage: true});
+                        setTimeout(() => window.location.reload(), 500);
+                    }
+                }); 
+            }
         }
     }
 

@@ -157,14 +157,16 @@ document.addEventListener('click', async e => {
 							case "kanji_counter":
 								let value = "";
 								const tab = await getTab();
-								if (target.checked) {
-									chrome.storage.local.get(["nmrHighLightedKanji"], result => {
-										value = (result && result["nmrHighLightedKanji"] ? result["nmrHighLightedKanji"] : 0).toString();
-										chrome.action.setBadgeText({text: value, tabId:tab.id});
-									});
+								if (tab) {
+									if (target.checked) {
+										chrome.storage.local.get(["nmrHighLightedKanji"], result => {
+											value = (result && result["nmrHighLightedKanji"] ? result["nmrHighLightedKanji"] : 0).toString();
+											chrome.action.setBadgeText({text: value, tabId:tab.id});
+										});
+									}
+									else
+										chrome.action.setBadgeText({text: '', tabId:tab.id});
 								}
-								else
-									chrome.action.setBadgeText({text: '', tabId:tab.id});
 	
 								break;
 						}

@@ -47,9 +47,11 @@ const updateHomeInterface = async (result) => {
 	// SCRIPTS UPTIME
 	if (interface["scripts_status"]) {
 		["Highlighter", "Details Popup"].forEach((script, i) => {
-			chrome.tabs.sendMessage(activeTab.id, {uptime: script}, response => {
-				if (response) document.querySelectorAll("#scripts_status div")[i].style.backgroundColor = "var(--wanikani-sec)";
-			});
+			if (activeTab) {
+				chrome.tabs.sendMessage(activeTab?.id, {uptime: script}, response => {
+					if (response) document.querySelectorAll("#scripts_status div")[i].style.backgroundColor = "var(--wanikani-sec)";
+				});
+			}
 		});
 	}
 
@@ -63,13 +65,15 @@ const updateHomeInterface = async (result) => {
 	if (interface["highlighted_kanji"]) {
 		const kanjiAssoc = result["kanji_assoc"];
 
-		chrome.tabs.sendMessage(activeTab.id, {nmrKanjiHighlighted:"popup"}, result => {
-			if (result) {
-				const {nmrKanjiHighlighted, learned, notLearned} = result;
-				if (learned.length > 0 || notLearned.length > 0)
-					kanjiListUpdate(learned, notLearned, kanjiAssoc);
-			}
-		});
+		if (activeTab) {
+			chrome.tabs.sendMessage(activeTab?.id, {nmrKanjiHighlighted:"popup"}, result => {
+				if (result) {
+					const {nmrKanjiHighlighted, learned, notLearned} = result;
+					if (learned.length > 0 || notLearned.length > 0)
+						kanjiListUpdate(learned, notLearned, kanjiAssoc);
+				}
+			});
+		}
 	}
 
 	// LESSONS AND REVIEWS

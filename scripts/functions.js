@@ -466,7 +466,7 @@ const getTab = () => {
             if (tabs && tabs.length > 0) {
                 resolve(tabs[0]);
             } else {
-                reject(new Error("No active tab found."));
+				resolve(null);
             }
         });
     });
