@@ -290,4 +290,35 @@ const ASSIGNMENTS = ["reviews", "lessons"];
 const PROGRESS = ["radical_progress", "kanji_progress", "vocabulary_progress", "kana_vocabulary_progress", "radicals_size", "kanji_size", "vocabulary_size", "kana_vocab_size", "radical_levelsInProgress", "kanji_levelsInProgress", "vocabulary_levelsInProgress"];
 const HIGHLIGHTED = ["kanji_assoc", "highlighted_kanji"];
 
-const HOME_FETCH_KEYS = ["settings", "userInfo", ...HIGHLIGHTED, ...ASSIGNMENTS , ...PROGRESS]
+const HOME_FETCH_KEYS = ["settings", "userInfo", ...HIGHLIGHTED, ...ASSIGNMENTS , ...PROGRESS];
+
+const INTERFACE_COLORS = {
+	"light": {
+		"background": "#eee",
+		"default": "#2a2d48",
+		"fill": "#fff",
+		"font": "#000",
+		"font-sec": "#747474",
+		"border": "#c0c0c0",
+		"highlight": "#91a1f0",
+		"styles": [`
+			.icon {
+				filter: unset !important;
+			}
+		`]
+	},
+	"dark": {
+		"background": "#1a1a20",
+		"default": "#20233d",
+		"fill": "#16161a",
+		"font": "#dcdcdc",
+		"font-sec": "#d8d8d8",
+		"border": "#fff",
+		"highlight": "#91a1f0",
+		"styles": [`
+			.icon {
+				filter: invert(1) !important;
+			}
+		`]
+	}
+}

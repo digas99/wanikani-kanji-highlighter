@@ -1,3 +1,11 @@
+body {
+    margin: unset;
+}
+
+#main {
+    margin: 8px;
+}
+
 #userInfoWrapper {
 	margin: 0px 7px;
 	padding-top: 5px;
@@ -20,11 +28,11 @@
 
 .userInfoWrapper-wrapper {
     border-radius: 0px 0px 5px 5px;
-    background-color: white;
+    background-color: var(--fill-color);
 }
 
 #scripts_status {
-    background-color: #2a2d48;
+    background-color: var(--default-color);
     color: white;
     padding: 6px;
     border-radius: 4px;
@@ -75,6 +83,10 @@
 
 #progression-bar > li:last-child > a {
     color: black;
+}
+
+#progression-stats {
+    background-color: white;
 }
 
 #progression-stats > ul {
@@ -138,6 +150,10 @@
     flex-direction: column;
     text-align: left;
 	padding: 7px;
+}
+
+#levels-progress {
+    background-color: white;
 }
 
 #levels-progress > ul {
@@ -208,7 +224,6 @@
 
 #enhancedMessage {
     font-size: 14px;
-	border-radius: 4px;
 	text-align: center;
 	border-bottom: 4px solid;
     background-color: var(--default-color);

@@ -185,7 +185,7 @@
 	border-top: 5px solid var(--wanikani);
 	text-align: center;
 	z-index: 11;
-	transition: 0.5s;
+	transition: 0.3s;
 }
 
 .side-panel > ul {
@@ -205,7 +205,7 @@
     border-radius: 15px;
     pointer-events: none;
     border: 2px solid white;
-	transition: 0.5s;
+	transition: 0.3s;
 }
 
 #side-panel-logo {

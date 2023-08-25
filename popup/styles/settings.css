@@ -13,9 +13,8 @@
 	display: grid;
     margin-bottom: 5px;
     padding-bottom: 5px;
-	background-color: white;
     border-radius: 5px;
-    color: black;
+    color: var(--font-color);
 }
 
 .settingsSection > div {

@@ -1,3 +1,8 @@
+# [Changelog v1.0.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.4)
+
+## Popup
+- Added Dark Mode to the extension popup
+
 # [Changelog v1.0.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.3)
 
 ## Bug Fixes

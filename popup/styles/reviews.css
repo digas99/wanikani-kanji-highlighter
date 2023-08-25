@@ -19,16 +19,15 @@
 #reviewsDaySelector > label {
 	padding-right: 10px;
 	font-size: 13px;
-	color: #747474;
+	color: var(--font-sec-color);
 }
 
 #reviewsDaySelector > input {
 	height: 17px;
-    color: #747474;
 }
 
 #reviewsPage-nmrReviews24hLabel {
-	color: #747474;
+	color: var(--font-sec-color);
     margin: 6px 5px 0 0;
     text-align: right;
 }

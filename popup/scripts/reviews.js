@@ -153,9 +153,10 @@ chrome.storage.local.get(["reviews"], async result => {
 								display: true,
 								text: 'Reviews in the next 24 hours',
 								padding: 20,
+								color: style.getPropertyValue(`--font-color`),
 							},
 							datalabels: {
-								color: '#000000',
+								color: style.getPropertyValue(`--font-color`),
 								anchor: 'end',
 								align: 'top',
 								display: ctx => ctx["dataset"]["data"][ctx["dataIndex"]] != 0,
@@ -183,7 +184,7 @@ chrome.storage.local.get(["reviews"], async result => {
 								position: 'bottom',
 								labels: {
 									padding: 7
-								}
+								},
 							}
 						},
 						animation: {

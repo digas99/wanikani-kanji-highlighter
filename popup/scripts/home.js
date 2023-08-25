@@ -311,12 +311,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 document.addEventListener("scriptsLoaded", () => {
 	const main = document.getElementById("main");
-	const userInfoWrapper = document.querySelector("#userInfoWrapper");
 	
 	if (atWanikani || blacklistedSite || !validSite) {
-		if (atWanikani) main.insertBefore(enhancedWarning("Limited features at wanikani, sorry!", "var(--wanikani)"), userInfoWrapper);
-		else if (blacklistedSite) main.insertBefore(enhancedWarning("Site blacklisted by you!", "red"), userInfoWrapper);
-		else if (!validSite) main.insertBefore(enhancedWarning("Can't inject highlighter (maybe reload the page?)", "#b3b3b3"), userInfoWrapper);
+		if (atWanikani) document.body.insertBefore(enhancedWarning("Limited features at wanikani, sorry!", "var(--wanikani)"), main);
+		else if (blacklistedSite) document.body.insertBefore(enhancedWarning("Site blacklisted by you!", "red"), main);
+		else if (!validSite) document.body.insertBefore(enhancedWarning("Can't inject highlighter (maybe reload the page?)", "#b3b3b3"), main);
 
 		// remove highlighted kanji container
 		if (highlightList)
@@ -330,7 +329,6 @@ const enhancedWarning = (text, color) => {
 	wrapper.appendChild(document.createTextNode(text));
 	wrapper.id = "enhancedMessage";
 	wrapper.style.borderBottom = "0px";
-	wrapper.style.borderLeft = "10px solid";
 	wrapper.style.color = color;
 	return wrapper;
 }

@@ -36,7 +36,7 @@
 		<!-- INFO -->
 		<div class="section">
 			<h2>Wanikani Kanji Highlighter</h2>
-			<p style="color:#858282;">Unofficial kanji highlighter, matching kanji learned with Wanikani.</p>
+			<p style="color:var(--font-sec-color);">Unofficial kanji highlighter, matching kanji learned with Wanikani.</p>
 			<h3 id="version">Version: </h3>
 		</div>
 		
@@ -45,7 +45,7 @@
 			<h3>API Key</h3>
 			<div class="api-key">
 				<p></p>
-				<img src="/images/copy.png" alt="copy" class="clickable">
+				<img src="/images/copy.png" alt="copy" class="clickable icon">
 			</div>	
 		</div>
 		
@@ -58,14 +58,14 @@
 						<img src="/images/chart_js.svg" alt="chartjs">
 						<b>Chart.js</b>
 					</a>
-					<p style="color:#858282;">Creation of charts, used to show the number of future reviews per day</p>
+					<p style="color:var(--font-sec-color);">Creation of charts, used to show the number of future reviews per day</p>
 				</li>
 				<li>
 					<a href="https://chartjs-plugin-datalabels.netlify.app/" title="https://chartjs-plugin-datalabels.netlify.app/" target="_blank">
 						<img src="/images/chart_js_plugin_datalabels.svg" alt="chartjs plugin">
 						<b>chartjs-plugin-datalabels</b>
 					</a>
-					<p style="color:#858282;">Dynamic content in data labels of charts from Chart.js</p>
+					<p style="color:var(--font-sec-color);">Dynamic content in data labels of charts from Chart.js</p>
 				</li>
 			</ul>
 		</div>
@@ -75,14 +75,14 @@
 		
 		<!-- FOOTER -->
 		<div class="section">
-			<div style="text-align: center; color: #a3a3a3;">
+			<div style="text-align: center; color: var(--font-sec-color);">
 				Hi, my name is Diogo. I'm from Portugal and I'm a student at Universidade de Aveiro.
-				Building this project, I took huge inspiration from <a style="color: var(--default-color)" href="https://www.wanikani.com" target="_blank">WaniKani</a> (obviously) and from <a style="color: var(--default-color);" href="https://play.google.com/store/apps/details?id=com.the_tinkering.wk">Flaming Durtles</a>, an amazing app to use Wanikani on mobile.
+				Building this project, I took huge inspiration from <a style="color: var(--highlight);" href="https://www.wanikani.com" target="_blank">WaniKani</a> (obviously) and from <a style="color: var(--highlight);" href="https://play.google.com/store/apps/details?id=com.the_tinkering.wk">Flaming Durtles</a>, an amazing app to use Wanikani on mobile.
 				Certain images and data used in this application are the property of Tofugu LLC and are protected by copyright law. © Tofugu LLC. 
 			</div>
 			<div class="footer-icons" style="padding-top: 10px; text-align: center;">
 				<a href="https://github.com/digas99/wanikani-kanji-highlighter" target="_blank" title="Source Code">
-					<img src="/images/github-logo.png" alt="github">
+					<img src="/images/github-logo.png" alt="github" class="icon">
 				</a>
 				<a href="https://www.wanikani.com" target="_blank" title="Wanikani">
 					<img src="/images/wanikani-logo.png" alt="wanikani">
@@ -114,6 +114,11 @@
                 <a href="#" class="navbar_icon" style="padding: 0px 5px;">
                     <img id="blacklist" src="../images/blacklist.png" title="Blacklist" style="width: 20px;">
                     <span class="side-panel-info-alert" style="background-color: #f100a1; color: white; filter: invert(1);">0</span>
+                </a>
+            </li>
+			<li class="clickable" style="position: relative;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="dark" src="../images/dark.png" title="Dark" style="width: 20px;">
                 </a>
             </li>
             <li class="clickable" style="position: relative;">

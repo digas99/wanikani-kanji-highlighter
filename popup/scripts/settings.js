@@ -83,7 +83,7 @@ const blacklistEntry = (site) => {
 	div.appendChild(binWrapper);
 	const span = document.createElement("span");
 	binWrapper.appendChild(span);
-	span.classList.add("bin_wrapper", "clickable");
+	span.classList.add("bin_wrapper", "clickable", "icon");
 	span.addEventListener("click", async () => {
 		const size = await blacklistRemove(site);
 		div.remove();

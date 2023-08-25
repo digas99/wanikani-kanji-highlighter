@@ -28,6 +28,10 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings", "lessons", "reviews"
         document.querySelector(".lessons-icon").nextElementSibling.innerText = nLesson;
         document.querySelector(".reviews-icon").nextElementSibling.innerText = nReview;
     }
+
+    const theme = localStorage.getItem("theme") || "light";
+    if (theme == "dark")
+        setTheme("dark");
 });
 
 // when scripts.js has loaded
@@ -179,6 +183,11 @@ window.addEventListener("click", async e => {
                 expandSideBar(sidebar, !sidebar.classList.contains("side-panel-focus"));
         }
 
+        if (clickable.querySelector("#dark"))
+            setTheme("dark");
+        else if (clickable.querySelector("#light"))
+            setTheme("light");
+
         if (clickable.querySelector("#blacklist")) {
             await blacklist();
             
@@ -251,7 +260,7 @@ let mouseOut = false;
 window.addEventListener("mouseover", e => {
     if (e.target.closest(".side-panel")) {
         if (!e.target.closest(".side-panel").classList.contains("side-panel-focus") && mouseOut)
-            sidePanelTimeout = setTimeout(() => expandSideBar(e.target.closest(".side-panel"), true), 250);
+            sidePanelTimeout = setTimeout(() => expandSideBar(e.target.closest(".side-panel"), true), 300);
     }
     else {
         mouseOut = true;

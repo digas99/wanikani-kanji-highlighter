@@ -1,3 +1,7 @@
+body {
+    margin: 0;
+}
+
 .top-level-list {
     display: flex;
     top: 51px;
@@ -55,7 +59,6 @@
 	background-image: url(/images/wanikani-background.png);
     background-size: cover;
 	border-bottom: 4px solid white;
-	border-radius: 15px 15px 0px 0px;
 }
 
 .levels-chooser {
@@ -246,10 +249,10 @@
 
 .menu-popup {
     position: absolute;
-    background-color: white;
+    background-color: var(--fill-color);
     top: 30px;
     right: 5px;
-    border: 2px solid #2a2d48;
+    border: 2px solid var(--default-color);
 	overflow: hidden;
 	transition: 0.5s;
 	z-index: 2;
@@ -257,7 +260,7 @@
 
 .menu-popup > p {
 	font-size: 11px;
-    color: white;
+    color: var(--font-color);
     text-align: right;
     padding: 7px;
     border: 1px solid white;
@@ -269,7 +272,6 @@
 }
 
 .menu-popup > ul > li {
-	color: #585858;
     font-size: 13px;
 	display: flex;
     align-items: center;
@@ -285,10 +287,9 @@
 }
 
 .subject-types {
-    padding: 7px;
+    padding: 10px;
     font-size: 25px;
-    background-color: white;
-    border: 10px solid var(--default-color);
+    background-color: var(--fill-color);
 }
 
 .subject-types > div {

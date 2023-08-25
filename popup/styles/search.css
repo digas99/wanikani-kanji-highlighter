@@ -21,7 +21,6 @@
     border-radius: 17px;
     padding: 4px 6px;
 	position: relative;
-	background-color: white;
 	height: 23px;
     align-items: center;
 	width: 100%;
@@ -36,15 +35,25 @@
 	width: 100%;
 	border: 0;
 	font-size: 15px;
+	background-color: var(--fill-color);
+	color: var(--font-color);
+}
+
+#kanjiSearchInput::placeholder {
+	color: var(--font-sec-color);
 }
 
 .textInputIcon {
     margin-right: 5px;
-    padding-right: 5px;
     border-right: 1px solid #797979;
     width: 14px;
     height: 14px;
 	opacity: 0.7;
+	background-color: white;
+    padding: 8px;
+    border-top-left-radius: 50%;
+    border-bottom-left-radius: 50%;
+    margin-left: -6px;
 }
 
 .kanjiSearchTypeWrapper {
@@ -191,10 +200,10 @@
 
 .searchResultItemInfo {
 	display: grid;
-    background-color: white;
+    background-color: var(--fill-color);
 	padding: 2px 6px;
 	pointer-events: none;
-	color: black;
+	color: var(--font-color);
 	min-height: 67px;
 	border-bottom: 4px solid var(--default-color);
 }
@@ -294,6 +303,7 @@
 	margin: auto;
 	font-size: 14px;
 	text-align: center;
+	color: var(--font-color);
 }
 
 #nmrKanjiFound > span {

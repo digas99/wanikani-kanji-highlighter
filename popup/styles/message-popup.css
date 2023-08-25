@@ -1,5 +1,5 @@
 .message-popup > div {
-    z-index: 100;
+    z-index: 10;
 }
 
 .message-popup > div:nth-child(1) {
