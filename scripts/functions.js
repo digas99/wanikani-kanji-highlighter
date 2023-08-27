@@ -479,6 +479,7 @@ const getTab = () => {
 // get all assignments if there are none in storage or if they were modified
 // see if all subjects are already saved in storage
 const loadData = async (apiToken, tabId, callback) => {
+	console.log("[LOADING]: Loading data ...");
 	chrome.storage.local.get(["fetching", "assignments_updated"], async response => {
 		const fetching = response["fetching"];
 		if (fetching) {
@@ -534,9 +535,11 @@ const loadData = async (apiToken, tabId, callback) => {
 	
 		// assignments
 		const result = await setupAssignments(apiToken);
-		await setupAvailableAssignments(apiToken);
 		assignments = result[0];
 		const fetched = result[1];			
+
+		const [reviews, lessons] = await setupAvailableAssignments(apiToken);
+		chrome.runtime.sendMessage({reviews: reviews, lessons: lessons});
 		
 		const messageText = "✔ Loaded Assignments data.";
 		console.log("[LOADED]:", messageText);

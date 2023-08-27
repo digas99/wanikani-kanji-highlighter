@@ -308,9 +308,9 @@ const INTERFACE_COLORS = {
 		`]
 	},
 	"dark": {
-		"background": "#1a1a20",
-		"default": "#20233d",
-		"fill": "#16161a",
+		"background": "#1f1f23",
+		"default": "#2a2d48",
+		"fill": "#1f1f23",
 		"font": "#dcdcdc",
 		"font-sec": "#d8d8d8",
 		"border": "#fff",

@@ -388,8 +388,10 @@ chrome.storage.local.get(["settings"], result => {
 
 chrome.alarms.onAlarm.addListener(alarm => {
 	if (alarm.name === "next-reviews") {
-		chrome.storage.local.get(["next-reviews-bundle", "apiKey"], result => {
+		chrome.storage.local.get(["next-reviews-bundle", "reviews", "apiKey"], result => {
+			const reviews = result["reviews"];
 			const reviews_bundle = result["next-reviews-bundle"];
+			console.log(reviews_bundle);
 			if (reviews_bundle && reviews && reviews["count"]) {
 				// notify user
 				chrome.notifications.create({

@@ -2,6 +2,10 @@
 
 ## Popup
 - Added Dark Mode to the extension popup
+- On big data fetches, the updated number of reviews and lessons is now shown right away, instead of waiting for the fetch to end 
+
+## Bug Fixes
+- Fixed issue that was preventing new reviews notifications (and possibly breaking the extension background tasks)
 
 # [Changelog v1.0.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.3)
 

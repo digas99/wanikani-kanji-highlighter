@@ -72,12 +72,12 @@
 
 #kanjiSearchTypeRomaji {
 	font-size: 20px;
-	background-color: #dc60cd;
+	background-color: var(--wanikani);
 }
 
 #kanjiSearchTypeKana {
 	font-size: 15px;
-	background-color: #60aedc;
+	background-color: var(--wanikani-sec);
 }
 
 #kanjiSearchType {
