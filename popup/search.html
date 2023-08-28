@@ -48,11 +48,11 @@
                     <div class="searchResultNavbarOptionsWrapper" style="display: flex;">
                         <div id="nmrKanjiFound"><span>0<span></span></span></div>
                         <div class="searchOptionSeparator"></div>
-                        <div class="searchResultNavbarTarget clickable" title="Precise Search"><img src="../images/target.png"></div>
+                        <div class="searchResultNavbarTarget clickable icon" title="Precise Search"><img src="../images/target.png"></div>
                         <div class="searchOptionSeparator"></div>
                         <ul style="display: flex;">
-                            <li class="searchResultNavbarOption clickable" title="List" id="searchResultOptionlist"><img src="../images/list.png"></li>
-                            <li class="searchResultNavbarOption clickable" title="Big Grid" id="searchResultOptionbig-grid"><img src="../images/big-grid.png"></li>
+                            <li class="searchResultNavbarOption clickable icon" title="List" id="searchResultOptionlist"><img src="../images/list.png"></li>
+                            <li class="searchResultNavbarOption clickable icon" title="Big Grid" id="searchResultOptionbig-grid"><img src="../images/big-grid.png"></li>
                         </ul>
                     </div>
                 </div>
@@ -89,13 +89,18 @@
                 </a>
             </li>
             <li class="clickable" style="position: relative;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="dark" src="../images/dark.png" title="Dark" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
                 <a href="about.html" class="navbar_icon" style="padding: 0px 5px;">
                     <img id="about" src="../images/about.png" title="About" style="width: 20px;">
                 </a>
             </li>
-            <li class="clickable" style="position: relative;">
-                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
-                    <img id="random" src="../images/random.png" title="Random" data-item-id="rand" class="kanjiDetails" style="width: 20px;">
+            <li data-item-id="rand" class="kanjiDetails clickable" style="position: relative;" title="Random">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px; pointer-events: none;">
+                    <img id="random" src="../images/random.png" style="width: 20px;" title="Random">
                     <span id="random-subject-type" class="side-panel-info-alert">A</span>
                 </a>
             </li>

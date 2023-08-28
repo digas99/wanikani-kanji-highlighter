@@ -42,6 +42,10 @@
 	min-height: 600px;
 }
 
+html {
+	border-top: 5px solid var(--wanikani);
+}
+
 body {
     width: var(--body-base-width);
     transition: 0.3s;
@@ -51,7 +55,7 @@ body {
 
 a {
 	text-decoration: none;
-	color: #001681;
+	color: var(--highlight);
 	transition: 0.3s;
 }
 
@@ -187,7 +191,7 @@ i {
 }
 
 #sec-page {
-	margin-top: 57px;
+	margin-top: 47px;
 	position: relative;
 }
 
@@ -335,9 +339,9 @@ i {
 }
 
 .section {
-	background-color: white;
-	margin: 4px 0;
-	border-bottom: 1px solid silver;
+	background-color: var(--fill-color);
+	border-bottom: 1px solid var(--border-color);
+	color: var(--font-color);
 }
 
 .footer-cover {
@@ -372,4 +376,12 @@ i {
 	color: lightgray;
 	font-size: 12px;
 	margin-top: 4px;
+}
+
+.tiles-list-wrapper {
+	background-color: var(--fill-color) !important;
+}
+
+.not-found > p {
+	color: var(--fade) !important;
 }

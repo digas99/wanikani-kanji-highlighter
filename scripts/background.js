@@ -41,6 +41,12 @@ chrome.runtime.onInstalled.addListener(details => {
 		title: "Search With WKHighlighter",
 		contexts: ["selection"]
 	});
+
+	// interval to load data
+	chrome.alarms.get("load-data", alarm => {
+		if (!alarm)
+			chrome.alarms.create("load-data", {periodInMinutes: 5});
+	});
 });
 
 const db = new Database("wanikani");
@@ -388,8 +394,10 @@ chrome.storage.local.get(["settings"], result => {
 
 chrome.alarms.onAlarm.addListener(alarm => {
 	if (alarm.name === "next-reviews") {
-		chrome.storage.local.get(["next-reviews-bundle", "apiKey"], result => {
+		chrome.storage.local.get(["next-reviews-bundle", "reviews", "apiKey"], result => {
+			const reviews = result["reviews"];
 			const reviews_bundle = result["next-reviews-bundle"];
+			console.log(reviews_bundle);
 			if (reviews_bundle && reviews && reviews["count"]) {
 				// notify user
 				chrome.notifications.create({
@@ -417,6 +425,13 @@ chrome.alarms.onAlarm.addListener(alarm => {
 					});
 				}
 			});
+		});
+	}
+
+	if (alarm.name === "load-data") {
+		chrome.storage.local.get(["apiKey", "settings"], result => {
+			if (result["apiKey"] && result["settings"] && result["settings"]["miscellaneous"]["background_updates"])
+				loadData(result["apiKey"]);
 		});
 	}
 });

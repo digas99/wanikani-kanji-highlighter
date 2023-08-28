@@ -1,5 +1,5 @@
 .message-popup > div {
-    z-index: 100;
+    z-index: 10;
 }
 
 .message-popup > div:nth-child(1) {
@@ -37,9 +37,10 @@
     margin: auto;
     width: 100%;
     box-shadow: 0px 0px 6px -2px black;
-    background-color: white;
+    background-color: var(--fill-color);
     left: 35px;
     transition: 0.3s;
+    color: var(--font-color);
 }
 
 .message-popup > div:nth-child(2) > div:nth-child(1), .bottom-popup > div:nth-child(2) > div:nth-child(1) {
@@ -58,7 +59,7 @@
     font-size: 11px;
     top: 0;
     position: absolute;
-    color: #7b7b7b;
+    color: var(--font-sec-color);
     text-align: center;
     width: 100%;
 }

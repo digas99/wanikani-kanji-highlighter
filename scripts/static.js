@@ -74,6 +74,8 @@ const defaultSettings = {
 	"miscellaneous": {
 		time_in_12h_format: true,
 		update_interval: 60,
+		background_updates: true,
+		sidebar_animation: true,
 		//extension_popup_width: 400,
 		// srs_info_on_reviews: false
 	},
@@ -290,4 +292,37 @@ const ASSIGNMENTS = ["reviews", "lessons"];
 const PROGRESS = ["radical_progress", "kanji_progress", "vocabulary_progress", "kana_vocabulary_progress", "radicals_size", "kanji_size", "vocabulary_size", "kana_vocab_size", "radical_levelsInProgress", "kanji_levelsInProgress", "vocabulary_levelsInProgress"];
 const HIGHLIGHTED = ["kanji_assoc", "highlighted_kanji"];
 
-const HOME_FETCH_KEYS = ["settings", "userInfo", ...HIGHLIGHTED, ...ASSIGNMENTS , ...PROGRESS]
+const HOME_FETCH_KEYS = ["settings", "userInfo", ...HIGHLIGHTED, ...ASSIGNMENTS , ...PROGRESS];
+
+const INTERFACE_COLORS = {
+	"light": {
+		"background": "#eee",
+		"default": "#2a2d48",
+		"fill": "#fff",
+		"font": "#000",
+		"font-sec": "#747474",
+		"border": "#c0c0c0",
+		"highlight": "#91a1f0",
+		"fade": "#d8d8d8",
+		"styles": [`
+			.icon {
+				filter: unset !important;
+			}
+		`]
+	},
+	"dark": {
+		"background": "#25252c",
+		"default": "#13131b",
+		"fill": "#25252c",
+		"font": "#dcdcdc",
+		"font-sec": "#d8d8d8",
+		"border": "#fff",
+		"highlight": "#91a1f0",
+		"fade": "#747474",
+		"styles": [`
+			.icon {
+				filter: invert(1) !important;
+			}
+		`]
+	}
+}

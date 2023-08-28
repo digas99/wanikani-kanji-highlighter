@@ -49,8 +49,8 @@
                         <a href="reviews.html" class="summaryValue clickable" id="summaryReviews" style="background-color: var(--wanikani-sec);">0</a>
                     </li>
                 </ul>
-                <p id="more-reviews" style="padding: 3px 0px; color: rgb(116, 116, 116);"><b></b> more <span style="color:var(--wanikani-sec);font-weight:bold">Reviews</span> in <b></b></p>
-                <p id="more-reviews-date" style="padding: 3px 0px; color: rgb(116, 116, 116);"></p>
+                <p id="more-reviews" style="padding: 3px 0px; color: var(--font-sec-color);"><b></b> more <span style="color:var(--wanikani-sec);font-weight:bold">Reviews</span> in <b></b></p>
+                <p id="more-reviews-date" style="padding: 3px 0px; color: var(--font-sec-color);;"></p>
             </div>
             <!-- OVERALL PROGRESSION BAR -->
             <div id="overall_progression_bar" class="section userInfoWrapper-wrapper">
@@ -98,13 +98,18 @@
                 </a>
             </li>
             <li class="clickable" style="position: relative;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="dark" src="../images/dark.png" title="Dark" style="width: 20px;">
+                </a>
+            </li>
+            <li class="clickable" style="position: relative;">
                 <a href="about.html" class="navbar_icon" style="padding: 0px 5px;">
                     <img id="about" src="../images/about.png" title="About" style="width: 20px;">
                 </a>
             </li>
-            <li class="clickable" style="position: relative;">
-                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
-                    <img id="random" src="../images/random.png" title="Random" data-item-id="rand" class="kanjiDetails" style="width: 20px;">
+            <li data-item-id="rand" class="kanjiDetails clickable" style="position: relative;" title="Random">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px; pointer-events: none;">
+                    <img id="random" src="../images/random.png" style="width: 20px;" title="Random">
                     <span id="random-subject-type" class="side-panel-info-alert">A</span>
                 </a>
             </li>
@@ -113,7 +118,9 @@
                     <img id="exit" src="../images/exit.png" title="Exit" style="width: 20px;">
                 </a>
             </li>
+            
             <div class="separator"></div>
+            
             <li style="position: relative;">
                 <a class="navbar_icon" style="padding: 0px 5px; opacity: 1 !important;">
                     <img src="../images/download.png" title="Updates" style="width: 20px;">

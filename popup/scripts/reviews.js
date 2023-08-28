@@ -1,6 +1,6 @@
 const reviewsList = document.querySelector("#reviewsList");
 const reviewsChart = document.querySelector("#reviewsChart");
-let db;
+let db, chart;
 
 let popupLoading;
 if (!messagePopup) {
@@ -155,7 +155,6 @@ chrome.storage.local.get(["reviews"], async result => {
 								padding: 20,
 							},
 							datalabels: {
-								color: '#000000',
 								anchor: 'end',
 								align: 'top',
 								display: ctx => ctx["dataset"]["data"][ctx["dataIndex"]] != 0,
@@ -182,8 +181,8 @@ chrome.storage.local.get(["reviews"], async result => {
 							legend: {
 								position: 'bottom',
 								labels: {
-									padding: 7
-								}
+									padding: 7,
+								},
 							}
 						},
 						animation: {
@@ -191,10 +190,10 @@ chrome.storage.local.get(["reviews"], async result => {
 						},
 						scales: {
 							x: {
-							stacked: true
+								stacked: true,
 							},
 							y: {
-							stacked: true
+								stacked: true,
 							}
 						}
 					},
@@ -202,6 +201,7 @@ chrome.storage.local.get(["reviews"], async result => {
 				});
 
 				chart.id = "futureReviewsWrapper";
+				setChartBaseColors(chart);
 
 				const nextReviewsData = next_reviews;
 				// changing date event listener
@@ -253,3 +253,23 @@ const arrowsDisplay = (leftArrow, rightArrow, value, min, max) => {
 	leftArrow.title = `${previousDay.getWeekDay()}, ${previousDay.getMonthName()} ${previousDay.getDate()+ordinalSuffix(previousDay.getDate())}`;
 	rightArrow.title = `${nextDay.getWeekDay()}, ${nextDay.getMonthName()} ${nextDay.getDate()+ordinalSuffix(nextDay.getDate())}`;
 }
+
+setChartBaseColors = chart => {
+	chart.options.plugins.title.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
+	chart.options.plugins.datalabels.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
+	chart.options.plugins.legend.labels.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
+	chart.options.scales.x.ticks.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
+	chart.options.scales.x.grid.color = getComputedStyle(document.body).getPropertyValue(`--fade`);
+	chart.options.scales.y.ticks.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
+	chart.options.scales.y.grid.color = getComputedStyle(document.body).getPropertyValue(`--fade`);
+	chart.update();
+}
+
+// monitor theme changes
+document.addEventListener("click", e => {
+	const target = e.target;
+	const button = target.closest(".clickable");
+	if (button && (button.querySelector("#light") || button.querySelector("#dark"))) {
+		setTimeout(() => setChartBaseColors(chart));
+	}
+});

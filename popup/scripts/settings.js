@@ -83,7 +83,7 @@ const blacklistEntry = (site) => {
 	div.appendChild(binWrapper);
 	const span = document.createElement("span");
 	binWrapper.appendChild(span);
-	span.classList.add("bin_wrapper", "clickable");
+	span.classList.add("bin_wrapper", "clickable", "icon");
 	span.addEventListener("click", async () => {
 		const size = await blacklistRemove(site);
 		div.remove();
@@ -211,6 +211,18 @@ document.addEventListener('click', async e => {
 								}
 								break;
 						}
+						break;
+					case "miscellaneous":
+						switch(setting) {
+							case "sidebar_animation":
+								if (typeof sidebarAnimation === "function") {
+									if (!target.checked)
+										window.removeEventListener("mouseover", sidebarAnimation);
+									else
+										window.addEventListener("mouseover", sidebarAnimation);
+								}
+								break;
+							}
 						break;
 				}
 			});

@@ -2,10 +2,6 @@
 	padding: 20px 10px;
 }
 
-#sec-page .section:not(:last-child) {
-	border-bottom: 1px solid silver;
-}
-
 .api-key {
 	display: flex;
 	align-items: center;
@@ -13,7 +9,7 @@
 }
 
 .api-key > img {
-	width: 20px;
+	width: 15px;
 }
 
 .libraries > li:not(:last-child) {
@@ -48,12 +44,13 @@
 .readme-navbar > div {
 	padding: 5px;
     border: 2px solid var(--default-color);
-    color: var(--default-color);
+    color: var(--font-color);
 	font-weight: bold;
+	background-color: var(--fill-color);
 }
 
 .readme-navbar-selected, .readme-navbar > div:hover {
-    background-color: var(--default-color);
+    background-color: var(--default-color) !important;
 	color: white !important;
 }
 

@@ -1,3 +1,6 @@
+let sidePanelTimeout;
+let mouseOut = false;
+
 chrome.storage.local.get(["apiKey", "userInfo", "settings", "lessons", "reviews"], result => {
     const apiKey = result["apiKey"];
     const userInfo = result["userInfo"]?.data;
@@ -16,10 +19,6 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings", "lessons", "reviews"
             level.appendChild(document.createTextNode(userInfo["level"]));
     }
 
-    // random subject type
-    if (settings)
-        setRandomSubjectType(settings["kanji_details_popup"]["random_subject"]);
-
     // top navbar lessons and reviews
     const nLesson = result["lessons"]?.count;
     const nReview = result["reviews"]?.count;
@@ -28,7 +27,34 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings", "lessons", "reviews"
         document.querySelector(".lessons-icon").nextElementSibling.innerText = nLesson;
         document.querySelector(".reviews-icon").nextElementSibling.innerText = nReview;
     }
+
+    const theme = localStorage.getItem("theme") || "light";
+    if (theme == "dark")
+        setTheme("dark");
+
+    if (settings) {
+        // random subject type
+        setRandomSubjectType(settings["kanji_details_popup"]["random_subject"]);
+
+        if (settings["miscellaneous"]["sidebar_animation"]) {
+            window.addEventListener("mouseover", sidebarAnimation);
+        }
+    }
 });
+
+const sidebarAnimation = e => {
+    const sidebar = e.target.closest(".side-panel");
+    if (sidebar) {
+        if (!sidebar.classList.contains("side-panel-focus") && mouseOut)
+            sidePanelTimeout = setTimeout(() => expandSideBar(sidebar, true), 300);
+    }
+    else {
+        mouseOut = true;
+        clearTimeout(sidePanelTimeout);
+        if (document.querySelector(".side-panel").classList.contains("side-panel-focus"))
+            expandSideBar(document.querySelector(".side-panel"), false);
+    }
+}
 
 // when scripts.js has loaded
 document.addEventListener("scriptsLoaded", () => {
@@ -90,21 +116,26 @@ const setRandomSubjectType = (value) => {
         randomSubjectType.innerText = value.charAt(0);
 
         const img = randomSubjectType.parentElement.getElementsByTagName("img")[0];
+        let color;
         if (value === "Any") {
-            img.setAttribute("data-item-id", "rand");
+            img.parentElement.parentElement.setAttribute("data-item-id", "rand");
             randomSubjectType.style.removeProperty("background-color");
-            randomSubjectType.style.removeProperty("filter");
+            color = getComputedStyle(randomSubjectType).backgroundColor.match(/\d+/g).map(Number);
+            randomSubjectType.style.color = fontColorFromBackground(color[0], color[1], color[2]);
         }
         else if (value === "Kanji") {
-            img.setAttribute("data-item-id", "rand-kanji");
+            img.parentElement.parentElement.setAttribute("data-item-id", "rand-kanji");
             randomSubjectType.style.backgroundColor = "var(--kanji-tag-color)";
-            randomSubjectType.style.filter = "invert(1)";
+            color = hexToRGB(getComputedStyle(document.documentElement).getPropertyValue("--kanji-tag-color"));
+            randomSubjectType.style.color = fontColorFromBackground(color.r, color.g, color.b);
         }
         else if (value === "Vocabulary") {
-            img.setAttribute("data-item-id", "rand-vocabulary");
+            img.parentElement.parentElement.setAttribute("data-item-id", "rand-vocabulary");
             randomSubjectType.style.backgroundColor = "var(--vocabulary-tag-color)";
-            randomSubjectType.style.filter = "invert(1)";
+            color = hexToRGB(getComputedStyle(document.documentElement).getPropertyValue("--vocabulary-tag-color"));
+            randomSubjectType.style.color = fontColorFromBackground(color.r, color.g, color.b);
         }
+        randomSubjectType.style.filter = "invert(1)";
     }
 }
 
@@ -168,8 +199,16 @@ window.addEventListener("click", async e => {
             chrome.storage.local.remove(["apiKey", "userInfo", "userInfo_updated"], () => window.location.href = "auth.html");
         }
 
-        if (clickable.querySelector("#side-panel-logo"))
-            expandSideBar(document.querySelector(".side-panel"));
+        if (clickable.querySelector("#side-panel-logo")) {
+            const sidebar = document.querySelector(".side-panel");
+            if (sidebar)
+                expandSideBar(sidebar, !sidebar.classList.contains("side-panel-focus"));
+        }
+
+        if (clickable.querySelector("#dark"))
+            setTheme("dark");
+        else if (clickable.querySelector("#light"))
+            setTheme("light");
 
         if (clickable.querySelector("#blacklist")) {
             await blacklist();
@@ -200,22 +239,24 @@ window.addEventListener("click", async e => {
         target.previousElementSibling.click();
 });
 
-const expandSideBar = sidebar => {
+const expandSideBar = (sidebar, open=true) => {
     if (sidebar) {
-        if (!sidebar.classList.contains("side-panel-focus")) {
-            sidebar.classList.add("side-panel-focus");
-            
-            Array.from(document.getElementsByClassName("navbar_icon"))
-                .filter(icon => icon.style.display !== "none")
-                .forEach(icon => {
-                    const label = document.createElement("p");
-                    icon.appendChild(label);
-                    label.style.pointerEvents = "none";
-                    label.appendChild(document.createTextNode(icon.getElementsByTagName("img")[0].title));
-                });
-            
-            Array.from(document.getElementsByClassName("side-panel-info-alert"))
-                .forEach(div => div.style.left = "19px");
+        if (open) {
+            if (!sidebar.classList.contains("side-panel-focus")) {
+                sidebar.classList.add("side-panel-focus");
+                
+                Array.from(document.getElementsByClassName("navbar_icon"))
+                    .filter(icon => icon.style.display !== "none")
+                    .forEach(icon => {
+                        const label = document.createElement("p");
+                        icon.appendChild(label);
+                        label.style.pointerEvents = "none";
+                        label.appendChild(document.createTextNode(icon.getElementsByTagName("img")[0].title));
+                    });
+                
+                Array.from(document.getElementsByClassName("side-panel-info-alert"))
+                    .forEach(div => div.style.left = "19px");
+            }
         }
         else {
             sidebar.classList.remove("side-panel-focus");
