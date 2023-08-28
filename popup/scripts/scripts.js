@@ -14,6 +14,7 @@ const setTheme = theme => {
 	documentStyle.setProperty('--font-sec-color', interfaceAppearance["font-sec"]);
 	documentStyle.setProperty('--border-color', interfaceAppearance["border"]);
 	documentStyle.setProperty('--highlight', interfaceAppearance["highlight"]);
+	documentStyle.setProperty('--fade', interfaceAppearance["fade"]);
 	interfaceAppearance["styles"].forEach(style => {
 		const styleElem = document.createElement("style");
 		styleElem.innerText = style;

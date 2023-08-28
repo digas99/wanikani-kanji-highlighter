@@ -74,6 +74,8 @@ const defaultSettings = {
 	"miscellaneous": {
 		time_in_12h_format: true,
 		update_interval: 60,
+		background_updates: true,
+		sidebar_animation: true,
 		//extension_popup_width: 400,
 		// srs_info_on_reviews: false
 	},
@@ -301,6 +303,7 @@ const INTERFACE_COLORS = {
 		"font-sec": "#747474",
 		"border": "#c0c0c0",
 		"highlight": "#91a1f0",
+		"fade": "#d8d8d8",
 		"styles": [`
 			.icon {
 				filter: unset !important;
@@ -308,13 +311,14 @@ const INTERFACE_COLORS = {
 		`]
 	},
 	"dark": {
-		"background": "#1f1f23",
-		"default": "#2a2d48",
-		"fill": "#1f1f23",
+		"background": "#25252c",
+		"default": "#13131b",
+		"fill": "#25252c",
 		"font": "#dcdcdc",
 		"font-sec": "#d8d8d8",
 		"border": "#fff",
 		"highlight": "#91a1f0",
+		"fade": "#747474",
 		"styles": [`
 			.icon {
 				filter: invert(1) !important;

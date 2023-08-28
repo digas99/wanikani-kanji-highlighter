@@ -383,5 +383,5 @@ i {
 }
 
 .not-found > p {
-	color: var(--font-sec-color) !important;
+	color: var(--fade) !important;
 }

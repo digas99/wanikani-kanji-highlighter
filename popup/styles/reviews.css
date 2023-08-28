@@ -24,6 +24,8 @@
 
 #reviewsDaySelector > input {
 	height: 17px;
+	background-color: #dcdcdc;
+	color: #25252c;
 }
 
 #reviewsPage-nmrReviews24hLabel {

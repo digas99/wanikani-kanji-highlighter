@@ -1,3 +1,6 @@
+let sidePanelTimeout;
+let mouseOut = false;
+
 chrome.storage.local.get(["apiKey", "userInfo", "settings", "lessons", "reviews"], result => {
     const apiKey = result["apiKey"];
     const userInfo = result["userInfo"]?.data;
@@ -16,10 +19,6 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings", "lessons", "reviews"
             level.appendChild(document.createTextNode(userInfo["level"]));
     }
 
-    // random subject type
-    if (settings)
-        setRandomSubjectType(settings["kanji_details_popup"]["random_subject"]);
-
     // top navbar lessons and reviews
     const nLesson = result["lessons"]?.count;
     const nReview = result["reviews"]?.count;
@@ -32,7 +31,30 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings", "lessons", "reviews"
     const theme = localStorage.getItem("theme") || "light";
     if (theme == "dark")
         setTheme("dark");
+
+    if (settings) {
+        // random subject type
+        setRandomSubjectType(settings["kanji_details_popup"]["random_subject"]);
+
+        if (settings["miscellaneous"]["sidebar_animation"]) {
+            window.addEventListener("mouseover", sidebarAnimation);
+        }
+    }
 });
+
+const sidebarAnimation = e => {
+    const sidebar = e.target.closest(".side-panel");
+    if (sidebar) {
+        if (!sidebar.classList.contains("side-panel-focus") && mouseOut)
+            sidePanelTimeout = setTimeout(() => expandSideBar(sidebar, true), 300);
+    }
+    else {
+        mouseOut = true;
+        clearTimeout(sidePanelTimeout);
+        if (document.querySelector(".side-panel").classList.contains("side-panel-focus"))
+            expandSideBar(document.querySelector(".side-panel"), false);
+    }
+}
 
 // when scripts.js has loaded
 document.addEventListener("scriptsLoaded", () => {
@@ -254,18 +276,3 @@ const expandSideBar = (sidebar, open=true) => {
         }
     }
 }
-
-let sidePanelTimeout;
-let mouseOut = false;
-window.addEventListener("mouseover", e => {
-    if (e.target.closest(".side-panel")) {
-        if (!e.target.closest(".side-panel").classList.contains("side-panel-focus") && mouseOut)
-            sidePanelTimeout = setTimeout(() => expandSideBar(e.target.closest(".side-panel"), true), 300);
-    }
-    else {
-        mouseOut = true;
-        clearTimeout(sidePanelTimeout);
-        if (document.querySelector(".side-panel").classList.contains("side-panel-focus"))
-            expandSideBar(document.querySelector(".side-panel"), false);
-    }
-});

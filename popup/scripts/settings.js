@@ -212,6 +212,18 @@ document.addEventListener('click', async e => {
 								break;
 						}
 						break;
+					case "miscellaneous":
+						switch(setting) {
+							case "sidebar_animation":
+								if (typeof sidebarAnimation === "function") {
+									if (!target.checked)
+										window.removeEventListener("mouseover", sidebarAnimation);
+									else
+										window.addEventListener("mouseover", sidebarAnimation);
+								}
+								break;
+							}
+						break;
 				}
 			});
 		}
