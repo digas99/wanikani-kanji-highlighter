@@ -47,6 +47,9 @@ chrome.runtime.onInstalled.addListener(details => {
 		if (!alarm)
 			chrome.alarms.create("load-data", {periodInMinutes: 5});
 	});
+
+	// remove any lingering fetching
+	chrome.storage.local.remove("fetching");
 });
 
 const db = new Database("wanikani");
@@ -433,5 +436,9 @@ chrome.alarms.onAlarm.addListener(alarm => {
 			if (result["apiKey"] && result["settings"] && result["settings"]["miscellaneous"]["background_updates"])
 				loadData(result["apiKey"]);
 		});
+	}
+
+	if (alarm.name === "fetching-timeout") {
+		chrome.storage.local.remove("fetching");
 	}
 });

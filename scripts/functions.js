@@ -521,7 +521,7 @@ const loadData = async (apiToken, tabId, callback) => {
 		console.log("[FETCHES]: ", fetches);
 		
 		if (fetches > 0) {
-			chrome.storage.local.set({"fetching": {"fetches": fetches, "progress": 0}});
+			chrome.storage.local.set({"fetching": {"fetches": fetches, "progress": 0}}).then(() => chrome.alarms.create("fetching-timeout", {delayInMinutes: 3}));
 			chrome.runtime.sendMessage({loading: true, setup: {fetches: fetches}});
 		}
 		else {

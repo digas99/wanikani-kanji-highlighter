@@ -1,4 +1,10 @@
+# [Changelog v1.0.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.5)
+
+## Bug Fixes
+- Added timeout to fetching tasks to prevent it from getting stuck
+
 # [Changelog v1.0.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.4)
+Released on 28/08/2023
 
 ## Popup
 - Added Dark Mode to the extension popup
