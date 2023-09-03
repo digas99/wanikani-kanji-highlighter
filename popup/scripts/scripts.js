@@ -95,6 +95,67 @@ window.onload = () => {
 			});
 		}
 	});
+
+	// handle rate stars, if they exist
+	const rateStars = document.querySelector(".rate-stars");
+	if (rateStars) {
+		chrome.storage.local.get(["rating"], result => {
+			const rating = result["rating"] || {};
+
+			if (rating) {
+				if (rating.value) {
+					const stars = rateStars.children;
+					for (let i = 0; i < rating.value; i++) {
+						stars[i].children[0].src = "/images/star-filled.png";
+					}
+
+					if (document.querySelector("#extension-rate"))
+						document.querySelector("#extension-rate").addEventListener("mouseleave", () => fillStars(stars, rating.value));
+				}
+			}
+
+			const rateClose = document.querySelector("#rate-close");
+			if (rateClose) {
+				rateClose.addEventListener("click", () => {
+					rateStars.closest(".section").remove();
+					rating.show = false;
+					chrome.storage.local.set({"rating": rating});
+				});
+			}
+
+			rateStars.addEventListener("mouseover", e => {
+				if (e.target.closest(".clickable")) {
+					const star = e.target.closest(".clickable");
+					const stars = star.parentElement.children;
+					const index = Array.prototype.indexOf.call(stars, star);
+					
+					fillStars(stars, index + 1);
+				}
+			});
+
+			rateStars.addEventListener("click", e => {
+				if (e.target.closest(".clickable")) {
+					const star = e.target.closest(".clickable");
+					const stars = star.parentElement.children;
+					const index = Array.prototype.indexOf.call(stars, star);
+					rating.value = index + 1;
+					chrome.storage.local.set({"rating": rating});
+				}
+			});
+		});
+	}
+}
+
+const fillStars = (stars, index) => {
+	// clear all stars
+	for (let i = 0; i < stars.length; i++) {
+		stars[i].children[0].src = "/images/star.png";
+	}
+	
+	// fill until index
+	for (let i = 0; i < index; i++) {
+		stars[i].children[0].src = "/images/star-filled.png";
+	}
 }
 
 window.onscroll = () => {
@@ -182,6 +243,17 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 	if (request.selectedText) {
 		const selectedText = request.selectedText;
 		makeSearch(selectedText);	
+	}
+
+	if (request.reviews || request.lessons) {
+		const reviewsCount = document.querySelector("a[title='Reviews'] .lessons-count");
+		const lessonsCount = document.querySelector("a[title='Lessons'] .lessons-count");
+		if (reviewsCount || lessonsCount) {
+			if (request.reviews != undefined && reviewsCount)
+				reviewsCount.innerText = request.reviews.count;
+			if (request.lessons != undefined && lessonsCount)
+				lessonsCount.innerText = request.lessons.count;
+		}
 	}
 });
 

@@ -30,7 +30,7 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings"], async result => {
             const link = "https://www.wanikani.com/users/"+userInfo["username"];
 
             const avatar = document.querySelector("#profile-pic img");
-            setAvatar(avatar, link, userInfo["avatar_data"] || userInfo["avatar"], userInfo);
+            setAvatar(avatar, link, userInfo["avatar_data"] || userInfo["avatar"], result["userInfo"]);
 
             avatar.parentElement.href = link;
             avatar.parentElement.title = link;

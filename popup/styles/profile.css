@@ -247,10 +247,11 @@ body {
 
 .menu-popup {
     position: absolute;
-    background-color: var(--fill-color);
     top: 30px;
     right: 5px;
+    background-color: var(--fill-color);
     border: 2px solid var(--default-color);
+    color: var(--font-color);
 	overflow: hidden;
 	transition: 0.5s;
 	z-index: 2;
@@ -258,7 +259,7 @@ body {
 
 .menu-popup > p {
 	font-size: 11px;
-    color: var(--font-color);
+    color: white;
     text-align: right;
     padding: 7px;
     border: 1px solid white;

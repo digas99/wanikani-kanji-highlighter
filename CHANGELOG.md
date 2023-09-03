@@ -1,4 +1,13 @@
+# [Changelog v1.0.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.6)
+
+## Popup
+- Added Extension Rating stars
+
+## Bug Fixes
+- Lessons and Reviews counter on top navbar now update automatically upon a background task fetch
+
 # [Changelog v1.0.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.5)
+Released on 30/08/2023
 
 ## Bug Fixes
 - Added timeout to fetching tasks to prevent it from getting stuck

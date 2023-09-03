@@ -342,6 +342,18 @@ i {
 	background-color: var(--fill-color);
 	border-bottom: 1px solid var(--border-color);
 	color: var(--font-color);
+	position: relative;
+}
+
+.section-close {
+	position: absolute;
+    top: 7px;
+    right: 7px;
+	filter: invert(1);
+}
+
+.section-close img {
+	width: 15px;
 }
 
 .footer-cover {
@@ -384,4 +396,27 @@ i {
 
 .not-found > p {
 	color: var(--fade) !important;
+}
+
+#extension-rate > .rate-subtext {
+    text-align: center;
+    margin: 10px;
+    color: var(--font-sec-color);
+}
+
+.rate-stars {
+    margin: auto;
+    width: fit-content;
+    display: flex;
+    column-gap: 5px;
+    padding: 10px;
+}
+
+.rate-stars > a {
+    display: inline-block;
+}
+
+.rate-stars > a > img {
+    width: 60px;
+	opacity: 0.7;
 }

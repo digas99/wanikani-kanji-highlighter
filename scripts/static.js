@@ -306,6 +306,7 @@ const INTERFACE_COLORS = {
 		"fade": "#d8d8d8",
 		"styles": [`
 			.icon {
+				opacity: 0.7;
 				filter: unset !important;
 			}
 		`]
@@ -315,12 +316,13 @@ const INTERFACE_COLORS = {
 		"default": "#13131b",
 		"fill": "#25252c",
 		"font": "#dcdcdc",
-		"font-sec": "#d8d8d8",
+		"font-sec": "#b4b4b4",
 		"border": "#fff",
 		"highlight": "#91a1f0",
 		"fade": "#747474",
 		"styles": [`
 			.icon {
+				opacity: 0.7;
 				filter: invert(1) !important;
 			}
 		`]

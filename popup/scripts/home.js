@@ -149,11 +149,18 @@ const updateHomeInterface = async (result) => {
 	}	
 }
 
-chrome.storage.local.get(["apiKey", ...HOME_FETCH_KEYS], result => {
+chrome.storage.local.get(["apiKey", "rating", ...HOME_FETCH_KEYS], result => {
 	const settings = result["settings"] ? result["settings"] : defaultSettings;
 
 	if (popupLoading) popupLoading.remove();
-	
+
+	const rateStars = document.querySelector(".rate-stars");
+	const rating = result["rating"] || {};
+	if (rateStars && rating) {
+		if ((rating.show != undefined && rating.show == false) || rating.value)
+			rateStars.closest(".section").remove();
+	}
+
 	apiKey = result["apiKey"];
 	
 	if (apiKey) {
@@ -307,6 +314,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			}
 		});
 	}
+
+	if (request.reviews || request.lessons) {
+		const reviews = request.reviews;
+		const lessons = request.lessons;
+		setupSummary(reviews, lessons);
+	}
 });
 
 document.addEventListener("scriptsLoaded", () => {
@@ -332,11 +345,3 @@ const enhancedWarning = (text, color) => {
 	wrapper.style.color = color;
 	return wrapper;
 }
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	if (request.reviews || request.lessons) {
-		const reviews = request.reviews;
-		const lessons = request.lessons;
-		setupSummary(reviews, lessons);
-	}
-});
