@@ -1,6 +1,6 @@
 # Privacy Policy for Chrome Extension
 
-This Privacy Policy governs the manner in which Wanikani Kanji Highlighter collects, uses, maintains and discloses information collected from users (each, a "User") of the Wanikani Kanji Highlighter Chrome Extension.
+This Privacy Policy governs the manner in which Wanikani Kanji Highlighter collects, uses, maintains and discloses information collected from users of the Wanikani Kanji Highlighter Chrome Extension.
 
 ## Personal Identification Information
 
