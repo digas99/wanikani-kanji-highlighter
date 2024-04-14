@@ -19,7 +19,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v106)
+1. [Latest Features](#changelog-v107)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -31,34 +31,41 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
-# [Changelog v1.0.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.6)
+## [Changelog v1.0.7](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.7)
 
-## Popup
+### Bug Fixes
+- Radicals images now load correctly ([#8](https://github.com/digas99/wanikani-kanji-highlighter/issues/8))
+- Fixed level not updating on level up ([#10](https://github.com/digas99/wanikani-kanji-highlighter/issues/10))
+- Details Popup navbar buttons have now a better click area ([#13](https://github.com/digas99/wanikani-kanji-highlighter/issues/13))
+
+## [Changelog v1.0.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.6)
+
+### Popup
 - Added Extension Rating stars
 
-## Bug Fixes
+### Bug Fixes
 - Lessons and Reviews counter on top navbar now update automatically upon a background task fetch
 
-# [Changelog v1.0.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.5)
+## [Changelog v1.0.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.5)
 
-## Bug Fixes
+### Bug Fixes
 - Added timeout to fetching tasks to prevent it from getting stuck
 
-# [Changelog v1.0.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.4)
+## [Changelog v1.0.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.4)
 
-## Popup
+### Popup
 - Added Dark Mode to the extension popup
 - On big data fetches, the updated number of reviews and lessons is now shown right away, instead of waiting for the fetch to end 
 
-## Bug Fixes
+### Bug Fixes
 - Fixed issue that was preventing new reviews notifications (and possibly breaking the extension background tasks)
 
-## Content
+### Content
 - Added periodic background tasks to fetch data from Wanikani, while the user is browsing the web
 
 ## [Changelog v1.0.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.3)
 
-## Bug Fixes
+### Bug Fixes
 - Updating the extension now only clears all subject data if the previous version begins with 0
 - Leaving the extension while loading data no longer breaks the loading popup message progress (it is atleast more resilient now)
 
@@ -75,12 +82,12 @@ It works with any website, and provides detailed information about any kanji tha
 
 #### - Migration to Manifest v3
 
-## Technicalities
+### Technicalities
 - Changed background from Page to Service Worker
 - Window.localStorage not accessible on Service Worker so changed it to IndexedDB
 - Popup is no longer entirely created with Javascript (it is now more organized and with each page on a different HTML file)
 
-## Popup
+### Popup
 - Improved interface in general
 - Added navbar to Changelogs list in the About page
 - Added "load more" button to Search Results to limit the number of results and reduce lag while writing on search bar
@@ -89,10 +96,10 @@ It works with any website, and provides detailed information about any kanji tha
 - Progression Bar, Progression Stats and Levels in Progress now show a list of all the related subjects when clicked
 - Lists of subject tiles are now justified to fill the entire width
 
-## Data
+### Data
 - Added new Kana Vocabulary from Wanikani
 
-## Bug Fixes
+### Bug Fixes
 - Fixed issue where the Subjects Progression Stats would not update over time
 
 #### [(All changelogs)](CHANGELOG.md)

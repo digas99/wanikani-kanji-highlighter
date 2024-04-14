@@ -870,9 +870,11 @@ const getCharacter = subject => {
 	if (subject["characters"])
 		return subject["characters"];
 	else {
-		const img = subject["character_images"].find(image => image["metadata"]["style_name"] == 'original');
-		if (img) {
-			return `<img class="radical-image" src="${img["url"]}" />`;	
+		const imageUrl = subject["character_images"]?.find(image => image["content_type"] == "image/svg+xml")["url"];
+		if (imageUrl) {
+			return `<svg style="width: 23px; height: 23px; filter: invert(1);">       
+				<image xlink:href="${imageUrl}" src="${imageUrl}" width="22" height="22"></image>    
+			</svg>`;
 		}
 
 		return "";

@@ -23,7 +23,7 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings"], async result => {
         
         // if user info has been updated in wanikani, then update cache
         if (!userInfo)
-        fetchUserInfo(apiKey);
+            fetchUserInfo(apiKey);
     
         if (userInfo) {
             let level = userInfo["level"];
@@ -170,7 +170,12 @@ const updateTypeContainer = (type, container, subjects) => {
 
 const subjectTile = (type, subject) => {
     const subjectWrapper = document.createElement("li");
-    const characters = subject["characters"] ? subject["characters"] : `<img height="22px" style="margin-top:-3px;margin-bottom:-4px;padding-top:8px" src="${subject["character_images"].filter(image => image["content_type"] == "image/png")[0]["url"]}"><img>`;
+    const imageUrl = subject["character_images"]?.find(image => image["content_type"] == "image/svg+xml")["url"];
+    const characters = subject["characters"] ?
+        subject["characters"] :
+        `<svg style="width: 25px; height: 25px; margin-top: 5px;">       
+            <image xlink:href="${imageUrl}" src="${imageUrl}" width="25" height="25"></image>    
+        </svg>`;
     subjectWrapper.classList.add(type+"_back");
     subjectWrapper.title = subject["meanings"][0];
     subjectWrapper.style.position = "relative";

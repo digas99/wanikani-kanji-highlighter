@@ -228,14 +228,14 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 
 	// show loading
 	if (request.loading) {
-		if (!messagePopup.exists()) {
+		if (!messagePopup?.exists()) {
 			messagePopup.create("Fetching subject data from Wanikani...", "Updating data......");
 			messagePopup.setLoading();
 		}
 	}
 
 	if (request.loading === false) {
-		if (messagePopup.exists())
+		if (messagePopup?.exists())
 			messagePopup.remove();
 	}
 	

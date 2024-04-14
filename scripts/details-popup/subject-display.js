@@ -813,10 +813,12 @@
 
 				const p = card.getElementsByTagName("p")[0];
 				if (!thisData["characters"]) {
-					const img = document.createElement("img");
-					const svgs = thisData["character_images"].filter(img => img["content_type"] === "image/png" && img["metadata"]["dimensions"] === "64x64");
-					img.src = svgs[0].url;
-					img.style.setProperty("width", "40px", "important");
+					const imageUrl = thisData["character_images"]?.find(image => image["content_type"] == "image/svg+xml")["url"];
+					const characters = `<svg style="width: 40px; height: 40px;">       
+							<image xlink:href="${imageUrl}" src="${imageUrl}" width="40" height="40"></image>    
+						</svg>`;
+					const img = document.createElement("div");
+					img.innerHTML = characters;
 					p.appendChild(img);
 				}
 

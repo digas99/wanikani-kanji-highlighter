@@ -1,3 +1,10 @@
+# [Changelog v1.0.7](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.7)
+
+## Bug Fixes
+- Radicals images now load correctly ([#8](https://github.com/digas99/wanikani-kanji-highlighter/issues/8))
+- Fixed level not updating on level up ([#10](https://github.com/digas99/wanikani-kanji-highlighter/issues/10))
+- Details Popup navbar buttons have now a better click area ([#13](https://github.com/digas99/wanikani-kanji-highlighter/issues/13))
+
 # [Changelog v1.0.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.6)
 
 ## Popup

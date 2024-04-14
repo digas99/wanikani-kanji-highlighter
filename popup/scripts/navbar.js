@@ -1,23 +1,19 @@
 let sidePanelTimeout;
 let mouseOut = false;
 
-chrome.storage.local.get(["apiKey", "userInfo", "settings", "lessons", "reviews"], result => {
+chrome.storage.local.get(["apiKey", "settings", "lessons", "reviews"], result => {
     const apiKey = result["apiKey"];
-    const userInfo = result["userInfo"]?.data;
     const settings = result["settings"];
 
-    // if user info has been updated in wanikani, then update cache
-    if (!userInfo)
-        fetchUserInfo(apiKey);
-    
-    if (userInfo) {
+    fetchUserInfo(apiKey, info => {
+        userInfo = info["data"] || info;
         const avatar = document.querySelector("#profile img");
-        setAvatar(avatar, "https://www.wanikani.com/users/"+userInfo["username"], userInfo["avatar_data"] || userInfo["avatar"], result["userInfo"]);
+        setAvatar(avatar, "https://www.wanikani.com/users/"+userInfo["username"], userInfo["avatar_data"] || userInfo["avatar"], info);
 
         const level = document.querySelector("#profile p");
         if (level && userInfo["level"])
-            level.appendChild(document.createTextNode(userInfo["level"]));
-    }
+            level.innerText = userInfo["level"];
+    });
 
     // top navbar lessons and reviews
     const nLesson = result["lessons"]?.count;
