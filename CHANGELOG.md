@@ -1,4 +1,10 @@
+# Changelog v1.0.8
+
+## Popup
+- Added subject progress bar to subject tiles in the Profile Page ([#12](https://github.com/digas99/wanikani-kanji-highlighter/issues/12))
+
 # [Changelog v1.0.7](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.7)
+Released on 14/04/2024
 
 ## Bug Fixes
 - Radicals images now load correctly ([#8](https://github.com/digas99/wanikani-kanji-highlighter/issues/8))
@@ -6,6 +12,7 @@
 - Details Popup navbar buttons have now a better click area ([#13](https://github.com/digas99/wanikani-kanji-highlighter/issues/13))
 
 # [Changelog v1.0.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.6)
+Released on 03/09/2023
 
 ## Popup
 - Added Extension Rating stars

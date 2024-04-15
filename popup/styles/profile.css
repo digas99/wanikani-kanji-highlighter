@@ -300,8 +300,9 @@ body {
     padding: 5px;
 }
 
-.subject-container > ul > li {
+.subject-container > ul li {
     position: relative;
+    min-height: 40px;
 }
 
 .time-next-review-subject {
@@ -328,6 +329,7 @@ body {
     border-bottom-right-radius: 6px;
     display: flex;
     flex-direction: row;
+    column-gap: 1px;
     overflow: hidden;
 }
 

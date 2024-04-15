@@ -202,24 +202,41 @@ const subjectTile = (type, subject) => {
     if (characters !== "L" && subjectWrapper.children.length > 0 && subjectWrapper.style.color == "rgb(255, 255, 255)")
         subjectWrapper.children[0].style.filter = "invert(1) drop-shadow(-1px 1px 0px gray)";
 
+
+    const reviewsInfoWrapper = document.createElement("div");
+    subjectWrapper.appendChild(reviewsInfoWrapper);
+    reviewsInfoWrapper.classList.add("reviews-info");
+        
     if (subject["passed_at"]) {
         const check = document.createElement("img");
-        subjectWrapper.appendChild(check);
+        reviewsInfoWrapper.appendChild(check);
         check.src = "../images/check.png";
-        check.classList.add("passed-subject-check", "reviews-info");
-        // fix issues with radicals that are images
-        if (subjectWrapper.firstChild.tagName == "IMG") {
-            subjectWrapper.firstChild.style.marginTop = "unset";
-        }
+        check.classList.add("passed-subject-check");
     }
     else if(subject["available_at"]) {
         if (new Date(subject["available_at"]) - new Date() < 0) {
             const time = document.createElement("div");
-            subjectWrapper.appendChild(time);
+            reviewsInfoWrapper.appendChild(time);
             time.appendChild(document.createTextNode("now"));
-            time.classList.add("time-next-review-subject", "reviews-info");
+            time.classList.add("time-next-review-subject");
         }
     }
+
+    // subject passed progress bar
+    const progressBar = document.createElement("div");
+    reviewsInfoWrapper.appendChild(progressBar);
+    progressBar.classList.add("subject-passed-progress");
+    for (let i = 0; i < 5; i++) {
+        const progress = document.createElement("div");
+        progressBar.appendChild(progress);
+        if (subject["srs_stage"] !== null) {
+            if (subject["srs_stage"] > i || subject["passed_at"]) {
+                progress.style.backgroundColor = "#42f541";
+            }
+        }
+    }
+    if (subject["srs_stage"] >= 5 || subject["passed_at"])
+        progressBar.style.columnGap = "0px";
 
     if (subject["available_at"])
         subjectWrapper.setAttribute("data-available_at", subject["available_at"]);
