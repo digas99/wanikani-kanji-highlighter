@@ -1,6 +1,7 @@
 # [Changelog v1.0.8](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.8)
 
 ## Popup
+- Clicking on a bar from Future Reviews chart now shows the reviews for that date ([#11](https://github.com/digas99/wanikani-kanji-highlighter/issues/11))
 - Added subject passing progress bar to subject tiles in the Profile Page ([#12](https://github.com/digas99/wanikani-kanji-highlighter/issues/12))
 - Added a progress bar to the subjects list in the Profile Page
 - Made no longer available subjects appear more faded in the Profile Page and removed them from the progress counting

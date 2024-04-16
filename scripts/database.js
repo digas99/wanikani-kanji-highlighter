@@ -159,7 +159,13 @@
                         if (!Array.isArray(values))
                             request = objectStore.index(index).getAll([values]);
                         else {
-                            const queries = values.map(value => this.getAll(table, index, value));
+                            let queries = [];
+                            // if primary key
+                            if (index == "id")
+                                queries = values.map(value => this.get(table, value));
+                            else
+                                queries = values.map(value => this.getAll(table, index, value));
+                            
                             Promise.all(queries).then(result => {
                                 let response;
                                 if (flat)

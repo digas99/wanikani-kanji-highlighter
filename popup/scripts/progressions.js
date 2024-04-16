@@ -143,3 +143,63 @@ if (level != null && level >= 1 && level <= 60 && subjectType != null && ["radic
 		}
 	});
 }
+
+// REVIEWS
+const dateString = url.searchParams.get('date');
+if (dateString != null) {
+	chrome.storage.local.get(["reviews"], ({reviews}) => {
+		const nextReviews = reviews.next_reviews;
+		if (nextReviews) {
+			const reviewsData = nextReviews.filter(review => review["available_at"].split(".")[0] == dateString.split(".")[0]);
+			let subjects, typeSubjects;
+			db.open("subjects").then(async opened => {
+				if (opened) {
+					const date = dateString.split("T")[0];
+					const time = dateString.split("T")[1].split(".")[0];
+					const readableDate = `${date} ${time}`;
+					list = new TilesList(
+						wrapper,
+						[],
+						{
+							title: `<b>0</b> Subjects on <b>${readableDate}</b>`,
+							height: 480,
+							bars: {
+								labels: true
+							},
+							sections: {
+								join: false,
+								notFound: "No subjects found for this date."
+							}
+						}
+					);
+					
+					subjects = Object.values(await db.getAll("subjects", "id", reviewsData.map(review => review["subject_id"])));
+					typeSubjects = subjects.filter(subject => !subject["hidden_at"]);
+
+					const sections = await Promise.all(Object.keys(srsStages).map(async srsId => {
+						const srs = parseInt(srsId);
+						const { name, short, color } = srsStages[srsId];
+						const srsSubjects = subjects.filter(subject => subject["srs_stage"] == srs);
+						const characters = srsSubjects.map(review => getCharacter(subjects.find(subject => subject["id"] === review["id"])));
+			
+						return {
+							title: `${name}`,
+							color: getComputedStyle(document.body).getPropertyValue(`--${short.toLowerCase()}-color`) || color,
+							data: characters,
+							callbacks: {
+								item: (elem, value) => dataTile(subjects, elem, value),
+								section: (wrapper, title, content) => headerSRSDecoration(title, srs)
+							},
+							justify: true
+						};
+					}));
+
+					list.updateTitle(`<b>${typeSubjects.length}</b> Subjects on <b>${readableDate}</b>`);
+					list.update(sections);
+
+					if (popupLoading) popupLoading.remove();
+				}
+			});
+		}
+	});
+}

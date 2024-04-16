@@ -195,6 +195,44 @@ chrome.storage.local.get(["reviews"], async result => {
 							y: {
 								stacked: true,
 							}
+						},
+						onClick: (e, item) => {
+							if (item.length > 0) {
+								//window.location.href = '/popup/progressions.html';
+								const time = e.chart.tooltip.title[0];
+								const chartTitle = e.chart.options.plugins.title.text;
+
+								// construct date
+								let date = chartTitle.split(", ")[1].replace(/(st|nd|rd|th)/, ""); 
+								// add year
+								const month = chartTitle.split(", ")[1].split(" ")[0];
+								if (month === "January" && new Date().getMonth() === 11)
+									date += ` ${new Date().getFullYear()+1}`;
+								else
+									date += ` ${new Date().getFullYear()}`;
+								date = new Date(date);
+
+								// add hours which are in am and pm format
+								const hours = time.split(" ")[0];
+								const ampm = time.split(" ")[1]?.toLowerCase();
+								let hour = parseInt(hours);
+								if (ampm === "pm" && hour !== 12)
+									hour += 12;
+								date.setHours(hour);
+
+								window.location.href = `/popup/progressions.html?date=${date.toISOString()}`;
+							}
+						},
+						onHover: (e, item) => {
+							if (item.length > 0) {
+								e.chart.canvas.style.cursor = 'pointer';
+							}
+							else {
+								e.chart.canvas.style.cursor = 'default';
+							}
+						},
+						onLeave: e => {
+							e.chart.canvas.style.cursor = 'default';
 						}
 					},
 					plugins: [ChartDataLabels]
