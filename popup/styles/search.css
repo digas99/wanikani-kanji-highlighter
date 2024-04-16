@@ -162,8 +162,8 @@
 }
 
 .searchResultType {
-	margin-left: 10px;
-    margin-bottom: 5px;
+	padding: 0px 10px;
+    padding-bottom: 7px;
 }
 
 .searchResultVocab {
@@ -205,7 +205,7 @@
 	pointer-events: none;
 	color: var(--font-color);
 	min-height: 67px;
-	border-bottom: 4px solid var(--default-color);
+	border-bottom: 7px solid var(--default-color);
 }
 
 .searchResultItemType {

@@ -302,6 +302,10 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         }
 
         itemInfoType.appendChild(document.createTextNode(type.charAt(0).toUpperCase()+type.slice(1).replaceAll("_", " ")));
+        if (itemInfoType.innerText == "Kanji")
+            itemInfoType.style.color = "var(--kanji-tag-color)";
+        else if (itemInfoType.innerText == "Vocabulary")
+            itemInfoType.style.color = "var(--vocabulary-tag-color)";
 
         // subject type
         const subjectType = document.createElement("div");

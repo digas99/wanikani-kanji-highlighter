@@ -5,7 +5,7 @@
 }
 
 .wkhighlighter_clickable { 
-	cursor: pointer;
+	cursor: pointer !important;
 	transition: 0.2s;
 }
 
