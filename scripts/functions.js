@@ -209,8 +209,23 @@ const mdToHTML = lineText => {
 
 	line = line.replaceAll('*', '');
 
-
 	elem.appendChild(document.createTextNode(line));
+
+	// if line has ([text](url)) issue format
+	if (line.includes("](")) {
+		const parts = line.split("](");
+		const url = parts[1].split(")")[0];
+		const text = parts[0].split("[")[1];
+		const a = document.createElement("a");
+		a.href = url;
+		a.target = "_blank";
+		a.appendChild(document.createTextNode(text));
+		
+		// remove that part from the line
+		elem.innerHTML = elem.innerHTML.replace(`([${text}](${url}))`, "(");
+		elem.appendChild(a);
+		elem.innerHTML += ")";
+	}
 
 	return elem;
 }

@@ -58,6 +58,7 @@
     max-height: 300px;
     overflow-y: auto;
     scroll-behavior: smooth;
+	text-align: justify;
 }
 
 .readme h2 {
@@ -73,6 +74,7 @@
 
 .readme p {
     font-size: 14px;
+	padding: 0px 10px;
 }
 
 .readme h3 {
