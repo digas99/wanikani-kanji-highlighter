@@ -190,7 +190,6 @@ const setupAvailableAssignments = async (apiToken, callback) => {
 				promises.push(new Promise(resolve => resolve(result["lessons"])));
 	
 			Promise.all(promises).then(results => {
-				console.log(results);
 				if (callback)
 					callback(results[0], results[1], true);
 

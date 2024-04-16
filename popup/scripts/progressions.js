@@ -67,7 +67,7 @@ if (srsStage != null && srsStage >= -1 && srsStage <= 9) {
 							item: (elem, value) => dataTile(subjects, elem, value),
 							section: (wrapper, title, content) => headerSubjectDecoration(title, type)
 						},
-						justify: type.includes("vocab")
+						justify: true
 					};
 				}));
 	
@@ -114,7 +114,6 @@ if (level != null && level >= 1 && level <= 60 && subjectType != null && ["radic
 				const characters = subjects.map(getCharacter);
 
 				let color = getComputedStyle(document.body).getPropertyValue(`--${srsStages[srs]?.short.toLowerCase()}-color`);
-				console.log(color, srs);
 				if (srs >= 5)
 					color = "#000000";
 
@@ -129,7 +128,7 @@ if (level != null && level >= 1 && level <= 60 && subjectType != null && ["radic
 						item: (elem, value) => dataTile(subjects, elem, value),
 						section: (wrapper, title, content) => headerSRSDecoration(title, srs < 5 ? srs : 8)
 					},
-					justify: subjectType.includes("vocab")
+					justify: true
 				};
 			}));
 

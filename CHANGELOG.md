@@ -1,3 +1,8 @@
+# Changelog v1.0.9
+
+## Bug Fixes
+- Fixed display of Radicals subject tiles and the title attribute on those with image instead of character
+
 # [Changelog v1.0.8](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.8)
 
 ## Popup
