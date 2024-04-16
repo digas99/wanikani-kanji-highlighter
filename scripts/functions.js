@@ -1035,9 +1035,14 @@ const levelProgressBar = (currentLevel, values, level, type, colors) => {
 	progressBarWrapper.appendChild(levelProgressBarSlice(locked/all*100, {background: "white", text: "black"}, "Locked: "+locked, {level: level, type: type, srs: "locked"}));
 
 	// bar id
-	const barTitle = document.createElement("span");
+	const barTitle = document.createElement("div");
 	progressBarWrapper.appendChild(barTitle);
-	barTitle.appendChild(document.createTextNode(levelValue+" "+type.charAt(0).toUpperCase()+type.substring(1, 3)));
+	barTitle.classList.add("clickable", "bar-id");
+	barTitle.title = "Level: "+all;
+	const barLink = document.createElement("a");
+	barTitle.appendChild(barLink);
+	barLink.href = "/popup/progressions.html?level="+level+"&type="+type;
+	barLink.appendChild(document.createTextNode(levelValue+" "+type.charAt(0).toUpperCase()+type.substring(1, 3)));
 
 	// levelup marker
 	if (type == "kanji" && levelValue == currentLevel)

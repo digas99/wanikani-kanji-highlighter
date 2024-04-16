@@ -1,10 +1,11 @@
-# Changelog v1.0.8
+# [Changelog v1.0.8](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.8)
 
 ## Popup
 - Added subject passing progress bar to subject tiles in the Profile Page ([#12](https://github.com/digas99/wanikani-kanji-highlighter/issues/12))
 - Added a progress bar to the subjects list in the Profile Page
 - Made no longer available subjects appear more faded in the Profile Page and removed them from the progress counting
 - Added a new tile coloring theme to the Profile Page: color by Subject Progress
+- Level info is now clickable in Levels Progress ([#22](https://github.com/digas99/wanikani-kanji-highlighter/issues/22))
 
 # [Changelog v1.0.7](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.7)
 Released on 14/04/2024

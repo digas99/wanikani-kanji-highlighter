@@ -175,13 +175,16 @@ body {
     height: 100%;
 }
 
-#levels-progress > ul > span {
+#levels-progress > ul > .bar-id {
     position: absolute;
     right: 0px;
     background-color: var(--default-color);
-    color: white;
     padding: 5px;
     width: 42px;
+}
+
+#levels-progress > ul > .bar-id > a {
+    color: white !important;
 }
 
 .levelup-marker {

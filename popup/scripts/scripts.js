@@ -1,7 +1,7 @@
 // adjust body width
-if (window.innerWidth > 500) {
-	document.body.style.width = "unset";
-}
+// if (window.innerWidth > 500) {
+// 	document.body.style.width = "unset";
+// }
 
 const setTheme = theme => {
 	console.log("theme", theme);
