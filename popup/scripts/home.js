@@ -345,3 +345,9 @@ const enhancedWarning = (text, color) => {
 	wrapper.style.color = color;
 	return wrapper;
 }
+
+window.addEventListener("keydown", e => {
+	if (!window.location.href.includes("search") && e.key.length == 1 && e.key.match(/[a-z]/i)) {
+		makeSearch(e.key);
+	}
+});

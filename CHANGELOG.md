@@ -6,6 +6,7 @@
 - Made no longer available subjects appear more faded in the Profile Page and removed them from the progress counting
 - Added a new tile coloring theme to the Profile Page: color by Subject Progress
 - Level info is now clickable in Levels Progress ([#22](https://github.com/digas99/wanikani-kanji-highlighter/issues/22))
+- Typing on home page will trigger a search ([#23](https://github.com/digas99/wanikani-kanji-highlighter/issues/23))
 - Added coloring to distinguish kanji and vocabulary in Search ([#24](https://github.com/digas99/wanikani-kanji-highlighter/issues/24))
 
 # [Changelog v1.0.7](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.7)
