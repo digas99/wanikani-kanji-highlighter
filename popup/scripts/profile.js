@@ -94,6 +94,7 @@ const updateLevelData = async (level, db, clear) => {
 
     const allSubjects = data.filter(subject => subject["level"] === level);
     const allPassedSubjects = allSubjects.filter(subject => subject.passed_at != null);
+    const allAvailableSubjects = allSubjects.filter(subject => subject.hidden_at == null);
 
     // add clicking events and animation to levels
     if (!clear)
@@ -101,7 +102,9 @@ const updateLevelData = async (level, db, clear) => {
 
     // all subjects progress
     const allTab = document.querySelector(".subject-tab");
-    allTab.querySelector("span").appendChild(document.createTextNode(`${allPassedSubjects.length} / ${allSubjects.length}`));
+    allTab.querySelector("span").appendChild(document.createTextNode(`${allPassedSubjects.length} / ${allAvailableSubjects.length}`));
+    const allTabProgress = allTab.querySelector(".progress");
+    allTabProgress.style.width = (allPassedSubjects.length / allAvailableSubjects.length * 100)+"%";
     
     // subject types containers
     ["radical", "kanji", "vocabulary"].forEach(type => {
@@ -144,7 +147,7 @@ const updateLevelProgressBar = (progressBarWrapper, passedSubjects, allSubjects)
     const progressValues = progressBarWrapper.querySelector("span");
     if (percentage < 81 && percentage >= 1) {
         progressValues.classList.remove("hidden");
-        progressValues.appendChild(document.createTextNode(passedSubjects + " / " + allSubjects));
+        progressValues.appendChild(document.createTextNode(passedSubjects + " / " + allSubjects.filter));
     }
     else
         progressValues.classList.add("hidden");
@@ -155,10 +158,13 @@ const updateLevelProgressBar = (progressBarWrapper, passedSubjects, allSubjects)
 
 const updateTypeContainer = (type, container, subjects) => {
     const passedSubjects = subjects.filter(subject => subject.passed_at != null);
+    const availableSubjects = subjects.filter(subject => subject.hidden_at == null);
     const tab = container.querySelector(".subject-tab");
     
     // progress
-    tab.querySelector("span").appendChild(document.createTextNode(`${passedSubjects.length} / ${subjects.length}`));
+    tab.querySelector("span").appendChild(document.createTextNode(`${passedSubjects.length} / ${availableSubjects.length}`));
+    const progress = tab.querySelector(".progress");
+    progress.style.width = (passedSubjects.length / availableSubjects.length * 100)+"%";
 
     // subject tiles
     const subjectsList = container.querySelector(".subject-container > ul");
@@ -169,6 +175,7 @@ const updateTypeContainer = (type, container, subjects) => {
 }
 
 const subjectTile = (type, subject) => {
+    console.log(subject);
     const subjectWrapper = document.createElement("li");
     const imageUrl = subject["character_images"]?.find(image => image["content_type"] == "image/svg+xml")["url"];
     const characters = subject["characters"] ?
@@ -241,14 +248,23 @@ const subjectTile = (type, subject) => {
     if (subject["available_at"])
         subjectWrapper.setAttribute("data-available_at", subject["available_at"]);
     
+    if (subject["passed_at"])
+        subjectWrapper.setAttribute("data-passed_at", subject["passed_at"]);
 
-    if (subject["srs_stage"] !== null && subject["srs_stage"] >= 0) {
-        subjectWrapper.title += " \x0D"+srsStages[subject["srs_stage"]]["name"];
-        subjectWrapper.setAttribute("data-srs", subject["srs_stage"]);
+    if (subject["hidden_at"]) {
+        subjectWrapper.setAttribute("data-hidden_at", subject["hidden_at"]);
+        subjectWrapper.style.setProperty("opacity", "0.3", "important");
+        subjectWrapper.title += " \x0D"+"Unavailable";
     }
     else {
-        subjectWrapper.title += " \x0D"+"Locked";
-        subjectWrapper.setAttribute("data-srs", -1);
+        if (subject["srs_stage"] !== null && subject["srs_stage"] >= 0) {
+            subjectWrapper.title += " \x0D"+srsStages[subject["srs_stage"]]["name"];
+            subjectWrapper.setAttribute("data-srs", subject["srs_stage"]);
+        }
+        else {
+            subjectWrapper.title += " \x0D"+"Locked";
+            subjectWrapper.setAttribute("data-srs", -1);
+        }
     }
 
     return subjectWrapper;
@@ -537,7 +553,7 @@ const menuActions = (tab, subjectsType, menuTitle, property, keys, value) => {
         case "Menu":
             subjects = tab.nextElementSibling.querySelectorAll("li");
             if (subjectsType === "All")
-                subjects = document.querySelectorAll(".subject-container > ul > li");
+                subjects = document.querySelectorAll(".subject-container > ul li");
 
             switch(property) {    
                 case "color_by":
@@ -610,7 +626,7 @@ const checkbox = (title, checked) => {
 
 const menuMenu = (wrapper, defaults) => {
     // color by
-    wrapper.appendChild(selector("Color by", ["Subject Type", "SRS Stage"], defaults ? defaults["color_by"] : null));
+    wrapper.appendChild(selector("Color by", ["Subject Type", "Subject Progress", "SRS Stage"], defaults ? defaults["color_by"] : null));
 
     // show reviews info
     wrapper.appendChild(checkbox("Reviews info", defaults["reviews_info"]));	
@@ -621,11 +637,39 @@ const colorings = (subjects, type) => {
 
     switch(type) {
         case "Subject Type":
-            subjects.forEach(elem => elem.style.removeProperty("background-color"));
+            subjects.forEach(elem => {
+                elem.style.removeProperty("background-color");
+                elem.style.removeProperty("background");
+                if (elem.querySelector("image"))
+                    elem.querySelector("image").style.removeProperty("filter");
+            });
             break;
+        case "Subject Progress":
+            subjects.forEach(elem => {
+                if (elem.getAttribute("data-passed_at")) {
+                    elem.style.removeProperty("background-color");
+                    elem.style.setProperty("background", "linear-gradient(to bottom, #ffd700, #daa520)", "important");
+                    elem.style.color = "white";
+                }
+                else if (elem.getAttribute("data-hidden_at")) {
+                    elem.style.setProperty("background-color", "#000000", "important");
+                    elem.style.color = "white";
+                }
+                else {
+                    elem.style.setProperty("background-color", "#ffffff", "important");
+                    elem.style.color = "black";
+                    if (elem.querySelector("image"))
+                        elem.querySelector("image").style.filter = "invert(1)";
+                }
+            });
+        break;
         case "SRS Stage":
             subjects.forEach(elem => {
                 if (elem.getAttribute("data-srs")) {
+                    elem.style.removeProperty("background");
+                    if (elem.querySelector("image"))
+                        elem.querySelector("image").style.removeProperty("filter");
+
                     let backColor;
                     if (elem.getAttribute("data-srs") == "-1") {
                         backColor = "#ffffff";
@@ -637,13 +681,6 @@ const colorings = (subjects, type) => {
                     }
                     backColor = hexToRGB(backColor);
                     elem.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
-
-                    // handle radicals that are images
-                    if (elem.firstChild.tagName == "IMG") {
-                        elem.firstChild.style.marginTop = "unset";
-                        if (elem.style.color == "rgb(0, 0, 0)")
-                            elem.firstChild.style.removeProperty("filter");
-                    }
                 }
             });
             break;

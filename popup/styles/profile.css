@@ -211,6 +211,14 @@ body {
     color: silver;
 }
 
+.subject-tab .progress {
+    height: 4px;
+    background-color: var(--wanikani-sec);
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+}
+
 .menu-icons {
 	position: absolute;
     right: 10px;
@@ -298,6 +306,7 @@ body {
 
 .subject-container > ul {
     padding: 5px;
+    padding-top: 10px;
 }
 
 .subject-container > ul li {
