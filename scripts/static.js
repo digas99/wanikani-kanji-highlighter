@@ -288,6 +288,14 @@ const REVIEWSTATS_SETUP = {
 	}
 };
 
+const LEVELS_STATS = {
+	endpoint: "https://api.wanikani.com/v2/level_progressions",
+	storage: {
+		id: "levels_stats",
+		updated: "levels_stats_updated"
+	}
+};
+
 const ASSIGNMENTS = ["reviews", "lessons"];
 const PROGRESS = ["radical_progress", "kanji_progress", "vocabulary_progress", "kana_vocabulary_progress", "radicals_size", "kanji_size", "vocabulary_size", "kana_vocab_size", "radical_levelsInProgress", "kanji_levelsInProgress", "vocabulary_levelsInProgress"];
 const HIGHLIGHTED = ["kanji_assoc", "highlighted_kanji"];

@@ -467,9 +467,9 @@ const canFetch = async () => {
 
 const sizeToFetch = async apiToken => {
 	return new Promise(resolve => {
-		chrome.storage.local.get([RADICAL_SETUP.storage.updated, VOCAB_SETUP.storage.updated, KANA_VOCAB_SETUP.storage.updated, KANJI_SETUP.storage.updated, ASSIGNMENTS_SETUP.storage.updated, REVIEWSTATS_SETUP.storage.updated], async result => {
+		chrome.storage.local.get([RADICAL_SETUP.storage.updated, VOCAB_SETUP.storage.updated, KANA_VOCAB_SETUP.storage.updated, KANJI_SETUP.storage.updated, ASSIGNMENTS_SETUP.storage.updated, REVIEWSTATS_SETUP.storage.updated, LEVELS_STATS.storage.updated], async result => {
 			const fetches = await Promise.all(
-				[RADICAL_SETUP, VOCAB_SETUP, KANA_VOCAB_SETUP, KANJI_SETUP, ASSIGNMENTS_SETUP, REVIEWSTATS_SETUP]
+				[RADICAL_SETUP, VOCAB_SETUP, KANA_VOCAB_SETUP, KANJI_SETUP, ASSIGNMENTS_SETUP, REVIEWSTATS_SETUP, LEVELS_STATS]
 				  .map(async setup => await modifiedSince(apiToken, result[setup.storage.updated], setup.endpoint))
 			);
 	
@@ -495,7 +495,7 @@ const getTab = () => {
 // see if all subjects are already saved in storage
 const loadData = async (apiToken, tabId, callback) => {
 	console.log("[LOADING]: Loading data ...");
-	chrome.storage.local.get(["fetching", "assignments_updated"], async response => {
+	chrome.storage.local.get(["fetching", "assignments_updated", LEVELS_STATS.storage.updated], async response => {
 		const fetching = response["fetching"];
 		if (fetching) {
 			// if fetching has ended
@@ -547,11 +547,39 @@ const loadData = async (apiToken, tabId, callback) => {
 			if (!callback)
 				return;
 		}		
-	
+
+		// levels stats
+		if (!response[LEVELS_STATS.storage.updated] || modifiedSince(apiToken, response[LEVELS_STATS.storage.updated], LEVELS_STATS.endpoint)) {
+			await fetchAllPages(apiToken, LEVELS_STATS.endpoint).then(async result => {
+				const entries = result.map(coll => coll["data"]).flat(1);
+				const levelsStats = entries.map(entry => entry.data).reduce((acc, obj) => {
+					if (!acc[obj.level])
+						acc[obj.level] = [];
+					
+					acc[obj.level].push(obj);
+					return acc;
+				}, {});
+
+				await new Promise(resolve => {
+					chrome.storage.local.set({
+						[LEVELS_STATS.storage.updated]: new Date().toUTCString(),
+						[LEVELS_STATS.storage.id]: levelsStats
+					}, resolve);
+				});
+
+				const messageText = "✔ Loaded Level Stats.";
+				console.log("[LOADED]:", messageText);
+				progress++;
+				sendSetupProgress(messageText, progress, tabId);
+			});
+
+			evalProgress(progress, fetches);
+		}
+
 		// assignments
 		const result = await setupAssignments(apiToken);
 		assignments = result[0];
-		const fetched = result[1];			
+		const fetched = result[1];
 
 		const [reviews, lessons] = await setupAvailableAssignments(apiToken);
 		chrome.runtime.sendMessage({reviews: reviews, lessons: lessons});

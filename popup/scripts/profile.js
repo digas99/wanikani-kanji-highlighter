@@ -1,4 +1,4 @@
-let settings, menuSettings;
+let settings, menuSettings, levelsStats;
 
 let popupLoading;
 if (!messagePopup) {
@@ -7,10 +7,12 @@ if (!messagePopup) {
     popupLoading.setLoading();
 }
 
-chrome.storage.local.get(["apiKey", "userInfo", "settings"], async result => {
+chrome.storage.local.get(["apiKey", "userInfo", "settings", LEVELS_STATS.storage.id], async result => {
     const apiKey = result["apiKey"];
     settings = result["settings"];
     menuSettings = settings && settings["profile_menus"] ? settings["profile_menus"] : defaultSettings["profile_menus"];
+
+    levelsStats = result[LEVELS_STATS.storage.id];
 
     const db = new Database("wanikani");
     const opened = await db.open("subjects");
@@ -125,6 +127,28 @@ const updateLevelData = async (level, db, clear) => {
     const url = new URL(window.location.href);
     url.searchParams.set("level", level);
     window.history.replaceState({}, "", url);
+
+    // update level stats
+    const timeLabel = document.querySelector("#level-progress .time-in-level > .label");
+    const pastTimesN = document.querySelector("#level-progress .past-times-n");
+    const stats = levelsStats && levelsStats[level] ? levelsStats[level] : [];
+    if (stats.length > 0) {
+        const lastStat = stats[stats.length-1];
+        const startedAt = new Date(lastStat["started_at"]);
+        const passedAt = lastStat["passed_at"] ? new Date(lastStat["passed_at"]) : new Date();
+        const timeInLevel = passedAt - startedAt;
+        const readable = msToTime(timeInLevel);
+        timeLabel.style.removeProperty("pointer-events");
+        timeLabel.innerHTML = `<b>${readable}</b> on this level`;
+        timeLabel.title = `Started at: ${startedAt.toISOString().split(".")[0]}\x0DPassed at:  ${passedAt.toISOString().split(".")[0]}`;
+        pastTimesN.innerText = stats.length;
+    }
+    else {
+        timeLabel.innerText = "Not yet passed";
+        timeLabel.title = "";
+        timeLabel.style.pointerEvents = "none";
+        pastTimesN.innerText = "0";
+    }
 }
 
 const updateLevelProgressBar = (progressBarWrapper, passedSubjects, allSubjects) => {
@@ -152,7 +176,6 @@ const updateLevelProgressBar = (progressBarWrapper, passedSubjects, allSubjects)
     else
         progressValues.classList.add("hidden");
 
-    progressBar.classList.add("clickable");
     progressBar.title = "Passed Kanji: "+passedSubjects+" / "+percentage.toFixed(1)+"%";
 }
 
@@ -175,7 +198,6 @@ const updateTypeContainer = (type, container, subjects) => {
 }
 
 const subjectTile = (type, subject) => {
-    console.log(subject);
     const subjectWrapper = document.createElement("li");
     const imageUrl = subject["character_images"]?.find(image => image["content_type"] == "image/svg+xml")["url"];
     const characters = subject["characters"] ?

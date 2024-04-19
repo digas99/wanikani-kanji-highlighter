@@ -240,7 +240,6 @@ tabs.onActivated.addListener(activeInfo => {
 });
 
 chrome.webNavigation.onDOMContentLoaded.addListener(details => {
-	console.log("DOM loaded", details);
 	thisTabId = details.tabId;
 	const url = details.url;
 	if (thisTabId && url) {
