@@ -39,6 +39,25 @@
         <!-- LEVELS DURATION CHART -->
         <div id="levelsChart" class="section">
             <canvas></canvas>
+            <div class="footnote">*The data on this chart is on a logarithmic scale</div>
+            <div class="options">
+                <div>
+                    <label for="dataSize">Number of levels to display</label>
+                    <select id="dataSize">
+                        <option value="5">5 Levels</option>
+                        <option selected value="10">10 Levels</option>
+                        <option value="15">15 Levels</option>
+                        <option value="20">20 Levels</option>
+                        <option value="60">All</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="pastResets">Past Resets</label>
+                    <select id="pastResets">
+                        <option value="0">Learning Streak 1</option>
+                    </select>
+                </div>
+            </div>
         </div>
 	</div>
 

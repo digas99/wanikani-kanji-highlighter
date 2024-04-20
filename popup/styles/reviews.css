@@ -23,9 +23,12 @@
 }
 
 #reviewsDaySelector > input {
-	height: 17px;
-	background-color: #dcdcdc;
-	color: #25252c;
+	margin-left: 5px;
+    padding: 5px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: var(--bg-color);
+    color: var(--font-color);
 }
 
 #reviewsPage-nmrReviews24hLabel {

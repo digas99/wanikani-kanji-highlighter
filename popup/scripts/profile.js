@@ -41,6 +41,10 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings", LEVELS_STATS.storage
             const username = document.querySelector("#username");
             username.appendChild(document.createTextNode(userInfo["username"]));
 
+            // started at
+            const startedAt = document.querySelector("#started");
+            startedAt.appendChild(document.createTextNode("Started at " + new Date(userInfo["started_at"]).toISOString().split("T")[0]));
+
             // scroll down arrow
             const goDownArrowWrapper = document.querySelector(".scroll-down");
             if (goDownArrowWrapper)
@@ -141,7 +145,7 @@ const updateLevelData = async (level, db, clear) => {
         timeLabel.style.removeProperty("pointer-events");
         timeLabel.innerHTML = `<b>${readable}</b> on this level`;
         timeLabel.title = `Started at: ${startedAt.toISOString().split(".")[0]}\x0DPassed at:  ${passedAt.toISOString().split(".")[0]}`;
-        pastTimesN.innerText = stats.length;
+        pastTimesN.innerText = stats.length-1;
     }
     else {
         timeLabel.innerText = "Not yet passed";

@@ -164,6 +164,14 @@ body {
     color: white;
 }
 
+#started {
+    position: absolute;
+    left: 170px;
+    top: 135px;
+    font-size: 15px;
+    color: var(--font-sec-color);
+}
+
 #edit {
     position: absolute;
     right: 15px;

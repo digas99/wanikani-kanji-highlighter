@@ -8,6 +8,7 @@
 	border-bottom: 1px solid #ddd;
 	display: flex;
 	align-items: center;
+    color: inherit;
 }
 
 #levelsList .level > div {
@@ -18,7 +19,7 @@
     font-size: 22px;
     text-align: center;
     padding: 10px;
-    width: 35px;
+    width: 58px;
     color: var(--wanikani);
 	font-weight: bold;
 }
@@ -74,9 +75,34 @@
 #levelsChart {
 	padding: 15px;
     padding-top: unset;
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
 }
 
-#levelsChart canvas {
-	width: 100% !important;
-	height: 230px !important;
+#levelsChart .footnote {
+    text-align: right;
+    color: var(--font-sec-color);
+    font-size: 11px;
+    margin-top: 10px;
+}
+
+#levelsChart .options {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    row-gap: 5px;
+}
+
+#levelsChart .options label {
+    color: var(--font-sec-color);
+}
+
+#levelsChart .options select {
+    margin-left: 5px;
+    padding: 5px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: var(--bg-color);
+    color: inherit;
 }
