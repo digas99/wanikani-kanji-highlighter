@@ -232,6 +232,7 @@
 
 .side-panel-focus > ul > li > a {
 	display: inline-flex;
+    align-items: center;
 }
 
 .side-panel-focus > ul > li > a > p {

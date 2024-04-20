@@ -1,9 +1,14 @@
-# Changelog v1.0.9
+# [Changelog v1.1.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.8)
 
 ## Bug Fixes
-- Fixed display of Radicals subject tiles and the title attribute on those with image instead of character
+- Fixed display of Radicals subject tiles on those with image instead of character
+
+## Popup
+- Added levels progression stats accessible through the Profile Page ([#18](https://github.com/digas99/wanikani-kanji-highlighter/issues/18))
+- Go back arrows now navigate through the popup browsing history. A home button was added to replace the previous functionality of the back arrow
 
 # [Changelog v1.0.8](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.8)
+Released on 16/04/2024
 
 ## Popup
 - Clicking on a bar from Future Reviews chart now shows the list of subjects for that date ([#11](https://github.com/digas99/wanikani-kanji-highlighter/issues/11))

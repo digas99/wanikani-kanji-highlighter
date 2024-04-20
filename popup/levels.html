@@ -7,9 +7,8 @@
 	<link rel="stylesheet" href="styles/styles.css">
     <link rel="stylesheet" href="styles/navbar.css">
     <link rel="stylesheet" href="styles/message-popup.css">
-	<link rel="stylesheet" href="styles/tiles-list.css">
     <link rel="stylesheet" href="styles/home.css">
-    <link rel="stylesheet" href="styles/progressions.css">
+    <link rel="stylesheet" href="styles/levels.css">
 </head>
 <body>
 	<!-- TOP NAVBAR -->
@@ -17,7 +16,7 @@
 		<a href="#" title="Go back" id="goBackButton" class="clickable">
 			<div>
 				<i class="left"></i>
-				<div>Progressions</div>
+				<div>Levels</div>
 			</div>
 		</a>
 
@@ -35,11 +34,12 @@
 
 	<!-- PAGE CONTENT -->
 	<div id="sec-page">
-        <!-- PROGRESSION STATS -->
-        <div id="progression-stats" class="section"></div>
-		<!-- SUBJECTS LIST -->
-		<div id="list" class="section"></div>
-
+        <!-- LEVELS LIST -->
+        <div id="levelsList" class="section"></div>
+        <!-- LEVELS DURATION CHART -->
+        <div id="levelsChart" class="section">
+            <canvas></canvas>
+        </div>
 	</div>
 
 	   <!-- SIDEBAR -->
@@ -101,6 +101,8 @@
         </div>
     </div>
 
+    <script src="/lib/chart.js"></script>
+    <script src="/lib/chartjs-plugin-datalabels.min.js"></script>
 	<script src="/scripts/static.js"></script>
 	<script src="/scripts/time.js"></script>
 	<script src="/scripts/fetch/data-fetch.js"></script>
@@ -109,8 +111,7 @@
 	<script src="/scripts/functions.js"></script>
 	<script src="/scripts/database.js"></script>
     <script src="scripts/message-popup.js"></script>
-	<script src="scripts/tiles-list.js"></script>
 	<script src="scripts/scripts.js"></script>
 	<script src="scripts/navbar.js"></script>
-	<script src="scripts/progressions.js"></script>
+	<script src="scripts/levels.js"></script>
 </body>

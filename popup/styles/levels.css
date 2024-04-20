@@ -1,0 +1,82 @@
+#levelsList {
+    height: 310px;
+    overflow: auto;
+}
+
+#levelsList .level {
+	padding: 5px;
+	border-bottom: 1px solid #ddd;
+	display: flex;
+	align-items: center;
+}
+
+#levelsList .level > div {
+	width: 100%;
+}
+
+#levelsList .level .label {
+    font-size: 22px;
+    text-align: center;
+    padding: 10px;
+    width: 35px;
+    color: var(--wanikani);
+	font-weight: bold;
+}
+
+#levelsList .level .values {
+    display: flex;
+    flex-direction: column;
+}
+
+#levelsList .level .values > div {
+	padding: 5px;
+	display: flex;
+	column-gap: 10px;
+}
+
+#levelsList .level .values > div:first-child > div:first-child {
+	font-weight: bold;
+}
+
+#levelsList .level .values > div:not(:first-child) {
+	opacity: 0.3;
+	padding-left: 10px;
+}
+
+#levelsList .level .values > div > div:nth-child(2) {
+	opacity: 0.7;
+}
+
+#levelsList .progress-bar {
+    margin-right: 10px;
+}
+
+#levelsList .progress-bar .outer {
+	width: 100%;
+    height: 13px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#levelsList .progress-bar .progress {
+    background-color: var(--wanikani-sec);
+    height: 100%;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+#levelsChart {
+	padding: 15px;
+    padding-top: unset;
+}
+
+#levelsChart canvas {
+	width: 100% !important;
+	height: 230px !important;
+}

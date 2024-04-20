@@ -14,7 +14,7 @@
 <body>
     <!-- TOP NAVBAR -->
     <div class="topNav">
-        <a href="home.html" title="Go back" class="clickable">
+        <a href="#" title="Go back" id="goBackButton" class="clickable">
             <div>
                 <i class="left"></i>
                 <div>Profile</div>
@@ -66,13 +66,13 @@
                     <div title="Passed Kanji: 0 / 0%" style="width: 0%"><p></p></div>
                     <span></span>
                 </div>
-                <div class="time-in-level clickable">
+                <a href="/popup/levels.html" class="time-in-level clickable">
                     <div class="label">Not yet passed</div>
                     <div title="Level reset history" class="past-times">
                         <div class="past-times-n">0</div>
                         <img src="/images/history.png">
                     </div>
-                </div>
+                </a>
             </div>
             <div class="clickable scroll-down" title="Scroll Down"><i class="down"></i></div>
             
@@ -166,6 +166,11 @@
             <p title="Level"></p>
         </a>
         <ul>
+            <li class="clickable" style="position: relative;">
+                <a href="home.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="home" src="../images/home.png" title="Home" style="width: 20px;">
+                </a>
+            </li>
             <li class="clickable" style="position: relative;">
                 <a href="settings.html" class="navbar_icon" style="padding: 0px 5px;">
                     <img id="settings" src="../images/settings.png" title="Settings" style="width: 20px;">

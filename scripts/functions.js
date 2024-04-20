@@ -84,6 +84,18 @@ const chartRemoveData = (chart, size) => {
 	chart.update();
 }
 
+
+const setChartBaseColors = chart => {
+	chart.options.plugins.title.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
+	chart.options.plugins.datalabels.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
+	chart.options.plugins.legend.labels.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
+	chart.options.scales.x.ticks.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
+	chart.options.scales.x.grid.color = getComputedStyle(document.body).getPropertyValue(`--fade`);
+	chart.options.scales.y.ticks.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
+	chart.options.scales.y.grid.color = getComputedStyle(document.body).getPropertyValue(`--fade`);
+	chart.update();
+}
+
 const updateChartReviewsOfDay = (reviews, chart, date, numberReviewsElement, time12h_format) => {
 	const newDate = setExactHour(new Date(date), 0);
 	chartRemoveData(chart, chart.data.labels.length);

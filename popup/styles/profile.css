@@ -109,7 +109,7 @@ body {
     border-top-right-radius: 25px;
     border: 1px solid silver;
     overflow: hidden;
-	background-color: white;
+	background-color: #c7c7c7;
 	box-shadow: inset 0px 2px 4px #888686;
 	display: flex;
 }
@@ -355,6 +355,7 @@ body {
     width: 352px;
     border-bottom-left-radius: 25px;
     border-bottom-right-radius: 25px;
+    display: inline-block;
 }
 
 .time-in-level > .label {

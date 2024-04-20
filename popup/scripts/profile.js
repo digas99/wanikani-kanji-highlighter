@@ -159,7 +159,7 @@ const updateLevelProgressBar = (progressBarWrapper, passedSubjects, allSubjects)
         const barLabel = progressBarWrapper.querySelector("div > p");
         barLabel.appendChild(document.createTextNode(percentage.toFixed(percentage > 12 ? 1 : 0)+"%"));
         if (percentage < 1) {
-            progressBar.style.backgroundColor = "white";
+            progressBar.style.backgroundColor = "#c7c7c7";
             barLabel.style.color = "black";
         }
         else {

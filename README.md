@@ -19,7 +19,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v108)
+1. [Latest Features](#changelog-v110)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -31,91 +31,15 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
+# [Changelog v1.1.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.8)
 
-## [Changelog v1.0.8](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.8)
+## Bug Fixes
+- Fixed display of Radicals subject tiles on those with image instead of character
 
-### Popup
-- Clicking on a bar from Future Reviews chart now shows the list of subjects for that date ([#11](https://github.com/digas99/wanikani-kanji-highlighter/issues/11))
-- Added subject passing progress bar to subject tiles in the Profile Page ([#12](https://github.com/digas99/wanikani-kanji-highlighter/issues/12))
-- Added a progress bar to the subjects list in the Profile Page
-- Made no longer available subjects appear more faded in the Profile Page and removed them from the progress counting
-- Added a new tile coloring theme to the Profile Page: color by Subject Progress
-- Top Navbar is now over the loading popup ([#15](https://github.com/digas99/wanikani-kanji-highlighter/issues/15))
-- Level info is now clickable in Levels Progress ([#22](https://github.com/digas99/wanikani-kanji-highlighter/issues/22))
-- Typing on home page will trigger a search ([#23](https://github.com/digas99/wanikani-kanji-highlighter/issues/23))
-- Added coloring to distinguish kanji and vocabulary in Search ([#24](https://github.com/digas99/wanikani-kanji-highlighter/issues/24))
-
-## [Changelog v1.0.7](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.7)
-
-### Bug Fixes
-- Radicals images now load correctly ([#8](https://github.com/digas99/wanikani-kanji-highlighter/issues/8))
-- Fixed level not updating on level up ([#10](https://github.com/digas99/wanikani-kanji-highlighter/issues/10))
-- Details Popup navbar buttons have now a better click area ([#13](https://github.com/digas99/wanikani-kanji-highlighter/issues/13))
-
-## [Changelog v1.0.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.6)
-
-### Popup
-- Added Extension Rating stars
-
-### Bug Fixes
-- Lessons and Reviews counter on top navbar now update automatically upon a background task fetch
-
-## [Changelog v1.0.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.5)
-
-### Bug Fixes
-- Added timeout to fetching tasks to prevent it from getting stuck
-
-## [Changelog v1.0.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.4)
-
-### Popup
-- Added Dark Mode to the extension popup
-- On big data fetches, the updated number of reviews and lessons is now shown right away, instead of waiting for the fetch to end 
-
-### Bug Fixes
-- Fixed issue that was preventing new reviews notifications (and possibly breaking the extension background tasks)
-
-### Content
-- Added periodic background tasks to fetch data from Wanikani, while the user is browsing the web
-
-## [Changelog v1.0.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.3)
-
-### Bug Fixes
-- Updating the extension now only clears all subject data if the previous version begins with 0
-- Leaving the extension while loading data no longer breaks the loading popup message progress (it is atleast more resilient now)
-
-## [Changelog v1.0.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.2)
-
-### Bug Fixes
-- Fixed issue where Lessons and Reviews wouldn't always update on their own
-- Avatar now loads even when offline
-- Fixed the way the timestamp for new updates was being saved (it is now using UTC time)
-- Page width now ajusts to the width of the screen (for users in mobile devices, with Kiwi Browser, for example)
-- Fixed duplicate creation of Context Menus, which would lead to the extension's Service Worker to crash
-
-## [Changelog v1.0.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.0)
-
-#### - Migration to Manifest v3
-
-### Technicalities
-- Changed background from Page to Service Worker
-- Window.localStorage not accessible on Service Worker so changed it to IndexedDB
-- Popup is no longer entirely created with Javascript (it is now more organized and with each page on a different HTML file)
-
-### Popup
-- Improved interface in general
-- Added navbar to Changelogs list in the About page
-- Added "load more" button to Search Results to limit the number of results and reduce lag while writing on search bar
-- Added loading feedback popup for the user to understand the loading stages of data from wanikani
-- Loading data from Wanikani is now also being done from the extension Popup (no need to browse a web page)
-- Progression Bar, Progression Stats and Levels in Progress now show a list of all the related subjects when clicked
-- Lists of subject tiles are now justified to fill the entire width
-
-### Data
-- Added new Kana Vocabulary from Wanikani
-
-### Bug Fixes
-- Fixed issue where the Subjects Progression Stats would not update over time
-
+## Popup
+- Added levels progression stats accessible through the Profile Page ([#18](https://github.com/digas99/wanikani-kanji-highlighter/issues/18))
+- Go back arrows now navigate through the popup browsing history. A home button was added to replace the previous functionality of the back arrow
+  
 #### [(All changelogs)](CHANGELOG.md)
 
 ## Usage Guide

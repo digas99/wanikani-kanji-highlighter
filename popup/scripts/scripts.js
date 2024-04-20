@@ -1,8 +1,3 @@
-// adjust body width
-// if (window.innerWidth > 500) {
-// 	document.body.style.width = "unset";
-// }
-
 const setTheme = theme => {
 	console.log("theme", theme);
 	const interfaceAppearance = INTERFACE_COLORS[theme];
@@ -286,6 +281,11 @@ document.addEventListener("click", e => {
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
 			chrome.tabs.sendMessage(tabs[0].id, {infoPopupFromSearch:targetElem.closest(".kanjiDetails").getAttribute("data-item-id")}, () => window.chrome.runtime.lastError);
 		});
+	}
+
+	// if clicked on go back button
+	if (targetElem.closest("#goBackButton")) {
+		window.history.back();
 	}
 });
 

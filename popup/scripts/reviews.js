@@ -292,17 +292,6 @@ const arrowsDisplay = (leftArrow, rightArrow, value, min, max) => {
 	rightArrow.title = `${nextDay.getWeekDay()}, ${nextDay.getMonthName()} ${nextDay.getDate()+ordinalSuffix(nextDay.getDate())}`;
 }
 
-setChartBaseColors = chart => {
-	chart.options.plugins.title.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
-	chart.options.plugins.datalabels.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
-	chart.options.plugins.legend.labels.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
-	chart.options.scales.x.ticks.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
-	chart.options.scales.x.grid.color = getComputedStyle(document.body).getPropertyValue(`--fade`);
-	chart.options.scales.y.ticks.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
-	chart.options.scales.y.grid.color = getComputedStyle(document.body).getPropertyValue(`--fade`);
-	chart.update();
-}
-
 // monitor theme changes
 document.addEventListener("click", e => {
 	const target = e.target;
