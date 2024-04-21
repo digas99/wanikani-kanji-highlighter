@@ -59,7 +59,20 @@ document.write(/*html*/`
 </div>
 `);
 
-// if /popup/home.html remove the home icon
+const updatesLoading = /*html*/`
+	<div class="separator"></div>
+			
+	<li style="position: relative;">
+		<a class="navbar_icon" style="padding: 0px 5px; opacity: 1 !important;">
+			<img src="../images/download.png" title="Updates" style="width: 20px;">
+			<span id="updates-loading" class="side-panel-info-alert" style="background-color: #f100a1; color: white; filter: invert(1);">0</span>
+		</a>
+	</li>
+`;
+
 if (window.location.pathname.includes("/popup/home.html")) {
 	document.querySelector("#home").closest(".clickable").remove();
+
+	const sidePanelUl = document.querySelector(".side-panel ul");
+	sidePanelUl.insertAdjacentHTML("beforeend", updatesLoading);
 }
