@@ -6,6 +6,7 @@
 ## Popup
 - Added levels progression stats accessible through the Profile Page ([#18](https://github.com/digas99/wanikani-kanji-highlighter/issues/18))
 - Go back arrows now navigate through the popup browsing history. A home button was added to replace the previous functionality of the back arrow
+- Using the right click on a subject tile opens a Subject Details Page on the Extension Popup ([#26](https://github.com/digas99/wanikani-kanji-highlighter/issues/26))
 
 # [Changelog v1.0.8](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.8)
 Released on 16/04/2024

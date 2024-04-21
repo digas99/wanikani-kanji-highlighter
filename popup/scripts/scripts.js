@@ -272,14 +272,25 @@ const makeSearch = (search) => {
 	}
 }
 
+document.addEventListener("contextmenu", e => {
+	const targetElem = e.target;
+
+	// if clicked on a kanji that can generate detail info popup
+	if (targetElem.closest(".kanjiDetails")) {
+		e.preventDefault();
+		const subjectId = targetElem.closest(".kanjiDetails").getAttribute("data-item-id");
+		window.location.href = "/popup/subject.html?id=" + subjectId;
+	}
+});
+
 document.addEventListener("click", e => {
 	const targetElem = e.target;
 	
 	// if clicked on a kanji that can generate detail info popup
 	if (targetElem.closest(".kanjiDetails")) {
-		console.log(targetElem);
+		const subjectId = targetElem.closest(".kanjiDetails").getAttribute("data-item-id");
 		chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
-			chrome.tabs.sendMessage(tabs[0].id, {infoPopupFromSearch:targetElem.closest(".kanjiDetails").getAttribute("data-item-id")}, () => window.chrome.runtime.lastError);
+			chrome.tabs.sendMessage(tabs[0].id, {infoPopupFromSearch:subjectId}, () => window.chrome.runtime.lastError);
 		});
 	}
 

@@ -39,6 +39,7 @@ It works with any website, and provides detailed information about any kanji tha
 ## Popup
 - Added levels progression stats accessible through the Profile Page ([#18](https://github.com/digas99/wanikani-kanji-highlighter/issues/18))
 - Go back arrows now navigate through the popup browsing history. A home button was added to replace the previous functionality of the back arrow
+- Using the right click on a subject tile opens a Subject Details Page on the Extension Popup
   
 #### [(All changelogs)](CHANGELOG.md)
 

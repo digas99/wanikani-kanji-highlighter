@@ -348,6 +348,7 @@
 			// details container
 			const details = document.createElement("div");
 			details.style.setProperty("padding", "45px 15px", "important");
+			details.classList.add("sd-popupDetails_details");
 			detailedInfoWrapper.appendChild(details);
 		
 			const infoSection = document.createElement("div");
@@ -483,6 +484,7 @@
 			const details = document.createElement("div");
 			details.style.setProperty("padding", "45px 15px", "important");
 			details.style.setProperty("position", "relative", "important");
+			details.classList.add("sd-popupDetails_details");
 			detailedInfoWrapper.appendChild(details);
 
 			const audioButtonWrapper = document.createElement("div");

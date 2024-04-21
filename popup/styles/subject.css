@@ -1,0 +1,67 @@
+#subject-details .sd-detailsPopup {
+	z-index: 10;
+	margin-top: 52px;
+	width: 100%;
+	transition: unset;
+}
+
+#sd-detailsPopupFix, #sd-detailsPopupSubjectLock, #sd-detailsPopupKeyBindings, #sd-detailsPopupCloseX {
+	display: none;
+}
+
+#sd-detailsPopupGoUp {
+	right: unset;
+	left: 9px;
+}
+
+#sd-detailsPopupCopy {
+	top: unset;
+	left: 9px;
+    bottom: 55px;
+}
+
+#subject-details .sd-popupDetails_navbar {
+	top: 250px
+}
+
+#subject-details .sd-focusPopup_kanji {
+	border-right: 2px solid white;
+	border-bottom: 2px solid white;
+	transition: unset;
+	min-height: 140px;
+}
+
+#subject-details .sd-popupDetails_detailedInfoWrapper > .sd-popupDetails_details {
+	margin-right: 35px;
+	border-right: 2px solid white;
+	margin-top: -30px !important;
+}
+
+#subject-details .sd-popupDetails_quickStats {
+	width: 88%;
+}
+
+#subject-details .sd-popupDetails_navbar {
+	width: 50px;
+	top: 56px;
+    right: 47px;
+    height: 140px;
+}
+
+#subject-details .sd-popupDetails_navbar > ul {
+	display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+#subject-details .sd-popupDetails_navbar > ul > li {
+	height: 100%;
+}
+
+#subject-details .sd-popupDetails_navbar > ul > li img {
+	width: 18px;
+}
+
+#subject-details .sd-popupDetails_details > div:last-child {
+	margin-bottom: 55px !important;
+}
