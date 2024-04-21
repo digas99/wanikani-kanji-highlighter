@@ -1,3 +1,8 @@
+# [Changelog v1.1.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.1)
+
+## Bug Fixes
+- Fixed the avatar and level delayed loading on the Popup sidebar
+
 # [Changelog v1.1.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.0)
 
 ## Bug Fixes

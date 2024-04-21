@@ -9,13 +9,27 @@ if (sideBarVersion) {
         .then(manifest => sideBarVersion.innerText = `v${manifest["version"]}`);
 }
 
-chrome.storage.local.get(["apiKey", "settings", "lessons", "reviews"], result => {
+chrome.storage.local.get(["apiKey", "settings", "lessons", "reviews", "userInfo"], result => {
     const apiKey = result["apiKey"];
     const settings = result["settings"];
 
+    const avatar = document.querySelector("#profile img");
+    let userInfo = result["userInfo"];
+    if (userInfo) {
+        userInfo = userInfo["data"];
+        // fill avatar
+        if (userInfo["avatar_data"])
+            avatar.src = userInfo["avatar_data"];
+
+        // fill level
+        const level = document.querySelector("#profile p");
+        if (level && userInfo["level"])
+            level.innerText = userInfo["level"];
+        
+    }
+
     fetchUserInfo(apiKey, info => {
         userInfo = info["data"] || info;
-        const avatar = document.querySelector("#profile img");
         setAvatar(avatar, "https://www.wanikani.com/users/"+userInfo["username"], userInfo["avatar_data"] || userInfo["avatar"], info);
 
         const level = document.querySelector("#profile p");

@@ -19,7 +19,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v110)
+1. [Latest Features](#changelog-v111)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -30,6 +30,11 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.6. [Blacklisting a Site](#blacklisting-a-site)
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
+
+## [Changelog v1.1.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.1)
+
+### Bug Fixes
+- Fixed the avatar and level delayed loading on the Popup sidebar
 
 ## [Changelog v1.1.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.0)
 

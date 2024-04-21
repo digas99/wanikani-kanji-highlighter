@@ -95,18 +95,23 @@ window.onload = () => {
 	const rateStars = document.querySelector(".rate-stars");
 	if (rateStars) {
 		chrome.storage.local.get(["rating"], result => {
+			const stars = rateStars.children;
+			const extensionRate = document.querySelector("#extension-rate");
 			const rating = result["rating"] || {};
-
 			if (rating) {
 				if (rating.value) {
-					const stars = rateStars.children;
 					for (let i = 0; i < rating.value; i++) {
 						stars[i].children[0].src = "/images/star-filled.png";
 					}
 
-					if (document.querySelector("#extension-rate"))
-						document.querySelector("#extension-rate").addEventListener("mouseleave", () => fillStars(stars, rating.value));
+					if (extensionRate)
+						extensionRate.addEventListener("mouseleave", () => fillStars(stars, rating.value));
 				}
+			}
+
+			if (!rating || !rating.value) {
+				if (extensionRate)
+					extensionRate.addEventListener("mouseleave", () => fillStars(stars, 0));
 			}
 
 			const rateClose = document.querySelector("#rate-close");
