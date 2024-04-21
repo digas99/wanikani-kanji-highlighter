@@ -8,7 +8,15 @@
 	column-gap: 10px;
 }
 
-.api-key > img {
+.api-key a {
+	position: relative;
+}
+
+.api-key a .copiedMessage {
+	position: absolute;
+}
+
+.api-key img {
 	width: 15px;
 }
 
