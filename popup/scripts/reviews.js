@@ -200,10 +200,28 @@ chrome.storage.local.get(["reviews"], async result => {
 							if (item.length > 0) {
 								//window.location.href = '/popup/progressions.html';
 								const time = e.chart.tooltip.title[0];
-								const chartTitle = e.chart.options.plugins.title.text;
+								const hours = time.split(" ")[0];
+								const ampm = time.split(" ")[1]?.toLowerCase();
+								let hour = parseInt(hours);
+								if (ampm === "pm" && hour !== 12)
+									hour += 12;
 
+								const chartTitle = e.chart.options.plugins.title.text;
+								
 								// construct date
-								let date = chartTitle.split(", ")[1].replace(/(st|nd|rd|th)/, ""); 
+								let date;
+								// check if title is next 24 hours
+								if (chartTitle === "Reviews in the next 24 hours") {
+									// if hours before current time, add 1 day
+									const now = new Date();
+									if (hours < now.getHours())
+										date = changeDay(now, 1);
+									else
+										date = now;
+								}
+								else
+									date = chartTitle.split(", ")[1].replace(/(st|nd|rd|th)/, ""); 
+
 								// add year
 								const month = chartTitle.split(", ")[1].split(" ")[0];
 								if (month === "January" && new Date().getMonth() === 11)
@@ -212,12 +230,7 @@ chrome.storage.local.get(["reviews"], async result => {
 									date += ` ${new Date().getFullYear()}`;
 								date = new Date(date);
 
-								// add hours which are in am and pm format
-								const hours = time.split(" ")[0];
-								const ampm = time.split(" ")[1]?.toLowerCase();
-								let hour = parseInt(hours);
-								if (ampm === "pm" && hour !== 12)
-									hour += 12;
+								// add hours
 								date.setHours(hour);
 
 								window.location.href = `/popup/progressions.html?date=${date.toISOString()}`;

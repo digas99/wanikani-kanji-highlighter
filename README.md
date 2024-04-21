@@ -35,6 +35,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ### Bug Fixes
 - Fixed display of Radicals subject tiles on those with image instead of character
+- Fixed wrong highlighting in subject mnemonics ([#6](https://github.com/digas99/wanikani-kanji-highlighter/issues/6))
 
 ### Popup
 - Added levels progression stats accessible through the Profile Page ([#18](https://github.com/digas99/wanikani-kanji-highlighter/issues/18))
