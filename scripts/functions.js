@@ -868,7 +868,6 @@ const blacklisted = (blacklist, url) => {
 }
 
 const dataTile = (subjects, elem, value) => {
-	console.log(subjects, elem);
 	const subject = subjects.find(subject => 
 		subject["characters"] === value ||
 		subject?.character_images?.find(image => image["url"] == elem.querySelector("image")?.getAttribute("src")));

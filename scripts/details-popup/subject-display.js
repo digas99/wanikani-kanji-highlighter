@@ -24,7 +24,7 @@
 				document.querySelectorAll(".sd-detailsPopup_cardRow").forEach(card => card.style.setProperty("filter", "brightness(0.5)", "important"));
 				document.querySelectorAll(".sd-detailsPopup_cardSideBar").forEach(node => node.remove());
 				const target = node.classList.contains("sd-detailsPopup_cards") ? node.parentElement.parentElement : node;
-				target.style.setProperty("filter", "unset", "important")
+				target.style.setProperty("filter", "unset", "important");
 				const type = target.classList.contains("sd-detailsPopup_vocab_row") ? "vocabulary" : "kanji";
 				let id = "";
 				target.childNodes.forEach(child => {
@@ -398,12 +398,14 @@
 				schoolLevel.title = "Joyo, JLPT";
 				schoolLevel.style.setProperty("color", "#b8b8b8", "important");
 			}
+
+			console.log(kanjiInfo);
 			
 			// meaning mnemonic container
-			details.appendChild(infoTable("Meaning Mnemonic", [parseTags(kanjiInfo["meaning_mnemonic"]), parseTags(kanjiInfo["meaning_hint"])]));
+			details.appendChild(infoTable("Meaning Mnemonic", [kanjiInfo["meaning_mnemonic"], kanjiInfo["meaning_hint"]]));
 		
 			// reading mnemonic container
-			details.appendChild(infoTable("Reading Mnemonic", [parseTags(kanjiInfo["reading_mnemonic"]), parseTags(kanjiInfo["reading_hint"])]));
+			details.appendChild(infoTable("Reading Mnemonic", [kanjiInfo["reading_mnemonic"], kanjiInfo["reading_hint"]]));
 			
 			const cardsSection = document.createElement("div");
 			details.appendChild(cardsSection);
@@ -554,11 +556,11 @@
 			partOfSpeech.style.setProperty("color", "#b8b8b8", "important");
 
 			// meaning mnemonic container
-			details.appendChild(infoTable("Meaning Mnemonic", [parseTags(vocabInfo["meaning_mnemonic"])]));
+			details.appendChild(infoTable("Meaning Mnemonic", [vocabInfo["meaning_mnemonic"]]));
 
 			if (vocabInfo["subject_type"] == "vocabulary") {
 				// reading mnemonic container
-				details.appendChild(infoTable("Reading Mnemonic", [parseTags(vocabInfo["reading_mnemonic"])]));
+				details.appendChild(infoTable("Reading Mnemonic", [vocabInfo["reading_mnemonic"]]));
 	
 				const cardsSection = document.createElement("div");
 				details.appendChild(cardsSection);
@@ -756,28 +758,6 @@
 
 	// Auxiliar methods
 
-	// parse tags specific to wanikani
-	const parseTags = string => {
-		let finalString = "";
-		if (string) {
-			const tags = ["radical", "kanji", "vocabulary", "reading", "ja"];
-			const filter = string.split(/[<>\/]+/g);
-			let tagOpen = false;
-			filter.forEach(substring => {
-				if (!tags.includes(substring)) {
-					if (tagOpen)
-						finalString += `<span class="sd-${tagOpen}Tag">${substring}</span>`;
-					else
-						finalString += substring;
-				}
-				else
-					tagOpen = !tagOpen ? substring : false;
-			});
-		}
-	
-		return finalString;
-	}
-
 	const itemCardsSection = (kanjiInfo, idsTag, title, itemCardsclass, list) => {
 		const ids = kanjiInfo[idsTag];
 		const nmrItems = ids.length;
@@ -800,6 +780,9 @@
 		wrapper.style.setProperty("margin-top", "10px", "important");
 		if (ids && data) {
 			let info = ids.map(id => data[id]);
+			if (info.length > 1)
+				wrapper.classList.add("sd-justify-list");
+
 			if (sorted && info)
 				info = info.sort((a,b) => a.level - b.level)
 			info.forEach(thisData => {

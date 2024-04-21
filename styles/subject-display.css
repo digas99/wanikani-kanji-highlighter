@@ -290,6 +290,7 @@
     color: white;
 }
 
+
 .sd-popupDetails_title {
 	color: var(--popup-details-title-color);
     background-color: var(--popup-details-title-bkcolor);
@@ -297,26 +298,31 @@
 	border-left: 3px solid white;
 }
 
-.sd-radicalTag {
-    color: var(--radical-tag-color);
+.sd-detailsPopup radical {
+	color: var(--radical-tag-color);
+
 }
 
-.sd-kanjiTag {
-    color: var(--kanji-tag-color);
+.sd-detailsPopup kanji {
+	color: var(--kanji-tag-color);
 }
 
-.sd-vocabularyTag {
-    color: var(--vocabulary-tag-color);
+.sd-detailsPopup vocabulary {
+	color: var(--vocabulary-tag-color);
 }
 
-.sd-readingTag {
+.sd-detailsPopup reading {
 	background-color: var(--reading-tag-bkcolor);
 }
 
-.sd-jaTag,
-.sd-radicalTag,
-.sd-kanjiTag,
-.sd-vocabularyTag {
+.sd-detailsPopup ja {
+
+}
+
+.sd-detailsPopup ja,
+.sd-detailsPopup radical,
+.sd-detailsPopup kanji ,
+.sd-detailsPopup vocabulary {
     font-weight: bolder;
 }
 
@@ -390,7 +396,6 @@
 }
 
 .sd-detailsPopup_cardRow:hover {
-	transform: scale(1.15);
 	z-index: 1;
 }
 
@@ -436,10 +441,6 @@
 	transition: 0.3s;
 }
 
-.sd-detailsPopup_sentencesWrapper:hover {
-	transform: scale(1.1);
-}
-
 .sd-detailsPopup_sentencesWrapper .sd-highlighted, .sd-highlightedNotLearned {
 	cursor: pointer !important;
 }
@@ -480,4 +481,21 @@
 	color: lightgray;
 	font-size: 12px;
 	margin-top: 4px;
+}
+
+.sd-justify-list {
+	display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 0;
+    list-style-type: none;
+    margin: 0;
+	position: relative;
+}
+
+.sd-justify-list > li{
+	flex-grow: 1;
+	text-align: center;
+	justify-content: center;
+	width: fit-content;
 }

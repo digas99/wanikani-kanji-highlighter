@@ -31,15 +31,15 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
-# [Changelog v1.1.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.8)
+## [Changelog v1.1.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.0)
 
-## Bug Fixes
+### Bug Fixes
 - Fixed display of Radicals subject tiles on those with image instead of character
 
-## Popup
+### Popup
 - Added levels progression stats accessible through the Profile Page ([#18](https://github.com/digas99/wanikani-kanji-highlighter/issues/18))
 - Go back arrows now navigate through the popup browsing history. A home button was added to replace the previous functionality of the back arrow
-- Using the right click on a subject tile opens a Subject Details Page on the Extension Popup
+- Using the right click on a subject tile opens a Subject Details Page on the Extension Popup ([#26](https://github.com/digas99/wanikani-kanji-highlighter/issues/26))
   
 #### [(All changelogs)](CHANGELOG.md)
 

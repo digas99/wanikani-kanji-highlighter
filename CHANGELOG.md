@@ -1,7 +1,8 @@
-# [Changelog v1.1.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.0.8)
+# [Changelog v1.1.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.0)
 
 ## Bug Fixes
 - Fixed display of Radicals subject tiles on those with image instead of character
+- Fixed wrong highlighting in subject mnemonics ([#6](https://github.com/digas99/wanikani-kanji-highlighter/issues/6))
 
 ## Popup
 - Added levels progression stats accessible through the Profile Page ([#18](https://github.com/digas99/wanikani-kanji-highlighter/issues/18))

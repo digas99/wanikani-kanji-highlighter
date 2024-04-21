@@ -1,8 +1,9 @@
 #subject-details .sd-detailsPopup {
 	z-index: 10;
-	margin-top: 52px;
-	width: 100%;
+	margin-top: 50px;
+	width: 420px;
 	transition: unset;
+	margin-right: 45px;
 }
 
 #sd-detailsPopupFix, #sd-detailsPopupSubjectLock, #sd-detailsPopupKeyBindings, #sd-detailsPopupCloseX {
@@ -25,15 +26,12 @@
 }
 
 #subject-details .sd-focusPopup_kanji {
-	border-right: 2px solid white;
 	border-bottom: 2px solid white;
 	transition: unset;
 	min-height: 140px;
 }
 
 #subject-details .sd-popupDetails_detailedInfoWrapper > .sd-popupDetails_details {
-	margin-right: 35px;
-	border-right: 2px solid white;
 	margin-top: -30px !important;
 }
 
@@ -43,9 +41,9 @@
 
 #subject-details .sd-popupDetails_navbar {
 	width: 50px;
-	top: 56px;
-    right: 47px;
-    height: 140px;
+	top: 54px;
+    right: 45px;
+    height: 142px;
 }
 
 #subject-details .sd-popupDetails_navbar > ul {
@@ -64,4 +62,12 @@
 
 #subject-details .sd-popupDetails_details > div:last-child {
 	margin-bottom: 55px !important;
+}
+
+#subject-details .sd-detailsPopup {
+	box-shadow: unset !important;
+}
+
+#subject-details .sd-detailsPopup_sectionContainer ul {
+	width: 96%;
 }
