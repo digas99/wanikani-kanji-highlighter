@@ -12,25 +12,7 @@
 </head>
 <body>
 	<!-- TOP NAVBAR -->
-	<div class="topNav">
-		<a href="#" title="Go back" id="goBackButton" class="clickable">
-			<div>
-				<i class="left"></i>
-				<div>Reviews</div>
-			</div>
-		</a>
-
-        <div class="topNav-lessons">
-			<a title="Lessons" href="/popup/lessons.html">
-                <div class="lessons-icon"><div></div></div>
-                <div class="lessons-count">0</div>
-            </a>
-            <a title="Reviews" href="/popup/reviews.html">
-                <div class="reviews-icon"><div></div></div>
-                <div class="lessons-count" style="background-color: white; color: var(--default-color);">0</div>
-            </a>
-        </div>
-    </div>
+	<script src="templates/topbar.js"></script>
 
     <div class="lessons-cover reviews-icon"><div><div class="image-fade"></div></div></div>
 	<!-- PAGE CONTENT -->
@@ -44,63 +26,7 @@
 	</div>
 
     <!-- SIDEBAR -->
-	<div class="side-panel">
-        <a href="profile.html" class="clickable" id="profile">
-            <div>
-                <img src="/images/wanikani-default.png">
-            </div>
-            <p title="Level"></p>
-        </a>
-        <ul>
-            <li class="clickable" style="position: relative;">
-                <a href="home.html" class="navbar_icon" style="padding: 0px 5px;">
-                    <img id="home" src="../images/home.png" title="Home" style="width: 20px;">
-                </a>
-            </li>
-            <li class="clickable" style="position: relative;">
-                <a href="settings.html" class="navbar_icon" style="padding: 0px 5px;">
-                    <img id="settings" src="../images/settings.png" title="Settings" style="width: 20px;">
-                </a>
-            </li>
-            <li class="clickable" style="position: relative;">
-                <a href="search.html" class="navbar_icon" style="padding: 0px 5px;">
-                    <img id="search" src="../images/search.png" title="Search" style="width: 20px;">
-                </a>
-            </li>
-            <li class="clickable" style="position: relative; padding-right: 3px;">
-                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
-                    <img id="blacklist" src="../images/blacklist.png" title="Blacklist" style="width: 20px;">
-                    <span class="side-panel-info-alert" style="background-color: #f100a1; color: white; filter: invert(1);">0</span>
-                </a>
-            </li>
-            <li class="clickable" style="position: relative;">
-                <a class="navbar_icon" style="padding: 0px 5px;">
-                    <img id="dark" src="../images/dark.png" title="Dark" style="width: 20px;">
-                </a>
-            </li>
-            <li class="clickable" style="position: relative;">
-                <a href="about.html" class="navbar_icon" style="padding: 0px 5px;">
-                    <img id="about" src="../images/about.png" title="About" style="width: 20px;">
-                </a>
-            </li>
-            <li data-item-id="rand" class="kanjiDetails clickable" style="position: relative;" title="Random">
-                <a href="#" class="navbar_icon" style="padding: 0px 5px; pointer-events: none;">
-                    <img id="random" src="../images/random.png" style="width: 20px;" title="Random">
-                    <span id="random-subject-type" class="side-panel-info-alert">A</span>
-                </a>
-            </li>
-            <li class="clickable" style="position: relative; padding-left: 3px;">
-                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
-                    <img id="exit" src="../images/exit.png" title="Exit" style="width: 20px;">
-                </a>
-            </li>
-        </ul>
-        <div class="clickable">
-            <div id="side-panel-logo" title="Wanikani Kanji Highlighter">
-                <img src="../logo/logo.png" style="pointer-events: none;">
-            </div>
-        </div>
-    </div>
+	<script src="templates/sidebar.js"></script>
 
     <script src="/lib/chart.js"></script>
     <script src="/lib/chartjs-plugin-datalabels.min.js"></script>

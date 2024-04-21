@@ -1,6 +1,14 @@
 let sidePanelTimeout;
 let mouseOut = false;
 
+// VERSION
+const sideBarVersion = document.querySelector(".side-panel-version");
+if (sideBarVersion) {
+    fetch("../manifest.json")
+        .then(response => response.json())
+        .then(manifest => sideBarVersion.innerText = `v${manifest["version"]}`);
+}
+
 chrome.storage.local.get(["apiKey", "settings", "lessons", "reviews"], result => {
     const apiKey = result["apiKey"];
     const settings = result["settings"];

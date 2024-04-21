@@ -208,7 +208,7 @@
 }
 
 #side-panel-logo {
-	bottom: 10px;
+	bottom: 15px;
     position: absolute;
     left: 0;
     right: 0;
@@ -217,6 +217,12 @@
 
 #side-panel-logo > img {
 	width: 34px;
+}
+
+.side-panel-version {
+    color: white;
+    font-size: 9px;
+    font-weight: bold;
 }
 
 .side-panel-focus {
