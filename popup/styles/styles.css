@@ -246,12 +246,19 @@ i {
     transition: 0.3s;
     text-align: center;
     padding: 2px;
+	display: grid;
+	grid-template-columns: 1fr 10px 1fr;
+	grid-template-rows: 1fr;
+	grid-template-areas: ".  .  ."
+                       ". box ."
+                       ".  .  .";
 }
 
 .goTop i {
-	margin-bottom: -9px;
     border-color: white;
     padding: 3px;
+	margin: auto;
+	grid-area: box;
 }
 
 .lessons-icon > div {
