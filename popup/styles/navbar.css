@@ -189,10 +189,19 @@
 
 .side-panel > ul {
 	filter: invert(1);
+	margin-top: 10px;
 }
 
 .side-panel > ul > li {
-	margin-top: 15px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.side-panel-focus > ul > li {
+	align-items: unset;
+	justify-content: unset;
 }
 
 .side-panel > div > a  {
@@ -240,6 +249,10 @@
     align-items: center;
 }
 
+.side-panel-focus > ul > li > a:hover {
+	opacity: unset !important;
+}
+
 .side-panel-focus > ul > li > a > p {
 	color: black;
     padding-left: 12px;
@@ -253,7 +266,7 @@
 .side-panel-info-alert {
     padding: 3px;
     position: absolute;
-    top: -7px;
+    top: -3px;
     left: 26px;
     font-size: 10px;
     font-weight: bold;

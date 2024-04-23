@@ -99,7 +99,7 @@ document.addEventListener("scriptsLoaded", () => {
     if (atWanikani) {
         // remove some buttons
         const buttons = document.querySelectorAll("#search, #blacklist, #run, #random");
-        buttons.forEach(button => button?.parentElement.remove());
+        buttons.forEach(button => button?.parentElement.parentElement.remove());
 
         // remove search area
         const searchArea = document.querySelector(".searchArea");
@@ -111,7 +111,7 @@ document.addEventListener("scriptsLoaded", () => {
     if (!validSite) {
         // remove some buttons
         const buttons = document.querySelectorAll("#blacklist, #run, #random");
-        buttons.forEach(button => button?.parentElement.remove());
+        buttons.forEach(button => button?.parentElement.parentElement.remove());
     }
     
     if (!blacklistedSite && !atWanikani) {
