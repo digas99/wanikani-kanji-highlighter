@@ -52,7 +52,7 @@ const modifiedSince = async (apiKey, date, url) => {
 	var requestHeaders = new Headers();
 	requestHeaders.append('Authorization', `Bearer ${apiKey}`);
 	requestHeaders.append('Wanikani-Revision', '20170710');
-	requestHeaders.append('If-Modified-Since', date);
+	requestHeaders.append('If-Modified-Since', date || new Date("1700 1 1").toUTCString());
 	var requestInit = { method: 'GET', headers: requestHeaders };
 	var endpoint = new Request(url, requestInit);
 	return fetch(endpoint)
@@ -70,10 +70,10 @@ const reposVersions = async (user, repos) => {
 	return await fetch(`https://api.github.com/repos/${user}/${repos}/tags`).then(response => response.json()).then(body => body);
 }
 
-const reposFirstVersion = async (user, repos) => {
+const reposLatestVersion = async (user, repos) => {
 	return await reposVersions(user, repos).then(result => result[0].name);
 }
 
-const reposLastVersion = async (user, repos) => {
+const reposOldestVersion = async (user, repos) => {
 	return await reposVersions(user, repos).then(result => result[result.length-1].name);
 }

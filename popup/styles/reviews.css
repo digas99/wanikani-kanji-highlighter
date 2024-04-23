@@ -40,3 +40,7 @@
 #reviewsPage-nmrReviews24hLabel > b {
 	color: var(--reviews-color);
 }
+
+.tiles-list-wrapper, .tiles-list {
+	min-height: 250px;
+}

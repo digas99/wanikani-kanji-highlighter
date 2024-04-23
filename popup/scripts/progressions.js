@@ -149,13 +149,15 @@ if (dateString != null) {
 	chrome.storage.local.get(["reviews"], ({reviews}) => {
 		const nextReviews = reviews.next_reviews;
 		if (nextReviews) {
-			const reviewsData = nextReviews.filter(review => review["available_at"].split(".")[0] == dateString.split(".")[0]);
+			// filter by date and hours (ignore minutes and seconds)
+			const reviewsData = nextReviews.filter(review => review["available_at"].split(":")[0] == dateString.split(":")[0]);
 			let subjects, typeSubjects;
 			db.open("subjects").then(async opened => {
 				if (opened) {
-					const date = dateString.split("T")[0];
-					const time = dateString.split("T")[1].split(".")[0];
-					const readableDate = `${date} ${time}`;
+					const date = new Date(dateString);
+					date.setMinutes(0);
+					date.setSeconds(0);
+					const readableDate = date.toLocaleString("en-US", {weekday: "short", month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "numeric", second: "numeric"});
 					list = new TilesList(
 						wrapper,
 						[],

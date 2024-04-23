@@ -2,6 +2,35 @@
 	padding: 20px 10px;
 }
 
+.version-wrapper {
+	display: flex;
+    align-items: center;
+    column-gap: 10px;
+    margin-top: 10px;
+    margin-left: 5px;
+}
+
+#version {
+	margin: unset;
+}
+
+#outdatedVersion img {
+	filter: invert(28%) sepia(65%) saturate(1633%) hue-rotate(317deg) brightness(88%) contrast(97%) !important;
+}
+
+#latestVersion img {
+	filter: invert(80%) sepia(30%) saturate(5196%) hue-rotate(76deg) brightness(89%) contrast(74%) !important;
+}
+
+#futureVersion img {
+	filter: invert(92%) sepia(100%) saturate(7229%) hue-rotate(337deg) brightness(91%) contrast(93%) !important;
+	width: 19px;
+}
+
+.check-version img {
+	width: 14px;
+}
+
 .api-key {
 	display: flex;
 	align-items: center;
@@ -21,7 +50,7 @@
 }
 
 .libraries > li:not(:last-child) {
-	margin-bottom: 10px;
+	margin-bottom: 15px;
 }
 
 .libraries > li > a {
@@ -69,24 +98,54 @@
 	text-align: justify;
 }
 
-.readme h2 {
-    margin-bottom: 20px;
+.readme h1 {
+    margin-bottom: 10px;
     background-color: var(--default-color);
     padding: 8px;
     color: white;
+	font-size: 21px;
 }
 
-.readme h2:not(:first-child) {
-	margin-top: 10px;
+.readme h1 a {
+	color: white;
+	width: 100%;
+    display: block;
+}
+
+.readme h1:first-child {
+	margin-top: 0;
+}
+
+.readme h1:not(:first-child) {
+	margin-top: 25px;
 }
 
 .readme p {
     font-size: 14px;
-	padding: 0px 10px;
+	padding: 0 5px;
+	padding-bottom: 10px;
+	color: var(--font-sec-color);
 }
 
-.readme h3 {
+.readme h2 {
     font-size: 16px;
+	padding: 7px 5px;
+}
+
+.readme > ul {
+	padding: 0 10px;
+	padding-left: 25px;
+}
+
+.readme > ul ul {
+	padding-left: 15px;
+}
+
+.readme li {
+    list-style: disc;
+	list-style-type: inherit;
+	padding: 0 10px;
+    padding-bottom: 5px;
 }
 
 .md-extra-highlighted {

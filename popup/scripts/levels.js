@@ -36,7 +36,6 @@ const mostLearningStreaks = (levelsStats) => {
 }
 
 const streakDates = (levelsStats, streakIndex) => {
-	console.log(levelsStats, streakIndex);
 	const streakBeginning = new Date(levelsStats[1][streakIndex]["started_at"]);
 	
 	let streakEnding = "";
@@ -132,7 +131,6 @@ chrome.storage.local.get(["levels_stats", "settings"], async result => {
 		const { labels, data } = getChartLevelData(levelsStats, resetIndex);
 		
 		const { streakBeginning, streakEnding } = streakDates(levelsStats, resetIndex);
-		console.log(levelsStats, streakBeginning, streakEnding);
 		
 		const wanikaniColor = getComputedStyle(document.documentElement).getPropertyValue('--wanikani');
 		chart = new Chart(levelsChart, {

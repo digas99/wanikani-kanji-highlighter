@@ -1,6 +1,6 @@
 const reviewsList = document.querySelector("#reviewsList");
 const reviewsChart = document.querySelector("#reviewsChart");
-let db, chart;
+let db, chart, reviews, availableReviewsCount;
 
 let popupLoading;
 if (!messagePopup) {
@@ -26,38 +26,104 @@ let list = new TilesList(
 	}
 );
 
+resetChartColors = chart => {
+	chart.data.datasets.forEach(dataset => {
+		const backgroundColors = dataset.backgroundColor;
+		const commonColor = backgroundColors.find(color => backgroundColors.indexOf(color) !== backgroundColors.lastIndexOf(color));
+		dataset.backgroundColor = Array(24).fill(commonColor);
+	});
+	chart.update();
+}
+
+const resetReviewsList = async () => {
+	list.updateTitle(`<b>${availableReviewsCount}</b> Reviews available right now!`);
+	list.update(await setupReviewsSections(reviews, db));
+}
+
+const setupReviewsSections = async (reviews, db) => {
+	const sections = await Promise.all(Object.keys(srsStages).map(async srsId => {
+		const srs = parseInt(srsId);
+		const { name, short, color } = srsStages[srsId];
+		const srsReviews = reviews.filter(review => review["srs_stage"] === srs);
+		const subjects = await db.getAll("subjects", "srs_stage", parseInt(srs));
+		const characters = srsReviews.map(review => getCharacter(subjects.find(subject => subject["id"] === review["subject_id"])));
+
+		return {
+			title: `${name}`,
+			color: getComputedStyle(document.body).getPropertyValue(`--${short.toLowerCase()}-color`) || color,
+			data: characters,
+			callbacks: {
+				item: (elem, value) => dataTile(subjects, elem, value),
+				section: (wrapper, title, content) => headerSRSDecoration(title, srs)
+			},
+			justify: true
+		};
+	}));
+
+	return sections;
+}
+
+const chartTitleToDate = (chart, withinBar) => {
+	let hours, hour;
+	const chartTitle = chart.options.plugins.title.text;
+	const time = (withinBar || chartTitle !== "Reviews in the next 24 hours") && chart.tooltip.title ? chart.tooltip.title[0] : null;
+	if (time) {
+		hours = time.split(" ")[0];
+		const ampm = time.split(" ")[1]?.toLowerCase();
+		hour = parseInt(hours);
+	
+		if (ampm === "pm" && hour != 12)
+			hour += 12;
+		if (ampm === "am" && hour == 12)
+			hour = 0;
+	}
+								
+	// construct date
+	let date;
+	// check if title is next 24 hours
+	if (hours && chartTitle === "Reviews in the next 24 hours") {
+		// if hours afer 12 AM and before current time, add 1 day
+		const now = new Date();
+		if (hours < now.getHours())
+			date = changeDay(now, 1);
+		else
+			date = now;
+	}
+	else if (time) {
+		date = chartTitle.split(", ")[1].replace(/(st|nd|rd|th)/, ""); 
+
+		// add year
+		const month = chartTitle.split(", ")[1].split(" ")[0];
+		if (month === "January" && new Date().getMonth() === 11)
+			date += ` ${new Date().getFullYear()+1}`;
+		else
+			date += ` ${new Date().getFullYear()}`;
+		date = new Date(date);
+	}
+
+	// add hours
+	if (date) {
+		date.setHours(hour || 1);
+		date.setMinutes(0);
+		date.setSeconds(0);
+	}
+
+	return date;
+}
+
 chrome.storage.local.get(["reviews"], async result => {
 	const {count, data, next_reviews} = result["reviews"];
-	
+	availableReviewsCount = count;
+
 	list.updateTitle(`<b>${count}</b> Reviews available right now!`);
 
 	db = new Database("wanikani");
 	const opened = await db.open("subjects");
 	if (opened) {
-		const reviews = data.filter(review => review && !review["hidden_at"])
+		reviews = data.filter(review => review && !review["hidden_at"])
 			.map(review => ({"srs_stage":review["data"]["srs_stage"], "subject_id":review["data"]["subject_id"], "subject_type":review["data"]["subject_type"]}));
-		
 
-		const sections = await Promise.all(Object.keys(srsStages).map(async srsId => {
-			const srs = parseInt(srsId);
-			const { name, short, color } = srsStages[srsId];
-			const srsReviews = reviews.filter(review => review["srs_stage"] === srs);
-			const subjects = await db.getAll("subjects", "srs_stage", parseInt(srs));
-			const characters = srsReviews.map(review => getCharacter(subjects.find(subject => subject["id"] === review["subject_id"])));
-
-			return {
-				title: `${name}`,
-				color: getComputedStyle(document.body).getPropertyValue(`--${short.toLowerCase()}-color`) || color,
-				data: characters,
-				callbacks: {
-					item: (elem, value) => dataTile(subjects, elem, value),
-					section: (wrapper, title, content) => headerSRSDecoration(title, srs)
-				},
-				justify: true
-			};
-		}));
-
-		list.update(sections);
+		list.update(await setupReviewsSections(reviews, db));
 
 		if (popupLoading) popupLoading.remove();
 	}
@@ -112,33 +178,31 @@ chrome.storage.local.get(["reviews"], async result => {
 				const masterData = setupReviewsDataForChart(nmrReviewsNext.filter(review => review["srs"] == 7), today, days, 1, time12h_format);
 				const enliData = setupReviewsDataForChart(nmrReviewsNext.filter(review => review["srs"] == 8), today, days, 1, time12h_format);
 
-				console.log(chartData, apprData, guruData, masterData, enliData);
-
 				const style = getComputedStyle(document.body);
 				const data = {
 					labels: chartData["hours"],
 					datasets: [{
 						label: 'Apprentice',
-						backgroundColor: style.getPropertyValue('--ap4-color'),
-						borderColor: 'rgb(255, 255, 255)',
+						backgroundColor: Array(24).fill(style.getPropertyValue('--ap4-color')),
+						borderColor: Array(24).fill('rgb(255, 255, 255)'),
 						data: apprData["reviewsPerHour"],
 						order: 1
 					},{
 						label: 'Guru',
-						backgroundColor: style.getPropertyValue('--gr2-color'),
-						borderColor: 'rgb(255, 255, 255)',
+						backgroundColor: Array(24).fill(style.getPropertyValue('--gr2-color')),
+						borderColor: Array(24).fill('rgb(255, 255, 255)'),
 						data: guruData["reviewsPerHour"],
 						order: 2
 					},{
 						label: 'Master',
-						backgroundColor: style.getPropertyValue('--mst-color'),
-						borderColor: 'rgb(255, 255, 255)',
+						backgroundColor: Array(24).fill(style.getPropertyValue('--mst-color')),
+						borderColor: Array(24).fill('rgb(255, 255, 255)'),
 						data: masterData["reviewsPerHour"],
 						order: 3
 					},{
 						label: 'Enlightened',
-						backgroundColor: style.getPropertyValue('--enl-color'),
-						borderColor: 'rgb(255, 255, 255)',
+						backgroundColor: Array(24).fill(style.getPropertyValue('--enl-color')),
+						borderColor: Array(24).fill('rgb(255, 255, 255)'),
 						data: enliData["reviewsPerHour"],
 						order: 4
 					}]
@@ -196,44 +260,57 @@ chrome.storage.local.get(["reviews"], async result => {
 								stacked: true,
 							}
 						},
-						onClick: (e, item) => {
+						onClick: async (e, item) => {
+							const chartLeftOffset = 21;
+							const barWidth = (e.chart.width - chartLeftOffset) / 24;
+							const clickIndex = Math.floor(e.x / barWidth) - 1;
+
+							// clicked on a bar
 							if (item.length > 0) {
-								//window.location.href = '/popup/progressions.html';
-								const time = e.chart.tooltip.title[0];
-								const hours = time.split(" ")[0];
-								const ampm = time.split(" ")[1]?.toLowerCase();
-								let hour = parseInt(hours);
-								if (ampm === "pm" && hour !== 12)
-									hour += 12;
+								const date = chartTitleToDate(chart, true);
+								const reviewsData = next_reviews.filter(review => review["available_at"].split(":")[0] == date.toISOString().split(":")[0]);
+								const readableDate = date.toLocaleString("en-US", {weekday: "short", month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "numeric", second: "numeric"});
+								list.update(await setupReviewsSections(reviewsData, db));
+								list.updateTitle(`<b>${reviewsData.length}</b> Subjects on <b>${readableDate}</b>`);
 
-								const chartTitle = e.chart.options.plugins.title.text;
-								
-								// construct date
-								let date;
-								// check if title is next 24 hours
-								if (chartTitle === "Reviews in the next 24 hours") {
-									// if hours before current time, add 1 day
-									const now = new Date();
-									if (hours < now.getHours())
-										date = changeDay(now, 1);
-									else
-										date = now;
+								// highlight single clicked bar from chart
+								chart.data.datasets.forEach(dataset => {
+									// currently highlighted index
+									const currentHighlighted = dataset.backgroundColor.findIndex(color => color === getComputedStyle(document.body).getPropertyValue('--font-color'));
+									// highlight the bar at clickedIndex
+									const newColor = getComputedStyle(document.body).getPropertyValue('--font-color');
+									dataset.backgroundColor = dataset.backgroundColor.map((color, index) => {
+										if (index === clickIndex)
+											return newColor;
+										else if (index === currentHighlighted)
+											return dataset.backgroundColor.find((color, i) => i != clickIndex && i != currentHighlighted);
+										else
+											return color;
+									});
+								});
+								chart.update();
+							}
+							// clicked outside a bar
+							else {
+								let date = chartTitleToDate(chart, false);
+								let reviewsData, title;
+								if (date) {
+									reviewsData = next_reviews.filter(review => review["available_at"].split("T")[0] == date.toISOString().split("T")[0]);
+									title = date.toLocaleString("en-US", {weekday: "short", month: "long", day: "numeric", year: "numeric"});
 								}
-								else
-									date = chartTitle.split(", ")[1].replace(/(st|nd|rd|th)/, ""); 
-
-								// add year
-								const month = chartTitle.split(", ")[1].split(" ")[0];
-								if (month === "January" && new Date().getMonth() === 11)
-									date += ` ${new Date().getFullYear()+1}`;
-								else
-									date += ` ${new Date().getFullYear()}`;
-								date = new Date(date);
-
-								// add hours
-								date.setHours(hour);
-
-								window.location.href = `/popup/progressions.html?date=${date.toISOString()}`;
+								else {
+									// get reviews for the next 24 hours
+									// https://stackoverflow.com/a/3224854/11488921
+									reviewsData = next_reviews.filter(review => {
+										const reviewDate = new Date(review["available_at"]);
+										const now = new Date();
+										return (reviewDate - now) < (24 * 60 * 60 * 1000) && (reviewDate - now) > 0;
+									});
+									title = "the next 24 hours";
+								}
+								list.update(await setupReviewsSections(reviewsData, db));
+								list.updateTitle(`<b>${reviewsData.length}</b> Subjects on <b>${title}</b>`);
+								resetChartColors(chart);
 							}
 						},
 						onHover: (e, item) => {
@@ -257,24 +334,30 @@ chrome.storage.local.get(["reviews"], async result => {
 				const nextReviewsData = next_reviews;
 				// changing date event listener
 
-				daySelectorInput.addEventListener("input", e => {
+				daySelectorInput.addEventListener("input", async e => {
 					const newDate = e.target.value;
 					updateChartReviewsOfDay(nextReviewsData, chart, newDate, futureReviewsLabel, time12h_format);
 					arrowsDisplay(leftArrow, rightArrow, daySelectorInput.value, daySelectorInput.min, daySelectorInput.max);
+					resetReviewsList();
+					resetChartColors(chart);
 				});
 				// arrows event listener
-				leftArrow.addEventListener("click", () => {
+				leftArrow.addEventListener("click", async () => {
 					const newDate = changeDay(daySelectorInput.value, -1);
 					updateChartReviewsOfDay(nextReviewsData, chart, newDate, futureReviewsLabel, time12h_format);
 					daySelectorInput.value = simpleFormatDate(newDate, "ymd");
 					arrowsDisplay(leftArrow, rightArrow, daySelectorInput.value, daySelectorInput.min, daySelectorInput.max);
+					resetReviewsList();
+					resetChartColors(chart);
 				});
-				rightArrow.addEventListener("click", () => {
+				rightArrow.addEventListener("click", async () => {
 					const newDate = changeDay(daySelectorInput.value, 1);
 					rightArrow.title = `${newDate.getWeekDay()}, ${newDate.getMonthName()} ${newDate.getDate()+ordinalSuffix(newDate.getDate())}`;
 					updateChartReviewsOfDay(nextReviewsData, chart, newDate, futureReviewsLabel, time12h_format);
 					daySelectorInput.value = simpleFormatDate(newDate, "ymd");
 					arrowsDisplay(leftArrow, rightArrow, daySelectorInput.value, daySelectorInput.min, daySelectorInput.max);
+					resetReviewsList();
+					resetChartColors(chart);
 				});
 			}
 		});
@@ -310,6 +393,27 @@ document.addEventListener("click", e => {
 	const target = e.target;
 	const button = target.closest(".clickable");
 	if (button && (button.querySelector("#light") || button.querySelector("#dark"))) {
-		setTimeout(() => setChartBaseColors(chart));
+		setTimeout(() => {
+			setChartBaseColors(chart);
+			
+			// update highlighted bar
+			chart.data.datasets.forEach(dataset => {
+				const backgroundColors = dataset.backgroundColor;
+				const oldColor = backgroundColors.find(color => backgroundColors.indexOf(color) === backgroundColors.lastIndexOf(color));
+				dataset.backgroundColor = backgroundColors.map(color => {
+					if (color === oldColor)
+						return getComputedStyle(document.body).getPropertyValue('--font-color');
+					else
+						return color;
+				});
+			});
+			chart.update();
+		});
+	}
+
+	// clicked outside the chart
+	if (!target.closest("#reviewsChart") && getComputedStyle(target).cursor !== "pointer") {
+		resetChartColors(chart);
+		resetReviewsList();
 	}
 });

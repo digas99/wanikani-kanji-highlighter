@@ -3,7 +3,15 @@
 ## Bug Fixes
 - Fixed the avatar and level delayed loading on the Popup sidebar
 
+## Popup
+- Added new interactions to Future Reviews chart:
+    - Clicking on a bar will now longer take you to another page (the list of subjects is updated on the same page)
+    - Clicking within the chart but outside the bars will show the list of subjects for that day
+    - Clicking outside the chart will go back to showing the list of all available reviews
+- Improved the Changelog dump in the About page
+
 # [Changelog v1.1.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.0)
+Released on 21/04/2024
 
 ## Bug Fixes
 - Fixed display of Radicals subject tiles on those with image instead of character
@@ -137,9 +145,9 @@ Released on 06/03/2022
 ## Popup
 - Changed the way the loading of subjects is being done to reduce significantly it's time
 - Added Profile Page to Extension Popup, accessible by clicking the Avatar on the top right corner, in the side panel. This allows to:
-  - See all subjects on your curret level
-  - Filter and sort those subjects
-  - See subjects from other levels
+    - See all subjects on your curret level
+    - Filter and sort those subjects
+    - See subjects from other levels
 - Added Star to the top right corner of every secundary page that allows to make that page the Home Page of the Extension Popup
 
 # [Changelog v0.6.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.6.3)
@@ -188,12 +196,12 @@ Released on 29/12/2021
 - Changed the overall style of details popup
 - Added navigation bar to details popup
 - Added shortcut keys to interact with details popup navigation bar:
-  - **I:** Navigate to Info Section
-  - **C:** Navigate to Cards Section
-  - **S:** Navigate to Reviews Statistics Section
-  - **T:** Navigate to Timestamps Section
-  - **<-:** Navigate to Previous Section
-  - **->:** Navigate to Next Section
+    - **I:** Navigate to Info Section
+    - **C:** Navigate to Cards Section
+    - **S:** Navigate to Reviews Statistics Section
+    - **T:** Navigate to Timestamps Section
+    - **<-:** Navigate to Previous Section
+    - **->:** Navigate to Next Section
 - Added button in details popup to deactivate key bindings
 - Added slider to settings to set the opacity of the small details popup
 - Option to write with kana on webpage text inputs
@@ -299,12 +307,12 @@ Released on 09/08/2021
 - Kanji you haven't learned yet are now also highlighted when they show up in the page, in a different color from the ones you learned. They work the same way as the ones you already learned, meaning they also have a details popup, etc...
 - The small details popup, that shows up in the bottom right corner of the page after hovering over a kanji, now also displays the main meaning of that kanji
 - Added shortcut keys to interact with the kanji details popup:
-  - **L:** Lock the kanji in the details popup, meaning it won't change when hover over other kanji (might come in hand when your mouse is surrounded by several highlighted kanji)   
-  - **F:** Fix the kanji details popup, not allowing it to close when clicking outside of it
-  - **X:** Close the kanji details popup
-  - **O:** Expand the small kanji details popup on the bottom right corner
-  - **U:** Scroll the kanji details popup all the way to the top
-  - **B:** Show information from the last kanji in the details popup
+    - **L:** Lock the kanji in the details popup, meaning it won't change when hover over other kanji (might come in hand when your mouse is surrounded by several highlighted kanji)   
+    - **F:** Fix the kanji details popup, not allowing it to close when clicking outside of it
+    - **X:** Close the kanji details popup
+    - **O:** Expand the small kanji details popup on the bottom right corner
+    - **U:** Scroll the kanji details popup all the way to the top
+    - **B:** Show information from the last kanji in the details popup
 - Added buttons to the kanji details popup, near the kanji container, to do the same thing as the sortcut keys, but manually
 - Highlighted kanji now change it's style immediately after it being changed in the extension popup settings
 - Kanji cards in details popup now also show the main meaning of the material and the main reading
@@ -339,8 +347,8 @@ Released on 30/07/2021
 
 ## Popup
 - Possibility to change the display of the kanji cards in the search result
-    - List: one result per line with detailed info
-    - Big and Small Grid: results in a grid but with no detailed info, only card with kanji
+      - List: one result per line with detailed info
+      - Big and Small Grid: results in a grid but with no detailed info, only card with kanji
 - The results of kanji search is now more broaden (i.e.: searching gold will also show GOLDfish)
 
 # [Changelog v0.4.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v0.4.3)
@@ -405,9 +413,9 @@ Released on 22/05/2021
 - The button that feeds the list of blacklisted sites now has the number of blacklisted sites
 - Changes in the style of the options in settings
 - Added Kanji Search:
-    - Search kanji thorugh it's name or it's character (also shows similar kanji)
-    - When something matches, it shows the character, the names and the readings for the kanji
-    - Any kanji will show up, even the ones you haven't learned yet
+      - Search kanji thorugh it's name or it's character (also shows similar kanji)
+      - When something matches, it shows the character, the names and the readings for the kanji
+      - Any kanji will show up, even the ones you haven't learned yet
 
 ## Bug Fixes
 - Clicking outside the settings and exit buttons, in the popup extension, no longer triggers them by mistake
@@ -454,5 +462,5 @@ Released on 27/03/2021
 - Information on how many kanji were highlighted on that page
 - Pages can be blacklisted so that the extension will not run the highlighting on them
 - Added settings where you can turn on or off the following:
-    - Kanji info popup (shows details popup when hovering a highlighted kanji)
-    - Kanji counter on icon (displays number of kanji highlighted in the page on the icon badge)
+      - Kanji info popup (shows details popup when hovering a highlighted kanji)
+      - Kanji counter on icon (displays number of kanji highlighted in the page on the icon badge)

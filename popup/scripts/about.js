@@ -4,7 +4,23 @@ chrome.storage.local.get(["apiKey"], async result => {
 	// VERSION
 	fetch("../manifest.json")
 		.then(response => response.json())
-		.then(manifest => document.querySelector("#version").innerText = `v${manifest["version"]}`);
+		.then(async manifest => {
+			const version = manifest["version"];
+			document.querySelector("#version").innerText = `v${version}`;
+			
+			const latest = await reposLatestVersion("digas99", "wanikani-kanji-highlighter");
+			const latestNumber = Number(latest.split("v")[1].replace(/\./g, ""));
+			const currentNumber = Number(version.replace(/\./g, ""));
+			if (currentNumber <= latestNumber) {
+				if (latestNumber === currentNumber)
+					document.querySelector("#latestVersion")?.style.removeProperty("display");
+				else
+					document.querySelector("#outdatedVersion")?.style.removeProperty("display");
+			}
+			else {
+				document.querySelector("#futureVersion")?.style.removeProperty("display");
+			}
+		});
 	
 	// API KEY
 	const apiKeyWrapper = document.querySelector(".api-key > p");
@@ -32,20 +48,21 @@ const changelog = () => {
 	fetch('../CHANGELOG.md')
 		.then(response => response.text())
 		.then(text => {
-			text.split("\n").forEach(line => readmeContent.appendChild(mdToHTML(line)));
-			readmeContent.getElementsByTagName("h2")[0].style.removeProperty("margin-top");
-	
-			Array.from(readmeContent.getElementsByTagName("h2"))
-				.forEach((h2, i) => {
+			const converter = new showdown.Converter();
+			const html = converter.makeHtml(text);
+			readmeContent.innerHTML = html;
+			
+			Array.from(readmeContent.querySelectorAll("h1"))
+				.forEach((h1, i) => {
 					// fill navbar
 					const navbarSection = document.createElement("div");
 					readmeNavbar.appendChild(navbarSection);
 					navbarSection.classList.add("clickable");
-					navbarSection.appendChild(document.createTextNode(h2.innerText.split("v")[1]));
+					navbarSection.appendChild(document.createTextNode(h1.innerText.split("Changelog v")[1]));
 					navbarSection.addEventListener("click", () => {
 						Array.from(document.getElementsByClassName("readme-navbar-selected")).forEach(elem => elem.classList.remove("readme-navbar-selected"));
 						navbarSection.classList.add("readme-navbar-selected");
-						readmeContent.scrollTo(0, h2.offsetTop-readmeNavbar.offsetTop-h2.offsetHeight-8);
+						readmeContent.scrollTo(0, h1.offsetTop-readmeNavbar.offsetTop-h1.offsetHeight+8);
 					});
 					if (i == 0) navbarSection.classList.add("readme-navbar-selected");
 				});

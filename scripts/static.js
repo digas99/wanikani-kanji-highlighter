@@ -307,7 +307,7 @@ const INTERFACE_COLORS = {
 		"background": "#eee",
 		"default": "#2a2d48",
 		"fill": "#fff",
-		"font": "#000",
+		"font": "#343434",
 		"font-sec": "#747474",
 		"border": "#c0c0c0",
 		"highlight": "#91a1f0",

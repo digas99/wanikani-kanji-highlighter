@@ -3,7 +3,7 @@ document.write(/*html*/`
 	<a href="#" title="Go back" id="goBackButton" class="clickable">
 		<div>
 			<i class="left"></i>
-			<div>Subject</div>
+			<div id="secPageTitle"></div>
 		</div>
 	</a>
 
@@ -19,3 +19,5 @@ document.write(/*html*/`
 	</div>
 </div>
 `);
+
+document.querySelector("#secPageTitle").innerText = document.title;

@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width">
-	<title>WKHighlighter</title>
+	<title>About</title>
 	<link rel="stylesheet" href="styles/styles.css">
     <link rel="stylesheet" href="styles/navbar.css">
     <link rel="stylesheet" href="styles/message-popup.css">
@@ -19,7 +19,14 @@
 		<div class="section">
 			<h2>Wanikani Kanji Highlighter</h2>
 			<p style="color:var(--font-sec-color);">Unofficial kanji highlighter, matching kanji learned with Wanikani.</p>
-			<h3 id="version">Version: </h3>
+			<div class="version-wrapper">
+				<h3 id="version"></h3>
+				<div class="check-version">
+					<div id="latestVersion" title="You are on the latest version"style="display: none;"><img src="/images/check.png" alt=""></div>
+					<div id="outdatedVersion" title="There is already a newer version" style="display: none;"><img src="/images/remove.png" alt=""></div>
+					<div id="futureVersion" title="You are probably developing right now" style="display: none;"><img src="/images/code.png" alt=""></div>
+				</div>
+			</div>
 		</div>
 		
 		<!-- API KEY -->
@@ -55,6 +62,13 @@
 					</a>
 					<p style="color:var(--font-sec-color);">Dynamic content in data labels of charts from Chart.js</p>
 				</li>
+				<li>
+					<a href="https://showdownjs.com/" title="https://showdownjs.com/" target="_blank">
+						<img src="/images/showdownjs_113314.webp" alt="shdowdown">
+						<b>Showdownjs</b>
+					</a>
+					<p style="color:var(--font-sec-color);">Conversion of the Markdown from the Changelogs into HTML</p>
+				</li>
 			</ul>
 		</div>
 		
@@ -82,6 +96,7 @@
 	<!-- SIDEBAR -->
 	<script src="templates/sidebar.js"></script>
 
+	<script src="/lib/showdown.min.js"></script>
 	<script src="/scripts/static.js"></script>
 	<script src="/scripts/time.js"></script>
 	<script src="/scripts/fetch/data-fetch.js"></script>
