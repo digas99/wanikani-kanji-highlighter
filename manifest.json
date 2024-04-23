@@ -23,7 +23,7 @@
         }
     ],
     "action": {
-        "default_popup": "popup/auth.html"
+        "default_popup": "popup/home.html"
     },
     "permissions": [
         "tabs",
