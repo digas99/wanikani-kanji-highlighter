@@ -1,3 +1,8 @@
+# [Changelog v1.1.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.2)
+
+## Popup
+- Improved interactions with Future Reviews chart
+
 # [Changelog v1.1.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.1)
 
 ## Bug Fixes

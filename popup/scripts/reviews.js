@@ -1,6 +1,6 @@
 const reviewsList = document.querySelector("#reviewsList");
 const reviewsChart = document.querySelector("#reviewsChart");
-let db, chart, reviews, availableReviewsCount;
+let db, chart, reviews, availableReviewsCount, selectedBarIndex;
 
 let popupLoading;
 if (!messagePopup) {
@@ -26,18 +26,10 @@ let list = new TilesList(
 	}
 );
 
-resetChartColors = chart => {
-	chart.data.datasets.forEach(dataset => {
-		const backgroundColors = dataset.backgroundColor;
-		const commonColor = backgroundColors.find(color => backgroundColors.indexOf(color) !== backgroundColors.lastIndexOf(color));
-		dataset.backgroundColor = Array(24).fill(commonColor);
-	});
-	chart.update();
-}
-
 const resetReviewsList = async () => {
 	list.updateTitle(`<b>${availableReviewsCount}</b> Reviews available right now!`);
 	list.update(await setupReviewsSections(reviews, db));
+	selectedBarIndex = null;
 }
 
 const setupReviewsSections = async (reviews, db) => {
@@ -61,54 +53,6 @@ const setupReviewsSections = async (reviews, db) => {
 	}));
 
 	return sections;
-}
-
-const chartTitleToDate = (chart, withinBar) => {
-	let hours, hour;
-	const chartTitle = chart.options.plugins.title.text;
-	const time = (withinBar || chartTitle !== "Reviews in the next 24 hours") && chart.tooltip.title ? chart.tooltip.title[0] : null;
-	if (time) {
-		hours = time.split(" ")[0];
-		const ampm = time.split(" ")[1]?.toLowerCase();
-		hour = parseInt(hours);
-	
-		if (ampm === "pm" && hour != 12)
-			hour += 12;
-		if (ampm === "am" && hour == 12)
-			hour = 0;
-	}
-								
-	// construct date
-	let date;
-	// check if title is next 24 hours
-	if (hours && chartTitle === "Reviews in the next 24 hours") {
-		// if hours afer 12 AM and before current time, add 1 day
-		const now = new Date();
-		if (hours < now.getHours())
-			date = changeDay(now, 1);
-		else
-			date = now;
-	}
-	else if (time) {
-		date = chartTitle.split(", ")[1].replace(/(st|nd|rd|th)/, ""); 
-
-		// add year
-		const month = chartTitle.split(", ")[1].split(" ")[0];
-		if (month === "January" && new Date().getMonth() === 11)
-			date += ` ${new Date().getFullYear()+1}`;
-		else
-			date += ` ${new Date().getFullYear()}`;
-		date = new Date(date);
-	}
-
-	// add hours
-	if (date) {
-		date.setHours(hour || 1);
-		date.setMinutes(0);
-		date.setSeconds(0);
-	}
-
-	return date;
 }
 
 chrome.storage.local.get(["reviews"], async result => {
@@ -261,34 +205,17 @@ chrome.storage.local.get(["reviews"], async result => {
 							}
 						},
 						onClick: async (e, item) => {
-							const chartLeftOffset = 21;
-							const barWidth = (e.chart.width - chartLeftOffset) / 24;
-							const clickIndex = Math.floor(e.x / barWidth) - 1;
-
 							// clicked on a bar
 							if (item.length > 0) {
+								selectedBarIndex = getBarIndex(e, chart.data.labels.length);
+
 								const date = chartTitleToDate(chart, true);
 								const reviewsData = next_reviews.filter(review => review["available_at"].split(":")[0] == date.toISOString().split(":")[0]);
 								const readableDate = date.toLocaleString("en-US", {weekday: "short", month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "numeric", second: "numeric"});
 								list.update(await setupReviewsSections(reviewsData, db));
 								list.updateTitle(`<b>${reviewsData.length}</b> Subjects on <b>${readableDate}</b>`);
 
-								// highlight single clicked bar from chart
-								chart.data.datasets.forEach(dataset => {
-									// currently highlighted index
-									const currentHighlighted = dataset.backgroundColor.findIndex(color => color === getComputedStyle(document.body).getPropertyValue('--font-color'));
-									// highlight the bar at clickedIndex
-									const newColor = getComputedStyle(document.body).getPropertyValue('--font-color');
-									dataset.backgroundColor = dataset.backgroundColor.map((color, index) => {
-										if (index === clickIndex)
-											return newColor;
-										else if (index === currentHighlighted)
-											return dataset.backgroundColor.find((color, i) => i != clickIndex && i != currentHighlighted);
-										else
-											return color;
-									});
-								});
-								chart.update();
+								highlightBar(e, item, getComputedStyle(document.body).getPropertyValue('--font-color'));
 							}
 							// clicked outside a bar
 							else {
@@ -311,14 +238,20 @@ chrome.storage.local.get(["reviews"], async result => {
 								list.update(await setupReviewsSections(reviewsData, db));
 								list.updateTitle(`<b>${reviewsData.length}</b> Subjects on <b>${title}</b>`);
 								resetChartColors(chart);
+								selectedBarIndex = null;
 							}
 						},
 						onHover: (e, item) => {
 							if (item.length > 0) {
 								e.chart.canvas.style.cursor = 'pointer';
+								highlightBar(e, item, getComputedStyle(document.body).getPropertyValue('--font-color'), selectedBarIndex);
 							}
 							else {
 								e.chart.canvas.style.cursor = 'default';
+							
+								const barIndex = getBarIndex(e, chart.data.labels.length);	
+								if (barIndex != selectedBarIndex)
+									resetChartColors(chart, selectedBarIndex);
 							}
 						},
 						onLeave: e => {
