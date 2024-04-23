@@ -41,6 +41,7 @@ It works with any website, and provides detailed information about any kanji tha
   - Clicking on a bar will now longer take you to another page (the list of subjects is updated on the same page)
   - Clicking within the chart but outside the bars will show the list of subjects for that day
   - Clicking outside the chart will go back to showing the list of all available reviews
+- Improved the Changelog dump in the About page
 
 ## [Changelog v1.1.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.0)
 
