@@ -215,6 +215,7 @@ chrome.storage.local.get(["reviews"], async result => {
 								list.update(await setupReviewsSections(reviewsData, db));
 								list.updateTitle(`<b>${reviewsData.length}</b> Subjects on <b>${readableDate}</b>`);
 
+								resetChartColors(chart);
 								highlightBar(e, item, getComputedStyle(document.body).getPropertyValue('--font-color'));
 							}
 							// clicked outside a bar

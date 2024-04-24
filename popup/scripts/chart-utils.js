@@ -12,14 +12,14 @@ const chartTitleToDate = (chart, withinBar) => {
 		if (ampm === "am" && hour == 12)
 			hour = 0;
 	}
-								
+		   
 	// construct date
 	let date;
 	// check if title is next 24 hours
 	if (hours && chartTitle === "Reviews in the next 24 hours") {
 		// if hours afer 12 AM and before current time, add 1 day
 		const now = new Date();
-		if (hours < now.getHours())
+		if (hour < now.getHours())
 			date = changeDay(now, 1);
 		else
 			date = now;
