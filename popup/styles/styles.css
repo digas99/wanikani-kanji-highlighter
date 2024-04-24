@@ -39,7 +39,7 @@
 	scroll-behavior: smooth;
 
 	background-color: var(--body-color);
-	min-height: 600px;
+	min-height: 601px; /* add a small overflow to avoid scrollbar going in and out */
 }
 
 html {
