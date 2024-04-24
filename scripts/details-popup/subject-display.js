@@ -959,6 +959,7 @@
 		const timestampsWrapper = document.createElement("div");
 		timestampsWrapper.style.setProperty("margin-top", "10px", "important");
 		for (const key in values) {
+			console.log(key, new Date(values[key]).toLocaleString(), values[key]);
 			const wrapper = document.createElement("div");
 			timestampsWrapper.appendChild(wrapper);
 			wrapper.style.setProperty("padding", "5px 0px", "important");
@@ -975,15 +976,17 @@
 				time.appendChild(document.createTextNode("No Data"));
 			else {
 				const timeValue = values[key].split(".")[0];
-				time.appendChild(document.createTextNode(timeValue.replace("T", " / ")));
+				time.appendChild(document.createTextNode(timeValue.replace("T", "  ")));
 				const timePassedWrapper = document.createElement("p");
 				wrapper.appendChild(timePassedWrapper);
 				timePassedWrapper.style.setProperty("padding", "2px 0px 2px 8px", "important");
 				timePassedWrapper.style.setProperty("font-weight", "bold", "important");
-				const days = msToDays(new Date() - new Date(timeValue.split("T")[0])).toFixed(0);
+				const days = msToDays(new Date() - new Date(values[key])).toFixed(0);
+				console.log(days);
 				let timePassed;
 				if (days === '0') timePassed = "Today";
 				else if (days === '1') timePassed = "Yesterday";
+				else if (days === '-1') timePassed = "Tomorrow";
 				else if (parseInt(days) < 0) timePassed = "In "+(parseInt(days)*-1)+((parseInt(days)*-1) === 1 ? " day" : " days");
 				else timePassed = days+" days ago";
 				timePassedWrapper.appendChild(document.createTextNode(timePassed));

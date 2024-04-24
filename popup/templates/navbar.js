@@ -107,8 +107,6 @@ const updatesLoading = /*html*/`
 
 const path = window.location.pathname;
 if (path.includes("/popup/home.html")) {
-	document.querySelector("#home").closest(".side-panel-tab").remove();
-
 	const sidePanelUl = document.querySelector(".side-panel ul");
 	sidePanelUl.insertAdjacentHTML("beforeend", updatesLoading);
 }

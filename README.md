@@ -35,6 +35,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ### Bug Fixes
 - Dark mode now works without delay
+- Fixed timestamps on Subject Details Popup ([#16](https://github.com/digas99/wanikani-kanji-highlighter/issues/16))
 
 ### Popup
 - Improved interactions with Future Reviews chart
