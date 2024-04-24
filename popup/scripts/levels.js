@@ -5,6 +5,7 @@ if (!messagePopup) {
     popupLoading.setLoading();
 }
 
+let levelsStats;
 const levelsChart = document.querySelector('#levelsChart canvas');
 const levelsList = document.querySelector('#levelsList');
 let chart, levelStats, settings;
@@ -103,7 +104,7 @@ chrome.storage.local.get(["levels_stats", "settings"], async result => {
 		dataSize.value = settings["levels"]["dataSize"];
 	}
 
-	const levelsStats = result["levels_stats"];
+	levelsStats = result["levels_stats"];
 	if (levelsStats) {
 		// update learning streak selector
 		nLearningStreaks = mostLearningStreaks(levelsStats);
