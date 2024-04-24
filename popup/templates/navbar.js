@@ -105,11 +105,19 @@ const updatesLoading = /*html*/`
 	</li>
 `;
 
-if (window.location.pathname.includes("/popup/home.html")) {
+const path = window.location.pathname;
+if (path.includes("/popup/home.html")) {
 	document.querySelector("#home").closest(".side-panel-tab").remove();
 
 	const sidePanelUl = document.querySelector(".side-panel ul");
 	sidePanelUl.insertAdjacentHTML("beforeend", updatesLoading);
+}
+else if (path.includes("/popup/lessons.html") || path.includes("/popup/reviews.html")) {
+    const count = document.querySelector(`[title="${document.title}"] .lessons-count`);
+    if (count) {
+        count.style.backgroundColor = "white";
+        count.style.color = "var(--default-color)";
+    }
 }
 
 // HIGHLIGHT TAB FROM PAGE
