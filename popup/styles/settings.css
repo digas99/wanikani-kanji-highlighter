@@ -34,16 +34,17 @@ input[type="color"] {
 
 .settingsSection > p {
 	text-align: center;
-	padding: 4px;
+	padding: 8px;
     background-color: var(--default-color);
     color: white;
 	margin-bottom: 4px;
+    font-weight: bold;
 }
 
 	/* 10.1 BLACKLISTED SITES */
 
 #blacklistedSitesList {
-	font-weight: 900;
+	font-weight: bold;
 	border-radius: unset;
 }
 

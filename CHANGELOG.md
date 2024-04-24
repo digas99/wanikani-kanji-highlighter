@@ -1,9 +1,15 @@
 # [Changelog v1.1.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.2)
 
+## Bug Fixes
+- Dark mode now works without delay
+
 ## Popup
 - Improved interactions with Future Reviews chart
+- Added Kanji Highlight to Subject Page
+- Improved overall interaction with the top and side navigation bar
 
 # [Changelog v1.1.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.1)
+Released on 23/04/2024
 
 ## Bug Fixes
 - Fixed the avatar and level delayed loading on the Popup sidebar

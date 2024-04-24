@@ -44,6 +44,16 @@
                 }
             });
         },
+        close: function() {
+            return new Promise((resolve, reject) => {
+                if (this.db) {
+                    this.db.close();
+                    resolve(true);
+                }
+                else
+                    resolve(false);
+            });
+        },
         delete: function(table) {
             const request = indexedDB.open(this.name, 1);
 
@@ -67,9 +77,10 @@
             });
         },
         deleteDB: function() {
+            const that = this;
+
             const request = indexedDB.deleteDatabase(this.name);
 
-            const that = this;
             return new Promise((resolve, reject) => {
                 request.onerror = e => {
                     console.log("Problem deleting DB.", e.target.error);
@@ -83,6 +94,14 @@
                         console.log("Failed to delete.", e.target.error);
                         resolve(false);
                     }
+
+                    resolve(true);
+                }
+
+                request.onblocked = () => {
+                    // close all connections
+                    if (that.db)
+                        that.db.close();
 
                     resolve(true);
                 }

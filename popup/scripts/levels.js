@@ -1,3 +1,10 @@
+let popupLoading;
+if (!messagePopup) {
+	popupLoading = new MessagePopup(document.body);
+	popupLoading.create("Loading data...");
+    popupLoading.setLoading();
+}
+
 const levelsChart = document.querySelector('#levelsChart canvas');
 const levelsList = document.querySelector('#levelsList');
 let chart, levelStats, settings;
@@ -88,13 +95,15 @@ const setChartAxes = chart => {
 }
 
 chrome.storage.local.get(["levels_stats", "settings"], async result => {
+	if (popupLoading) popupLoading.remove();
+	
 	settings = result["settings"];
 	if (settings && settings["levels"] && settings["levels"]["dataSize"]) {
 		const dataSize = document.querySelector("#dataSize");
 		dataSize.value = settings["levels"]["dataSize"];
 	}
 
-	levelsStats = result["levels_stats"];
+	const levelsStats = result["levels_stats"];
 	if (levelsStats) {
 		// update learning streak selector
 		nLearningStreaks = mostLearningStreaks(levelsStats);

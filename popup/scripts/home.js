@@ -205,7 +205,6 @@ const kanjiListUpdate = (learned, notLearned, kanjiAssoc) => {
 }
 
 const setupSummary = (reviews, lessons) => {
-	console.log("[SUMMARY]: Setting up summary ...", reviews, lessons);
 	if (reviews) {
 		const currentTime = new Date().getTime();
 		
@@ -219,6 +218,7 @@ const setupSummary = (reviews, lessons) => {
 				lastReviewsValue = reviews["count"];
 			}	
 		}												
+		localStorage.setItem("reviews", reviews["count"]);
 
 		// get all the reviews for the next 14 days
 		const nextReviews = reviews["next_reviews"];
@@ -260,7 +260,8 @@ const setupSummary = (reviews, lessons) => {
 				counterAnimation(currentValue, lessons["count"], summaryLessons, 5);
 				lastLessonsValue = lessons["count"];
 			}	
-		}												
+		}
+		localStorage.setItem("lessons", lessons["count"]);											
 	}
 }
 

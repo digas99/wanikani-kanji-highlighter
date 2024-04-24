@@ -2,16 +2,17 @@
 <html lang="en">	
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width">
+    <meta name="viewport" content="width=device-width">
+	
 	<title>Settings</title>
-	<link rel="stylesheet" href="styles/styles.css">
-    <link rel="stylesheet" href="styles/navbar.css">
-    <link rel="stylesheet" href="styles/message-popup.css">
+	
+	<script src="/popup/templates/head.js"></script>
+
 	<link rel="stylesheet" href="styles/settings.css">
 </head>
 <body>
 	<!-- TOP NAVBAR -->
-	<script src="templates/topbar.js"></script>
+	<script src="templates/navbar.js"></script>
 
 	<!-- PAGE CONTENT -->
 	<div id="sec-page">
@@ -20,8 +21,7 @@
 				<!-- BLACKLISTED SITES -->
 				<div class="section settingsSection">
 					<p id="blacklistedSitesList" class="button clickable">
-						Blacklisted Sites (0)
-						<i class="blacklisted_title_arrow arrow down"></i>
+						Blacklisted sites (0)<i class="blacklisted_title_arrow arrow down"></i>
 					</p>
 					<div id="blacklistedSitesWrapper" style="display: none;"></div>
 				</div>
@@ -352,18 +352,8 @@
 		</div>
 	</div>
 
-	<!-- SIDEBAR -->
-	<script src="templates/sidebar.js"></script>
+	<!-- COMMON SCRIPTS -->
+	<script src="/popup/templates/scripts.js"></script>
 
-	<script src="/scripts/static.js"></script>
-	<script src="/scripts/time.js"></script>
-	<script src="/scripts/fetch/data-fetch.js"></script>
-    <script src="/scripts/fetch/wk-fetch.js"></script>
-	<script src="/scripts/kana.js"></script>
-	<script src="/scripts/functions.js"></script>
-	<script src="/scripts/database.js"></script>
-    <script src="scripts/message-popup.js"></script>
-	<script src="scripts/scripts.js"></script>
-	<script src="scripts/navbar.js"></script>
 	<script src="scripts/settings.js"></script>
 </body>

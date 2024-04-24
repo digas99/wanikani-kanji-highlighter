@@ -47,6 +47,7 @@ html {
 }
 
 body {
+	font-family: 'Avenir LT Std', sans-serif;
     width: var(--body-base-width);
     transition: 0.3s;
     font-size: 13px;
@@ -242,7 +243,6 @@ i {
     bottom: 65px;
     right: -35px;
     margin: auto;
-    box-shadow: 0px 1px 4px 0px black;
     transition: 0.3s;
     text-align: center;
     padding: 2px;

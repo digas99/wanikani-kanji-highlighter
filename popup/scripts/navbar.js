@@ -6,7 +6,11 @@ const sideBarVersion = document.querySelector(".side-panel-version");
 if (sideBarVersion) {
     fetch("../manifest.json")
         .then(response => response.json())
-        .then(manifest => sideBarVersion.innerText = `v${manifest["version"]}`);
+        .then(manifest => {
+            const version = manifest["version"];
+            sideBarVersion.innerText = `v${version}`;
+            localStorage.setItem("version", version);
+        });
 }
 
 chrome.storage.local.get(["apiKey", "settings", "lessons", "reviews", "userInfo"], result => {
@@ -23,8 +27,10 @@ chrome.storage.local.get(["apiKey", "settings", "lessons", "reviews", "userInfo"
 
         // fill level
         const level = document.querySelector("#profile p");
-        if (level && userInfo["level"])
+        if (level && userInfo["level"]) {
             level.innerText = userInfo["level"];
+            localStorage.setItem("level", userInfo["level"]);
+        }
         
     }
 
@@ -121,8 +127,10 @@ document.addEventListener("scriptsLoaded", () => {
             // blacklist button
             if (blacklist_data) {
                 const blacklistNumber = document.querySelector("#blacklist")?.parentElement.querySelector(".side-panel-info-alert");
-                if (blacklistNumber)
+                if (blacklistNumber) {
                     blacklistNumber.innerText = blacklist_data.length;
+                    localStorage.setItem("blacklist", blacklist_data.length);
+                }
             }
         });
     }
@@ -153,7 +161,6 @@ const setRandomSubjectType = (value) => {
             color = hexToRGB(getComputedStyle(document.documentElement).getPropertyValue("--vocabulary-tag-color"));
             randomSubjectType.style.color = fontColorFromBackground(color.r, color.g, color.b);
         }
-        randomSubjectType.style.filter = "invert(1)";
     }
 }
 
@@ -206,7 +213,7 @@ const fetchImageData = async url => {
 window.addEventListener("click", async e => {
     const target = e.target;
 
-    const clickable = target.closest(".clickable");
+    const clickable = target.closest(".side-panel-tab");
     if (clickable) {
         if (clickable.querySelector("#exit")) {
             const loading = new MessagePopup(document.body);
@@ -273,7 +280,7 @@ const expandSideBar = (sidebar, open=true) => {
                     });
                 
                 Array.from(document.getElementsByClassName("side-panel-info-alert"))
-                    .forEach(div => div.style.left = "19px");
+                    .forEach(div => div.style.left = "27px");
             }
         }
         else {
