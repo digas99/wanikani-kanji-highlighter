@@ -981,13 +981,12 @@
 				wrapper.appendChild(timePassedWrapper);
 				timePassedWrapper.style.setProperty("padding", "2px 0px 2px 8px", "important");
 				timePassedWrapper.style.setProperty("font-weight", "bold", "important");
-				const days = msToDays(new Date() - new Date(values[key])).toFixed(0);
-				console.log(days);
+				const days = Number(msToDays(new Date() - new Date(values[key])).toFixed(0));
 				let timePassed;
-				if (days === '0') timePassed = "Today";
-				else if (days === '1') timePassed = "Yesterday";
-				else if (days === '-1') timePassed = "Tomorrow";
-				else if (parseInt(days) < 0) timePassed = "In "+(parseInt(days)*-1)+((parseInt(days)*-1) === 1 ? " day" : " days");
+				if (days == 0) timePassed = "Today";
+				else if (days === 1) timePassed = "Yesterday";
+				else if (days === -1) timePassed = "Tomorrow";
+				else if (days < 0) timePassed = "In "+(days*-1)+((days*-1) === 1 ? " day" : " days");
 				else timePassed = days+" days ago";
 				timePassedWrapper.appendChild(document.createTextNode(timePassed));
 
