@@ -1,3 +1,11 @@
+# [Changelog v1.2.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.0)
+
+## Technicalities
+- Subject Details Popup now fetches data directly from IndexedDB, instead of Chrome Storage, making it way faster to load on the Extension Popup ([#30](https://github.com/digas99/wanikani-kanji-highlighter/issues/30))
+
+## Content
+- Kanji Highlighting is now faster because Chrome Storage is no longer accessed while browsing
+
 # [Changelog v1.1.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.2)
 
 ## Bug Fixes

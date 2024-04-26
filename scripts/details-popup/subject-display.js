@@ -201,11 +201,7 @@
 			
 			// if clicking on navbar li
 			if (node.closest(".sd-popupDetails_navbar") && node.tagName === "LI") {
-				node.getElementsByTagName("A")[0].dispatchEvent(new MouseEvent("click", {
-					"view": window,
-					"bubbles": true,
-					"cancelable": false
-				}));
+				node.querySelector("div").click();
 			}
 		});
 	}
@@ -219,8 +215,6 @@
 			this.other = await this.fetch(this.otherIds(this.subject));
 			this.type = this.subject["subject_type"];
 
-			console.log(this.subject, this.other, this.type);
-			
 			Array.from(document.getElementsByClassName("sd-detailsPopup")).forEach(elem => elem.remove());
 
 			this.detailsPopup = document.createElement("div");
@@ -240,13 +234,13 @@
 		},
 
 		// update popup
-		update: function (subject, other, save) {
+		update: async function (subject, other, save) {
 			if (subject && other) {
 				this.subject = subject;
 				this.other = other;
 				this.type = subject["subject_type"];
 
-				if (!this.detailsPopup) this.create();
+				if (!this.detailsPopup) await this.create();
 
 				if (this.detailsPopup.firstChild)
 					this.detailsPopup.firstChild.remove();

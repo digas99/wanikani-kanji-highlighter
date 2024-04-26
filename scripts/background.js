@@ -299,7 +299,9 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 
 let highlightUpdateFunction;
 
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	console.log(request);
+	
 	// sends to the content script information about key pressing and the reference to the highlight update function
 	if (request.key)
 		tabs.sendMessage(thisTabId, {key: request.key, intervalFunction: highlightUpdateFunction});
@@ -320,11 +322,6 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 		});
 	}
 
-	if (request.imgUrl) {
-		sendResponse({imgUrl: imgUrlTest});
-		return true;
-	}
-
 	if (request.selectedText)
 		chrome.contextMenus.update("wkhighlighterSearchKanji", {title: `Search WaniKani for "${request.selectedText}"`});
 
@@ -336,7 +333,18 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 	if (request.kanaWriting)
 		kanaWriting = request.kanaWriting;
 
+	if (request.fetchSubjects) {
+		(async () => {
+			const db = new Database("wanikani");
+			const opened = await db.open("subjects");
+			if (opened) {
+				const subjects = await db.getAll("subjects", "id", request.fetchSubjects);
+				sendResponse(subjects);
+			}
+		})();
 
+		return true;
+	}
 	// DRIVE MESSAGES BACK TO THE POPUP
 
 	// drive the setup progress back to the popup
@@ -356,6 +364,7 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 	if (request.loadData) {
 		loadData(request.loadData);
 	}
+
 });
 
 chrome.contextMenus.onClicked.addListener(data => {

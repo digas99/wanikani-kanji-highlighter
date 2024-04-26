@@ -8,30 +8,6 @@ if (!messagePopup) {
 const url = new URL(window.location.href);
 let id = url.searchParams.get("id");
 
-const getIds = subject => {
-	let ids = [];
-	switch (subject["subject_type"]) {
-		case "radical":
-			ids = [
-				...subject.amalgamation_subject_ids
-			];
-			break;
-		case "kanji":
-			ids = [
-				...subject.amalgamation_subject_ids,
-				...subject.component_subject_ids,
-				...subject.visually_similar_subject_ids
-			];
-			break;
-		case "vocabulary":
-		case "kana_vocabulary":
-			ids = [
-				...subject.component_subject_ids
-			];
-	}
-	return ids;
-}
-
 chrome.storage.local.get(["settings"], async result => {
 	if (popupLoading) popupLoading.remove();
 	

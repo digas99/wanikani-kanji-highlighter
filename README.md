@@ -19,7 +19,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v112)
+1. [Latest Features](#changelog-v120)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -31,39 +31,13 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
-## [Changelog v1.1.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.2)
+## [Changelog v1.2.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.0)
 
-### Bug Fixes
-- Dark mode now works without delay
-- Fixed timestamps on Subject Details Popup ([#16](https://github.com/digas99/wanikani-kanji-highlighter/issues/16))
+### Technicalities
+- Subject Details Popup now fetches data directly from IndexedDB, instead of Chrome Storage, making it way faster to load on the Extension Popup ([#30](https://github.com/digas99/wanikani-kanji-highlighter/issues/30))
 
-### Popup
-- Improved interactions with Future Reviews chart
-- Added Kanji Highlight to Subject Page
-- Improved overall interaction with the top and side navigation bar
-
-## [Changelog v1.1.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.1)
-
-### Bug Fixes
-- Fixed the avatar and level delayed loading on the Popup sidebar
-
-### Popup
-- Added new interactions to Future Reviews chart:
-  - Clicking on a bar will now longer take you to another page (the list of subjects is updated on the same page)
-  - Clicking within the chart but outside the bars will show the list of subjects for that day
-  - Clicking outside the chart will go back to showing the list of all available reviews
-- Improved the Changelog dump in the About page
-
-## [Changelog v1.1.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.0)
-
-### Bug Fixes
-- Fixed display of Radicals subject tiles on those with image instead of character
-- Fixed wrong highlighting in subject mnemonics ([#6](https://github.com/digas99/wanikani-kanji-highlighter/issues/6))
-
-### Popup
-- Added levels progression stats accessible through the Profile Page ([#18](https://github.com/digas99/wanikani-kanji-highlighter/issues/18))
-- Go back arrows now navigate through the popup browsing history. A home button was added to replace the previous functionality of the back arrow
-- Using the right click on a subject tile opens a Subject Details Page on the Extension Popup ([#26](https://github.com/digas99/wanikani-kanji-highlighter/issues/26))
+### Content
+- Kanji Highlighting is now faster because Chrome Storage is no longer used while browsing
   
 #### [(All changelogs)](CHANGELOG.md)
 
