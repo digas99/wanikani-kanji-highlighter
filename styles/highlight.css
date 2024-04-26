@@ -69,3 +69,7 @@
 .wkhighlighter_highlighted_underlined, .wkhighlighter_highlighted_bold, .wkhighlighter_highlightedNotLearned_underlined, .wkhighlighter_highlightedNotLearned_bold {
     background: unset !important;
 }
+
+span.wkhighlighter_clickable.wkhighlighter_hoverable {
+	cursor: context-menu !important;
+}

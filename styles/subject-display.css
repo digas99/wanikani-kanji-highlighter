@@ -441,7 +441,7 @@
 	transition: 0.3s;
 }
 
-.sd-detailsPopup_sentencesWrapper .sd-highlighted, .sd-highlightedNotLearned {
+.sd-detailsPopup span.wkhighlighter_clickable.wkhighlighter_hoverable {
 	cursor: pointer !important;
 }
 
