@@ -1,3 +1,7 @@
+html {
+	background-color: var(--default-color) !important;
+}
+
 #subject-details .sd-detailsPopup {
 	z-index: 10;
 	margin-top: 50px;

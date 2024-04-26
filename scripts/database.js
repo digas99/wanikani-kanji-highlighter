@@ -8,7 +8,8 @@
         open: function(table, key, indexes) {
             this.key = key;
 
-            const request = indexedDB.open(this.name, 1);
+            const version = 7;
+            const request = indexedDB.open(this.name, version);
 
             const that = this;
             return new Promise((resolve, reject) => {
@@ -20,16 +21,57 @@
                 request.onupgradeneeded = e => {
                     that.db = e.target.result;
 
-                    let objectStore;
-                    if (typeof that.db.openObjectStore !== 'function')
-                        objectStore = that.db.createObjectStore(table, {keyPath: key});
-                    else
-                        objectStore = that.db.openObjectStore(table, {keyPath: key});
-                    
-                    if (indexes)
-                        indexes.forEach(index => objectStore.createIndex(index, [index], {unique: false}));
+                    const transaction = e.target.transaction;
+                    const deletionPromises = [];
 
-                    objectStore.transaction.oncomplete = () => console.log("Table created", that.db);
+                    // delete all temp tables
+                    for (let name of Object.values(that.db.objectStoreNames)) {
+                        console.log(name, name.includes("temp"));
+                        if (name.includes("temp")) {
+                            const deletionPromise = new Promise((resolve, reject) => {
+                                const deletionRequest = that.db.deleteObjectStore(name);
+                                deletionRequest.onsuccess = () => resolve();
+                                deletionRequest.onerror = () => reject();
+                            });
+                            deletionPromises.push(deletionPromise);
+                        }
+                    }
+                
+                    Promise.all(deletionPromises)
+                        .then(() => {
+                            let objectStore;
+                            if (that.db.objectStoreNames.contains(table)) {
+                                objectStore = transaction.objectStore(table);
+                                console.log(key);
+                                const newObjectStore = that.db.createObjectStore(table + "_temp"+version, {keyPath: key});
+        
+                                objectStore.openCursor().onsuccess = e => {
+                                    const cursor = e.target.result;
+                                    if (cursor) {
+                                        newObjectStore.add(cursor.value);
+                                        cursor.continue();
+                                    }
+                                };
+        
+                                transaction.oncomplete = () => {
+                                    that.db.deleteObjectStore(table);
+                                    that.db.renameObjectStore(table + "_temp"+version, table);
+                                    console.log("Table upgraded");
+                                }
+                            }
+                            else {
+                                if (typeof that.db.openObjectStore !== 'function')
+                                    objectStore = that.db.createObjectStore(table, {keyPath: key});
+                                else
+                                    objectStore = that.db.openObjectStore(table, {keyPath: key});
+                                
+                                if (indexes)
+                                    indexes.forEach(index => objectStore.createIndex(index, [index], {unique: false}));
+            
+                                transaction.oncomplete = () => console.log("Table created", that.db);
+                            }
+                        })
+                        .catch(() => console.log("Problem deleting temp tables."));
                 }
 
                 request.onsuccess = e => {

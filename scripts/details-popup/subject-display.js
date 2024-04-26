@@ -1,15 +1,16 @@
 (function () {
 	// construtctor
-	const SubjectDisplay = function(radicals, kanji, vocabulary, width, wrapper) {
-		this.allRadicals = radicals;
-		this.allKanji = kanji;
-		this.allVocab = vocabulary;
+	const SubjectDisplay = function(id, width, wrapper, fetch, otherIds) {
+		this.fetch = fetch;
+		this.id = id;
 		this.width = width;
+		this.wrapper = wrapper;
+		this.otherIds = otherIds;
+
 		this.fixed = false;
 		this.locked = false;
 		this.expanded = false;
 		this.openedSubjects = [];
-		this.wrapper = wrapper;
 
 		document.addEventListener("mouseover", e => {
 			const node = e.target;
@@ -58,15 +59,16 @@
 						img.src = src;
 					}
 
-					const list = type == "kanji" ? this.allKanji[id] : this.allVocab[id];
+					const list = this.other[id];
 					if (list) {
-						if (list["srs_stage"] != undefined) {
+						const srsId = list["srs_stage"] < 0 || list["srs_stage"] > 9 ? null : list["srs_stage"];
+						if (srsId != null) {
 							const srsLi = document.createElement("li");
 							ul.appendChild(srsLi);
 							srsLi.style.setProperty("font-weight", "900", "important");
 							srsLi.title = "SRS Stage";
-							srsLi.appendChild(document.createTextNode(srsStages[list["srs_stage"]]["short"]));
-							srsLi.style.setProperty("color", `var(--${srsStages[list["srs_stage"]]["short"].toLowerCase()}-color)`);
+							srsLi.appendChild(document.createTextNode(srsStages[srsId]["short"]));
+							srsLi.style.setProperty("color", `var(--${srsStages[srsId]["short"].toLowerCase()}-color)`);
 							srsLi.style.setProperty("font-size", "13px", "important")
 						}
 	
@@ -87,7 +89,7 @@
 			}
 		});
 
-		document.addEventListener("click", e => {
+		document.addEventListener("click", async e => {
 			const node = e.target;
 
 			// if clicked on close button
@@ -109,7 +111,7 @@
 			
 			// clicked on sidebar audio
 			if (node.classList.contains("sd-detailsPopup_cardSideBarAudio")) {
-				playSubjectAudio(this.allVocab[getItemIdFromSideBar(node.parentElement.parentElement.parentElement)]["pronunciation_audios"], node);
+				playSubjectAudio(this.other[getItemIdFromSideBar(node.parentElement.parentElement.parentElement)]["pronunciation_audios"], node);
 				node.firstChild.src = "https://i.imgur.com/ETwuWqJ.png";
 				setTimeout(() => node.firstChild.src = "https://i.imgur.com/wjbObC4.png", 1500);
 			}
@@ -118,15 +120,17 @@
 			if (node.classList.contains("sd-detailsPopup_cardSideBarInfo")) {
 				const target = node.parentElement.parentElement.parentElement;
 				const id = getItemIdFromSideBar(target);
-				if (id)
-					this.update(id, true);
+				if (id) {
+					const subject = this.other[id];
+					this.update(subject, await this.fetch(this.otherIds(subject)), true);
+				}
 			}
 
 			// clicked on sidebar copy
 			if (node.classList.contains("sd-detailsPopup_cardSideBarCopy")) {
 				const id = getItemIdFromSideBar(node.parentElement.parentElement.parentElement);
 				if (window.navigator.clipboard && id) {
-					const item = this.allKanji[id] ? this.allKanji[id] : this.allVocab[id];
+					const item = this.other[id];
 					window.navigator.clipboard.writeText(item["characters"]).
 						then(() => {
 							node.firstChild.src = "https://i.imgur.com/eL3HiGE.png";
@@ -173,13 +177,15 @@
 
 					const kanji = this.openedSubjects[this.openedSubjects.length-1];
 					if (kanji) {
-						this.update(kanji["id"], false);
+						const id = kanji["id"];
+						const subject = this.other[id];
+						this.update(subject, await this.fetch(this.otherIds(subject)), true);
 					}
 				}
 				
 				if (node.id == "sd-detailsPopupCopy") {
-					if (window.navigator.clipboard && this.currentItem) {
-						window.navigator.clipboard.writeText(this.currentItem["characters"]).
+					if (window.navigator.clipboard && this.subject) {
+						window.navigator.clipboard.writeText(this.subject["characters"]).
 							then(() => {
 								Array.from(document.getElementsByClassName("sd-copiedMessage")).forEach(elem => elem.remove());
 								const copiedMessage = document.createElement("div");
@@ -207,38 +213,51 @@
 	SubjectDisplay.prototype = {
 
 		// create popup
-		create: function() {
+		create: async function(expanded=false) {
+			const subjectData = await this.fetch(this.id);
+			this.subject = subjectData[this.id];
+			this.other = await this.fetch(this.otherIds(this.subject));
+			this.type = this.subject["subject_type"];
+
+			console.log(this.subject, this.other, this.type);
+			
 			Array.from(document.getElementsByClassName("sd-detailsPopup")).forEach(elem => elem.remove());
 
 			this.detailsPopup = document.createElement("div");
+			this.wrapper.appendChild(this.detailsPopup);
+
 			this.detailsPopup.className = "sd-rightOverFlowPopup sd-detailsPopup";
 			this.detailsPopup.style.setProperty("transition", "0.3s", "important");
-			this.wrapper.appendChild(this.detailsPopup);
 			setTimeout(() => {
 				this.detailsPopup.classList.remove("sd-rightOverFlowPopup");
 				setTimeout(() => this.detailsPopup.style.removeProperty("transition"), 300);
 			}, 20);
+			
+			if (expanded)
+				this.expand();
+
+			this.update(this.subject, this.other, true);
 		},
 
 		// update popup
-		update: function (id, save) {
-			if (id) {
-				const type = this.allKanji[id] ? "kanji" : "vocabulary";
-				const item = type === "kanji" ? this.allKanji[id] : this.allVocab[id];
-				this.currentItem = item;
+		update: function (subject, other, save) {
+			if (subject && other) {
+				this.subject = subject;
+				this.other = other;
+				this.type = subject["subject_type"];
 
 				if (!this.detailsPopup) this.create();
 
 				if (this.detailsPopup.firstChild)
 					this.detailsPopup.firstChild.remove();
-				this.detailsPopup.appendChild(this.charContainer(item["characters"], id, save));
+				this.detailsPopup.appendChild(this.charContainer(subject, save));
 
 				// srs stage border
-				if (item["hidden_at"])
+				if (subject["hidden_at"])
 					this.detailsPopup.style.setProperty("border-top", "4px solid yellow", "important");	
 				else {
-					const srsId = item["srs_stage"];
-					this.detailsPopup.style.setProperty("border-top", "4px solid "+(srsId != undefined ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "white"), "important");	
+					const srsId = subject["srs_stage"] < 0 || subject["srs_stage"] > 9 ? null : subject["srs_stage"];
+					this.detailsPopup.style.setProperty("border-top", "4px solid "+(srsId != null ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "white"), "important");	
 				}
 				
 				const detailedInfoWrapper = this.detailsPopup.getElementsByClassName("sd-popupDetails_detailedInfoWrapper");
@@ -246,7 +265,7 @@
 					Array.from(detailedInfoWrapper).forEach(wrapper => wrapper.remove());
 				
 				if (this.expanded) {
-					this.detailsPopup.appendChild(type === "kanji" ? this.kanjiDetailedInfo(item) : this.vocabDetailedInfo(item));
+					this.detailsPopup.appendChild(this.type === "kanji" ? this.kanjiDetailedInfo(subject) : this.vocabDetailedInfo(subject));
 
 					// show kanji container buttons
 					const buttons = Array.from(this.detailsPopup.getElementsByClassName("sd-detailsPopupButton"));
@@ -289,7 +308,7 @@
 			if (itemWrapper) {
 				const type = itemWrapper.getElementsByClassName("sd-detailsPopup_kanji")[0].getAttribute('data-item-type');
 				const id = itemWrapper.getElementsByClassName("sd-detailsPopup_kanji")[0].getAttribute('data-item-id');
-				this.detailsPopup.appendChild(type == "kanji" ? this.kanjiDetailedInfo(this.allKanji[id]) : this.vocabDetailedInfo(this.allVocab[id]));
+				this.detailsPopup.appendChild(type == "kanji" ? this.kanjiDetailedInfo(this.subject) : this.vocabDetailedInfo(this.subject));
 			
 				// show kanji container buttons
 				const buttons = Array.from(document.getElementsByClassName("sd-detailsPopupButton"));
@@ -374,7 +393,7 @@
 				srsStageText.style.setProperty("color", "yellow", "important");
 				srsStageText.title = "This subject no longer shows up in lessons or reviews, since "+kanjiInfo["hidden_at"].split("T")[0]+".";
 			}
-			else if (srsStageId != undefined) {
+			else if (srsStageId >= 0 && srsStageId <= 9) {
 				srsStageText.appendChild(document.createTextNode(srsStages[srsStageId]["name"]));
 				srsStageText.style.setProperty("color", `var(--${srsStages[srsStageId]["short"].toLowerCase()}-color)`, "important");				
 			}
@@ -399,8 +418,6 @@
 				schoolLevel.style.setProperty("color", "#b8b8b8", "important");
 			}
 
-			console.log(kanjiInfo);
-			
 			// meaning mnemonic container
 			details.appendChild(infoTable("Meaning Mnemonic", [kanjiInfo["meaning_mnemonic"], kanjiInfo["meaning_hint"]]));
 		
@@ -413,13 +430,13 @@
 			cardsSection.classList.add("sd-popupDetails_anchor");
 			
 			// used radicals cards
-			details.appendChild(itemCardsSection(kanjiInfo, "component_subject_ids", "Used Radicals", "sd-detailsPopup_radicals_row", this.allRadicals));
+			details.appendChild(itemCardsSection(kanjiInfo, "component_subject_ids", "Used Radicals", "sd-detailsPopup_radicals_row", this.other));
 		
 			// similar kanji cards
-			details.appendChild(itemCardsSection(kanjiInfo, "visually_similar_subject_ids", "Similar Kanji", "sd-detailsPopup_kanji_row", this.allKanji));
+			details.appendChild(itemCardsSection(kanjiInfo, "visually_similar_subject_ids", "Similar Kanji", "sd-detailsPopup_kanji_row", this.other));
 		
 			// vocabulary with that kanji
-			details.appendChild(itemCardsSection(kanjiInfo, "amalgamation_subject_ids", "Vocabulary", "sd-detailsPopup_vocab_row", this.allVocab));
+			details.appendChild(itemCardsSection(kanjiInfo, "amalgamation_subject_ids", "Vocabulary", "sd-detailsPopup_vocab_row", this.other));
 		
 			const statsSection = document.createElement("div");
 			details.appendChild(statsSection);
@@ -501,7 +518,8 @@
 			audioButtonWrapper.appendChild(audioButton);
 			audioButton.src = "https://i.imgur.com/ETwuWqJ.png";
 			audioButton.style.setProperty("width", "18px", "important");
-			audioButton.addEventListener("click", () => playSubjectAudio(this.allVocab[document.getElementsByClassName("sd-detailsPopup_kanji")[0].getAttribute("data-item-id")]["pronunciation_audios"], audioButtonWrapper));
+
+			audioButton.addEventListener("click", () => playSubjectAudio(this.subject["pronunciation_audios"], audioButtonWrapper));
 
 			const infoSection = document.createElement("div");
 			details.appendChild(infoSection);
@@ -533,7 +551,7 @@
 				passed.style.setProperty("width", "13px", "important");
 				srsStage.title = "This subject no longer shows up in lessons or reviews, since "+vocabInfo["hidden_at"].split("T")[0]+".";
 			}
-			else if (srsStageId != undefined) {
+			else if (srsStageId >= 0 && srsStageId <= 9) {
 				srsStageText.appendChild(document.createTextNode(srsStages[srsStageId]["name"]));
 				srsStageText.style.setProperty("color", `var(--${srsStages[srsStageId]["short"].toLowerCase()}-color)`, "important");				
 			}
@@ -549,49 +567,55 @@
 			meaningTitle.appendChild(document.createTextNode(vocabInfo["meanings"].join(", ")));
 			meaning.appendChild(meaningTitle);
 			details.appendChild(meaning);
-
-			const partOfSpeech = document.createElement("div");
-			details.appendChild(partOfSpeech);
-			partOfSpeech.appendChild(document.createTextNode(vocabInfo["parts_of_speech"][0].charAt(0).toUpperCase()+vocabInfo["parts_of_speech"].join(", ").slice(1)));
-			partOfSpeech.style.setProperty("color", "#b8b8b8", "important");
-
-			// meaning mnemonic container
-			details.appendChild(infoTable("Meaning Mnemonic", [vocabInfo["meaning_mnemonic"]]));
-
-			if (vocabInfo["subject_type"] == "vocabulary") {
-				// reading mnemonic container
-				details.appendChild(infoTable("Reading Mnemonic", [vocabInfo["reading_mnemonic"]]));
+			
+			if (vocabInfo["parts_of_speech"]) {
+				const partOfSpeech = document.createElement("div");
+				details.appendChild(partOfSpeech);
+				partOfSpeech.appendChild(document.createTextNode(vocabInfo["parts_of_speech"][0].charAt(0).toUpperCase()+vocabInfo["parts_of_speech"].join(", ").slice(1)));
+				partOfSpeech.style.setProperty("color", "#b8b8b8", "important");
+			}
+			
+			if (vocabInfo["meaning_mnemonic"]) {
+				// meaning mnemonic container
+				details.appendChild(infoTable("Meaning Mnemonic", [vocabInfo["meaning_mnemonic"]]));
 	
-				const cardsSection = document.createElement("div");
-				details.appendChild(cardsSection);
-				cardsSection.id = "sd-popupDetails_CardsSection";
-				cardsSection.classList.add("sd-popupDetails_anchor");
-	
-				// used kanji
-				details.appendChild(itemCardsSection(vocabInfo, "component_subject_ids", "Used Kanji", "sd-detailsPopup_kanji_row", this.allKanji));
+				if (vocabInfo["subject_type"] == "vocabulary") {
+					// reading mnemonic container
+					details.appendChild(infoTable("Reading Mnemonic", [vocabInfo["reading_mnemonic"]]));
+		
+					const cardsSection = document.createElement("div");
+					details.appendChild(cardsSection);
+					cardsSection.id = "sd-popupDetails_CardsSection";
+					cardsSection.classList.add("sd-popupDetails_anchor");
+		
+					// used kanji
+					details.appendChild(itemCardsSection(vocabInfo, "component_subject_ids", "Used Kanji", "sd-detailsPopup_kanji_row", this.other));
+				}
 			}
 
 			// sentences
-			const sentencesTable = infoTable("Example Sentences", []); 
-			details.appendChild(sentencesTable);
-			vocabInfo["context_sentences"].forEach(sentence => {
-				const wrapper = document.createElement("ul");
-				sentencesTable.appendChild(wrapper);
-				wrapper.classList.add("sd-detailsPopup_sentencesWrapper");
-
-				const en = document.createElement("li");
-				wrapper.appendChild(en);
-				en.classList.add("sd-popupDetails_p");
-				en.style.setProperty("background-color", "#3a374a", "important");
-				en.style.setProperty("padding", "5px", "important");
-				en.appendChild(document.createTextNode(sentence["en"]));
-
-				const ja = document.createElement("li");
-				wrapper.appendChild(ja);
-				ja.style.setProperty("padding", "0px 5px", "important");
-				ja.appendChild(document.createTextNode(sentence["ja"]));
-
-			});
+			if (vocabInfo["context_sentences"]) {
+				const sentencesTable = infoTable("Example Sentences", []); 
+				details.appendChild(sentencesTable);
+				vocabInfo["context_sentences"].forEach(sentence => {
+					const wrapper = document.createElement("ul");
+					sentencesTable.appendChild(wrapper);
+					wrapper.classList.add("sd-detailsPopup_sentencesWrapper");
+	
+					const en = document.createElement("li");
+					wrapper.appendChild(en);
+					en.classList.add("sd-popupDetails_p");
+					en.style.setProperty("background-color", "#3a374a", "important");
+					en.style.setProperty("padding", "5px", "important");
+					en.appendChild(document.createTextNode(sentence["en"]));
+	
+					const ja = document.createElement("li");
+					wrapper.appendChild(ja);
+					ja.style.setProperty("padding", "0px 5px", "important");
+					ja.appendChild(document.createTextNode(sentence["ja"]));
+	
+				});
+			}
 
 			const statsSection = document.createElement("div");
 			details.appendChild(statsSection);
@@ -623,10 +647,9 @@
 			return detailedInfoWrapper;
 		},
 
-		charContainer: function (characters, id, save) {
-			const type = this.allKanji[id] ? "kanji" : "vocabulary";
-			const item = type === "kanji" ? this.allKanji[id] : this.allVocab[id];
-
+		charContainer: function (subject, save) {
+			const id = subject["id"];
+			const characters = subject["characters"];
 			const itemWrapper = document.createElement("div");
 			if (this.expanded) {
 				itemWrapper.classList.add("sd-focusPopup_kanji");
@@ -641,7 +664,7 @@
 				kanjiTitle.style.setProperty("background-color", "white", "important");
 				kanjiTitle.style.setProperty("margin-bottom", "8px", "important");
 				kanjiTitle.style.setProperty("text-align", "center", "important");
-				kanjiTitle.appendChild(document.createTextNode(item["meanings"][0]));
+				kanjiTitle.appendChild(document.createTextNode(subject["meanings"][0]));
 				kanjiTitle.classList.add("sd-smallDetailsPopupKanjiTitle");
 
 				if (characters.length >= 3)
@@ -694,7 +717,7 @@
 				}
 			});
 
-			const infoToSave = {"id":id, "char":characters, "type":type};
+			const infoToSave = {"id":id, "char":characters, "type":this.type};
 			// only save if the last save wasn't this kanji already
 			if (save && !(this.openedSubjects.length > 0 && this.openedSubjects[this.openedSubjects.length-1]["id"] == infoToSave["id"]))
 				this.openedSubjects.push(infoToSave);
@@ -710,7 +733,7 @@
 			const charsWrapper = document.createElement("p");
 			link.appendChild(charsWrapper);
 			charsWrapper.appendChild(document.createTextNode(characters));
-			charsWrapper.setAttribute('data-item-type', type);
+			charsWrapper.setAttribute('data-item-type', this.type);
 			charsWrapper.setAttribute('data-item-id', id);
 			charsWrapper.title = characters+" in WaniKani";
 			if (characters.length > 4) 
@@ -718,14 +741,14 @@
 		
 			charsWrapper.classList.add("sd-detailsPopup_kanji");
 		
-			link.href = item["document_url"];
+			link.href = subject["document_url"];
 		
 			const ul = document.createElement("ul");
 			ul.classList.add("sd-popupDetails_readings");
 					
-			const readings = item["readings"];
+			const readings = subject["readings"];
 			if (readings) {
-				if (type == "kanji") {
+				if (this.type == "kanji") {
 					([["ON", "onyomi"], ["KUN", "kunyomi"]]).forEach(type => {
 						const li = document.createElement("li");
 						li.innerHTML = `<strong>${type[0]}: </strong>`;
@@ -843,7 +866,7 @@
 	
 		}
 
-		li.style.setProperty("border-top", "4px solid " + (srsId != undefined ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "white"), "important");
+		li.style.setProperty("border-top", "4px solid " + (srsId >=0 && srsId <= 9 ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "white"), "important");
 
 		if (level) {
 			const levelDiv = document.createElement("div");
@@ -959,7 +982,6 @@
 		const timestampsWrapper = document.createElement("div");
 		timestampsWrapper.style.setProperty("margin-top", "10px", "important");
 		for (const key in values) {
-			console.log(key, new Date(values[key]).toLocaleString(), values[key]);
 			const wrapper = document.createElement("div");
 			timestampsWrapper.appendChild(wrapper);
 			wrapper.style.setProperty("padding", "5px 0px", "important");

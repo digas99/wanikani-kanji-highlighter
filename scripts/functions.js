@@ -278,8 +278,13 @@ const setupVocab = (vocabs, assocs, records, vocab) => {
 	records.push({
 		"characters" : data.characters,
 		"component_subject_ids" : data.component_subject_ids, 
+		"context_sentences" : data.context_sentences,
+		"document_url" : data.document_url,
 		"level" : data.level,
 		"meanings" : data.meanings.map(data => data.meaning),
+		"meaning_mnemonic" : data.meaning_mnemonic,
+		"parts_of_speech" : data.parts_of_speech,
+		"reading_mnemonic" : data.reading_mnemonic,
 		"readings" : data.readings.map(data => data.reading),
 		"id":vocab.id,
 		"subject_type":vocab.object,
@@ -313,12 +318,16 @@ const setupKanaVocab = (vocabs, assocs, records, vocab) => {
 
 	records.push({
 		"characters" : data.characters,
+		"document_url" : data.document_url,
+		"context_sentences" : data.context_sentences,
 		"level" : data.level,
 		"meanings" : data.meanings.map(data => data.meaning),
+		"meaning_mnemonic" : data.meaning_mnemonic,
 		"id":vocab.id,
 		"subject_type":vocab.object,
 		"hidden_at":data.hidden_at,
 		"pronunciation_audios" : data.pronunciation_audios,
+		"parts_of_speech" : data.parts_of_speech,
 		"srs_stage" : -1,
 		"hidden" : null,
 		"passed_at" : null,
@@ -354,16 +363,21 @@ const setupKanji = (kanjis, assocs, records, kanji) => {
 		"amalgamation_subject_ids" : data.amalgamation_subject_ids,
 		"characters" : data.characters,
 		"component_subject_ids" : data.component_subject_ids,
+		"document_url" : data.document_url,
 		"level" : data.level,
 		"meanings" : data.meanings.map(data => data.meaning),
+		"meaning_hint" : data.meaning_hint,
+		"meaning_mnemonic" : data.meaning_mnemonic,
+		"reading_hint" : data.reading_hint,
+		"reading_mnemonic" : data.reading_mnemonic,
 		"readings" : data.readings,
 		"visually_similar_subject_ids" : data.visually_similar_subject_ids,
+		"slug": data.slug,
 		"id" : kanji.id,
 		"subject_type" : kanji.object,
 		"hidden_at" : data.hidden_at,
 		"srs_stage" : -1,
 		"hidden" : null,
-		"passed_at" : null
 	});
 
 	assocs[data.slug] = kanji.id;
@@ -681,7 +695,8 @@ const subjectsAssignmentStats = async list => {
 
                         return db.get("subjects", subjectId).then(result => {
                             if (result) {
-                                ["srs_stage", "hidden", "passed_at", "available_at"].forEach(key => result[key] = data[key]);
+								["srs_stage", "hidden", "passed_at", "available_at"].forEach(key => result[key] = data[key]);
+								result["timestamps"] = timestamps;
                                 return db.update("subjects", result);
                             }
                         });
@@ -714,12 +729,11 @@ const subjectsReviewStats = async (apiToken, lists) => {
 				return;
 			}
 
-			console.log(lists);
 			for (const list of lists) {
 				const type = list[Object.keys(list)[0]]["subject_type"];
 				console.log(`[REVIEW STATS]: Associating review statistics with ${type} ...`);
 
-				stats.map(coll => coll["data"]).flat(1).forEach(stat => {
+				const updatePromises = stats.map(coll => coll["data"]).flat(1).forEach(stat => {
 					const data = stat["data"];
 					const subjectId = data["subject_id"];
 					if (subjectId && list[subjectId]) {
@@ -735,8 +749,20 @@ const subjectsReviewStats = async (apiToken, lists) => {
 							reading_incorrect: data["reading_incorrect"],
 							reading_max_streak: data["reading_max_streak"]
 						};
+
+						return db.get("subjects", subjectId).then(result => {
+                            if (result) {
+								result["stats"] = subject["stats"];
+                                return db.update("subjects", result);
+                            }
+                        });
 					}
 				});
+
+				if (updatePromises && updatePromises.length > 0)
+					await Promise.all(updatePromises);
+				else
+					console.log("No Promises to resolve");
 
 				chrome.storage.local.set({ [type]: list }, () => console.log(`[REVIEW STATS]: ${type} updated`));
 			}
@@ -851,17 +877,19 @@ const headerSubjectDecoration = (header, type) => {
 }
 
 const getCharacter = subject => {
-	if (subject["characters"])
-		return subject["characters"];
-	else {
-		const imageUrl = subject["character_images"]?.find(image => image["content_type"] == "image/svg+xml")["url"];
-		if (imageUrl) {
-			return `<svg style="width: 23px; height: 23px; filter: invert(1);">       
-				<image xlink:href="${imageUrl}" src="${imageUrl}" width="22" height="22"></image>    
-			</svg>`;
+	if (subject) {
+		if (subject["characters"])
+			return subject["characters"];
+		else {
+			const imageUrl = subject["character_images"]?.find(image => image["content_type"] == "image/svg+xml")["url"];
+			if (imageUrl) {
+				return `<svg style="width: 23px; height: 23px; filter: invert(1);">       
+					<image xlink:href="${imageUrl}" src="${imageUrl}" width="22" height="22"></image>    
+				</svg>`;
+			}
+	
+			return "";
 		}
-
-		return "";
 	}
 }
 

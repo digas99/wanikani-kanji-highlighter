@@ -8,7 +8,31 @@ if (!messagePopup) {
 const url = new URL(window.location.href);
 let id = url.searchParams.get("id");
 
-chrome.storage.local.get(["kanji", "radicals", "vocabulary", "kana_vocabulary", "settings"], async result => {
+const getIds = subject => {
+	let ids = [];
+	switch (subject["subject_type"]) {
+		case "radical":
+			ids = [
+				...subject.amalgamation_subject_ids
+			];
+			break;
+		case "kanji":
+			ids = [
+				...subject.amalgamation_subject_ids,
+				...subject.component_subject_ids,
+				...subject.visually_similar_subject_ids
+			];
+			break;
+		case "vocabulary":
+		case "kana_vocabulary":
+			ids = [
+				...subject.component_subject_ids
+			];
+	}
+	return ids;
+}
+
+chrome.storage.local.get(["settings"], async result => {
 	if (popupLoading) popupLoading.remove();
 	
 	const highlightStyleSettings = result["settings"]["highlight_style"];
@@ -18,51 +42,59 @@ chrome.storage.local.get(["kanji", "radicals", "vocabulary", "kana_vocabulary", 
 		notLearnedHighlightingClass = highlightStyleSettings["not_learned"];
 	}
 
-	const allKanji = result["kanji"];
-	const allRadicals = result["radicals"];
-	const allVocab = {...result["vocabulary"], ...result["kana_vocabulary"]};
-	if (allKanji && allRadicals && allVocab) {
-		if (id.split("-")[0] === "rand") {
-			let allSubjectsKeys = [Object.keys(allKanji), Object.keys(allVocab)].flat(1);
-			if (id.split("-")[1] === "kanji") allSubjectsKeys = Object.keys(allKanji);
-			else if (id.split("-")[1] === "vocabulary") allSubjectsKeys = Object.keys(allVocab);
-	
-			if (allSubjectsKeys)
-				id = allSubjectsKeys[rand(0, allSubjectsKeys.length-1)];
-		}
+	const db = new Database("wanikani");
 
-		const wrapper = document.querySelector("#subject-details");
-		const width = window.innerWidth-document.querySelector(".side-panel").offsetWidth;
-		const details = new SubjectDisplay(allRadicals, allKanji, allVocab, width, wrapper);
-		details.update(id, true);
-		details.expand();
-		wrapper.firstChild.style.removeProperty("width");
+	const wrapper = document.querySelector("#subject-details");
+	const width = window.innerWidth-document.querySelector(".side-panel").offsetWidth;
+	const details = new SubjectDisplay(Number(id), width, wrapper,
+		async ids => {
+			if (!Array.isArray(ids))
+				ids = [ids];
 
-		wrapper.addEventListener("click", e => {
-			if (e.target.closest(".sd-detailsPopup_cardSideBarInfo")) {
-				const card = e.target.closest(".sd-detailsPopup_cardRow");
-				const subject = card.querySelector(".sd-detailsPopup_cards");
-				if (subject) {
-					const id = subject.dataset.itemId;
-					if (id) {
-						history.replaceState(null, null, `?id=${id}`);
-					}
+			const opened = await db.open("subjects");
+			if (opened) {
+				return await db.getAll("subjects", "id", ids);
+			}
+			return [];
+		},
+		getIds
+	);
+
+	await details.create(true);
+
+	wrapper.addEventListener("click", e => {
+		if (e.target.closest(".sd-detailsPopup_cardSideBarInfo")) {
+			const card = e.target.closest(".sd-detailsPopup_cardRow");
+			const subject = card.querySelector(".sd-detailsPopup_cards");
+			if (subject) {
+				const id = subject.dataset.itemId;
+				if (id) {
+					history.replaceState(null, null, `?id=${id}`);
 				}
 			}
-		});
+		}
+	});
 
-		document.addEventListener("click", e => {
-			const node = e.target;
-							
-			// clicked in a highlighted kanji (within the info popup)
-			if (node.classList.contains(highlightingClass) || node.classList.contains(notLearnedHighlightingClass)) {
-				const character = node.textContent;
-				chrome.storage.local.get(["kanji_assoc"], data => {
-					const assocList = data["kanji_assoc"];
-					if (assocList)
-						details.update(assocList[character], true);
-				});
-			}
-		});
-	}
+	document.addEventListener("click", e => {
+		const node = e.target;
+						
+		// clicked in a highlighted kanji (within the info popup)
+		if (node.classList.contains(highlightingClass) || node.classList.contains(notLearnedHighlightingClass)) {
+			const character = node.textContent;
+
+			chrome.storage.local.get(["kanji_assoc"], async data => {
+				const assocList = data["kanji_assoc"];
+				if (assocList) {
+					const id = assocList[character];
+					history.replaceState(null, null, `?id=${id}`);
+					const opened = db.open("subjects");
+					if (opened) {
+						const subject = await db.get("subjects", id);
+						const others = await db.getAll("subjects", "id", getIds(subject));
+						details.update(subject, others, true);
+					}	
+				}
+			});
+		}
+	});
 });
