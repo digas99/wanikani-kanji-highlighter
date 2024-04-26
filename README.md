@@ -90,18 +90,20 @@ When you no longer wish to have the popup visible, you can click anywhere on the
 
 There a few shortcut keys that allow you to interact with the details popup through your keyboard. The shortcuts are:
 
-- **L**: Lock the kanji in the details popup, meaning it won't change when hover over other kanji (might come in hand when your mouse is surrounded by several highlighted kanji)
-- **F**: Fix the kanji details popup, not allowing it to close when clicking outside of it
-- **X**: Close the kanji details popup
-- **O**: Expand the small kanji details popup on the bottom right corner
-- **U**: Scroll the kanji details popup all the way to the top
-- **B**: Show information from the last kanji in the details popup
-- **I:** Navigate to Info Section
-- **C:** Navigate to Cards Section
-- **S:** Navigate to Reviews Statistics Section
-- **T:** Navigate to Timestamps Section
-- **<-:** Navigate to Previous Section
-- **->:** Navigate to Next Section
+| Key | Description |
+| ------- | ----------- |
+| **L**   | Lock the kanji in the details popup, meaning it won't change when hovered over other kanji. |
+| **F**   | Fix the kanji details popup, not allowing it to close when clicked outside of it. |
+| **X**   | Close the kanji details popup. |
+| **O**   | Expand the small kanji details popup on the bottom right corner. |
+| **U**   | Scroll the kanji details popup all the way to the top. |
+| **B**   | Show information from the last kanji in the details popup. |
+| **I**   | Navigate to Info Section. |
+| **C**   | Navigate to Cards Section. |
+| **S**   | Navigate to Reviews Statistics Section. |
+| **T**   | Navigate to Timestamps Section. |
+| **<-**  | Navigate to Previous Section. |
+| **->**  | Navigate to Next Section. |
 
 This shortcuts will collide with any shortcut that might already exist in the page you're in.
 
