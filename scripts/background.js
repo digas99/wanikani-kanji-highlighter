@@ -29,8 +29,8 @@ chrome.runtime.onConnect.addListener(port => externalPort = port);
 chrome.runtime.onInstalled.addListener(details => {
 	console.log("Extension installed");
 
-	// clear all subjects on extension update if the major version begins with 0
-	if (details.reason == "update" && details.previousVersion.split('.')[0] == '0') {
+	// rebuild the database if going to version 1.2.0
+	if (details.reason == "update" && details.previousVersion < '1.2.0') {
 		clearSubjects();
 		chrome.storage.local.set({"initialFetch": true});
 	}
