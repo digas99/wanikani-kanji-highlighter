@@ -29,10 +29,29 @@ chrome.runtime.onConnect.addListener(port => externalPort = port);
 chrome.runtime.onInstalled.addListener(details => {
 	console.log("Extension installed");
 
-	// rebuild the database if going to version 1.2.0
-	if (details.reason == "update" && details.previousVersion < '1.2.0') {
-		clearSubjects();
-		chrome.storage.local.set({"initialFetch": true});
+	if (details.reason == "update") {
+		// clear all subjects on extension update if the major version begins with 0
+		if (details.previousVersion.split('.')[0] == '0') {
+			clearSubjects();
+			chrome.storage.local.set({"initialFetch": true});
+		}
+		// update database values
+		else if (details.previousVersion < '1.2.0') {
+			const db = new Database("wanikani");
+			const opened = db.open("subjects");
+			if (opened) {
+				chrome.storage.local.get(["kanji", "vocabulary", "kana_vocabulary"], result => {
+					const kanji = result["kanji"] || {};
+					const vocabulary = result["vocabulary"] || {};
+					const kana_vocabulary = result["kana_vocabulary"] || {};
+					[
+						...Object.values(kanji),
+						...Object.values(vocabulary),
+						...Object.values(kana_vocabulary)
+					].forEach(subject => db.update("subjects", subject));
+				});
+			}
+		}
 	}
 
 	// setup context menu

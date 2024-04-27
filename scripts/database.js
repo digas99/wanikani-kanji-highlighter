@@ -54,9 +54,14 @@
                                 };
         
                                 transaction.oncomplete = () => {
-                                    that.db.deleteObjectStore(table);
-                                    that.db.renameObjectStore(table + "_temp"+version, table);
-                                    console.log("Table upgraded");
+                                    try {
+                                        that.db.deleteObjectStore(table);
+                                        that.db.renameObjectStore(table + "_temp"+version, table);
+                                        console.log("Table upgraded");
+                                    }
+                                    catch (e) {
+                                        console.log("Problem upgrading table.", e);
+                                    }
                                 }
                             }
                             else {
