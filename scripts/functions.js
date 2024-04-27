@@ -726,8 +726,6 @@ const subjectsReviewStats = async (apiToken, lists) => {
 					await Promise.all(updatePromises);
 				else
 					console.log("No Promises to resolve");
-
-				chrome.storage.local.set({ [type]: list }, () => console.log(`[REVIEW STATS]: ${type} updated`));
 			}
 
 			chrome.storage.local.set({ reviewStats_updated: new Date().toUTCString() }, () => resolve(true));
