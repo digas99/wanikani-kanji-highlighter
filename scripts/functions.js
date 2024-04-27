@@ -167,9 +167,7 @@ const clearSubjects = async () => {
 	await clearCache(["apiKey", "settings", "userInfo", "userInfo_updated"]);
 }
 
-const triggerSubjectsUpdate = reason => {
-	chrome.runtime.sendMessage({updateMessageSubtext: reason});
-
+const triggerSubjectsUpdate = () => {
 	chrome.storage.local.remove([
 		"assignments_updated",
 		"radicals_updated",
