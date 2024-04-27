@@ -167,6 +167,20 @@ const clearSubjects = async () => {
 	await clearCache(["apiKey", "settings", "userInfo", "userInfo_updated"]);
 }
 
+const triggerSubjectsUpdate = () => {
+	chrome.storage.local.remove([
+		"assignments_updated",
+		"radicals_updated",
+		"vocabulary_updated",
+		"kana_vocab_updated",
+		"kanji_updated",
+		"reviewStats_updated",
+		"levels_stats_updated",
+		"bulk_fetch"
+	]);
+	chrome.storage.local.set({"initialFetch": true});
+}
+
 const rand = (min, max) => {
 	return Math.floor(Math.random() * (max - min) ) + min;
 }

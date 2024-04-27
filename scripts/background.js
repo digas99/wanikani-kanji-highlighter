@@ -37,20 +37,7 @@ chrome.runtime.onInstalled.addListener(details => {
 		}
 		// update database values
 		else if (details.previousVersion < '1.2.0') {
-			const db = new Database("wanikani");
-			const opened = db.open("subjects");
-			if (opened) {
-				chrome.storage.local.get(["kanji", "vocabulary", "kana_vocabulary"], result => {
-					const kanji = result["kanji"] || {};
-					const vocabulary = result["vocabulary"] || {};
-					const kana_vocabulary = result["kana_vocabulary"] || {};
-					[
-						...Object.values(kanji),
-						...Object.values(vocabulary),
-						...Object.values(kana_vocabulary)
-					].forEach(subject => db.update("subjects", subject));
-				});
-			}
+			triggerSubjectsUpdate();
 		}
 	}
 
