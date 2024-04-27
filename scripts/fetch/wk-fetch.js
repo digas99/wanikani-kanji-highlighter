@@ -52,7 +52,6 @@ const setupSubjects = (apiToken, setup, build, callback) =>
 						associations = Object.assign({}, assocs, associations);
 						// saving all subjects
 						chrome.storage.local.set({...{
-							[setup.storage.id]: subjects,
 							[setup.storage.association]: associations,
 							[setup.storage.updated]: new Date().toUTCString(),
 							[setup.storage.size]:Object.keys(subjects).length

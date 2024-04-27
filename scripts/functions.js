@@ -243,20 +243,10 @@ const flipArrow = (arrow, sourceDir, destDir, paddingValue) => {
 const setupRadicals = (radicals, records, radical) => {
 	const data = radical["data"];
 
-	radicals[radical.id] = {
+	const subject = {
 		"characters" : data.characters,
 		"character_images" : data.character_images,
 		"document_url" : data.document_url,
-		"level" : data.level,
-		"id":radical.id,
-		"meanings": data.meanings.map(data => data.meaning),
-		"subject_type":radical.object,
-		"hidden_at":data.hidden_at
-	};
-
-	records.push({
-		"characters" : data.characters,
-		"character_images" : data.character_images,
 		"level" : data.level,
 		"id":radical.id,
 		"meanings": data.meanings.map(data => data.meaning),
@@ -266,30 +256,16 @@ const setupRadicals = (radicals, records, radical) => {
 		"hidden" : null,
 		"passed_at" : null,
 		"available_at" : null
-	});
+	};
+
+	radicals[radical.id] = subject;
+	records.push(subject);
 }
 
 const setupVocab = (vocabs, assocs, records, vocab) => {
 	const data = vocab["data"];
-
-	vocabs[vocab.id] = {
-		"characters" : data.characters,
-		"component_subject_ids" : data.component_subject_ids, 
-		"context_sentences" : data.context_sentences,
-		"document_url" : data.document_url,
-		"level" : data.level,
-		"meaning_mnemonic" : data.meaning_mnemonic,
-		"meanings" : data.meanings.map(data => data.meaning),
-		"parts_of_speech" : data.parts_of_speech,
-		"reading_mnemonic" : data.reading_mnemonic,
-		"readings" : data.readings.map(data => data.reading),
-		"pronunciation_audios" : data.pronunciation_audios,
-		"id":vocab.id,
-		"subject_type":vocab.object,
-		"hidden_at":data.hidden_at
-	};
-
-	records.push({
+	
+	const subject = {
 		"characters" : data.characters,
 		"component_subject_ids" : data.component_subject_ids, 
 		"context_sentences" : data.context_sentences,
@@ -308,29 +284,17 @@ const setupVocab = (vocabs, assocs, records, vocab) => {
 		"hidden" : null,
 		"passed_at" : null,
 		"available_at" : null
-	});
+	}
 
+	vocabs[vocab.id] = subject;
+	records.push(subject);
 	assocs[data.characters] = vocab.id;
 }
 
 const setupKanaVocab = (vocabs, assocs, records, vocab) => {
 	const data = vocab["data"];
 
-	vocabs[vocab.id] = {
-		"characters" : data.characters,
-		"context_sentences" : data.context_sentences,
-		"document_url" : data.document_url,
-		"level" : data.level,
-		"meaning_mnemonic" : data.meaning_mnemonic,
-		"meanings" : data.meanings.map(data => data.meaning),
-		"parts_of_speech" : data.parts_of_speech,
-		"pronunciation_audios" : data.pronunciation_audios,
-		"id":vocab.id,
-		"subject_type":vocab.object,
-		"hidden_at":data.hidden_at
-	};
-
-	records.push({
+	const subject = {
 		"characters" : data.characters,
 		"document_url" : data.document_url,
 		"context_sentences" : data.context_sentences,
@@ -346,34 +310,17 @@ const setupKanaVocab = (vocabs, assocs, records, vocab) => {
 		"hidden" : null,
 		"passed_at" : null,
 		"available_at" : null
-	});
+	};
 
+	vocabs[vocab.id] = subject;
+	records.push(subject);
 	assocs[data.characters] = vocab.id;
 }
 
 const setupKanji = (kanjis, assocs, records, kanji) => {
 	const data = kanji["data"];
 
-	kanjis[kanji.id] = {
-		"amalgamation_subject_ids" : data.amalgamation_subject_ids,
-		"characters" : data.characters,
-		"component_subject_ids" : data.component_subject_ids,
-		"document_url" : data.document_url,
-		"level" : data.level,
-		"meaning_hint" : data.meaning_hint,
-		"meaning_mnemonic" : data.meaning_mnemonic,
-		"meanings" : data.meanings.map(data => data.meaning),
-		"reading_hint" : data.reading_hint,
-		"reading_mnemonic" : data.reading_mnemonic,
-		"readings" : data.readings,
-		"visually_similar_subject_ids" : data.visually_similar_subject_ids,
-		"slug": data.slug,
-		"id":kanji.id,
-		"subject_type":kanji.object,
-		"hidden_at":data.hidden_at
-	};
-	
-	records.push({
+	const subject = {
 		"amalgamation_subject_ids" : data.amalgamation_subject_ids,
 		"characters" : data.characters,
 		"component_subject_ids" : data.component_subject_ids,
@@ -392,8 +339,10 @@ const setupKanji = (kanjis, assocs, records, kanji) => {
 		"hidden_at" : data.hidden_at,
 		"srs_stage" : -1,
 		"hidden" : null,
-	});
+	}
 
+	kanjis[kanji.id] = subject;
+	records.push(subject);
 	assocs[data.slug] = kanji.id;
 }
 
