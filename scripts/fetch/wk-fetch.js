@@ -108,7 +108,7 @@ const setupAssignments = async (apiToken, callback) =>
 			let assignments = result["assignments"];
 
 			fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments", updated)
-				.then(data => {
+				.then(async data => {
 					// too many requests or not modified
 					if (data.error) {
 						resolve([assignments, false]);

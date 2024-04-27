@@ -409,6 +409,21 @@ const getTab = () => {
     });
 }
 
+const fetchReviewedKanjiID = assignments => {
+	console.log(assignments);
+	return assignments
+		.map(content => content.data).filter(content => content.subject_type === "kanji" && content.srs_stage > 0)
+		.map(content => content.subject_id);
+}
+
+// transform the kanji IDs into kanji characters
+const setupLearnedKanji = (kanji, assignments) => {
+	const ids = fetchReviewedKanjiID(assignments);
+	const learnedKanji = ids.map(id => kanji[id].slug);
+	chrome.storage.local.set({"learnedKanji": learnedKanji, "learnedKanji_updated":new Date().toUTCString()});
+	return learnedKanji;
+}
+
 // get all assignments if there are none in storage or if they were modified
 // see if all subjects are already saved in storage
 const loadData = async (apiToken, tabId, callback) => {
@@ -583,6 +598,15 @@ const loadData = async (apiToken, tabId, callback) => {
 				}
 	
 				evalProgress(progress, fetches);
+				
+				// setup learned kanji
+				const kanjiList = Object.values(kanji).map(kanji => kanji["slug"]);
+				chrome.storage.local.set({"learnable_kanji": kanjiList});
+				chrome.storage.local.get("assignments", result => {
+					const assignments = result["assignments"];
+					if (assignments)
+						setupLearnedKanji(kanji, assignments["all"]);
+				});
 			})
 		];
 		
@@ -669,7 +693,6 @@ const subjectsAssignmentStats = async list => {
                 await Promise.all(updatePromises);
 
 				const storageData = {
-					[type]: list,
 					["" + type + "_progress"]: progress,
 					["" + type + "_levelsInProgress"]: levelsInProgress
 				};

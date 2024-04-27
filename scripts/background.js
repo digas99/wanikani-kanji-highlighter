@@ -108,106 +108,55 @@ const setSettings = () => {
 }
 setSettings();
 
-const fetchReviewedKanjiID = async (apiToken, page) => {
-	//fetch all reviewed kanji
-	return await fetchAllPages(apiToken, page)
-		.then(reviews => {
-			// return an array of all learned kanji IDs
-			return reviews
-				.map(content => content.data
-					.filter(content => content.data.subject_type === "kanji" && content.data.srs_stage > 0))
-				.flat(1)
-				.map(content => content.data.subject_id);
-		})
-		.catch(errorHandling);
-}
-
-// transform the kanji IDs into kanji characters
-const setupLearnedKanji = async (apiToken, page, kanji) => {
-	const ids = await fetchReviewedKanjiID(apiToken, page);
-	const learnedKanji = ids.map(id => kanji[id].slug);
-	chrome.storage.local.set({"learnedKanji": learnedKanji, "learnedKanji_updated":new Date().toUTCString()});
-	return learnedKanji;
-}
-
-const setupContentScripts = (apiToken, learnedKanjiSource, allkanji) => {
+const setupContentScripts = () => {
 	console.log("Setting up content scripts...");
 
-	// setup all learnable kanji if not yet
-	chrome.storage.local.get(["learnable_kanji"], result => {
-		let allLearnableKanji = result["learnable_kanji"];
-		const kanjiList = [];
-		if (!allLearnableKanji) {
-			allLearnableKanji = allkanji;
-			for (let kanjiId in allLearnableKanji) {
-				kanjiList.push(allLearnableKanji[kanjiId]["slug"]);
-			}
-			chrome.storage.local.set({"learnable_kanji":kanjiList});
+	chrome.storage.local.get(["settings", "learnable_kanji", "learnedKanji"], async response => {
+		const settings = response["settings"];
+
+		// inject details popup
+		if (settings["kanji_details_popup"]["activated"]) {
+			chrome.scripting.executeScript({
+				target: {tabId: thisTabId},
+				files: ['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js']
+			});
+
+			chrome.scripting.insertCSS({
+				target: {tabId: thisTabId},
+				files: ['styles/subject-display.css'],
+			});
 		}
-	});
 
-	const scripts = kanji => {
-		chrome.storage.local.get(["settings", "learnable_kanji"], result => {
-			const settings = result["settings"];
-
-			// inject details popup
-			if (settings["kanji_details_popup"]["activated"]) {
-				chrome.scripting.executeScript({
-					target: {tabId: thisTabId},
-					files: ['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js']
-				});
-	
+		const learnedKanji = response["learnedKanji"];
+		if (learnedKanji) {
+			// inject highlighter
+			chrome.scripting.executeScript({
+				target: {tabId: thisTabId},
+				files: ['scripts/highlighter/highlight.js']
+			}, () => {
 				chrome.scripting.insertCSS({
 					target: {tabId: thisTabId},
-					files: ['styles/subject-display.css'],
+					files: ['styles/highlight.css'],
 				});
-			}
-	
-			if (kanji) {
-				// inject highlighter
 				chrome.scripting.executeScript({
 					target: {tabId: thisTabId},
-					files: ['scripts/highlighter/highlight.js']
-				}, () => {
-					chrome.scripting.insertCSS({
-						target: {tabId: thisTabId},
-						files: ['styles/highlight.css'],
-					});
-					chrome.scripting.executeScript({
-						target: {tabId: thisTabId},
-						files: ['scripts/highlighter/highlight-setup.js']
-					}, () => injectedHighlighter = true);
-		
-					const allKanji = result["learnable_kanji"];
-					const notLearnedKanji = allKanji.filter(k => !kanji.includes(k));
-					if (allKanji) {
-						chrome.storage.local.set({"highlight_setup": {
-							functionDelay: functionDelay, 
-							learned: kanji,
-							notLearned: notLearnedKanji,
-							unwantedTags: unwantedTags,
-							learnedClass: highlightingClass,
-							notLearnedClass: notLearnedHighlightingClass,
-						}});
-					}
-				});
-			}
-		});
-	}
-
-	chrome.storage.local.get(["learnedKanji", "learnedKanji_updated"], async response => {
-		const date = response["learnedKanji_updated"];
-		const modified = await modifiedSince(apiToken, date, learnedKanjiSource);
-		if (!response["learnedKanji"] || modified) {
-			setupLearnedKanji(apiToken, learnedKanjiSource, allkanji)
-				.then(kanji => scripts(kanji))
-				.catch(error => {
-					console.log(error);
-					scripts(response["learnedKanji"]);
-				});
-		} else
-			scripts(response["learnedKanji"]);
-
+					files: ['scripts/highlighter/highlight-setup.js']
+				}, () => injectedHighlighter = true);
+	
+				const allKanji = response["learnable_kanji"];
+				const notLearnedKanji = allKanji.filter(k => !learnedKanji.includes(k));
+				if (allKanji) {
+					chrome.storage.local.set({"highlight_setup": {
+						functionDelay: functionDelay, 
+						learned: learnedKanji,
+						notLearned: notLearnedKanji,
+						unwantedTags: unwantedTags,
+						learnedClass: highlightingClass,
+						notLearnedClass: notLearnedHighlightingClass,
+					}});
+				}
+			});
+		}
 	});
 }
 
@@ -230,7 +179,7 @@ tabs.onActivated.addListener(activeInfo => {
 							if (!response) {
 								// check if the site is blacklisted
 								if (!blacklist || blacklist.length === 0 || !blacklisted(blacklist, thisUrl))
-									setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", allKanjiList);
+									setupContentScripts();
 								else {
 									chrome.action.setBadgeText({text: '!', tabId:thisTabId});
 									chrome.action.setBadgeBackgroundColor({color: "#dc6560", tabId:thisTabId});
@@ -261,7 +210,7 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 			thisUrl = tab.url;
 			if (url === thisUrl && !urlChecker.test(url)) {
 				if (!/(http(s)?:\/\/)?www.wanikani\.com.*/g.test(url)) {
-					chrome.storage.local.get(["settings", "blacklist", "apiKey", "kanji"], result => {
+					chrome.storage.local.get(["settings", "blacklist", "apiKey"], result => {
 						const settings = result["settings"];
 
 						// check if the site is blacklisted
@@ -288,12 +237,7 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 									chrome.action.setBadgeBackgroundColor({color: "#4d70d1", tabId:thisTabId});
 								}
 				
-								if (result["kanji"])
-									setupContentScripts(apiToken, "https://api.wanikani.com/v2/assignments", result["kanji"]);
-								else {
-									chrome.action.setBadgeText({text: "X", tabId:thisTabId});
-									chrome.action.setBadgeBackgroundColor({color: "#00aaff", tabId:thisTabId});
-								}
+								setupContentScripts();
 							}
 						}
 						else {
