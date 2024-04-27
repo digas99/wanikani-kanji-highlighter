@@ -42,7 +42,6 @@
                             let objectStore;
                             if (that.db.objectStoreNames.contains(table)) {
                                 objectStore = transaction.objectStore(table);
-                                console.log(key);
                                 const newObjectStore = that.db.createObjectStore(table + "_temp"+version, {keyPath: key});
         
                                 objectStore.openCursor().onsuccess = e => {
@@ -54,14 +53,7 @@
                                 };
         
                                 transaction.oncomplete = () => {
-                                    try {
-                                        that.db.deleteObjectStore(table);
-                                        that.db.renameObjectStore(table + "_temp"+version, table);
-                                        console.log("Table upgraded");
-                                    }
-                                    catch (e) {
-                                        console.log("Problem upgrading table.", e);
-                                    }
+                                   console.log("Table copied", that.db); 
                                 }
                             }
                             else {
