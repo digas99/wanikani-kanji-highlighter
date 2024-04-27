@@ -103,6 +103,17 @@
     filter: invert(1);
 }
 
+.message-popup .note {
+    background-color: var(--wanikani-sec);
+    color: white;
+    font-size: 10px;
+    padding: 6px;
+    position: absolute;
+    width: 107%;
+    left: -35px;
+    text-align: center;
+}
+
 @keyframes rotateAnimation {
     0% {
         transform: rotate(0deg);

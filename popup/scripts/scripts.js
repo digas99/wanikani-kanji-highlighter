@@ -148,9 +148,9 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 			document.querySelector("#updates-loading").innerText = request.setup.fetches;
 	}
 
-	if (request.updateMessageSubtext) {
+	if (request.updateMessageNote) {
 		if (messagePopup.exists())
-			messagePopup.update(null, request.updateMessageSubtext);
+			messagePopup.update(null, null, request.updateMessageNote);
 	} 
 
 	// show db progress
