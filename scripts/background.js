@@ -37,7 +37,7 @@ chrome.runtime.onInstalled.addListener(details => {
 		}
 		// update database values
 		else if (details.previousVersion < '1.2.0') {
-			triggerSubjectsUpdate();
+			triggerSubjectsUpdate("Database structure update, thank you for your patience.");
 		}
 	}
 
