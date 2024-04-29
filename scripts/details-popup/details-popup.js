@@ -35,6 +35,9 @@ const updateDetailsPopup = (detailsPopup, id) => {
 		if (settings["kanji_details_popup"]["popup_opacity"])
 			document.documentElement.style.setProperty('--detailsPopup-opacity', settings["kanji_details_popup"]["popup_opacity"]/10);
 
+		if (settings["kanji_details_popup"]["popup_width"])
+			document.documentElement.style.setProperty('--detailsPopup-width', settings["kanji_details_popup"]["popup_width"] + "px");
+
 		const atWanikani = /(http(s)?:\/\/)?www.wanikani\.com.*/g.test(window.location.origin);
 		let detailsPopup;
 		
@@ -94,6 +97,9 @@ const updateDetailsPopup = (detailsPopup, id) => {
 			
 			if (request.detailsPopupColor)
 				document.documentElement.style.setProperty('--default-color', request.detailsPopupColor);
+
+			if (request.popupWidth)
+				document.documentElement.style.setProperty('--detailsPopup-width', request.popupWidth + "px");
 		});
 
 		document.addEventListener("click", e => {

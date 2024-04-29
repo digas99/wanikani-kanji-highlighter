@@ -19,7 +19,8 @@ const defaultSettings = {
 		activated: true,
 		random_subject: "Any",
 		key_bindings: true,
-		popup_opacity: 8
+		popup_opacity: 8,
+		popup_width: 270,
 	},
 	"extension_icon": {
 		kanji_counter: true,

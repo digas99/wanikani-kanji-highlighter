@@ -8,7 +8,7 @@
 	--popup-details-title-color: white;
 	--popup-details-title-bkcolor: #e36f94;
 	--detailsPopup-opacity: 0.8;
-	--detailsPopup-width: 275px;
+	--detailsPopup-width: 270px;
 	--detailsPopup-lightgray: #6f6f6f;
 }
 
@@ -123,7 +123,7 @@
 	transition: 0.5s;
 	z-index: 2;
 	display: flex !important;
-    width: 275px !important;
+    width: var(--detailsPopup-width);
     min-height: 200px;
     align-items: center;
     flex-direction: row;
@@ -290,6 +290,9 @@
     color: white;
 }
 
+.sd-detailsPopup_sectionContainer > .sd-justify-list {
+	justify-content: center;
+}
 
 .sd-popupDetails_title {
 	color: var(--popup-details-title-color);

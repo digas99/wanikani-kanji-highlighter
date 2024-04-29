@@ -293,7 +293,7 @@
 			setTimeout(() => {
 				if (itemWrapper) {
 					itemWrapper.classList.add("sd-focusPopup_kanji");
-					itemWrapper.style.setProperty("width", this.width+"px", "important")
+					// itemWrapper.style.setProperty("width", this.width+"px");
 				}
 				this.detailsPopup.style.setProperty("overflow", "hidden auto", "important");
 				this.detailsPopup.style.setProperty("max-height", window.innerHeight+"px", "important");
@@ -647,7 +647,7 @@
 			const itemWrapper = document.createElement("div");
 			if (this.expanded) {
 				itemWrapper.classList.add("sd-focusPopup_kanji");
-				itemWrapper.style.setProperty("width", this.width+"px", "important");
+				// itemWrapper.style.setProperty("width", this.width+"px");
 			}
 			else {
 				// add kanji first meaning to small details popup
@@ -661,10 +661,10 @@
 				kanjiTitle.appendChild(document.createTextNode(subject["meanings"][0]));
 				kanjiTitle.classList.add("sd-smallDetailsPopupKanjiTitle");
 
-				if (characters.length >= 3)
-					this.detailsPopup.style.setProperty("width", this.width+"px", "important");
-				else
-					this.detailsPopup.style.removeProperty("width");
+				// if (characters.length >= 3)
+				// 	this.detailsPopup.style.setProperty("width", this.width+"px");
+				// else
+				// 	this.detailsPopup.style.removeProperty("width");
 			}
 			
 			// kanji container buttons

@@ -321,6 +321,12 @@ document.addEventListener('input', e => {
 							case "random_subject":
 								setRandomSubjectType(value);
 								break;
+							case "popup_width":
+								console.log(value);
+								chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+									chrome.tabs.sendMessage(tabs[0].id, {popupWidth:value}, () => window.chrome.runtime.lastError);
+								});
+								break;
 						}
 						break;
 				}
