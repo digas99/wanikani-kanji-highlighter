@@ -51,6 +51,8 @@ chrome.storage.local.get("settings", result => {
 		documentStyle.setProperty('--radical-tag-color', appearance["radical_color"]);
 		documentStyle.setProperty('--kanji-tag-color', appearance["kanji_color"]);
 		documentStyle.setProperty('--vocabulary-tag-color', appearance["vocab_color"]);
+		documentStyle.setProperty('--wanikani', WANIKANI_COLOR);
+		documentStyle.setProperty('--wanikani-sec', WANIKANI_SEC_COLOR);
 		Object.values(srsStages).map(srs => srs["short"].toLowerCase())
 			.forEach(srs => documentStyle.setProperty(`--${srs}-color`, appearance[`${srs}_color`]));
 	}

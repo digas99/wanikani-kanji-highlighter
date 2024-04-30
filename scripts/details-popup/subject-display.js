@@ -882,16 +882,20 @@
 
 			document.addEventListener("click", e => {
 				if (e.target.closest(".sd-popupDetails_strokes div[data-action='reload']")) {
+					dmak.pause();
 					dmak.erase();
 					setTimeout(() => dmak.render(), 500);
 				}
 				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='prevStroke']")) {
+					dmak.pause();
 					dmak.eraseLastStrokes(1);
 				}
 				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='nextStroke']")) {
+					dmak.pause();
 					dmak.renderNextStrokes(1);
 				}
 				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='clear']")) {
+					dmak.pause();
 					dmak.erase();
 				}
 				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='resume']")) {
