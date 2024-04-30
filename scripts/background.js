@@ -37,7 +37,6 @@ chrome.runtime.onInstalled.addListener(details => {
 		}
 		// update database values
 		else if (details.previousVersion < '1.2.0') {
-			triggerSubjectsUpdate();
 			// remove deprecated subjects from chrome storage
 			chrome.storage.local.remove([
 				"kana_vocabulary",
@@ -46,6 +45,9 @@ chrome.runtime.onInstalled.addListener(details => {
 				"radicals",
 				"vocabulary"
 			]);
+			chrome.storage.local.get(["apiKey"], result => {
+				triggerSubjectsUpdate(result["apiKey"]);
+			});
 		}
 	}
 

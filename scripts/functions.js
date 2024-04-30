@@ -167,7 +167,7 @@ const clearSubjects = async () => {
 	await clearCache(["apiKey", "settings", "userInfo", "userInfo_updated"]);
 }
 
-const triggerSubjectsUpdate = () => {
+const triggerSubjectsUpdate = apiKey => {
 	chrome.storage.local.remove([
 		"assignments_updated",
 		"radicals_updated",
@@ -178,7 +178,11 @@ const triggerSubjectsUpdate = () => {
 		"levels_stats_updated",
 		"bulk_fetch"
 	]);
-	chrome.storage.local.set({"initialFetch": true});
+
+	chrome.storage.local.set({"initialFetch": true}, () => {
+		if (apiKey)
+			loadData(apiKey);
+	});
 }
 
 const rand = (min, max) => {
