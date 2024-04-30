@@ -49,6 +49,11 @@
 	width: 15px;
 }
 
+.libraries {
+	max-height: 260px;
+	overflow-y: auto;
+}
+
 .libraries > li:not(:last-child) {
 	margin-bottom: 15px;
 }
@@ -67,6 +72,12 @@
 .libraries > li > p {
 	padding-left: 20px;
 	margin-top: 5px;
+}
+
+.libraries .library-default {
+	width: 35px;
+	margin-left: 3px;
+	padding-right: 3px;
 }
 
 .readme-navbar {

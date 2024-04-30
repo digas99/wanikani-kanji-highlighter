@@ -12,6 +12,13 @@
 		this.expanded = false;
 		this.openedSubjects = [];
 
+		chrome.storage.local.get(["settings"], result => {
+			const settings = result["settings"];
+			if (settings) {
+				this.strokes = settings["kanji_details_popup"]["subject_drawing"] != null ? settings["kanji_details_popup"]["subject_drawing"] : true;
+			}
+		});
+
 		document.addEventListener("mouseover", e => {
 			const node = e.target;
 
@@ -209,11 +216,13 @@
 	SubjectDisplay.prototype = {
 
 		// create popup
-		create: async function(expanded=false) {
-			const subjectData = await this.fetch(this.id);
-			this.subject = subjectData[this.id];
-			this.other = await this.fetch(this.otherIds(this.subject));
-			this.type = this.subject["subject_type"];
+		create: async function(expanded=false, fetchData=true) {
+			if (fetchData) {
+				const subjectData = await this.fetch(this.id);
+				this.subject = subjectData[this.id];
+				this.other = await this.fetch(this.otherIds(this.subject));
+				this.type = this.subject["subject_type"];
+			}
 
 			Array.from(document.getElementsByClassName("sd-detailsPopup")).forEach(elem => elem.remove());
 
@@ -240,7 +249,7 @@
 				this.other = other;
 				this.type = subject["subject_type"];
 
-				if (!this.detailsPopup) await this.create();
+				if (!this.detailsPopup) await this.create(null, false);
 
 				if (this.detailsPopup.firstChild)
 					this.detailsPopup.firstChild.remove();
@@ -290,6 +299,7 @@
 			});
 
 			const itemWrapper = this.detailsPopup.firstChild;
+			this.detailsPopup.style.removeProperty("width");
 			setTimeout(() => {
 				if (itemWrapper) {
 					itemWrapper.classList.add("sd-focusPopup_kanji");
@@ -301,7 +311,6 @@
 
 			if (itemWrapper) {
 				const type = itemWrapper.getElementsByClassName("sd-detailsPopup_kanji")[0].getAttribute('data-item-type');
-				const id = itemWrapper.getElementsByClassName("sd-detailsPopup_kanji")[0].getAttribute('data-item-id');
 				this.detailsPopup.appendChild(type == "kanji" ? this.kanjiDetailedInfo(this.subject) : this.vocabDetailedInfo(this.subject));
 			
 				// show kanji container buttons
@@ -395,7 +404,7 @@
 				srsStageText.appendChild(document.createTextNode("Locked"));
 				srsStageText.style.setProperty("color", `var(--${srsStages[0]["short"].toLowerCase()}-color)`, "important");				
 			}
-		
+
 			// meaning container
 			const meaning = document.createElement("div");
 			meaning.classList.add("sd-popupDetails_kanjiTitle");
@@ -403,6 +412,10 @@
 			meaningTitle.appendChild(document.createTextNode(kanjiInfo["meanings"].join(", ")));
 			meaning.appendChild(meaningTitle);
 			details.appendChild(meaning);
+
+			// strokes container
+			if (this.strokes)
+				details.appendChild(kanjiDrawing(kanjiInfo["characters"], this.drawStrokes));
 
 			if (kanjiInfo["jlpt"] && kanjiInfo["joyo"]) {
 				const schoolLevel = document.createElement("div");
@@ -561,6 +574,10 @@
 			meaningTitle.appendChild(document.createTextNode(vocabInfo["meanings"].join(", ")));
 			meaning.appendChild(meaningTitle);
 			details.appendChild(meaning);
+
+			// strokes container
+			if (this.strokes)
+				details.appendChild(kanjiDrawing(vocabInfo["characters"], this.drawStrokes));
 			
 			if (vocabInfo["parts_of_speech"]) {
 				const partOfSpeech = document.createElement("div");
@@ -661,10 +678,10 @@
 				kanjiTitle.appendChild(document.createTextNode(subject["meanings"][0]));
 				kanjiTitle.classList.add("sd-smallDetailsPopupKanjiTitle");
 
-				// if (characters.length >= 3)
-				// 	this.detailsPopup.style.setProperty("width", this.width+"px");
-				// else
-				// 	this.detailsPopup.style.removeProperty("width");
+				if (characters.length >= 3)
+					this.detailsPopup.style.setProperty("width", this.width+"px");
+				else
+				 	this.detailsPopup.style.removeProperty("width");
 			}
 			
 			// kanji container buttons
@@ -770,6 +787,56 @@
 			kanjiContainerWrapper.appendChild(ul);
 		
 			return itemWrapper;
+		},
+		drawStrokes: function (characters, element, size) {
+			// calculate size depending on number of characters
+			if (!size)
+				size = 130 - (10 * characters.length);
+			
+
+			setTimeout(() => {
+				const elem = typeof element === "string" ? document.getElementById(element) : element; 
+				if (elem && !elem.innerHTML) {
+					elem.innerHTML = "Failed to load kanji strokes";
+				}
+			}, 500);
+
+			const dmak = new Dmak(characters, {
+				'element': element,
+				'uri': KANJI_STROKES_URI,
+				'width': size,
+				'height': size,
+				'step': 0.005,
+				'stroke': {
+					'attr': {
+						'active': getComputedStyle(document.documentElement).getPropertyValue('--wanikani'),
+						'stroke': '#fff',
+					},
+					'order': {
+						'visible': true,
+						'attr': {
+							'font-size': 10,
+							'fill': getComputedStyle(document.documentElement).getPropertyValue('--wanikani-sec'),
+						}
+					}
+				}
+			});
+
+			document.addEventListener("click", e => {
+				if (e.target.closest(".sd-popupDetails_strokes div[data-action='reload']")) {
+					dmak.erase();
+					setTimeout(() => dmak.render(), 500);
+				}
+				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='prevStroke']")) {
+					dmak.eraseLastStrokes(1);
+				}
+				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='nextStroke']")) {
+					dmak.renderNextStrokes(1);
+				}
+				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='clear']")) {
+					dmak.erase();
+				}
+			});
 		}
 	}
 
@@ -1105,6 +1172,43 @@
 			});
 		});
 		return stats;
+	}
+
+	const kanjiDrawing = (kanji, drawing) => {
+		const strokes = document.createElement("div");
+		strokes.classList.add("sd-popupDetails_strokes");
+		
+		const drawingWrapper = document.createElement("div");
+		strokes.appendChild(drawingWrapper);
+		drawingWrapper.id = "sd-popupDetails_dmak";
+		drawing(kanji, drawingWrapper.id);	
+
+		// buttons
+		const reloadHTML = /*html*/`
+			<div class="sd-popupDetails_drawButtons">
+				<div class="sd-detailsPopup_clickable" data-action="prevStroke">
+					<img src="https://i.imgur.com/HgyjeFO.png" alt="Previous Stroke" style="rotate: -90deg;">
+				</div>
+				<div class="sd-detailsPopup_clickable" data-action="reload">
+					<img src="https://i.imgur.com/EPJM6mf.png" alt="Reload">
+				</div>
+				<div class="sd-detailsPopup_clickable" data-action="nextStroke">
+					<img src="https://i.imgur.com/HgyjeFO.png" alt="Next Stroke" style="rotate: 90deg;">
+				</div>
+				<div class="sd-detailsPopup_clickable" data-action="clear" style="margin-left: 20px;">
+					<img src="https://i.imgur.com/wvMgsN5.png" alt="Clear">
+				</div>
+				<a href="https://mbilbille.github.io/dmak/" target="_blank" class="sd-detailsPopup_clickable" style="margin-left: 20px; filter: unset;" title="https://mbilbille.github.io/dmak/">
+					<img src="https://i.imgur.com/DFljelz.png" alt="dmak" style="width: 25px;">
+				</a>
+				<a href="https://kanjivg.tagaini.net/" target="_blank" class="sd-detailsPopup_clickable" style="filter: unset; color: white;" title="https://kanjivg.tagaini.net/">
+					<div>KanjiVG</div>
+				</a>
+			</div>
+		`;
+		strokes.insertAdjacentHTML("beforeend", reloadHTML);
+
+		return strokes;
 	}
 
 	window.SubjectDisplay = SubjectDisplay;

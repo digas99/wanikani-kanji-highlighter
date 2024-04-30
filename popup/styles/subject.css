@@ -33,6 +33,7 @@ html {
 	border-bottom: 2px solid white;
 	transition: unset;
 	min-height: 140px;
+	width: 90%;
 }
 
 #subject-details .sd-popupDetails_detailedInfoWrapper > .sd-popupDetails_details {

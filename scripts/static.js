@@ -21,6 +21,7 @@ const defaultSettings = {
 		key_bindings: true,
 		popup_opacity: 8,
 		popup_width: 270,
+		subject_drawing: true
 	},
 	"extension_icon": {
 		kanji_counter: true,
@@ -337,3 +338,5 @@ const INTERFACE_COLORS = {
 		`]
 	}
 }
+
+const KANJI_STROKES_URI = "https://wkhighlighter.me/kanji/";

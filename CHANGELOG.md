@@ -6,6 +6,9 @@
 ## Content
 - Kanji Highlighting is now faster because Chrome Storage is no longer accessed while browsing
 
+## Popup
+- Added Kanji drawing animation to Subject Details Popup
+
 # [Changelog v1.1.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.2)
 
 ## Bug Fixes

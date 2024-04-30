@@ -116,9 +116,19 @@ const setupContentScripts = () => {
 
 		// inject details popup
 		if (settings["kanji_details_popup"]["activated"]) {
+			const subjectDrawing = settings["kanji_details_popup"]["subject_drawing"] ? [
+				'/lib/raphael-min.js',
+				'/lib/dmak.js',
+				'/lib/dmakLoader.js',
+			] : [];
+
 			chrome.scripting.executeScript({
 				target: {tabId: thisTabId},
-				files: ['scripts/details-popup/details-popup.js', 'scripts/details-popup/subject-display.js']
+				files: [
+					'/scripts/details-popup/details-popup.js',
+					'/scripts/details-popup/subject-display.js',
+					...subjectDrawing
+				]
 			});
 
 			chrome.scripting.insertCSS({
@@ -258,8 +268,6 @@ chrome.webNavigation.onDOMContentLoaded.addListener(details => {
 let highlightUpdateFunction;
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	console.log(request);
-	
 	// sends to the content script information about key pressing and the reference to the highlight update function
 	if (request.key)
 		tabs.sendMessage(thisTabId, {key: request.key, intervalFunction: highlightUpdateFunction});

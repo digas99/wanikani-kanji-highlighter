@@ -38,6 +38,9 @@ It works with any website, and provides detailed information about any kanji tha
 
 ### Content
 - Kanji Highlighting is now faster because Chrome Storage is no longer used while browsing
+
+## Popup
+- Added Kanji drawing animation to Subject Details Popup
   
 #### [(All changelogs)](CHANGELOG.md)
 
