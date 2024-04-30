@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">	
+<head>
+	<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+	
+	<title>Plugins</title>
+	
+	<script src="/popup/templates/head.js"></script>
+
+    <link rel="stylesheet" href="styles/home.css">
+    <link rel="stylesheet" href="styles/settings.css">
+    <link rel="stylesheet" href="styles/plugins.css">
+</head>
+<body>
+	<!-- TOP NAVBAR -->
+	<script src="templates/navbar.js"></script>
+
+	<!-- PAGE CONTENT -->
+	<div id="sec-page">
+		<div class="plugins">
+			<div class="plugin">
+				<div class="image"><img src="/images/plugins/highlighter.png" alt="Highlighter"></div>
+				<div class="info">
+					<div class="title">Highlighter</div>
+					<div class="description">Highlights kanji on websites based on your progress on Wanikani.</div>
+				</div>
+				<div class="switch">
+					<div class="checkbox_wrapper clickable">
+						<input type="checkbox" class="settingsItemInput" id="settings-kanji_details_popup-audio_autoplay" style="display: none;">
+						<div class="custom-checkbox-ball"></div>
+						<div class="custom-checkbox-back"></div>
+					</div>
+				</div>
+			</div>
+			<div class="plugin">
+				<div class="image"><img src="/images/plugins/subject_details.png" alt="Subject Details"></div>
+				<div class="info">
+					<div class="title">Subject Details</div>
+					<div class="description">Shows detailed information about a kanji or vocabulary item.</div>
+				</div>
+				<div class="switch">
+					<div class="checkbox_wrapper clickable">
+						<input type="checkbox" class="settingsItemInput" id="settings-kanji_details_popup-audio_autoplay" style="display: none;">
+						<div class="custom-checkbox-ball"></div>
+						<div class="custom-checkbox-back"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- COMMON SCRIPTS -->
+	<script src="/popup/templates/scripts.js"></script>
+
+	<script src="scripts/plugins.js"></script>
+</body>

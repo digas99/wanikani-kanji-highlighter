@@ -42,6 +42,12 @@ document.write(/*html*/`
                 <img id="settings" src="/images/settings.png" title="Settings" style="width: 20px;">
             </a>
         </li>
+        <!-- PLUGINS -->
+        <li class="side-panel-tab" style="position: relative;">
+            <a href="plugins.html" class="navbar_icon" style="padding: 0px 5px;">
+                <img id="plugins" src="/images/plugins.png" title="Plugins" style="width: 20px;">
+            </a>
+        </li>
         <!-- SEARCH -->
         <li class="side-panel-tab" style="position: relative;">
             <a href="search.html" class="navbar_icon" style="padding: 0px 5px;">
