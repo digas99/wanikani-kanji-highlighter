@@ -76,3 +76,25 @@ html {
 #subject-details .sd-detailsPopup_sectionContainer ul {
 	width: 96%;
 }
+
+#subject-details .sd-popupDetails_drawButtons {
+	flex-direction: row;
+	margin-bottom: 10px;
+	column-gap: 5px;
+}
+
+#subject-details .sd-popupDetails_strokes {
+	display: flex !important;
+	flex-direction: column;
+	row-gap: 5px;
+}
+
+#subject-details .sd-popupDetails_strokes > div {
+	margin: auto;
+	width: fit-content;
+}
+
+#subject-details .sd-popupDetails_drawButtons {
+	display: flex !important;
+	align-items: center;
+}

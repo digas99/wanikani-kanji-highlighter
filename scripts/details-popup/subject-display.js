@@ -219,6 +219,7 @@
 			if (fetchData) {
 				const subjectData = await this.fetch(this.id);
 				this.subject = subjectData[this.id];
+				console.log(this.subject);
 				this.other = await this.fetch(this.otherIds(this.subject));
 				this.type = this.subject["subject_type"];
 			}
@@ -804,18 +805,24 @@
 			this.drawStrokes(kanji, drawingWrapper.id);	
 	
 			// buttons
-			const reloadHTML = /*html*/`
+			const drawButtons = /*html*/`
 				<div class="sd-popupDetails_drawButtons">
-					<div class="sd-detailsPopup_clickable" data-action="prevStroke">
+					<div title="Previous Stroke" class="sd-detailsPopup_clickable" data-action="prevStroke">
 						<img src="https://i.imgur.com/HgyjeFO.png" alt="Previous Stroke" style="rotate: -90deg;">
 					</div>
-					<div class="sd-detailsPopup_clickable" data-action="reload">
-						<img src="https://i.imgur.com/EPJM6mf.png" alt="Reload">
+					<div title="Pause Drawing" class="sd-detailsPopup_clickable" data-action="pause">
+						<img src="https://i.imgur.com/sbYbflm.png" alt="Pause Drawing">
 					</div>
-					<div class="sd-detailsPopup_clickable" data-action="nextStroke">
+					<div title="Resume Drawing" class="sd-detailsPopup_clickable" data-action="resume">
+						<img src="https://i.imgur.com/fBG0tV9.png" alt="Resume Drawing">
+					</div>
+					<div title="Next Stroke" class="sd-detailsPopup_clickable" data-action="nextStroke">
 						<img src="https://i.imgur.com/HgyjeFO.png" alt="Next Stroke" style="rotate: 90deg;">
 					</div>
-					<div class="sd-detailsPopup_clickable" data-action="clear" style="margin-left: 20px;">
+					<div title="Reload Strokes" class="sd-detailsPopup_clickable" data-action="reload" style="margin-left: 20px;">
+						<img src="https://i.imgur.com/EPJM6mf.png" alt="Reload">
+					</div>
+					<div title="Clear All Strokes" class="sd-detailsPopup_clickable" data-action="clear">
 						<img src="https://i.imgur.com/wvMgsN5.png" alt="Clear">
 					</div>
 					<a href="https://mbilbille.github.io/dmak/" target="_blank" class="sd-detailsPopup_clickable" style="margin-left: 20px; filter: unset;" title="https://mbilbille.github.io/dmak/">
@@ -826,7 +833,7 @@
 					</a>
 				</div>
 			`;
-			strokes.insertAdjacentHTML("beforeend", reloadHTML);
+			strokes.insertAdjacentHTML("beforeend", drawButtons);
 	
 			return strokes;
 		},
@@ -856,8 +863,22 @@
 				},
 				'loaded': () => {
 					this.detailsPopup.querySelector(".sd-popupDetails_svgLoading")?.remove();
+
+					const papers = dmak.papers;
+					if (papers) {
+						papers.forEach((paper, i) => {
+							const canvas = paper.canvas;
+							const nStrokes = dmak.strokes.filter(stroke => stroke.char == i).length;
+							const title = `Kanji ${dmak.text.charAt(i)} has ${nStrokes} strokes`;
+							const titleWrapper = /*html*/`<title>${title}</title>`;
+							canvas.insertAdjacentHTML("afterbegin", titleWrapper);
+							console.log(paper.canvas, nStrokes);
+						});
+					}
 				}
 			});
+
+			console.log(dmak);
 
 			document.addEventListener("click", e => {
 				if (e.target.closest(".sd-popupDetails_strokes div[data-action='reload']")) {
@@ -872,6 +893,12 @@
 				}
 				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='clear']")) {
 					dmak.erase();
+				}
+				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='resume']")) {
+					dmak.render();
+				}
+				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='pause']")) {
+					dmak.pause();
 				}
 			});
 		}
@@ -899,6 +926,7 @@
 	const itemCards = (ids, data, className, sorted) => {
 		const wrapper = document.createElement("ul");
 		wrapper.style.setProperty("margin-top", "10px", "important");
+		console.log(ids, data);
 		if (ids && data) {
 			let info = ids.map(id => data[id]);
 			if (info.length > 1)

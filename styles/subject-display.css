@@ -525,3 +525,7 @@
 .sd-popupDetails_drawButtons > .sd-detailsPopup_clickable img {
 	width: 16px;
 }
+
+#sd-popupDetails_dmak {
+	display: flex;
+}

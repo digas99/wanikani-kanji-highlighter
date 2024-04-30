@@ -1194,10 +1194,13 @@ const getIds = subject => {
 			];
 			break;
 		case "vocabulary":
-		case "kana_vocabulary":
 			ids = [
 				...subject.component_subject_ids
 			];
+			break;
+		case "kana_vocabulary":
+			ids = [];
+			break;
 	}
 	return ids;
 }
