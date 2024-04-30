@@ -1,6 +1,6 @@
 (function () {
 	// construtctor
-	const SubjectDisplay = function(id, width, wrapper, fetch, otherIds) {
+	const SubjectDisplay = function(id, width, wrapper, fetch, otherIds, options) {
 		this.fetch = fetch;
 		this.id = id;
 		this.width = width;
@@ -12,12 +12,11 @@
 		this.expanded = false;
 		this.openedSubjects = [];
 
-		chrome.storage.local.get(["settings"], result => {
-			const settings = result["settings"];
-			if (settings) {
-				this.strokes = settings["kanji_details_popup"]["subject_drawing"] != null ? settings["kanji_details_popup"]["subject_drawing"] : true;
-			}
-		});
+		if (options) {
+			this.kanjiSource = options["kanjiSource"];
+			this.strokes = options["strokes"];
+			this.autoplayAudio = options["autoplayAudio"]; 
+		}
 
 		document.addEventListener("mouseover", e => {
 			const node = e.target;
@@ -251,6 +250,9 @@
 
 				if (!this.detailsPopup) await this.create(null, false);
 
+				if (this.autoplayAudio && this.type === "vocabulary")
+					playSubjectAudio(this.subject["pronunciation_audios"], null);
+
 				if (this.detailsPopup.firstChild)
 					this.detailsPopup.firstChild.remove();
 				this.detailsPopup.appendChild(this.charContainer(subject, save));
@@ -415,7 +417,7 @@
 
 			// strokes container
 			if (this.strokes)
-				details.appendChild(kanjiDrawing(kanjiInfo["characters"], this.drawStrokes));
+				details.appendChild(this.kanjiDrawing(kanjiInfo["characters"]));
 
 			if (kanjiInfo["jlpt"] && kanjiInfo["joyo"]) {
 				const schoolLevel = document.createElement("div");
@@ -577,7 +579,7 @@
 
 			// strokes container
 			if (this.strokes)
-				details.appendChild(kanjiDrawing(vocabInfo["characters"], this.drawStrokes));
+				details.appendChild(this.kanjiDrawing(vocabInfo["characters"]));
 			
 			if (vocabInfo["parts_of_speech"]) {
 				const partOfSpeech = document.createElement("div");
@@ -788,22 +790,54 @@
 		
 			return itemWrapper;
 		},
+		kanjiDrawing: function (kanji) {
+			const strokes = document.createElement("div");
+			strokes.classList.add("sd-popupDetails_strokes");
+			
+			const drawingWrapper = document.createElement("div");
+			strokes.appendChild(drawingWrapper);
+			drawingWrapper.id = "sd-popupDetails_dmak";
+			drawingWrapper.innerHTML = /*html*/`
+				<div class="sd-popupDetails_svgLoading">Loading Kanji Strokes animation...</div>
+			`;
+
+			this.drawStrokes(kanji, drawingWrapper.id);	
+	
+			// buttons
+			const reloadHTML = /*html*/`
+				<div class="sd-popupDetails_drawButtons">
+					<div class="sd-detailsPopup_clickable" data-action="prevStroke">
+						<img src="https://i.imgur.com/HgyjeFO.png" alt="Previous Stroke" style="rotate: -90deg;">
+					</div>
+					<div class="sd-detailsPopup_clickable" data-action="reload">
+						<img src="https://i.imgur.com/EPJM6mf.png" alt="Reload">
+					</div>
+					<div class="sd-detailsPopup_clickable" data-action="nextStroke">
+						<img src="https://i.imgur.com/HgyjeFO.png" alt="Next Stroke" style="rotate: 90deg;">
+					</div>
+					<div class="sd-detailsPopup_clickable" data-action="clear" style="margin-left: 20px;">
+						<img src="https://i.imgur.com/wvMgsN5.png" alt="Clear">
+					</div>
+					<a href="https://mbilbille.github.io/dmak/" target="_blank" class="sd-detailsPopup_clickable" style="margin-left: 20px; filter: unset;" title="https://mbilbille.github.io/dmak/">
+						<img src="https://i.imgur.com/DFljelz.png" alt="dmak" style="width: 25px;">
+					</a>
+					<a href="https://kanjivg.tagaini.net/" target="_blank" class="sd-detailsPopup_clickable" style="filter: unset; color: white;" title="https://kanjivg.tagaini.net/">
+						<div>KanjiVG</div>
+					</a>
+				</div>
+			`;
+			strokes.insertAdjacentHTML("beforeend", reloadHTML);
+	
+			return strokes;
+		},
 		drawStrokes: function (characters, element, size) {
 			// calculate size depending on number of characters
 			if (!size)
 				size = 130 - (10 * characters.length);
-			
-
-			setTimeout(() => {
-				const elem = typeof element === "string" ? document.getElementById(element) : element; 
-				if (elem && !elem.innerHTML) {
-					elem.innerHTML = "Failed to load kanji strokes";
-				}
-			}, 500);
 
 			const dmak = new Dmak(characters, {
 				'element': element,
-				'uri': KANJI_STROKES_URI,
+				'uri': this.kanjiSource,
 				'width': size,
 				'height': size,
 				'step': 0.005,
@@ -819,6 +853,9 @@
 							'fill': getComputedStyle(document.documentElement).getPropertyValue('--wanikani-sec'),
 						}
 					}
+				},
+				'loaded': () => {
+					this.detailsPopup.querySelector(".sd-popupDetails_svgLoading")?.remove();
 				}
 			});
 
@@ -1172,43 +1209,6 @@
 			});
 		});
 		return stats;
-	}
-
-	const kanjiDrawing = (kanji, drawing) => {
-		const strokes = document.createElement("div");
-		strokes.classList.add("sd-popupDetails_strokes");
-		
-		const drawingWrapper = document.createElement("div");
-		strokes.appendChild(drawingWrapper);
-		drawingWrapper.id = "sd-popupDetails_dmak";
-		drawing(kanji, drawingWrapper.id);	
-
-		// buttons
-		const reloadHTML = /*html*/`
-			<div class="sd-popupDetails_drawButtons">
-				<div class="sd-detailsPopup_clickable" data-action="prevStroke">
-					<img src="https://i.imgur.com/HgyjeFO.png" alt="Previous Stroke" style="rotate: -90deg;">
-				</div>
-				<div class="sd-detailsPopup_clickable" data-action="reload">
-					<img src="https://i.imgur.com/EPJM6mf.png" alt="Reload">
-				</div>
-				<div class="sd-detailsPopup_clickable" data-action="nextStroke">
-					<img src="https://i.imgur.com/HgyjeFO.png" alt="Next Stroke" style="rotate: 90deg;">
-				</div>
-				<div class="sd-detailsPopup_clickable" data-action="clear" style="margin-left: 20px;">
-					<img src="https://i.imgur.com/wvMgsN5.png" alt="Clear">
-				</div>
-				<a href="https://mbilbille.github.io/dmak/" target="_blank" class="sd-detailsPopup_clickable" style="margin-left: 20px; filter: unset;" title="https://mbilbille.github.io/dmak/">
-					<img src="https://i.imgur.com/DFljelz.png" alt="dmak" style="width: 25px;">
-				</a>
-				<a href="https://kanjivg.tagaini.net/" target="_blank" class="sd-detailsPopup_clickable" style="filter: unset; color: white;" title="https://kanjivg.tagaini.net/">
-					<div>KanjiVG</div>
-				</a>
-			</div>
-		`;
-		strokes.insertAdjacentHTML("beforeend", reloadHTML);
-
-		return strokes;
 	}
 
 	window.SubjectDisplay = SubjectDisplay;

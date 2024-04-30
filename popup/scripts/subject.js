@@ -33,7 +33,12 @@ chrome.storage.local.get(["settings"], async result => {
 			}
 			return [];
 		},
-		getIds
+		getIds,
+		{
+			kanjiSource: KANJI_STROKES_URI.popup,
+			strokes: result["settings"]["kanji_details_popup"]["subject_drawing"],
+			autoplayAudio: result["settings"]["kanji_details_popup"]["audio_autoplay"],
+		}
 	);
 
 	await details.create(true);

@@ -21,7 +21,8 @@ const defaultSettings = {
 		key_bindings: true,
 		popup_opacity: 8,
 		popup_width: 270,
-		subject_drawing: true
+		subject_drawing: true,
+		audio_autoplay: false
 	},
 	"extension_icon": {
 		kanji_counter: true,
@@ -339,4 +340,7 @@ const INTERFACE_COLORS = {
 	}
 }
 
-const KANJI_STROKES_URI = "https://wkhighlighter.me/kanji/";
+const KANJI_STROKES_URI = {
+	"popup": "https://wkhighlighter.me/kanji/",
+	"web": "https://wkhighlighter-ca76a5599457.herokuapp.com/kanji/"
+};

@@ -1149,7 +1149,7 @@ const playSubjectAudio = (audioList, wrapper) => {
 			play.then(() => console.log("Audio played"))
 			.catch(e => {
 				let failAudioPlay;
-				if (wrapper.getElementsByClassName("fail-audio-play").length == 0) {
+				if (wrapper && wrapper.getElementsByClassName("fail-audio-play").length == 0) {
 					wrapper.getElementsByClassName("fail-audio-play");
 					failAudioPlay = document.createElement("div");
 					wrapper.appendChild(failAudioPlay);

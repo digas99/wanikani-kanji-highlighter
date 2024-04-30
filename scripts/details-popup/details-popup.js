@@ -1,4 +1,4 @@
-const createDetailsPopup = async id => {
+const createDetailsPopup = async (id, settings) => {
 	const detailsPopup = new SubjectDisplay(Number(id), 270, document.body,
 		async ids => {
 			if (!Array.isArray(ids))
@@ -10,7 +10,12 @@ const createDetailsPopup = async id => {
 				});
 			});
 		},
-		getIds
+		getIds,
+		{
+			kanjiSource: KANJI_STROKES_URI.web,
+			strokes: settings["kanji_details_popup"]["subject_drawing"],
+			autoplayAudio: settings["kanji_details_popup"]["audio_autoplay"],
+		}
 	);
 
 	await detailsPopup.create();
@@ -58,7 +63,7 @@ const updateDetailsPopup = (detailsPopup, id) => {
 					const id = info[node.textContent];
 					if (id) {
 						if (!detailsPopup)
-							detailsPopup = await createDetailsPopup(id);
+							detailsPopup = await createDetailsPopup(id, settings);
 						else
 							updateDetailsPopup(detailsPopup, id);
 					}
@@ -82,7 +87,7 @@ const updateDetailsPopup = (detailsPopup, id) => {
 						id = allSubjectsKeys[rand(0, allSubjectsKeys.length-1)];
 				}*/
 				if (!detailsPopup)
-					detailsPopup = await createDetailsPopup(id);
+					detailsPopup = await createDetailsPopup(id, settings);
 				else
 					updateDetailsPopup(detailsPopup, id);
 			}
@@ -117,7 +122,7 @@ const updateDetailsPopup = (detailsPopup, id) => {
 						const id = info[node.textContent];
 						if (id) {
 							if (!detailsPopup)
-								detailsPopup = await createDetailsPopup(id);
+								detailsPopup = await createDetailsPopup(id, settings);
 							else
 								updateDetailsPopup(detailsPopup, id);
 						}
