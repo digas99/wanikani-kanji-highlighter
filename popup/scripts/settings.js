@@ -103,17 +103,6 @@ const blacklistEntry = (site) => {
 	return div;
 }
 
-const checkboxStyle = (checkbox, checked) => {
-	if (checked) {
-		if (!checkbox.classList.contains("checkbox-enabled"))
-			checkbox.classList.add("checkbox-enabled");
-	}
-	else {
-		if (checkbox.classList.contains("checkbox-enabled"))
-			checkbox.classList.remove("checkbox-enabled");
-	}
-}
-
 const handleSettingsAction = (target, value, callback) => {
 	chrome.storage.local.get(["settings"], async data => {
 		let settings = data["settings"];

@@ -46,6 +46,7 @@ document.write(/*html*/`
         <li class="side-panel-tab" style="position: relative;">
             <a href="plugins.html" class="navbar_icon" style="padding: 0px 5px;">
                 <img id="plugins" src="/images/plugins.png" title="Plugins" style="width: 20px;">
+                <span class="side-panel-info-alert" style="background-color: var(--wanikani); color: white;">${localStorage.getItem("plugins") || "0"}</span>
             </a>
         </li>
         <!-- SEARCH -->
@@ -58,7 +59,7 @@ document.write(/*html*/`
         <li class="side-panel-tab" style="position: relative;">
             <a href="#" class="navbar_icon" style="padding: 0px 5px;">
                 <img id="blacklist" src="/images/blacklist.png" title="Blacklist" style="width: 20px; margin-left: -3px; margin-right: 3px;">
-                <span class="side-panel-info-alert" style="background-color: #f100a1; color: white;">${localStorage.getItem("blacklist") || "0"}</span>
+                <span class="side-panel-info-alert" style="background-color: var(--wanikani); color: white;">${localStorage.getItem("blacklist") || "0"}</span>
             </a>
         </li>
         <!-- THEME -->

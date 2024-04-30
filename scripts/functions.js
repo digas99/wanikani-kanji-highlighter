@@ -1208,3 +1208,14 @@ const getIds = subject => {
 	}
 	return ids;
 }
+
+const checkboxStyle = (checkbox, checked) => {
+	if (checked) {
+		if (!checkbox.classList.contains("checkbox-enabled"))
+			checkbox.classList.add("checkbox-enabled");
+	}
+	else {
+		if (checkbox.classList.contains("checkbox-enabled"))
+			checkbox.classList.remove("checkbox-enabled");
+	}
+}
