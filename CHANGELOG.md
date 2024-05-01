@@ -6,6 +6,10 @@
 ## Content
 - Kanji Highlighting is now faster because Chrome Storage is no longer accessed while browsing
 - Added Kanji Drawing Animation to Subject Details Popup
+- Added new customization options (in Settings) to Subject Details Popup:
+    - Set a different width for the popup
+    - Kanji Drawing Animation can be turned off
+    - Play Subject Audio automatically when popup is created
 
 # [Changelog v1.1.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.1.2)
 Released on 26/04/2024

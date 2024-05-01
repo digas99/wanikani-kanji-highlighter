@@ -81,6 +81,8 @@ html {
 	flex-direction: row;
 	margin-bottom: 10px;
 	column-gap: 5px;
+	display: flex !important;
+	align-items: center;
 }
 
 #subject-details .sd-popupDetails_strokes {
@@ -92,9 +94,4 @@ html {
 #subject-details .sd-popupDetails_strokes > div {
 	margin: auto;
 	width: fit-content;
-}
-
-#subject-details .sd-popupDetails_drawButtons {
-	display: flex !important;
-	align-items: center;
 }

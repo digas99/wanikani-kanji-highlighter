@@ -209,6 +209,47 @@
 			if (node.closest(".sd-popupDetails_navbar") && node.tagName === "LI") {
 				node.querySelector("div").click();
 			}
+
+			// dmak clicks
+			const target = e.target;
+			if (target.closest(".sd-popupDetails_strokes div[data-action='reload']")) {
+				this.dmak.pause();
+				this.dmak.erase();
+				setTimeout(() => this.dmak.render(), 1000);
+			}
+			else if (target.closest(".sd-popupDetails_strokes div[data-action='prevStroke']")) {
+				this.dmak.pause();
+				this.dmak.eraseLastStrokes(1);
+			}
+			else if (target.closest(".sd-popupDetails_strokes div[data-action='nextStroke']")) {
+				this.dmak.pause();
+				this.dmak.renderNextStrokes(1);
+			}
+			else if (target.closest(".sd-popupDetails_strokes div[data-action='clear']")) {
+				this.dmak.pause();
+				this.dmak.erase();
+			}
+			else if (target.closest(".sd-popupDetails_strokes div[data-action='resume']")) {
+				this.dmak.render();
+			}
+			else if (target.closest(".sd-popupDetails_strokes div[data-action='pause']")) {
+				this.dmak.pause();
+			}
+
+			if (target.closest("#sd-popupDetails_dmak") || target.closest("#sd-detailsPopup_dmakExpandedClose")) {
+				console.log("click");
+				const wrapper = target.closest(".sd-popupDetails_strokes");
+				if (wrapper.classList.contains("sd-detailsPopup_dmakExpanded")) {
+					const kanjTitle = document.querySelector(".sd-popupDetails_kanjiTitle");
+					if (kanjTitle)
+						kanjTitle.parentElement.insertBefore(wrapper, kanjTitle.nextSibling);
+					wrapper.classList.remove("sd-detailsPopup_dmakExpanded");
+				}
+				else {
+					document.documentElement.appendChild(wrapper);
+					wrapper.classList.add("sd-detailsPopup_dmakExpanded");
+				}
+			}
 		});
 	}
 
@@ -219,7 +260,6 @@
 			if (fetchData) {
 				const subjectData = await this.fetch(this.id);
 				this.subject = subjectData[this.id];
-				console.log(this.subject);
 				this.other = await this.fetch(this.otherIds(this.subject));
 				this.type = this.subject["subject_type"];
 			}
@@ -250,6 +290,11 @@
 				this.type = subject["subject_type"];
 
 				if (!this.detailsPopup) await this.create(null, false);
+
+				// clear hanging dmak expanded
+				const dmakExpanded = document.querySelectorAll(".sd-detailsPopup_dmakExpanded");
+				if (dmakExpanded)
+					dmakExpanded.forEach(elem => elem.remove());
 
 				if (this.autoplayAudio && this.type === "vocabulary")
 					playSubjectAudio(this.subject["pronunciation_audios"], null);
@@ -336,6 +381,11 @@
 					this.detailsPopup.remove();
 					this.detailsPopup = null;
 				}, delay);
+
+				// clear hanging dmak expanded
+				const dmakExpanded = document.querySelectorAll(".sd-detailsPopup_dmakExpanded");
+				if (dmakExpanded)
+					dmakExpanded.forEach(elem => elem.remove());
 			}
 		},
 
@@ -795,9 +845,18 @@
 			const strokes = document.createElement("div");
 			strokes.classList.add("sd-popupDetails_strokes");
 			
+			// close button
+			const close = /*html*/`
+				<div class="sd-detailsPopup_clickable" id="sd-detailsPopup_dmakExpandedClose" title="Close Drawing">
+					<img src="https://i.imgur.com/KUjkFI9.png" alt="Close">
+				</div>
+			`;
+			strokes.insertAdjacentHTML("beforeend", close);
+			
 			const drawingWrapper = document.createElement("div");
 			strokes.appendChild(drawingWrapper);
 			drawingWrapper.id = "sd-popupDetails_dmak";
+			drawingWrapper.classList.add("sd-detailsPopup_clickable");
 			drawingWrapper.innerHTML = /*html*/`
 				<div class="sd-popupDetails_svgLoading">Loading Kanji Strokes animation...</div>
 			`;
@@ -862,21 +921,23 @@
 					}
 				},
 				'loaded': () => {
-					this.detailsPopup.querySelector(".sd-popupDetails_svgLoading")?.remove();
+					document.documentElement.querySelector(".sd-popupDetails_svgLoading")?.remove();
 
 					const papers = this.dmak.papers;
 					if (papers) {
-						const currentCharacters = document.querySelector(".sd-detailsPopup_kanji").innerText;
-						if (characters == currentCharacters) {
-							const currentCanvases = papers.map(paper => paper.canvas);
+						setTimeout(() => {
+							const currentCharacters = document.querySelector(".sd-detailsPopup_kanji").innerText;
+							if (characters == currentCharacters) {
+								const currentCanvases = papers.map(paper => paper.canvas);
 
-							// iterate all svgs and remove the ones that are not in currentCanvases
-							const svgs = document.querySelectorAll("#sd-popupDetails_dmak svg");
-							svgs.forEach(svg => {
-								if (!currentCanvases.includes(svg))
-									svg.remove();
-							});
-						}
+								// iterate all svgs and remove the ones that are not in currentCanvases
+								const svgs = document.querySelectorAll("#sd-popupDetails_dmak svg");
+								svgs.forEach(svg => {
+									if (!currentCanvases.includes(svg))
+										svg.remove();
+								});
+							}
+						}, 500);
 						
 						papers.forEach((paper, i) => {
 							const canvas = paper.canvas;
@@ -890,33 +951,6 @@
 			});
 
 			console.log(this.dmak);
-
-			document.addEventListener("click", e => {
-				if (e.target.closest(".sd-popupDetails_strokes div[data-action='reload']")) {
-					this.dmak.pause();
-					this.dmak.erase();
-					setTimeout(() => this.dmak.render(), 500);
-				}
-				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='prevStroke']")) {
-					this.dmak.pause();
-					this.dmak.eraseLastStrokes(1);
-				}
-				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='nextStroke']")) {
-					this.dmak.pause();
-					this.dmak.renderNextStrokes(1);
-				}
-				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='clear']")) {
-					this.dmak.pause();
-					this.dmak.erase();
-				}
-				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='resume']")) {
-					this.dmak.render();
-				}
-				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='pause']")) {
-					this.dmak.pause();
-				}
-			});
-
 		}
 	}
 
@@ -942,7 +976,6 @@
 	const itemCards = (ids, data, className, sorted) => {
 		const wrapper = document.createElement("ul");
 		wrapper.style.setProperty("margin-top", "10px", "important");
-		console.log(ids, data);
 		if (ids && data) {
 			let info = ids.map(id => data[id]);
 			if (info.length > 1)
