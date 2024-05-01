@@ -11,8 +11,8 @@ const srsStages = {
 	9: {name:"Burned", short: "Brn", color: "#e20000"}
 };
 
-const WANIKANI_COLOR = "#00aaff";
-const WANIKANI_SEC_COLOR = "#f100a1";
+const WANIKANI_COLOR = "#f100a1";
+const WANIKANI_SEC_COLOR = "#00aaff";
 
 const defaultSettings = {
 	"kanji_details_popup": {
@@ -43,8 +43,8 @@ const defaultSettings = {
 		results_display: "searchResultOptionlist"
 	},
 	"appearance": {
-		highlight_learned: WANIKANI_COLOR,
-		highlight_not_learned: WANIKANI_SEC_COLOR,
+		highlight_learned: WANIKANI_SEC_COLOR,
+		highlight_not_learned: WANIKANI_COLOR,
 		details_popup: "#404040",
 		radical_color: "#00a1f1",
 		kanji_color: "#f100a1",
@@ -164,8 +164,8 @@ const defaultSettings = {
 };
 
 const wanikaniPattern = {
-	highlight_learned: WANIKANI_COLOR,
-	highlight_not_learned: WANIKANI_SEC_COLOR,
+	highlight_learned: WANIKANI_SEC_COLOR,
+	highlight_not_learned: WANIKANI_COLOR,
 	details_popup: "#404040",
 	radical_color: "#00a1f1",
 	kanji_color: "#f100a1",
@@ -183,8 +183,8 @@ const wanikaniPattern = {
 };
 
 const flamingDurtlesPattern = {
-	highlight_learned: WANIKANI_COLOR,
-	highlight_not_learned: WANIKANI_SEC_COLOR,
+	highlight_learned: WANIKANI_SEC_COLOR,
+	highlight_not_learned: WANIKANI_COLOR,
 	details_popup: "#404040",
 	radical_color: "#65b6ae",
 	kanji_color: "#e7e485",
@@ -325,7 +325,7 @@ const INTERFACE_COLORS = {
 	"dark": {
 		"background": "#25252c",
 		"default": "#13131b",
-		"fill": "#25252c",
+		"fill": "#212128",
 		"font": "#dcdcdc",
 		"font-sec": "#b4b4b4",
 		"border": "#fff",

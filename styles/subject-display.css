@@ -85,6 +85,9 @@
 .sd-detailsPopup_clickable { 
 	cursor: pointer;
 	transition: 0.2s;
+	-webkit-user-select: none; /* Safari */
+	-ms-user-select: none; /* IE 10 and IE 11 */
+	user-select: none; /* Standard syntax */
 }
 
 .sd-detailsPopup_clickable:hover {
@@ -508,6 +511,10 @@
 	position: relative;
 }
 
+.sd-popupDetails_strokes .sd-popupDetails_svgLoading {
+	color: white;
+}
+
 .sd-popupDetails_drawButtons {
 	display: flex !important;
 	align-items: center;
@@ -528,4 +535,63 @@
 
 #sd-popupDetails_dmak {
 	display: flex;
+}
+
+.sd-detailsPopup_dmakExpanded {
+    position: fixed;
+    background-color: var(--default-color);
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    width: fit-content;
+    z-index: 100;
+    margin: auto;
+    display: inline-table;
+    padding: 20px;
+    box-shadow: 0px 2px 5px -2px black;
+	max-width: 88%;
+    z-index: 99999;
+	font-family: Arial, Helvetica, sans-serif !important;
+}
+
+.sd-detailsPopup_dmakExpanded .sd-popupDetails_drawButtons {
+	flex-direction: row;
+	margin-bottom: 10px;
+	column-gap: 5px;
+	display: flex !important;
+	align-items: center;
+	margin-bottom: unset !important;
+}
+
+.sd-detailsPopup_dmakExpanded {
+	display: flex !important;
+	flex-direction: column;
+	row-gap: 5px;
+	height: fit-content;
+}
+
+.sd-detailsPopup_dmakExpanded > div {
+	margin: auto;
+	width: fit-content;
+}
+
+#sd-detailsPopup_dmakExpandedClose {
+	display: none;
+}
+
+.sd-detailsPopup_dmakExpanded #sd-detailsPopup_dmakExpandedClose {
+	position: absolute;
+    right: 20px;
+	display: block !important;
+}
+
+.sd-detailsPopup_dmakExpanded #sd-detailsPopup_dmakExpandedClose img {
+    width: 20px;
+    filter: invert(1);
+}
+
+.sd-detailsPopup_dmakExpanded svg {
+	width: 200px;
+	height: 200px;
 }
