@@ -85,6 +85,9 @@
 .sd-detailsPopup_clickable { 
 	cursor: pointer;
 	transition: 0.2s;
+	-webkit-user-select: none; /* Safari */
+	-ms-user-select: none; /* IE 10 and IE 11 */
+	user-select: none; /* Standard syntax */
 }
 
 .sd-detailsPopup_clickable:hover {

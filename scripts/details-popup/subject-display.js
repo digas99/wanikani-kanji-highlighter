@@ -842,7 +842,7 @@
 			if (!size)
 				size = 130 - (10 * characters.length);
 
-			const dmak = new Dmak(characters, {
+			this.dmak = new Dmak(characters, {
 				'element': element,
 				'uri': this.kanjiSource,
 				'width': size,
@@ -864,47 +864,59 @@
 				'loaded': () => {
 					this.detailsPopup.querySelector(".sd-popupDetails_svgLoading")?.remove();
 
-					const papers = dmak.papers;
+					const papers = this.dmak.papers;
 					if (papers) {
+						const currentCharacters = document.querySelector(".sd-detailsPopup_kanji").innerText;
+						if (characters == currentCharacters) {
+							const currentCanvases = papers.map(paper => paper.canvas);
+
+							// iterate all svgs and remove the ones that are not in currentCanvases
+							const svgs = document.querySelectorAll("#sd-popupDetails_dmak svg");
+							svgs.forEach(svg => {
+								if (!currentCanvases.includes(svg))
+									svg.remove();
+							});
+						}
+						
 						papers.forEach((paper, i) => {
 							const canvas = paper.canvas;
-							const nStrokes = dmak.strokes.filter(stroke => stroke.char == i).length;
-							const title = `Kanji ${dmak.text.charAt(i)} has ${nStrokes} strokes`;
+							const nStrokes = this.dmak.strokes.filter(stroke => stroke.char == i).length;
+							const title = `Kanji ${this.dmak.text.charAt(i)} has ${nStrokes} strokes`;
 							const titleWrapper = /*html*/`<title>${title}</title>`;
 							canvas.insertAdjacentHTML("afterbegin", titleWrapper);
-							console.log(paper.canvas, nStrokes);
 						});
 					}
 				}
 			});
 
-			console.log(dmak);
+			console.log(this.dmak);
 
 			document.addEventListener("click", e => {
 				if (e.target.closest(".sd-popupDetails_strokes div[data-action='reload']")) {
-					dmak.pause();
-					dmak.erase();
-					setTimeout(() => dmak.render(), 500);
+					this.dmak.pause();
+					this.dmak.erase();
+					setTimeout(() => this.dmak.render(), 500);
 				}
 				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='prevStroke']")) {
-					dmak.pause();
-					dmak.eraseLastStrokes(1);
+					this.dmak.pause();
+					this.dmak.eraseLastStrokes(1);
 				}
 				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='nextStroke']")) {
-					dmak.pause();
-					dmak.renderNextStrokes(1);
+					this.dmak.pause();
+					this.dmak.renderNextStrokes(1);
 				}
 				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='clear']")) {
-					dmak.pause();
-					dmak.erase();
+					this.dmak.pause();
+					this.dmak.erase();
 				}
 				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='resume']")) {
-					dmak.render();
+					this.dmak.render();
 				}
 				else if (e.target.closest(".sd-popupDetails_strokes div[data-action='pause']")) {
-					dmak.pause();
+					this.dmak.pause();
 				}
 			});
+
 		}
 	}
 
