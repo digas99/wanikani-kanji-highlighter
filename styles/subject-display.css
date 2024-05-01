@@ -592,6 +592,11 @@
 }
 
 .sd-detailsPopup_dmakExpanded svg {
-	width: 200px;
-	height: 200px;
+	width: 250px;
+	height: auto;
+}
+
+.sd-detailsPopup_dmakExpanded #sd-popupDetails_dmak {
+	width: 100%;
+    justify-content: center;
 }
