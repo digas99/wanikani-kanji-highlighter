@@ -31,9 +31,9 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
-# [Changelog v1.2.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.1)
+## [Changelog v1.2.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.1)
 
-## Bug Fixes
+### Bug Fixes
 - Fixed bug that would break the fetch of new data from Wanikani
 - Subject Details no longer comes from the side if opened from the Extension Popup
 
