@@ -1,4 +1,11 @@
+# [Changelog v1.2.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.1)
+
+## Bug Fixes
+- Fixed bug that would break the fetch of new data from Wanikani
+- Subject Details no longer comes from the side if opened from the Extension Popup
+
 # [Changelog v1.2.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.0)
+Released on 01/05/2024
 
 ## Technicalities
 - Subject Details Popup now fetches data directly from IndexedDB, instead of Chrome Storage, making it way faster to load on the Extension Popup ([#30](https://github.com/digas99/wanikani-kanji-highlighter/issues/30))

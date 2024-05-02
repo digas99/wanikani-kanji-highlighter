@@ -4,10 +4,10 @@ html {
 
 #subject-details .sd-detailsPopup {
 	z-index: 10;
-	margin-top: 50px;
 	width: 420px;
 	transition: unset;
 	margin-right: 45px;
+	position: unset !important;
 }
 
 #sd-detailsPopupFix, #sd-detailsPopupSubjectLock, #sd-detailsPopupKeyBindings, #sd-detailsPopupCloseX {

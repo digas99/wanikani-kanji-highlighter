@@ -19,7 +19,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v120)
+1. [Latest Features](#changelog-v121)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -31,6 +31,12 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
+# [Changelog v1.2.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.1)
+
+## Bug Fixes
+- Fixed bug that would break the fetch of new data from Wanikani
+- Subject Details no longer comes from the side if opened from the Extension Popup
+
 ## [Changelog v1.2.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.0)
 
 ### Technicalities
@@ -39,6 +45,10 @@ It works with any website, and provides detailed information about any kanji tha
 ### Content
 - Kanji Highlighting is now faster because Chrome Storage is no longer used while browsing
 - Added Kanji drawing animation to Subject Details Popup
+- Added new customization options (in Settings) to Subject Details Popup:
+    - Set a different width for the popup
+    - Kanji Drawing Animation can be turned off
+    - Play Subject Audio automatically when popup is created
   
 #### [(All changelogs)](CHANGELOG.md)
 

@@ -423,7 +423,11 @@ const fetchReviewedKanjiID = assignments => {
 // transform the kanji IDs into kanji characters
 const setupLearnedKanji = (kanji, assignments) => {
 	const ids = fetchReviewedKanjiID(assignments);
-	const learnedKanji = ids.map(id => kanji[id].slug);
+	console.log(kanji, ids);
+	const learnedKanji = ids.map(id => {
+		if (id && kanji[id])
+			return kanji[id]["characters"];
+	}).filter(Boolean);
 	chrome.storage.local.set({"learnedKanji": learnedKanji, "learnedKanji_updated":new Date().toUTCString()});
 	return learnedKanji;
 }
@@ -604,13 +608,16 @@ const loadData = async (apiToken, tabId, callback) => {
 				evalProgress(progress, fetches);
 				
 				// setup learned kanji
-				const kanjiList = Object.values(kanji).map(kanji => kanji["slug"]);
-				chrome.storage.local.set({"learnable_kanji": kanjiList});
-				chrome.storage.local.get("assignments", result => {
-					const assignments = result["assignments"];
-					if (assignments)
-						setupLearnedKanji(kanji, assignments["all"]);
-				});
+				if (kanji) {
+					const kanjiList = Object.values(kanji).map(kanji => kanji["slug"]);
+					chrome.storage.local.set({"learnable_kanji": kanjiList});
+					chrome.storage.local.get("assignments", result => {
+						const assignments = result["assignments"];
+						console.log(assignments);
+						if (assignments)
+							setupLearnedKanji(kanji, assignments["all"]);
+					});
+				}
 			})
 		];
 		
