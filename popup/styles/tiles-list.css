@@ -65,8 +65,8 @@
     column-gap: 10px;
 }
 
-.tiles-list-section > ul {
-
+.tiles-list-section > div {
+	display: flex;
 }
 
 .tiles-list-section > ul li {
