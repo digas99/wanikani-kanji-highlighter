@@ -923,26 +923,22 @@
 				'loaded': async () => {
 					const papers = this.dmak.papers;
 					if (papers) {
-						await new Promise(resolve => {
-								setTimeout(() => {
-								const currentCharacters = document.querySelector(".sd-detailsPopup_kanji").innerText;
-								if (characters == currentCharacters) {
-									const currentCanvases = papers.map(paper => paper.canvas);
+						const currentCharacters = document.querySelector(".sd-detailsPopup_kanji").innerText;
+						if (characters == currentCharacters) {
+							const currentCanvases = papers.map(paper => paper.canvas);
 
-									// iterate all svgs and remove the ones that are not in currentCanvases
-									const svgs = document.querySelectorAll("#sd-popupDetails_dmak svg");
-									svgs.forEach(svg => {
-										if (!currentCanvases.includes(svg))
-											svg.remove();
-									});
-
-									resolve();
+							// iterate all svgs and remove the ones that are not in currentCanvases
+							const svgs = document.querySelectorAll("#sd-popupDetails_dmak svg");
+							svgs.forEach(svg => {
+								if (!currentCanvases.includes(svg))
+									svg.remove();
+								else {
+									document.documentElement.querySelector(".sd-popupDetails_svgLoading")?.remove();
+									svg.style.setProperty("display", "block", "important");
 								}
-							}, 500);
-						});
+							});
+						}
 
-						document.documentElement.querySelector(".sd-popupDetails_svgLoading")?.remove();
-						document.querySelector("#sd-popupDetails_dmak svg").style.setProperty("display", "block", "important");
 						
 						papers.forEach((paper, i) => {
 							const canvas = paper.canvas;
