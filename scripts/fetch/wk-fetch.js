@@ -1,70 +1,80 @@
-const setupSubjects = (apiToken, setup, build, callback) =>
-	new Promise(async (resolve, reject) => {
-		chrome.storage.local.get([setup.storage.id, setup.storage.updated, setup.storage.association], async result => {
-			const updated = result[setup.storage.updated];
-			const storage = result[setup.storage.id];
-			const assocs = result[setup.storage.association];
-			
-			const db = new Database("wanikani");
-			const opened = await db.open("subjects");
-			if (opened) {
-				fetchAllPages(apiToken, setup.endpoint, updated)
-					.then(async data => {
-						// too many requests or not modified
-						if (data.error) {
-							resolve([storage, false]);
-							if (callback)
-								callback(storage, false);
-							return;
-						}
-
-						// open a loading popup
-						chrome.runtime.sendMessage({loading: true});
-
-						let subjects = {};
-						let associations = {};
-						const db_records = [];
-						data.map(content => content.data)
-							.flat(1)
-							.forEach(subject => build(subjects, associations, db_records, subject));
-
-						await db.insert("subjects", db_records);
-
-						console.log("[DATABASE]: Inserted "+db_records.length+" records into database for "+setup.name);
-
-						if (data["total_count"] > 0) {
-							// add jlpt info
-							if (setup.jlpt) {
-								for (const n in jlpt) {
-									jlpt[n].forEach(kanji => subjects[associations[kanji]]["jlpt"] = n.toUpperCase());
-								}
-							}
-	
-							// add joyo info
-							if (setup.joyo) {
-								for (const n in joyo) {
-									joyo[n].forEach(kanji => subjects[associations[kanji]]["joyo"] = "Grade "+n.charAt(1));
-								}
-							}
-						}
-						
-						subjects = Object.assign({}, storage, subjects);
-						associations = Object.assign({}, assocs, associations);
-						// saving all subjects
-						chrome.storage.local.set({...{
-							[setup.storage.association]: associations,
-							[setup.storage.updated]: new Date().toUTCString(),
-							[setup.storage.size]:Object.keys(subjects).length
-						}}, () => {
-							resolve([subjects, true]);
-							if (callback)
-								callback(subjects, true);
-						});
-					})
-					.catch(reject);
-			}
+const setupSubjects = async (apiToken, setup, build, callback) => {
+	try {
+		const result = await new Promise((resolve, reject) => {
+			chrome.storage.local.get([setup.storage.id, setup.storage.updated, setup.storage.association], async result => {
+				const updated = result[setup.storage.updated];
+				const storage = result[setup.storage.id];
+				const assocs = result[setup.storage.association];
+				
+				const db = new Database("wanikani");
+				const opened = await db.open("subjects");
+				if (opened) {
+					try {
+						const data = await fetchAllPages(apiToken, setup.endpoint, updated);
+						resolve({ data, storage, assocs });
+					} catch (error) {
+						reject(error);
+					}
+				}
+			});
 		});
-	});
+
+		const { data, storage, assocs } = result;
+
+		// too many requests or not modified
+		if (data.error) {
+			if (callback) callback(storage, false);
+			return [storage, false];
+		}
+
+		// open a loading popup
+		chrome.runtime.sendMessage({ loading: true });
+
+		let subjects = {};
+		let associations = {};
+		const db_records = [];
+		data.map(content => content.data)
+			.flat(1)
+			.forEach(subject => build(subjects, associations, db_records, subject));
+
+		await db.insert("subjects", db_records);
+
+		console.log("[DATABASE]: Inserted " + db_records.length + " records into database for " + setup.name);
+
+		if (data["total_count"] > 0) {
+			// add jlpt info
+			if (setup.jlpt) {
+				for (const n in jlpt) {
+					jlpt[n].forEach(kanji => subjects[associations[kanji]]["jlpt"] = n.toUpperCase());
+				}
+			}
+
+			// add joyo info
+			if (setup.joyo) {
+				for (const n in joyo) {
+					joyo[n].forEach(kanji => subjects[associations[kanji]]["joyo"] = "Grade " + n.charAt(1));
+				}
+			}
+		}
+
+		subjects = Object.assign({}, storage, subjects);
+		associations = Object.assign({}, assocs, associations);
+		// saving all subjects
+		chrome.storage.local.set({
+			...{
+				[setup.storage.association]: associations,
+				[setup.storage.updated]: new Date().toUTCString(),
+				[setup.storage.size]: Object.keys(subjects).length
+			}
+		}, () => {
+			if (callback) callback(subjects, true);
+		});
+
+		return [subjects, true];
+	} catch (error) {
+		return Promise.reject(error);
+	}
+};
 
 const fetchUserInfo = async(apiToken, callback) => {
 	chrome.storage.local.get(["userInfo", "userInfo_updated"], async result => {

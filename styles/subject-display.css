@@ -537,6 +537,10 @@
 	display: flex;
 }
 
+#sd-popupDetails_dmak svg {
+	display: none;
+}
+
 .sd-detailsPopup_dmakExpanded {
     position: fixed;
     background-color: var(--default-color);
