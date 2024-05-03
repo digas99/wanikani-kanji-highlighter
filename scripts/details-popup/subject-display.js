@@ -437,7 +437,7 @@
 			levelTitle.appendChild(document.createTextNode(`Level ${kanjiInfo["level"]} kanji`));
 			level.appendChild(levelTitle);
 			details.appendChild(level);
-
+			setupLearnedKanji
 			// srs stage container
 			const srsStage = document.createElement("div");
 			details.appendChild(srsStage);
@@ -920,24 +920,29 @@
 						}
 					}
 				},
-				'loaded': () => {
-					document.documentElement.querySelector(".sd-popupDetails_svgLoading")?.remove();
-
+				'loaded': async () => {
 					const papers = this.dmak.papers;
 					if (papers) {
-						setTimeout(() => {
-							const currentCharacters = document.querySelector(".sd-detailsPopup_kanji").innerText;
-							if (characters == currentCharacters) {
-								const currentCanvases = papers.map(paper => paper.canvas);
+						await new Promise(resolve => {
+								setTimeout(() => {
+								const currentCharacters = document.querySelector(".sd-detailsPopup_kanji").innerText;
+								if (characters == currentCharacters) {
+									const currentCanvases = papers.map(paper => paper.canvas);
 
-								// iterate all svgs and remove the ones that are not in currentCanvases
-								const svgs = document.querySelectorAll("#sd-popupDetails_dmak svg");
-								svgs.forEach(svg => {
-									if (!currentCanvases.includes(svg))
-										svg.remove();
-								});
-							}
-						}, 500);
+									// iterate all svgs and remove the ones that are not in currentCanvases
+									const svgs = document.querySelectorAll("#sd-popupDetails_dmak svg");
+									svgs.forEach(svg => {
+										if (!currentCanvases.includes(svg))
+											svg.remove();
+									});
+
+									resolve();
+								}
+							}, 500);
+						});
+
+						document.documentElement.querySelector(".sd-popupDetails_svgLoading")?.remove();
+						document.querySelector("#sd-popupDetails_dmak svg").style.setProperty("display", "block", "important");
 						
 						papers.forEach((paper, i) => {
 							const canvas = paper.canvas;

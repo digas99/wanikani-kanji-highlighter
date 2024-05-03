@@ -4,7 +4,7 @@ const createDetailsPopup = async (id, settings) => {
 			if (!Array.isArray(ids))
 				ids = [ids];
 
-			return new Promise(async resolve => {
+			return new Promise(resolve => {
 				chrome.runtime.sendMessage({fetchSubjects:ids}, function(response) {
 					resolve(response);
 				});

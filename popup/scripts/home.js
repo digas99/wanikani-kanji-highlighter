@@ -119,14 +119,13 @@ const updateHomeInterface = async (result) => {
 		if (opened) {
 			[radicalsLevelInProgress, kanjiLevelInProgress, vocabularyLevelInProgress].forEach((levels, i) => {
 				progressBarWrappers.push(
-					new Promise(async (resolve, reject) => {
-						const result = await db.getAll("subjects", "level", levels);
-						const bars = [];							
+					db.getAll("subjects", "level", levels).then(async (result) => {
+						const bars = [];
 						levels.forEach(level => {
 							const values = result[level].filter(value => value["hidden_at"] == null && value["subject_type"] === types[i]);
-							bars.push(levelProgressBar(userInfo["level"], values, level, types[i], settings["appearance"]));											
+							bars.push(levelProgressBar(userInfo["level"], values, level, types[i], settings["appearance"]));
 						});
-						resolve(bars);
+						return bars;
 					})
 				);
 			});
