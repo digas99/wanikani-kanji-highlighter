@@ -230,7 +230,7 @@ const RADICAL_SETUP = {
 	name: "radicals",
 	endpoint: "https://api.wanikani.com/v2/subjects?types=radical",
 	storage: {
-		id: "radicals",
+		id: "radical",
 		updated: "radicals_updated",
 		level: "radical_level",
 		association: "radical_assoc",

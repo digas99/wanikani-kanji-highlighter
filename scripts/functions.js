@@ -488,15 +488,16 @@ const loadData = async (apiToken, tabId, callback) => {
 		}
 		else {
 			let assignments = await new Promise(resolve => chrome.storage.local.get(["assignments"], result => resolve(result["assignments"])));
+			console.log(assignments);
 			if (assignments)
 				setupAvailableAssignments(apiToken, (reviews, lessons) => chrome.runtime.sendMessage({reviews: reviews, lessons: lessons}));
-	
+
 			if (!callback)
 				return;
 		}		
 
 		// levels stats
-		if (!response[LEVELS_STATS.storage.updated] || modifiedSince(apiToken, response[LEVELS_STATS.storage.updated], LEVELS_STATS.endpoint)) {
+		if (!response[LEVELS_STATS.storage.updated] || await modifiedSince(apiToken, response[LEVELS_STATS.storage.updated], LEVELS_STATS.endpoint)) {
 			await fetchAllPages(apiToken, LEVELS_STATS.endpoint).then(async result => {
 				const entries = result.map(coll => coll["data"]).flat(1);
 				const levelsStats = entries.map(entry => entry.data).reduce((acc, obj) => {
@@ -608,6 +609,7 @@ const loadData = async (apiToken, tabId, callback) => {
 						evalProgress(progress, fetches);
 						// setup learned kanji
 						if (kanji) {
+							console.log(kanji);
 							const kanjiList = Object.values(kanji).map(kanji => kanji["slug"]);
 							chrome.storage.local.set({"learnable_kanji": kanjiList});
 							chrome.storage.local.get("assignments", result => {
@@ -628,6 +630,7 @@ const loadData = async (apiToken, tabId, callback) => {
 			if (callback)
 				callback(returnObject(assignments, results[0], results[1], results[2], results[3]));
 		
+			console.log(results);
 			const fetched = await subjectsReviewStats(apiToken, results);
 			const messageText = "✔ Loaded Review Statistics data.";
 			console.log("[LOADED]:", messageText);
@@ -650,6 +653,8 @@ const evalProgress = (progress, fetches) => {
 
 const subjectsAssignmentStats = async list => {
 	if (list) {
+		list = Array.isArray(list) ? list : Object.values(list);
+
 		const type = list[Object.keys(list)[0]]["subject_type"];
         const db = new Database("wanikani");
         const opened = await db.open("subjects");
@@ -670,9 +675,8 @@ const subjectsAssignmentStats = async list => {
                     const data = assignment["data"];
                     const subjectId = data["subject_id"];
 
-                    if (subjectId && list[subjectId]) {
-                        const subject = list[subjectId];
-
+					const subject = list.find(subject => subject["id"] == subjectId);
+                    if (subjectId && subject) {
                         const timestamps = {
                             data_updated_at: assignment["data_updated_at"],
                             available_at: data["available_at"],
@@ -689,6 +693,7 @@ const subjectsAssignmentStats = async list => {
                         progress[data["srs_stage"]]++;
 					
 						if (!data["passed_at"] && !levelsInProgress.includes(subject["level"])) {
+							console.log(assignment, subject);
 							levelsInProgress.push(subject["level"]);
 						}
 
@@ -721,6 +726,8 @@ const subjectsReviewStats = async (apiToken, lists) => {
 		chrome.storage.local.get("reviewStats_updated", async result => {
 			const updated = result["reviewStats_updated"];
 			const stats = await fetchAllPages(apiToken, "https://api.wanikani.com/v2/review_statistics", updated);
+
+			console.log(stats);
 
 			if (stats.error) {
 				resolve(false);

@@ -1,14 +1,16 @@
 const setupSubjects = async (apiToken, setup, build, callback) => {
+	let db, opened;
 	try {
 		const result = await new Promise((resolve, reject) => {
-			chrome.storage.local.get([setup.storage.id, setup.storage.updated, setup.storage.association], async result => {
+			chrome.storage.local.get([setup.storage.updated, setup.storage.association], async result => {
 				const updated = result[setup.storage.updated];
-				const storage = result[setup.storage.id];
 				const assocs = result[setup.storage.association];
 				
-				const db = new Database("wanikani");
-				const opened = await db.open("subjects");
+				db = new Database("wanikani");
+				opened = await db.open("subjects");
 				if (opened) {
+					const cached = await db.getAll("subjects", "subject_type", [setup.storage.id]);
+					const storage = cached[setup.storage.id];
 					try {
 						const data = await fetchAllPages(apiToken, setup.endpoint, updated);
 						resolve({ data, storage, assocs });
@@ -19,12 +21,16 @@ const setupSubjects = async (apiToken, setup, build, callback) => {
 			});
 		});
 
+		console.log(result);
+
 		const { data, storage, assocs } = result;
 
 		// too many requests or not modified
 		if (data.error) {
-			if (callback) callback(storage, false);
-			return [storage, false];
+			if (opened) {
+				if (callback) callback(storage, false);
+				return [storage, false];
+			}
 		}
 
 		// open a loading popup

@@ -1,4 +1,11 @@
+# [Changelog v1.2.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.2)
+
+## Bug Fixes
+- Another approach to fix previous bug that would break the fetch of new data from Wanikani
+- Fixed loading of Subject Drawings Animation when many highlighted Kanji were selected in a short period of time
+
 # [Changelog v1.2.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.1)
+Released on 02/05/2024
 
 ## Bug Fixes
 - Fixed bug that would break the fetch of new data from Wanikani
