@@ -36,7 +36,7 @@ chrome.runtime.onInstalled.addListener(details => {
 			chrome.storage.local.set({"initialFetch": true});
 		}
 		// update database values
-		else if (details.previousVersion < '1.2.1') {
+		else if (details.previousVersion < '1.2.2') {
 			// remove deprecated subjects from chrome storage
 			chrome.storage.local.remove([
 				"kana_vocabulary",
