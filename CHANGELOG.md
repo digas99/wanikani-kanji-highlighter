@@ -1,4 +1,5 @@
 # [Changelog v1.2.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.2)
+Released on 06/05/2024
 
 ## Bug Fixes
 - Another approach to fix previous bug that would break the fetch of new data from Wanikani

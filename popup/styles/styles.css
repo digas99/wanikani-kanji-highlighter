@@ -54,6 +54,20 @@ body {
     padding-right: 45px;
 }
 
+@media only screen and (min-width: 800px) {
+	#subject-details .sd-detailsPopup {
+	  width: unset !important;
+	}
+
+	#subject-details .sd-focusPopup_kanji, #subject-details .sd-popupDetails_quickStats {
+		width: 100% !important;
+	}
+
+	#subject-details .sd-detailsPopup {
+		margin-right: unset !important;
+	}
+}
+
 a {
 	text-decoration: none;
 	color: var(--highlight);
