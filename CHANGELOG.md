@@ -1,3 +1,8 @@
+# [Changelog v1.2.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.3)
+
+## Bug Fixes
+- Fixed issue where learned kanji were being highlighted as not learned
+
 # [Changelog v1.2.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.2)
 Released on 06/05/2024
 

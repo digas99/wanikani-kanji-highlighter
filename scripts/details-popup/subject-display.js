@@ -437,7 +437,7 @@
 			levelTitle.appendChild(document.createTextNode(`Level ${kanjiInfo["level"]} kanji`));
 			level.appendChild(levelTitle);
 			details.appendChild(level);
-			setupLearnedKanji
+			
 			// srs stage container
 			const srsStage = document.createElement("div");
 			details.appendChild(srsStage);

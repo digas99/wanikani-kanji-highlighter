@@ -413,23 +413,13 @@ const getTab = () => {
     });
 }
 
-const fetchReviewedKanjiID = assignments => {
-	console.log(assignments);
-	return assignments
-		.map(content => content.data).filter(content => content.subject_type === "kanji" && content.srs_stage > 0)
-		.map(content => content.subject_id);
-}
-
 // transform the kanji IDs into kanji characters
-const setupLearnedKanji = (kanji, assignments) => {
+const setupLearnedKanji = kanji => {
     return new Promise((resolve, reject) => {
         try {
-            const ids = fetchReviewedKanjiID(assignments);
-            console.log(kanji, ids);
-            const learnedKanji = ids.map(id => {
-                if (id && kanji[id])
-                    return kanji[id]["characters"];
-            }).filter(Boolean);
+            const learnedKanji = kanji
+				.filter(content => content.subject_type === "kanji" && content.srs_stage > 0)
+				.map(content => content["characters"]);
             chrome.storage.local.set({"learnedKanji": learnedKanji, "learnedKanji_updated":new Date().toUTCString()});
             resolve(learnedKanji);
         } catch (error) {
@@ -551,7 +541,7 @@ const loadData = async (apiToken, tabId, callback) => {
 						resolve(radicals);
 						const messageText = "✔ Loaded Radicals data.";
 						console.log("[LOADED]:", messageText);
-						if (fetched) {
+						if (fetched) {assignments
 							progress++;
 							sendSetupProgress(messageText, progress, tabId);
 						}
@@ -597,7 +587,7 @@ const loadData = async (apiToken, tabId, callback) => {
 			new Promise((resolve, reject) => {
 				setupSubjects(apiToken, KANJI_SETUP, (subjects, assocs, records, subject) => setupKanji(subjects, assocs, records, subject))
 					.then(async result => {
-						const [kanji, fetched] = result;
+						let [kanji, fetched] = result;
 						await subjectsAssignmentStats(kanji);
 						resolve(kanji);
 						const messageText = "✔ Loaded Kanji data.";
@@ -609,15 +599,11 @@ const loadData = async (apiToken, tabId, callback) => {
 						evalProgress(progress, fetches);
 						// setup learned kanji
 						if (kanji) {
-							console.log(kanji);
-							const kanjiList = Object.values(kanji).map(kanji => kanji["slug"]);
+							kanji = Array.isArray(kanji) ? kanji : Object.values(kanji);
+							const kanjiList = kanji.map(kanji => kanji["slug"]);
 							chrome.storage.local.set({"learnable_kanji": kanjiList});
-							chrome.storage.local.get("assignments", result => {
-								const assignments = result["assignments"];
-								console.log(assignments);
-								if (assignments)
-									setupLearnedKanji(kanji, assignments["all"]);
-							});
+							console.log(kanji);
+							setupLearnedKanji(kanji);
 						}
 					})
 					.catch(reject);

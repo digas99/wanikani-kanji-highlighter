@@ -49,6 +49,9 @@ chrome.runtime.onInstalled.addListener(details => {
 				triggerSubjectsUpdate(result["apiKey"]);
 			});
 		}
+		else if (details.previousVersion < '1.2.3') {
+			chrome.storage.local.remove("kanji_updated")
+		}
 	}
 
 	// setup context menu
