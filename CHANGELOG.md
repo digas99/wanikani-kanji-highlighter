@@ -1,4 +1,11 @@
+# [Changelog v1.2.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.4)
+Released on 29/06/2024
+
+## Bug Fixes
+- Fixed issue with subjects loaded not being counted correctly (which would directly affect the Progression Bar)
+
 # [Changelog v1.2.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.3)
+Released on 07/05/2024
 
 ## Bug Fixes
 - Fixed issue where learned kanji were being highlighted as not learned

@@ -19,7 +19,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v123)
+1. [Latest Features](#changelog-v124)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -31,6 +31,11 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
+# [Changelog v1.2.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.4)
+
+## Bug Fixes
+- Fixed issue with subjects loaded not being counted correctly (which would directly affect the Progression Bar)
+ 
 ## [Changelog v1.2.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.3)
 
 ### Bug Fixes
