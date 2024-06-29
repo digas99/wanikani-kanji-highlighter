@@ -21,8 +21,6 @@ const setupSubjects = async (apiToken, setup, build, callback) => {
 			});
 		});
 
-		console.log(result);
-
 		const { data, storage, assocs } = result;
 
 		// too many requests or not modified
@@ -63,7 +61,7 @@ const setupSubjects = async (apiToken, setup, build, callback) => {
 			}
 		}
 
-		subjects = Object.assign({}, storage, subjects);
+		subjects = Object.assign({}, storage, Object.values(subjects));
 		associations = Object.assign({}, assocs, associations);
 		// saving all subjects
 		chrome.storage.local.set({
