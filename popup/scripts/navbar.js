@@ -164,30 +164,42 @@ const setRandomSubjectType = (value) => {
     }
 }
 
-const setAvatar = (elem, url, avatar, userInfo) => {
-    if (avatar)
+const setAvatar = async (elem, url, avatar, userInfo) => {
+    if (avatar) {
         elem.src = avatar;
+    }
 
-    fetch(url)
-        .then(result => result.text())
-        .then(async content => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(content, 'text/html');
-            const avatarElem = doc.getElementsByClassName("avatar user-avatar-default")[0];
-            const avatarSrc = "https://"+avatarElem.style.backgroundImage.split('url("//')[1].split('")')[0];
+    try {
+        const result = await fetch(url);
+        const content = await result.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(content, 'text/html');
+        const avatarElem = doc.querySelector(".user-avatar");
+        const avatarSrc = avatarElem.getAttribute("data-load-gravatar-url-value") || avatarElem.src;
+        
+        if (avatarElem && avatarSrc) {
             userInfo["data"]["avatar"] = avatarSrc;
             elem.src = avatarSrc;
 
-            if (userInfo)
+            if (userInfo) {
                 chrome.storage.local.set({"userInfo": userInfo});
+            }
 
             const imageData = await fetchImageData(avatarSrc);
             userInfo["data"]["avatar_data"] = imageData;
-            if (imageData)
+
+            if (imageData) {
                 elem.src = imageData;
+            }
+
             chrome.storage.local.set({"userInfo": userInfo});
-        });
-}
+        } else {
+            console.error('Avatar element not found');
+        }
+    } catch (error) {
+        console.error('Failed to fetch avatar:', error);
+    }
+};
 
 const fetchImageData = async url => {
     try {

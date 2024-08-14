@@ -1,3 +1,9 @@
+# [Changelog v1.2.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.5)
+Released on 14/08/2024
+
+## Bug Fixes
+- Fixed issue with the loading of the avatar (Wanikani public profile page changed html structure)
+
 # [Changelog v1.2.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.4)
 Released on 29/06/2024
 
