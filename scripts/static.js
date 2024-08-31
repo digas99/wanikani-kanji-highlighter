@@ -344,3 +344,12 @@ const KANJI_STROKES_URI = {
 	"popup": "https://wkhighlighter.me/kanji/",
 	"web": "https://wkhighlighter-ca76a5599457.herokuapp.com/kanji/"
 };
+
+// Wanikani SRS stage intervals in ms (only for Apprentice stages)
+const SRS_STAGE_INTERVALS = {
+	0: 0,
+	1: 14400000,
+	2: 28800000,
+	3: 82800000,
+	4: 169200000,
+};

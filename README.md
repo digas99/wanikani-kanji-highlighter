@@ -19,7 +19,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v125)
+1. [Latest Features](#changelog-v126)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -31,6 +31,15 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
+# [Changelog v1.2.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.6)
+
+## Popup
+- Added level up time prediction to the Profile Page (Only available when atleast 90% of the kanji of the current level are initiated)
+- Improved human-friendly time format throughout the extension popup
+- Added time for next review on each subject in the Profile Page
+
+## Content
+- Added JLPT and Joyo levels back to the Subject Details Popup
 
 ## [Changelog v1.2.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.5)
 

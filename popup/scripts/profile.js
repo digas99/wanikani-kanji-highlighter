@@ -48,7 +48,7 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings", LEVELS_STATS.storage
             // scroll down arrow
             const goDownArrowWrapper = document.querySelector(".scroll-down");
             if (goDownArrowWrapper)
-                goDownArrowWrapper.addEventListener("click", () => window.scroll(0, 364));
+                goDownArrowWrapper.addEventListener("click", () => window.scroll(0, 455));
 
             const topLevel = document.querySelector(".top-level-list");
             topLevel.children[level-1].classList.add("current-level");
@@ -118,8 +118,10 @@ const updateLevelData = async (level, db, clear) => {
         const passedSubjects = subjects.filter(subject => subject.passed_at != null);
 
         // level progress bar
-        if (type == "kanji")
+        if (type == "kanji") {
             updateLevelProgressBar(document.querySelector(".level-progress-bar"), passedSubjects.length, subjects.length);
+            updateLevelUpPrediction(subjects);
+        }
 
         // subject tiles lists
         updateTypeContainer(type, document.querySelector(`#${type}-container`), subjects);
@@ -141,7 +143,7 @@ const updateLevelData = async (level, db, clear) => {
         const startedAt = new Date(lastStat["started_at"]);
         const passedAt = lastStat["passed_at"] ? new Date(lastStat["passed_at"]) : new Date();
         const timeInLevel = passedAt - startedAt;
-        const readable = msToTime(timeInLevel);
+        const readable = prettyTime(timeInLevel, {seconds: false, minutes: false});
         timeLabel.style.removeProperty("pointer-events");
         timeLabel.innerHTML = `<b>${readable}</b> on this level`;
         timeLabel.title = `Started at: ${startedAt.toISOString().split(".")[0]}\x0DPassed at:  ${passedAt.toISOString().split(".")[0]}`;
@@ -175,7 +177,7 @@ const updateLevelProgressBar = (progressBarWrapper, passedSubjects, allSubjects)
     const progressValues = progressBarWrapper.querySelector("span");
     if (percentage < 81 && percentage >= 1) {
         progressValues.classList.remove("hidden");
-        progressValues.appendChild(document.createTextNode(passedSubjects + " / " + allSubjects.filter));
+        progressValues.appendChild(document.createTextNode(passedSubjects + " / " + allSubjects));
     }
     else
         progressValues.classList.add("hidden");
@@ -240,7 +242,7 @@ const subjectTile = (type, subject) => {
     subjectWrapper.appendChild(reviewsInfoWrapper);
     reviewsInfoWrapper.classList.add("reviews-info");
         
-    if (subject["passed_at"]) {
+    if (subject["srs_stage"] == 9) {
         const check = document.createElement("img");
         reviewsInfoWrapper.appendChild(check);
         check.src = "../images/check.png";
@@ -252,6 +254,17 @@ const subjectTile = (type, subject) => {
             reviewsInfoWrapper.appendChild(time);
             time.appendChild(document.createTextNode("now"));
             time.classList.add("time-next-review-subject");
+        }
+        else {
+            const timeWrapper = document.createElement("div");
+            reviewsInfoWrapper.appendChild(timeWrapper);
+            timeWrapper.classList.add("subject-next-review");
+            const time = document.createElement("div");
+            timeWrapper.appendChild(time);
+            time.appendChild(document.createTextNode(msToSimpleTime(new Date(subject["available_at"]) - new Date())));
+
+            if (!subject["passed_at"])
+                time.style.backgroundColor = "#e1e1e1";
         }
     }
 
@@ -464,6 +477,26 @@ document.addEventListener("click", e => {
                         menuMenu(sectionWrapper, menuSettings[key]["menu"]);
                         break;
                 }
+            }
+        }
+    }
+
+    // show info on level up prediciton
+    if (target.closest(".level-up-prediction")) {
+        const levelUpPredictionWrapper = target.closest(".level-up-prediction");
+        let levelUpPredictionInfo = document.querySelector(".level-up-prediction-info");
+        if (levelUpPredictionInfo)
+            levelUpPredictionInfo.remove();
+        else {
+            const info = levelUpPredictionWrapper.title;
+            if (info) {
+                levelUpPredictionInfo = document.createElement("div");
+                levelUpPredictionInfo.classList.add("level-up-prediction-info");
+                levelUpPredictionInfo.appendChild(document.createTextNode(info));
+                levelUpPredictionWrapper.appendChild(levelUpPredictionInfo);
+                
+                // remove info after 5 seconds
+                setTimeout(() => levelUpPredictionInfo.remove(), 5000);
             }
         }
     }
@@ -791,6 +824,62 @@ const sortings = (containers, value, direction) => {
             break;
     }
 }
+
+
+// LEVEL UP PREDICTION
+
+const updateLevelUpPrediction = subjects => {
+    const nSubjectsToLevelUp = parseInt(subjects.length * 0.9)+1;
+    const initiatedSubjects = subjects.filter(subject => subject["srs_stage"] >= 1);
+    const passedSubjects = subjects.filter(subject => subject["passed_at"] != null);
+
+    const levelUpPredictionWrapper = document.querySelector(".level-up-prediction");
+    if (levelUpPredictionWrapper) {
+        if (initiatedSubjects.length < nSubjectsToLevelUp || passedSubjects.length >= nSubjectsToLevelUp) {
+            levelUpPredictionWrapper.style.display = "none";
+            return;
+        }
+        levelUpPredictionWrapper.style.removeProperty("display");    
+    }
+
+    const longestInterval = levelUpPrediction(subjects, nSubjectsToLevelUp);
+    const levelUpDay = new Date(new Date().getTime() + longestInterval);
+    const readable = prettyTime(longestInterval, {seconds: false});
+    console.log(longestInterval, readable, levelUpDay);
+    const timeToLevelUp = document.querySelector(".level-up-prediction-value");
+    timeToLevelUp.innerHTML = `At least <b>${readable}</b> to level up. <br><div>${levelUpDay.toString().split(" GMT")[0]}</div>`;
+    }
+
+const levelUpPrediction = (subjects, nSubjectsToLevelUp) => {
+    // calculate time to level up
+    const discardableSubjects = subjects.length - nSubjectsToLevelUp;
+    const notPassedSubjects = subjects.filter(subject => subject.passed_at == null);
+    console.log(subjects, notPassedSubjects, discardableSubjects);
+
+    const passIntervals = notPassedSubjects.map(subject => {
+        let interval = 0;
+        const srsStage = subject["srs_stage"];
+        for (let i = srsStage+1; i < 5; i++) {
+            interval += SRS_STAGE_INTERVALS[i];
+        }
+
+        const intervalUntilAvailable = new Date(subject["available_at"]) - new Date();
+        interval += intervalUntilAvailable > 0 ? intervalUntilAvailable : 0;
+
+        return {
+            "subject": subject["characters"],
+            "id": subject["id"],
+            "interval": interval
+        }
+    });
+    
+    const sortedIntervals = passIntervals.sort((a, b) => b["interval"] - a["interval"]);
+    const intervalsWithDiscarded = sortedIntervals.slice(discardableSubjects, sortedIntervals.length);
+    const longestSubject = intervalsWithDiscarded[0];
+    console.log(longestSubject);
+    return longestSubject["interval"];
+}
+
 
 window.addEventListener("scroll", () => {
     if (window.scrollY > 225)

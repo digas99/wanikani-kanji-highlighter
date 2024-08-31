@@ -41,13 +41,10 @@ const setupSubjects = async (apiToken, setup, build, callback) => {
 			.flat(1)
 			.forEach(subject => build(subjects, associations, db_records, subject));
 
-		await db.insert("subjects", db_records);
-
-		console.log("[DATABASE]: Inserted " + db_records.length + " records into database for " + setup.name);
-
-		if (data["total_count"] > 0) {
+		if (data.length > 0) {
 			// add jlpt info
 			if (setup.jlpt) {
+				console.log("Adding JLPT info", jlpt);
 				for (const n in jlpt) {
 					jlpt[n].forEach(kanji => subjects[associations[kanji]]["jlpt"] = n.toUpperCase());
 				}
@@ -55,13 +52,19 @@ const setupSubjects = async (apiToken, setup, build, callback) => {
 
 			// add joyo info
 			if (setup.joyo) {
+				console.log("Adding Joyo info", joyo);
 				for (const n in joyo) {
 					joyo[n].forEach(kanji => subjects[associations[kanji]]["joyo"] = "Grade " + n.charAt(1));
 				}
 			}
 		}
 
+		await db.insert("subjects", db_records);
+
+		console.log("[DATABASE]: Inserted " + db_records.length + " records into database for " + setup.name);
+
 		subjects = Object.assign({}, storage, Object.values(subjects));
+		console.log("[SUBJECTS]:", subjects);
 		associations = Object.assign({}, assocs, associations);
 		// saving all subjects
 		chrome.storage.local.set({

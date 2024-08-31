@@ -458,6 +458,27 @@
 				srsStageText.style.setProperty("color", `var(--${srsStages[0]["short"].toLowerCase()}-color)`, "important");				
 			}
 
+			// jlpt and joyo container
+			if (kanjiInfo["jlpt"] || kanjiInfo["joyo"]) {
+				const schoolLevel = document.createElement("div");
+				details.appendChild(schoolLevel);
+				if (kanjiInfo["joyo"]) {
+					schoolLevel.appendChild(document.createTextNode(kanjiInfo["joyo"]));
+					schoolLevel.title = "Joyo";
+				}
+
+				if (kanjiInfo["joyo"] && kanjiInfo["jlpt"]) {
+					schoolLevel.appendChild(document.createTextNode(", "));
+					schoolLevel.title += ", ";
+				}
+
+				if (kanjiInfo["jlpt"]) {
+					schoolLevel.appendChild(document.createTextNode(kanjiInfo["jlpt"]));
+					schoolLevel.title += "JLPT";
+				}
+				schoolLevel.style.setProperty("color", "#b8b8b8", "important");
+			}
+
 			// meaning container
 			const meaning = document.createElement("div");
 			meaning.classList.add("sd-popupDetails_kanjiTitle");
@@ -469,14 +490,6 @@
 			// strokes container
 			if (this.strokes)
 				details.appendChild(this.kanjiDrawing(kanjiInfo["characters"]));
-
-			if (kanjiInfo["jlpt"] && kanjiInfo["joyo"]) {
-				const schoolLevel = document.createElement("div");
-				details.appendChild(schoolLevel);
-				schoolLevel.appendChild(document.createTextNode(kanjiInfo["joyo"]+", "+kanjiInfo["jlpt"]));
-				schoolLevel.title = "Joyo, JLPT";
-				schoolLevel.style.setProperty("color", "#b8b8b8", "important");
-			}
 
 			// meaning mnemonic container
 			details.appendChild(infoTable("Meaning Mnemonic", [kanjiInfo["meaning_mnemonic"], kanjiInfo["meaning_hint"]]));

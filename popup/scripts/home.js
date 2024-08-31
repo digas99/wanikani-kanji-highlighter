@@ -227,7 +227,8 @@ const setupSummary = (reviews, lessons) => {
 			const thisDate = nextExactHour(new Date(), i);
 			const reviewsForNextHour = filterAssignmentsByTime(nextReviews, new Date(), thisDate);
 			if (reviewsForNextHour.length > 0) {
-				const remainingTime = msToTime(thisDate - currentTime);
+				const time = thisDate - currentTime;
+				const remainingTime = prettyTime(time, {seconds: time < 60000});
 				const moreReviews = document.querySelector("#more-reviews");
 				if (moreReviews) {
 					moreReviews.innerHTML = `<b>${reviewsForNextHour.length}</b> more <span style="color:var(--wanikani-sec);font-weight:bold">Reviews</span> in <b>${remainingTime}</b>`;
@@ -266,7 +267,8 @@ const setupSummary = (reviews, lessons) => {
 
 const timeStampRefresher = (moreReviews, timeStampInterval,thisDate, timeUnit, reviewsForNextHour) => {
 	const newCurrentDate = new Date().getTime();
-	const newTimeStamp = msToTime(thisDate - newCurrentDate);
+	const newTime = thisDate - newCurrentDate;
+	const newTimeStamp = prettyTime(newTime, {seconds: newTime < 60000});
 	const newTimeUnit = newTimeStamp.split(" ")[1];
 	// check if has changed the unit of time
 	if (newTimeUnit != timeUnit) {

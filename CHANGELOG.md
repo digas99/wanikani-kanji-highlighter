@@ -1,3 +1,14 @@
+# [Changelog v1.2.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.6)
+Released on 01/09/2024
+
+## Popup
+- Added level up time prediction to the Profile Page (Only available when atleast 90% of the kanji of the current level are initiated)
+- Improved human-friendly time format throughout the extension popup
+- Added time for next review on each subject in the Profile Page
+
+## Content
+- Added JLPT and Joyo levels back to the Subject Details Popup
+
 # [Changelog v1.2.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.5)
 Released on 14/08/2024
 

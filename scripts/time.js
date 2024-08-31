@@ -3,7 +3,6 @@ const msToDays = ms => {
 }
 
 // millisecond to readable format
-// stole from: https://stackoverflow.com/questions/19700283/how-to-convert-time-in-milliseconds-to-hours-min-sec-format-in-javascript/32180863#32180863
 function msToTime(ms) {
   let seconds = (ms / 1000).toFixed(1);
   let minutes = (ms / (1000 * 60)).toFixed(1);
@@ -13,6 +12,40 @@ function msToTime(ms) {
   else if (minutes < 60) return minutes + " Min";
   else if (hours < 24) return hours + " Hrs";
   else return days + " Days"
+}
+
+function msToSimpleTime(ms) {
+	const seconds = Math.round(ms / 1000);
+	const minutes = Math.round(ms / (1000 * 60));
+	const hours = Math.round(ms / (1000 * 60 * 60));
+	const days = Math.round(ms / (1000 * 60 * 60 * 24));
+  
+	if (hours >= 100) { // Show days only if hours are greater than 99
+	  return days + 'd';
+	} else if (hours >= 1) {
+	  return hours + 'h';
+	} else if (minutes >= 1) {
+	  return minutes + 'm';
+	} else {
+	  return seconds + 's';
+	}
+}
+
+function prettyTime(ms, options = {}) {
+    // Calculate the time components
+    const seconds = Math.floor((ms / 1000) % 60);
+    const minutes = Math.floor((ms / (1000 * 60)) % 60);
+    const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+    const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+
+    // Build the formatted time string
+    const parts = [];
+    if (days > 0 && !(options.days == false)) parts.push(`${days} day${days > 1 ? 's' : ''}`);
+    if (hours > 0 && !(options.hours == false)) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
+    if (minutes > 0 && !(options.minutes == false)) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
+    if (seconds > 0 && !(options.seconds == false)) parts.push(`${seconds} second${seconds > 1 ? 's' : ''}`);
+
+    return parts.length > 0 ? parts.join(', ') : '0 seconds';
 }
 
 // setup two new functions to Date
