@@ -49,7 +49,7 @@ chrome.runtime.onInstalled.addListener(details => {
 				triggerSubjectsUpdate(result["apiKey"]);
 			});
 		}
-		else if (details.previousVersion < '1.2.3') {
+		else if (details.previousVersion < '1.2.3' || details.previousVersion === '1.2.6') {
 			chrome.storage.local.remove("kanji_updated")
 		}
 	}
