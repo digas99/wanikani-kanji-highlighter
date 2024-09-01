@@ -1,4 +1,4 @@
-let settings, menuSettings, levelsStats;
+let settings, menuSettings, levelsStats, currentLevel;
 
 let popupLoading;
 if (!messagePopup) {
@@ -29,6 +29,7 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings", LEVELS_STATS.storage
     
         if (userInfo) {
             let level = userInfo["level"];
+            currentLevel = level;
             const link = "https://www.wanikani.com/users/"+userInfo["username"];
 
             const avatar = document.querySelector("#profile-pic img");
@@ -119,7 +120,7 @@ const updateLevelData = async (level, db, clear) => {
 
         // level progress bar
         if (type == "kanji") {
-            updateLevelProgressBar(document.querySelector(".level-progress-bar"), passedSubjects.length, subjects.length);
+            updateLevelProgressBar(document.querySelector(".level-progress-bar"), passedSubjects.length, subjects.length, level);
             updateLevelUpPrediction(subjects);
         }
 
@@ -157,7 +158,7 @@ const updateLevelData = async (level, db, clear) => {
     }
 }
 
-const updateLevelProgressBar = (progressBarWrapper, passedSubjects, allSubjects) => {
+const updateLevelProgressBar = (progressBarWrapper, passedSubjects, allSubjects, level) => {
     const progressBar = progressBarWrapper.querySelector("div");
     const percentage = passedSubjects / allSubjects * 100;
     progressBar.style.width = (percentage >= 1 ? percentage : 100)+"%";
@@ -183,6 +184,17 @@ const updateLevelProgressBar = (progressBarWrapper, passedSubjects, allSubjects)
         progressValues.classList.add("hidden");
 
     progressBar.title = "Passed Kanji: "+passedSubjects+" / "+percentage.toFixed(1)+"%";
+
+    // level up marker
+    const levelUpMarker = progressBarWrapper.querySelector(".level-progress-bar-marker");
+    if (level == currentLevel) {
+        levelUpMarker.style.removeProperty("display");
+        const levelUpNSubjects = Math.ceil(allSubjects * 0.9);
+        const levelUpPercentage = levelUpNSubjects / allSubjects * 100;
+        levelUpMarker.style.width = levelUpPercentage+"%"; 
+    }
+    else
+        levelUpMarker.style.display = "none";
 }
 
 const updateTypeContainer = (type, container, subjects) => {

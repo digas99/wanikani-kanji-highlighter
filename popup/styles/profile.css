@@ -149,9 +149,10 @@ body {
 	background-color: #c7c7c7;
 	box-shadow: inset 0px 2px 4px #888686;
 	display: flex;
+    position: relative;
 }
 
-.level-progress-bar > div {
+.level-progress-bar > div:first-child {
 	background-color: var(--wanikani);
     height: 100%;
 	width: 0;
@@ -170,6 +171,12 @@ body {
     text-align: center;
     padding-top: 7px;
     font-weight: bold;
+}
+
+.level-progress-bar-marker {
+    position: absolute;
+    height: 100%;
+    border-right: 2px solid var(--default-color);
 }
 
 .passed-subject-check {
