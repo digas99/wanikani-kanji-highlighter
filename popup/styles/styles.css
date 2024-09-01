@@ -380,6 +380,18 @@ i {
 	width: 15px;
 }
 
+.section-info {
+	cursor: pointer;
+    position: absolute;
+    right: 9px;
+    top: 8px;
+}
+
+.section-info img {
+    width: 14px;
+    filter: invert(1);
+}
+
 .footer-cover {
 	position: fixed;
     bottom: -421px;

@@ -152,22 +152,22 @@ body {
 	padding: 7px;
 }
 
-#levels-progress {
+.subjects-progress {
     background-color: white;
 }
 
-#levels-progress > ul {
+.subjects-progress > ul {
     display: flex;
     margin: 1px 0px;
     margin-right: 54px;
 }
 
-#levels-progress > ul > li {
+.subjects-progress > ul > li {
     height: 25px;
     overflow: hidden;
 }
 
-#levels-progress > ul > li > a {
+.subjects-progress > ul > li > a {
     color: white;
     justify-content: center;
     align-items: center;
@@ -175,7 +175,7 @@ body {
     height: 100%;
 }
 
-#levels-progress > ul > .bar-id {
+.subjects-progress > ul > .bar-id {
     position: absolute;
     right: 0px;
     background-color: var(--default-color);
@@ -183,7 +183,7 @@ body {
     width: 42px;
 }
 
-#levels-progress > ul > .bar-id > a {
+.subjects-progress > ul > .bar-id > a {
     color: white !important;
 }
 
@@ -231,4 +231,31 @@ body {
 	border-bottom: 4px solid;
     background-color: var(--default-color);
     padding: 7px;
+}
+
+#jlpt_kanji_progress .subjects-progress .bar-id, #joyo_kanji_progress .subjects-progress .bar-id {
+    text-align: center;
+}
+
+.legend {
+    color: var(--font-color);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    padding: 5px;
+}
+
+.legend > div {
+    display: flex;
+    align-items: center;
+    column-gap: 5px;
+}
+
+.legend .legend-color {
+    width: 8px;
+    height: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.legend .legend-label {
+
 }

@@ -7,6 +7,8 @@ popupLoading.setLoading();
 const url = new URL(window.location.href);
 const wrapper = document.querySelector("#list");
 
+let list;
+
 // SRS STAGE
 const srsStage = parseInt(url.searchParams.get('srs'));
 if (srsStage != null && srsStage >= -1 && srsStage <= 9) {
@@ -201,6 +203,89 @@ if (dateString != null) {
 					if (popupLoading) popupLoading.remove();
 				}
 			});
+		}
+	});
+}
+
+// SCHOOL
+const school = url.searchParams.get('school');
+const grade = url.searchParams.get('grade');
+const type = url.searchParams.get('type');
+const schoolJump = url.searchParams.get('jump');
+if (school != null && grade != null && type != null) {
+	db.open("subjects").then(async opened => {
+		if (opened) {
+			list = new TilesList(
+				wrapper,
+				[],
+				{
+					title: `<b>0</b> Subjects from <b>${school.toUpperCase()} - ${grade.toUpperCase()}</b>`,
+					height: 480,
+					bars: {
+						labels: true
+					},
+					sections: {
+						join: false,
+						notFound: "No subjects found for this grade."
+					}
+				}
+			);
+
+			const subjects = await db.getAll("subjects", "subject_type", type);
+			const gradeSubjects = subjects.filter(subject => subject[school]?.match(/(\d+)/)[0] == grade?.match(/(\d+)/)[0] && !subject["hidden"]);
+			console.log(gradeSubjects);
+			
+			// sections
+			const sectionsInfo = {
+				"burned": {
+					"color": getComputedStyle(document.body).getPropertyValue("--brn-color"),
+					"title": "Burned",
+					"srs": 8,
+					"subjects": gradeSubjects.filter(subject => subject["srs_stage"] == 9)
+				},
+				"passed": {
+					"color": "#000000",
+					"title": "Passed",
+					"srs": 7,
+					"subjects": gradeSubjects.filter(subject => subject["passed_at"] && subject["srs_stage"] != 9)
+				},
+				"progress": {
+					"color": getComputedStyle(document.body).getPropertyValue("--ap4-color"),
+					"title": "Progress",
+					"srs": 5,
+					"subjects": gradeSubjects.filter(subject => subject["srs_stage"] >= 0 && !subject["passed_at"])
+				},
+				"locked": {
+					"color": "#ffffff",
+					"title": "Locked",
+					"srs": -1,
+					"subjects": gradeSubjects.filter(subject => subject["srs_stage"] == -1)
+				}
+			}
+			
+			const sections = await Promise.all(Object.keys(sectionsInfo).map(async section => {
+				const { color, title, srs, subjects } = sectionsInfo[section];
+				const characters = subjects.map(getCharacter);
+
+				return {
+					title: title,
+					color: color,
+					data: characters,
+					callbacks: {
+						item: (elem, value) => dataTile(subjects, elem, value),
+						section: (wrapper, title, content) => headerSRSDecoration(title, srs)
+					},
+					justify: true
+				};
+			}));
+
+			list.updateTitle(`<b>${gradeSubjects.length}</b> Subjects from <b>${school.toUpperCase()} - ${grade.toUpperCase()}</b>`);
+			list.update(sections);
+
+			if (schoolJump)
+				list.list.scrollTo(0, document.querySelector(`#tiles-list-${schoolJump.toLowerCase().replaceAll(" ", "-")}`).offsetTop - 100);
+
+			if (popupLoading) popupLoading.remove();
 		}
 	});
 }

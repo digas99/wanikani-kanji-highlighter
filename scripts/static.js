@@ -94,7 +94,9 @@ const defaultSettings = {
 		lessons_and_reviews: true,
 		overall_progression_bar: true,
 		overall_progression_stats: true,
-		levels_in_progress: true
+		levels_in_progress: true,
+		jlpt_kanji_progress: true,
+		joyo_kanji_progress: true,
 	},
 	"home_page": {
 		"page": null

@@ -142,10 +142,34 @@ const updateHomeInterface = async (result) => {
 		}
 	}
 
+	// JLPT and JOYO kanji progress
+	if (interface["jlpt_kanji_progress"] || interface["joyo_kanji_progress"]) {
+		const db = new Database("wanikani");
+		const opened = await db.open("subjects");
+		if (opened) {
+			db.getAll("subjects", "subject_type", "kanji").then(async (subjects) => {
+				console.log(subjects, jlpt, joyo);
+				// JLPT
+				if (interface["jlpt_kanji_progress"]) {
+					schoolProgress("jlpt", jlpt, subjects);
+				}
+
+				// JOYO
+				if (interface["joyo_kanji_progress"]) {
+					schoolProgress("joyo", joyo, subjects);
+				}
+			});
+		}
+	}
+
 	// remove sections hidden by the user
 	for (let [key, show] of Object.entries(interface)) {
 		if (!show) document.querySelector(`#${key}`)?.remove();
-	}	
+	}
+
+	// remove legend if not needed
+	if (!interface["levels_in_progress"] && !interface["jlpt_kanji_progress"] && !interface["joyo_kanji_progress"])
+		document.querySelector("#progress_legend")?.remove();
 }
 
 chrome.storage.local.get(["apiKey", "rating", ...HOME_FETCH_KEYS], result => {
@@ -242,8 +266,8 @@ const setupSummary = (reviews, lessons) => {
 				}
 
 				// timeUnit = "Days, Hrs, etc..."
-				let timeUnit = remainingTime.split(" ")[1];
-				let timeStampInterval = setInterval(() => timeStampRefresher(moreReviews, timeStampInterval, thisDate, timeUnit, reviewsForNextHour), time_delays[timeUnit]);
+				// let timeUnit = remainingTime.split(" ")[1];
+				// let timeStampInterval = setInterval(() => timeStampRefresher(moreReviews, timeStampInterval, thisDate, timeUnit, reviewsForNextHour), time_delays[timeUnit]);
 				// 10% of a minute are 6000 milliseconds
 				break;
 			}

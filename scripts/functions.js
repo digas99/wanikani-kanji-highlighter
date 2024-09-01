@@ -1024,22 +1024,22 @@ const levelProgressBar = (currentLevel, values, level, type, colors) => {
 	progressBarWrapper.setAttribute("data-order", levelValue);
 
 	// bar for passed
-	progressBarWrapper.appendChild(levelProgressBarSlice(passed/all*100, {background: "black", text: "white"}, "Passed: "+passed, {level: level, type: type, srs: "passed"}));
+	progressBarWrapper.appendChild(progressBarSlice(null, passed/all*100, {background: "black", text: "white"}, "Passed: "+passed, "/popup/progressions.html?level="+level+"&type="+type+"&jump=passed"));
 
 	// traverse from initiate until apprentice IV
 	for (let i = 5; i >= 0; i--) {
 		const stageSubjects = notPassed.filter(subject => subject["srs_stage"] == i).length;
-		progressBarWrapper.appendChild(levelProgressBarSlice(stageSubjects/all*100, {background: colors[srsStages[i]["short"].toLowerCase()+"_color"], text: "white"}, srsStages[i]["name"]+": "+stageSubjects, {level: level, type: type, srs: srsStages[i]["name"]}));
+		progressBarWrapper.appendChild(progressBarSlice(null, stageSubjects/all*100, {background: colors[srsStages[i]["short"].toLowerCase()+"_color"], text: "white"}, srsStages[i]["name"]+": "+stageSubjects, "/popup/progressions.html?level="+level+"&type="+type+"&jump="+srsStages[i]["name"]));
 	}
 
 	// bar for locked
-	progressBarWrapper.appendChild(levelProgressBarSlice(locked/all*100, {background: "white", text: "black"}, "Locked: "+locked, {level: level, type: type, srs: "locked"}));
+	progressBarWrapper.appendChild(progressBarSlice(null, locked/all*100, {background: "white", text: "black"}, "Locked: "+locked, "/popup/progressions.html?level="+level+"&type="+type+"&jump=locked"));
 
 	// bar id
 	const barTitle = document.createElement("div");
 	progressBarWrapper.appendChild(barTitle);
 	barTitle.classList.add("clickable", "bar-id");
-	barTitle.title = "Level: "+all;
+	barTitle.title = "Total: "+all;
 	const barLink = document.createElement("a");
 	barTitle.appendChild(barLink);
 	barLink.href = "/popup/progressions.html?level="+level+"&type="+type;
@@ -1052,18 +1052,60 @@ const levelProgressBar = (currentLevel, values, level, type, colors) => {
 	return progressBarWrapper;
 }
 
-const levelProgressBarSlice = (value, color, title, info) => {
-	const {level, type, srs} = info;
+const schoolProgress = (school, map, subjects) => {
+	Object.entries(map).forEach(([grade, kanji]) => {
+		const values = subjects.filter(subject => subject[school]?.match(/(\d+)/)[0] == grade?.match(/(\d+)/)[0] && !subject["hidden"]);
+		const data = {
+			"locked": {
+				"color": {
+					"background": "white",
+					"text": "black",
+				},
+				"count": values.filter(value => value["srs_stage"] == -1).length
+			},
+			"passed": {
+				"color": {
+					"background": "black",
+					"text": "white",
+				},
+				"count": values.filter(value => value["passed_at"] && value["srs_stage"] != 9).length
+			},
+			"burned": {
+				"color": {
+					"background": "var(--brn-color)",
+					"text": "white",
+				},
+				"count": values.filter(value => value["srs_stage"] == 9).length
+			},
+		};
+		data["progress"] = {
+			"color": {
+				"background": "var(--ap4-color)",
+				"text": "white",
+			},
+			"count": values.length - data["locked"]["count"] - data["passed"]["count"] - data["burned"]["count"]
+		};
+		const barIdElement = document.querySelector(`#${school}_kanji_progress ul[data-grade="${grade}"] .bar-id`);
+		barIdElement.title = `Total: ${values.length}`;
 
-	const progressBarBar = document.createElement("li");
+		Object.entries(data).forEach(([column, info]) => {
+			const bar = document.querySelector(`#${school}_kanji_progress ul[data-grade="${grade}"] li[data-column="${column}"]`);
+			const percentageValue = info["count"]/values.length*100;
+			progressBarSlice(bar, percentageValue, info["color"], `${column.charAt(0).toUpperCase()+column.slice(1)}: ${info["count"]}`, `/popup/progressions.html?school=${school}&grade=${grade}&type=kanji&jump=${column}`);
+		});
+	});
+}
+
+const progressBarSlice = (element, value, color, title, link) => {
+	const progressBarBar = element || document.createElement("li");
 	progressBarBar.classList.add("clickable");
 	const percentageValue = value;
 	progressBarBar.style.width = percentageValue+"%";
 	progressBarBar.style.backgroundColor = color["background"];
 	progressBarBar.title = title;
-	progressBarLink = document.createElement("a");
+	const progressBarLink = document.createElement("a");
 	progressBarBar.appendChild(progressBarLink);
-	progressBarLink.href = `/popup/progressions.html?level=${level}&type=${type}&jump=${srs}`;
+	progressBarLink.href = link;
 	if (percentageValue > 8.1) {
 		const percentage = document.createElement("div");
 		progressBarLink.appendChild(percentage);

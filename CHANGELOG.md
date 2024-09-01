@@ -1,3 +1,9 @@
+# [Changelog v1.2.7](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.7)
+Released on 01/09/2024
+
+## Popup
+- Added JLPT and Joyo progression to Home page and respective Progression details when clicked
+
 # [Changelog v1.2.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.6)
 Released on 01/09/2024
 
