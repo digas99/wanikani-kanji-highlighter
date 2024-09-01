@@ -1055,43 +1055,47 @@ const levelProgressBar = (currentLevel, values, level, type, colors) => {
 const schoolProgress = (school, map, subjects) => {
 	Object.entries(map).forEach(([grade, kanji]) => {
 		const values = subjects.filter(subject => subject[school]?.match(/(\d+)/)[0] == grade?.match(/(\d+)/)[0] && !subject["hidden"]);
-		const data = {
-			"locked": {
-				"color": {
-					"background": "white",
-					"text": "black",
-				},
-				"count": values.filter(value => value["srs_stage"] == -1).length
-			},
-			"passed": {
-				"color": {
-					"background": "black",
-					"text": "white",
-				},
-				"count": values.filter(value => value["passed_at"] && value["srs_stage"] != 9).length
-			},
-			"burned": {
+		const data = [
+			{
+				"column": "burned",
 				"color": {
 					"background": "var(--brn-color)",
 					"text": "white",
 				},
 				"count": values.filter(value => value["srs_stage"] == 9).length
 			},
-		};
-		data["progress"] = {
-			"color": {
-				"background": "var(--ap4-color)",
-				"text": "white",
+			{
+				"column": "passed",
+				"color": {
+					"background": "black",
+					"text": "white",
+				},
+				"count": values.filter(value => value["passed_at"] && value["srs_stage"] != 9).length
 			},
-			"count": values.length - data["locked"]["count"] - data["passed"]["count"] - data["burned"]["count"]
-		};
+			{
+				"column": "progress",
+				"color": {
+					"background": "var(--ap4-color)",
+					"text": "white",
+				},
+				"count": values.filter(value => !value["passed_at"] && value["srs_stage"] > 0).length
+			},
+			{
+				"column": "locked",
+				"color": {
+					"background": "white",
+					"text": "black",
+				},
+				"count": values.filter(value => value["srs_stage"] == -1).length
+			},
+		];
 		const barIdElement = document.querySelector(`#${school}_kanji_progress ul[data-grade="${grade}"] .bar-id`);
 		barIdElement.title = `Total: ${values.length}`;
 
-		Object.entries(data).forEach(([column, info]) => {
-			const bar = document.querySelector(`#${school}_kanji_progress ul[data-grade="${grade}"] li[data-column="${column}"]`);
+		data.forEach(info => {
+			const bar = document.querySelector(`#${school}_kanji_progress ul[data-grade="${grade}"] li[data-column="${info["column"]}"]`);
 			const percentageValue = info["count"]/values.length*100;
-			progressBarSlice(bar, percentageValue, info["color"], `${column.charAt(0).toUpperCase()+column.slice(1)}: ${info["count"]}`, `/popup/progressions.html?school=${school}&grade=${grade}&type=kanji&jump=${column}`);
+			progressBarSlice(bar, percentageValue, info["color"], `${info["column"].charAt(0).toUpperCase()+info["column"].slice(1)}: ${info["count"]}`, `/popup/progressions.html?school=${school}&grade=${grade}&type=kanji&jump=${info["column"]}`);
 		});
 	});
 }
