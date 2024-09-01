@@ -633,6 +633,13 @@
 				srsStageText.style.setProperty("color", `var(--${srsStages[0]["short"].toLowerCase()}-color)`, "important");				
 			}
 
+			if (vocabInfo["parts_of_speech"]) {
+				const partOfSpeech = document.createElement("div");
+				details.appendChild(partOfSpeech);
+				partOfSpeech.appendChild(document.createTextNode(vocabInfo["parts_of_speech"][0].charAt(0).toUpperCase()+vocabInfo["parts_of_speech"].join(", ").slice(1)));
+				partOfSpeech.style.setProperty("color", "#b8b8b8", "important");
+			}
+
 			// meaning container
 			const meaning = document.createElement("div");
 			meaning.classList.add("sd-popupDetails_kanjiTitle");
@@ -644,13 +651,6 @@
 			// strokes container
 			if (this.strokes)
 				details.appendChild(this.kanjiDrawing(vocabInfo["characters"]));
-			
-			if (vocabInfo["parts_of_speech"]) {
-				const partOfSpeech = document.createElement("div");
-				details.appendChild(partOfSpeech);
-				partOfSpeech.appendChild(document.createTextNode(vocabInfo["parts_of_speech"][0].charAt(0).toUpperCase()+vocabInfo["parts_of_speech"].join(", ").slice(1)));
-				partOfSpeech.style.setProperty("color", "#b8b8b8", "important");
-			}
 			
 			if (vocabInfo["meaning_mnemonic"]) {
 				// meaning mnemonic container
