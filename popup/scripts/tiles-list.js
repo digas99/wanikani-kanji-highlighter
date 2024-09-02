@@ -159,7 +159,6 @@
 		li.style.backgroundColor = color;
 		const backColor = hexToRGB(color);
 		li.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);
-		console.log(backColor, li.style.color, color);
 
 		if (callback)
 			callback(li, value);

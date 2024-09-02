@@ -141,17 +141,19 @@ const updateLevelData = async (level, db, clear) => {
     const stats = levelsStats && levelsStats[level] ? levelsStats[level] : [];
     if (stats.length > 0) {
         const lastStat = stats[stats.length-1];
-        const startedAt = new Date(lastStat["started_at"]);
+        const startedAt = new Date(lastStat["unlocked_at"]);
         const passedAt = lastStat["passed_at"] ? new Date(lastStat["passed_at"]) : new Date();
         const timeInLevel = passedAt - startedAt;
-        const readable = prettyTime(timeInLevel, {seconds: false, minutes: false});
+        console.log("Stats:", stats, "Started:", startedAt, "Passed:", passedAt, "Time in level:", timeInLevel);
+        const options = timeInLevel >= 1000 * 60 * 60 * 24 ? {seconds: false, minutes: false} : {};
+        const readable = prettyTime(timeInLevel, options);
         timeLabel.style.removeProperty("pointer-events");
         timeLabel.innerHTML = `<b>${readable}</b> on this level`;
         timeLabel.title = `Started at: ${startedAt.toISOString().split(".")[0]}\x0DPassed at:  ${passedAt.toISOString().split(".")[0]}`;
         pastTimesN.innerText = stats.length-1;
     }
     else {
-        timeLabel.innerText = "Not yet passed";
+        timeLabel.innerText = "Not yet reached";
         timeLabel.title = "";
         timeLabel.style.pointerEvents = "none";
         pastTimesN.innerText = "0";
@@ -860,6 +862,9 @@ const updateLevelUpPrediction = subjects => {
     console.log(longestInterval, readable, levelUpDay);
     const timeToLevelUp = document.querySelector(".level-up-prediction-value");
     timeToLevelUp.innerHTML = `At least <b>${readable}</b> to level up. <br><div>${levelUpDay.toString().split(" GMT")[0]}</div>`;
+    console.log(longestInterval <= 0);
+    if (longestInterval <= 0)
+        timeToLevelUp.innerHTML = `You can level up <b>now</b>! Go do your reviews!`;
     }
 
 const levelUpPrediction = (subjects, nSubjectsToLevelUp) => {

@@ -1,3 +1,8 @@
+# [Changelog v1.2.8](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.8)
+
+## Bug Fixes
+- Fixed bug with displaying the time on each level right after a level up
+
 # [Changelog v1.2.7](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.7)
 Released on 01/09/2024
 

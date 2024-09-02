@@ -11,15 +11,10 @@ chrome.storage.local.get(["apiKey"], async result => {
 			const latest = await reposLatestVersion("digas99", "wanikani-kanji-highlighter");
 			const latestNumber = Number(latest.split("v")[1].replace(/\./g, ""));
 			const currentNumber = Number(version.replace(/\./g, ""));
-			if (currentNumber <= latestNumber) {
-				if (latestNumber === currentNumber)
-					document.querySelector("#latestVersion")?.style.removeProperty("display");
-				else
-					document.querySelector("#outdatedVersion")?.style.removeProperty("display");
-			}
-			else {
-				document.querySelector("#futureVersion")?.style.removeProperty("display");
-			}
+			if (latestNumber <= currentNumber)
+				document.querySelector("#latestVersion")?.style.removeProperty("display");
+			else
+				document.querySelector("#outdatedVersion")?.style.removeProperty("display");
 		});
 	
 	// API KEY

@@ -42,21 +42,33 @@ const setupSubjects = async (apiToken, setup, build, callback) => {
 			.forEach(subject => build(subjects, associations, db_records, subject));
 
 		if (data.length > 0) {
-			// add jlpt info
-			if (setup.jlpt) {
-				console.log("Adding JLPT info", jlpt);
-				for (const n in jlpt) {
-					jlpt[n].forEach(kanji => subjects[associations[kanji]]["jlpt"] = n.toUpperCase());
+			const schools = [
+				{
+					name: "jlpt",
+					data: jlpt,
+					callback: n => n.toUpperCase()
+				},
+				{
+					name: "joyo",
+					data: joyo,
+					callback: n => "Grade " + n.charAt(1)
 				}
-			}
-
-			// add joyo info
-			if (setup.joyo) {
-				console.log("Adding Joyo info", joyo);
-				for (const n in joyo) {
-					joyo[n].forEach(kanji => subjects[associations[kanji]]["joyo"] = "Grade " + n.charAt(1));
+			];
+			schools.forEach(school => {
+				if (setup[school.name]) {
+					console.log("Adding " + school.name + " info", school.data);
+					for (const n in school.data) {
+						school.data[n].forEach(kanji => {
+							const subjectId = associations[kanji];
+							if (subjectId) {
+								const subject = subjects[subjectId];
+								if (subject)
+									subject[school.name] = school.callback(n);
+							}
+						});
+					}
 				}
-			}
+			});
 		}
 
 		await db.insert("subjects", db_records);

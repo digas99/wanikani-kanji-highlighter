@@ -12,7 +12,7 @@ let chart, levelStats, settings;
 let resetIndex = 0, nLearningStreaks = 1;
 
 const levelDuration = data => {
-	const startedAt = new Date(data["started_at"]);
+	const startedAt = new Date(data["unlocked_at"]);
 	const endedAt = data["passed_at"] ? new Date(data["passed_at"]) : new Date();
 	const duration = endedAt - startedAt;
 	return duration / (1000 * 60 * 60 * 24);
@@ -44,7 +44,7 @@ const mostLearningStreaks = (levelsStats) => {
 }
 
 const streakDates = (levelsStats, streakIndex) => {
-	const streakBeginning = new Date(levelsStats[1][streakIndex]["started_at"]);
+	const streakBeginning = new Date(levelsStats[1][streakIndex]["unlocked_at"]);
 	
 	let streakEnding = "";
 	const streakIndexValues = Object.values(levelsStats).filter(value => value[streakIndex]);
@@ -129,7 +129,7 @@ chrome.storage.local.get(["levels_stats", "settings"], async result => {
 			levelsStats[level].reverse().forEach(entry => {
 				const duration = levelDuration(entry);
 				levelsListHTML += `<div>
-					<div>${entry["started_at"].split("T")[0]}</div>
+					<div>${entry["unlocked_at"].split("T")[0]}</div>
 					<div>${duration.toFixed(0)} days</div>
 				</div>`;
 			});
