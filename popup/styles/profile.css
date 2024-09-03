@@ -240,16 +240,27 @@ body {
     color: var(--font-sec-color);
 }
 
-#edit {
+#edit, #accolades {
     position: absolute;
-    right: 15px;
     top: 115px;
     filter: invert(1);
     z-index: 1;
 }
 
+#accolades img {
+    width: 20px;
+}
+
 #edit img {
-    width: 14px;
+    width: 17px;
+}
+
+#accolades {
+    right: 15px;
+}
+
+#edit {
+    right: 50px;
 }
 
 #level-progress {

@@ -145,7 +145,7 @@ const updateLevelData = async (level, db, clear) => {
         const passedAt = lastStat["passed_at"] ? new Date(lastStat["passed_at"]) : new Date();
         const timeInLevel = passedAt - startedAt;
         console.log("Stats:", stats, "Started:", startedAt, "Passed:", passedAt, "Time in level:", timeInLevel);
-        const options = timeInLevel >= 1000 * 60 * 60 * 24 ? {seconds: false, minutes: false} : {};
+        const options = timeInLevel >= 1000 * 60 * 60 ? {seconds: false, minutes: false} : {};
         const readable = prettyTime(timeInLevel, options);
         timeLabel.style.removeProperty("pointer-events");
         timeLabel.innerHTML = `<b>${readable}</b> on this level`;
