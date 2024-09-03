@@ -19,7 +19,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v128)
+1. [Latest Features](#changelog-v130)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -31,65 +31,13 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
-## [Changelog v1.2.8](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.8)
+## [Changelog v1.3.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.3.0)
+
+### Popup
+- Added a system of accolades accessible through the Profile Page
 
 ### Bug Fixes
 - Fixed bug with displaying the time on each level right after a level up
-
-## [Changelog v1.2.7](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.7)
-
-### Popup
-- Added JLPT and Joyo progression to Home page and respective Progression details when clicked
-
-## [Changelog v1.2.6](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.6)
-
-### Popup
-- Added level up time prediction to the Profile Page (Only available when atleast 90% of the kanji of the current level are initiated)
-- Improved human-friendly time format throughout the extension popup
-- Added time for next review on each subject in the Profile Page
-
-### Content
-- Added JLPT and Joyo levels back to the Subject Details Popup
-
-## [Changelog v1.2.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.5)
-
-### Bug Fixes
-- Fixed issue with the loading of the avatar (Wanikani public profile page changed html structure)
-
-## [Changelog v1.2.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.4)
-
-### Bug Fixes
-- Fixed issue with subjects loaded not being counted correctly (which would directly affect the Progression Bar)
- 
-## [Changelog v1.2.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.3)
-
-### Bug Fixes
-- Fixed issue where learned kanji were being highlighted as not learned
-
-## [Changelog v1.2.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.2)
-
-### Bug Fixes
-- Another approach to fix previous bug that would break the fetch of new data from Wanikani
-- Fixed loading of Subject Drawings Animation when many highlighted Kanji were selected in a short period of time
-
-## [Changelog v1.2.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.1)
-
-### Bug Fixes
-- Fixed bug that would break the fetch of new data from Wanikani
-- Subject Details no longer comes from the side if opened from the Extension Popup
-
-## [Changelog v1.2.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.0)
-
-### Technicalities
-- Subject Details Popup now fetches data directly from IndexedDB, instead of Chrome Storage, making it way faster to load on the Extension Popup ([#30](https://github.com/digas99/wanikani-kanji-highlighter/issues/30))
-
-### Content
-- Kanji Highlighting is now faster because Chrome Storage is no longer used while browsing
-- Added Kanji drawing animation to Subject Details Popup
-- Added new customization options (in Settings) to Subject Details Popup:
-    - Set a different width for the popup
-    - Kanji Drawing Animation can be turned off
-    - Play Subject Audio automatically when popup is created
   
 #### [(All changelogs)](CHANGELOG.md)
 

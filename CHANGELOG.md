@@ -1,4 +1,7 @@
-# [Changelog v1.2.8](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.2.8)
+# [Changelog v1.3.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.3.0)
+
+## Popup
+- Added a system of accolades accessible through the Profile Page
 
 ## Bug Fixes
 - Fixed bug with displaying the time on each level right after a level up
