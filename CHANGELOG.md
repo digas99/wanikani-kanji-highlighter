@@ -1,4 +1,5 @@
 # [Changelog v1.3.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.3.0)
+Released on 03/09/2024
 
 ## Popup
 - Added a system of accolades accessible through the Profile Page

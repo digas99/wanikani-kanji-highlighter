@@ -47,9 +47,9 @@
 }
 
 .accolades-progress {
-	background-color: var(--font-sec-color);
-    height: 5px;
-    margin: 15px 15px;
+	background-color: var(--fade);
+    height: 7px;
+    margin: 15px 30px;
     border-radius: 10px;
 }
 
@@ -57,11 +57,11 @@
     height: 100%;
     background-color: var(--wanikani);
     border-radius: 10px;
-	opacity: 0.5;
+	cursor: pointer;
 }
 
 .accolades-progress:hover > div {
-	opacity: 1;
+	opacity: 0.5;
 }
 
 .accolades-milestones {
@@ -79,16 +79,102 @@
 
 .accolades-milestone-active {
 	opacity: 1 !important;
+	cursor: pointer;
 }
 
 .accolades-milestone-active .accolades-title {
 	font-weight: bold;
 }
 
+.accolades-milestone-active img {
+	filter: unset !important;
+}
+
+.accolades-milestone-active:hover {
+	opacity: 0.7 !important;
+}
+
 .accolades-milestones > div img {
-	width: 55px;
+	width: 80px;
+	filter: saturate(0);
 }
 
 .accolades-milestones > div .accolades-title {
 	margin-top: 5px;
+}
+
+.accolades-popup {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: auto;
+    bottom: 0;
+    height: fit-content;
+}
+
+.accolades-popup-back {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    background-color: black;
+    opacity: 0.7;
+    left: 0;
+    top: 0;
+}
+
+.accolades-popup-badge {
+	position: relative;
+    color: white;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 30px;
+	padding-top: 50px;
+    right: 20px;
+}
+
+.accolades-popup-badge img {
+	width: 290px;
+}
+
+.accolades-popup-badge .accolades-popup-title {
+	font-size: 35px;
+    padding: 10px;
+    font-weight: bold;
+}
+
+.accolades-popup-arrows {
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    width: 390px;
+}
+
+.accolades-popup-arrow {
+    display: flex;
+    align-items: center;
+	opacity: 0.7;
+	cursor: pointer;
+	padding: 10px;
+}
+
+.accolades-popup-arrow:hover {
+	opacity: 1;
+}
+
+.accolades-popup-arrow img {
+    width: 25px;
+    filter: invert(1);
+}
+
+.accolades-popup-arrow-left {
+    rotate: -180deg;
+}
+
+.accolades-popup-arrow-right {
+
 }

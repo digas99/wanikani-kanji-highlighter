@@ -1,3 +1,5 @@
+let selectedAccolade = null;
+
 chrome.storage.local.get(["accolades"], async result => {
 	const accolades = defaultAccolades(result["accolades"]);
 
@@ -5,6 +7,8 @@ chrome.storage.local.get(["accolades"], async result => {
 	setupAccolades(wrapper, accolades);
 	
 	updateAccolades(setupAccolades);
+
+	initializeAccoladesPopup();
 });
 
 const defaultAccolades = accolades => {
@@ -30,7 +34,6 @@ const setupAccolades = (wrapper, accolades) => {
 	const total = Object.values(ACCOLADES).reduce((acc, accolade) => acc + accolade?.milestones?.length, 0);
 	counter.innerText = `${completed} / ${total}`;
 
-	// counter.innerText = `${total} / ${Object.values(accolades).reduce((acc, accolade) => acc + accolade?.data?.total, 0)}`;
 	Object.entries(ACCOLADES).forEach(([type, info]) => {
 		const accolade = accolades[type];
 		const row = /*html*/`
@@ -38,12 +41,12 @@ const setupAccolades = (wrapper, accolades) => {
 				<div class="accolades-counter">${accolade?.stages?.length} / ${info.milestones.length}</div>
 				<div class="accolades-type">${info.title}</div>
 				<div class="accolades-description">${info.description}</div>
-				<div class="accolades-progress" title="${accolade?.data?.value} / ${accolade?.data?.total} - ${accolade?.data?.percentage.toFixed(0)}%"><div style="width: ${accolade?.data?.percentage}%"></div></div>
+				<div class="accolades-progress" title="${accolade?.data?.value} / ${accolade?.data?.total} - ${accolade?.data?.percentage.toFixed(0)}%"><div style="width: ${accolade?.data?.percentage}%; background-color: ${info.color}"></div></div>
 				<div class="accolades-milestones">
 					${info.milestones.map(milestone => {
 						return /*html*/`
 							<div data-value="${milestone.value}" class="${accolade?.stages?.includes(milestone.value) ? "accolades-milestone-active" : ""}">
-								<img src="${milestone.icon || '/images/accolades/hexagon.png'}" title="${milestone.title}">
+								<img src="${milestone.icon || `/images/accolades/${type}-${milestone.value}.png`}" title="${milestone.title}">
 								<div class="accolades-title">${milestone.title}</div>
 							</div>
 						`;
@@ -199,10 +202,85 @@ const defaultAccoladeResult = () => {
 	});
 }
 
+document.addEventListener("click", e => {
+	if (e.target.closest(".accolades-milestone-active")) {
+		const milestone = e.target.closest(".accolades-milestone-active");
+		updateAccoladesPopup(milestone);
+	}
+});
+
+const initializeAccoladesPopup = () => {
+	const popup = document.querySelector(".accolades-popup");
+	const arrows = popup.querySelectorAll(".accolades-popup-arrow");
+
+	arrows[0].addEventListener("click", () => {
+		navigateAccolades("previous");
+	});
+
+	arrows[1].addEventListener("click", () => {
+		navigateAccolades("next");
+	});
+
+	popup.addEventListener("click", e => {
+		if (!e.target.closest(".accolades-popup-arrow"))
+			popup.style.display = "none";
+	});
+}
+
+const updateAccoladesPopup = accolade => {
+	selectedAccolade = accolade;
+
+	console.log("asdasa");
+	const popup = document.querySelector(".accolades-popup");
+	popup.style.removeProperty("display");
+	const image = accolade.querySelector("img")?.src;
+	const title = accolade.querySelector(".accolades-title").innerText;
+	const badge = popup.querySelector(".accolades-popup-badge");
+	badge.querySelector("img").src = image;
+	badge.querySelector("div").innerText = title;
+
+	// handle arrows
+	const arrows = popup.querySelectorAll(".accolades-popup-arrow");
+	arrows.forEach(arrow => arrow.style.visibility = "visible");
+
+	const badgeIndex = Array.from(accolade.parentElement.children).indexOf(accolade);
+	const previousBadge = accolade.parentElement.children[badgeIndex-1];
+	const nextBadge = accolade.parentElement.children[badgeIndex+1];
+	if (!previousBadge || !previousBadge.classList.contains("accolades-milestone-active"))
+		arrows[0].style.visibility = "hidden";
+
+	if (!nextBadge || !nextBadge.classList.contains("accolades-milestone-active"))
+		arrows[1].style.visibility = "hidden";
+
+}
+
+const navigateAccolades = direction => {
+	const badge = selectedAccolade;
+	const badgeIndex = Array.from(badge.parentElement.children).indexOf(badge);
+	const nextBadge = direction === "next" ? badge.parentElement.children[badgeIndex+1] : badge.parentElement.children[badgeIndex-1];
+	if (nextBadge && nextBadge.classList.contains("accolades-milestone-active"))
+		updateAccoladesPopup(nextBadge);
+}
+
+document.addEventListener("keydown", e => {
+	if (e.key === "ArrowLeft") {
+		const arrow = document.querySelector(".accolades-popup-arrow-left");
+		if (arrow.style.visibility !== "hidden")
+			arrow.click();
+	}
+
+	if (e.key === "ArrowRight") {
+		const arrow = document.querySelector(".accolades-popup-arrow-right");
+		if (arrow.style.visibility !== "hidden")
+			arrow.click();
+	}
+});
+
 const ACCOLADES = {
 	"level": {
 		"title": "Level",
 		"description": "Level reached so far while learning with Wanikani.",
+		"color": "#5f7e8f",
 		"milestones": [
 			{
 				value: 10,
@@ -239,6 +317,7 @@ const ACCOLADES = {
 	"anniversary": {
 		"title": "Anniversary",
 		"description": "Years spent learning with Wanikani.",
+		"color": "#5e8e71",
 		"milestones": [
 			{
 				value: 1,
@@ -265,7 +344,18 @@ const ACCOLADES = {
 	"burned": {
 		"title": "Burned",
 		"description": "Total number of items burned.",
+		"color": "#8f5f6b",
 		"milestones": [
+			{
+				value: 100,
+				title: "100 items",
+				icon: "",
+			},
+			{
+				value: 500,
+				title: "500 items",
+				icon: "",
+			},
 			{
 				value: 1000,
 				title: "1000 items",
@@ -286,6 +376,7 @@ const ACCOLADES = {
 	"jlpt": {
 		"title": "JLPT",
 		"description": "JLPT levels reached by number of kanji learned.",
+		"color": "#715e8e",
 		"milestones": [
 			{
 				value: 5,
@@ -317,6 +408,7 @@ const ACCOLADES = {
 	"joyo": {
 		"title": "Jōyō",
 		"description": "Jōyō school grade levels reached by number of kanji learned.",
+		"color": "#8e6f5e",
 		"milestones": [
 			{
 				value: 1,
