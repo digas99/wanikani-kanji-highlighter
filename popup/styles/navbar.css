@@ -319,6 +319,10 @@
 #profile img {
     width: 100%;
     height: 100%;
+    position: relative;
+    border: 3px solid var(--default-color);
+    margin-left: -3px;
+    margin-top: -3px;
 }
 
 .progress-container {
@@ -329,7 +333,7 @@
     background: conic-gradient(
         var(--wanikani) 0% var(--level-progress),
         #ddd var(--level-progress) 100%);
-    padding: 5px;
+    padding: 7px;
 }
 
 .progress-container img {
@@ -338,8 +342,22 @@
     border-radius: 50%;
 }
 
-#profile:hover img {
-    border-color: var(--wanikani);
+.progress-level-up-marker {
+    width: 17px;
+    height: 3px;
+    background-color: var(--default-color);
+    position: absolute;
+    rotate: 45deg;
+    margin-left: -2px;
+}
+
+#profile:hover .progress-container {
+    --level-progress: 100% !important;
+
+}
+
+#profile:hover .progress-level-up-marker {
+    display: none;
 }
 
 #profile:hover p {

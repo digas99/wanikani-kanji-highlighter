@@ -92,7 +92,7 @@ chrome.storage.local.get(["apiKey", "settings", "lessons", "reviews", "userInfo"
                         // update on profile picture
                         const picture = document.querySelector("#profile .progress-container");
                         if (picture) {
-                            picture.title = `${userInfo?.username ? userInfo.username+" \x0D" : ""}${percentage.toFixed(2)}%`;
+                            picture.title = `${userInfo?.username ? userInfo.username+" \x0D" : ""}${percentage.toFixed(2)}% \x0DLevel up on 90%`;
                             picture.style.setProperty("--level-progress", `${percentage}%`);
                         }
                     }
