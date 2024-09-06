@@ -24,6 +24,12 @@ body {
     color: white;
     padding: 7px;
     font-size: 14px;
+    display: block;
+}
+
+#lessons_and_reviews ul {
+    display: flex;
+    column-gap: 3px;
 }
 
 .userInfoWrapper-wrapper {

@@ -10,12 +10,7 @@
 }
 
 .accolades-main-counter {
-	position: fixed;
-    z-index: 11;
-    top: 20px;
     left: 110px;
-    color: var(--border-color);
-    opacity: 0.7;
 }
 
 .accolades-wrapper {

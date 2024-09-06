@@ -55,6 +55,13 @@ const setupReviewsSections = async (reviews, db) => {
 	return sections;
 }
 
+window.onload = () => {
+	// add buttons
+	const buttonsWrapper = document.querySelector('#secPageButtons');
+	// history button
+	buttonsWrapper.insertAdjacentHTML('beforeend', /*html*/`<a href="/popup/reviews_history.html"><img src="/images/history.png" alt="History" title="Reviews history"></a>`);
+}
+
 chrome.storage.local.get(["reviews"], async result => {
 	const {count, data, next_reviews} = result["reviews"];
 	availableReviewsCount = count;

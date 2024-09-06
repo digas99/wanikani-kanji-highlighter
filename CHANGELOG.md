@@ -1,3 +1,11 @@
+# [Changelog v1.3.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.3.1)
+
+## Popup
+- Added Reviews History, accessible through the Reviews Page
+
+## Bug Fixes
+- Fixed issue where kana vocabulary was missing in Levels in Progress, along with vocabulary
+
 # [Changelog v1.3.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.3.0)
 Released on 03/09/2024
 

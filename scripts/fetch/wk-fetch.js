@@ -132,7 +132,7 @@ const fetchUserInfo = async(apiToken, callback) => {
 
 const setupAssignments = async (apiToken, callback) => 
 	new Promise((resolve, reject) => {
-		chrome.storage.local.get(["assignments", "assignments_updated"], async result => {
+		chrome.storage.local.get(["assignments", "assignments_updated", "assignments_history"], async result => {
 			const updated = result["assignments_updated"];
 			let assignments = result["assignments"];
 
@@ -148,21 +148,58 @@ const setupAssignments = async (apiToken, callback) =>
 
 					let allAssignments = assignments ? assignments["all"] : [];
 					const newAssignments = data.map(arr => arr["data"]).reduce((arr1, arr2) => arr1.concat(arr2));
+					console.log("NEW ASSIGNMENTS");
+					console.log(newAssignments);
+
+					// get subjects old data
+					const newAssignmentsIds = newAssignments.map(a => a.data.subject_id);
+					const db = new Database("wanikani");
+					const opened = await db.open("subjects");
+					let subjects = [];
+					if (opened)
+						subjects = await db.getAll("subjects", "id", newAssignmentsIds);
+
+					const assignmentsHistory = result["assignments_history"] || [];
 					newAssignments.forEach(assignment => {
 						const index = allAssignments.findIndex(a => a.id === assignment.id);
 						if (index !== -1)
 							allAssignments[index] = assignment;
 						else
 							allAssignments.push(assignment);
+
+						// add to history
+						const subjectId = assignment.data.subject_id;
+						const subject = subjects[subjectId];
+						if (subject) {
+							assignmentsHistory.push({
+								"id": subjectId,
+								"subject_type": subject.subject_type,
+								"level": subject.level,
+								"characters": getCharacter(subject),
+								"srs_stage": {
+									"old": subject.srs_stage,
+									"new": assignment.data.srs_stage
+								},
+								"meanings": subject.meanings,
+								"available_at": new Date(assignment.data.available_at).toString(),
+								"passed_at": assignment.data.passed_at ? new Date(assignment.data.passed_at).toString() : null,
+								"burned_at": assignment.data.burned_at ? new Date(assignment.data.burned_at).toString() : null,
+								"updated_at": new Date(assignment.data_updated_at).toString()
+							});
+						}
 					});
 
 					const allFutureAssignments = filterAssignmentsByTime(allAssignments, new Date(), null);
 					const allAvailableReviews = filterAssignmentsByTime(allAssignments, new Date(), changeDay(new Date(), -1000));
-					chrome.storage.local.set({"assignments": {
-						"all":allAssignments,
-						"future":allFutureAssignments,
-						"past":allAvailableReviews
-					}, "assignments_updated":new Date().toUTCString()}, () => {
+					chrome.storage.local.set({
+						"assignments": {
+							"all":allAssignments,
+							"future":allFutureAssignments,
+							"past":allAvailableReviews
+						},
+						"assignments_updated":new Date().toUTCString(),
+						"assignments_history": assignmentsHistory
+					}, () => {
 						resolve([data, true]);
 						if (callback)
 							callback(data, true);

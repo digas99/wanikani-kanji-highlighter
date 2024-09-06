@@ -541,7 +541,7 @@ const loadData = async (apiToken, tabId, callback) => {
 						resolve(radicals);
 						const messageText = "✔ Loaded Radicals data.";
 						console.log("[LOADED]:", messageText);
-						if (fetched) {assignments
+						if (fetched) {
 							progress++;
 							sendSetupProgress(messageText, progress, tabId);
 						}
@@ -638,6 +638,8 @@ const evalProgress = (progress, fetches) => {
 }
 
 const subjectsAssignmentStats = async list => {
+	console.log("SUBJECT ASSIGNMENT STATS");
+	console.log(list, Array.isArray(list));
 	if (list) {
 		list = Array.isArray(list) ? list : Object.values(list);
 

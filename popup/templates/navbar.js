@@ -8,6 +8,7 @@ document.write(/*html*/`
             <div id="secPageTitle"></div>
         </div>
     </a>
+    <div id="secPageButtons"></div>
 
     <div class="topNav-lessons">
         <a title="Lessons" href="/popup/lessons.html">

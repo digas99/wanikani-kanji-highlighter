@@ -334,3 +334,37 @@
     background-color: white;
     margin: 20px 10px;
 }
+
+#secPageButtons {
+    display: flex;
+    align-items: center;
+    margin-left: 15px;
+    height: 100%;
+}
+
+#secPageButtons > a {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    width: 35px;
+    opacity: unset !important;
+    transition: unset !important;
+}
+
+#secPageButtons > a > img {
+    filter: invert(1);
+    width: 19px;
+    margin: auto;
+}
+
+#secPageButtons > a:hover {
+    background-color: var(--wanikani);
+}
+
+.top-nav-subtext {
+    position: fixed;
+    z-index: 11;
+    top: 20px;
+    color: var(--border-color);
+    opacity: 0.7;
+}

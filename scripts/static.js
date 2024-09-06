@@ -302,7 +302,7 @@ const LEVELS_STATS = {
 };
 
 const ASSIGNMENTS = ["reviews", "lessons"];
-const PROGRESS = ["radical_progress", "kanji_progress", "vocabulary_progress", "kana_vocabulary_progress", "radicals_size", "kanji_size", "vocabulary_size", "kana_vocab_size", "radical_levelsInProgress", "kanji_levelsInProgress", "vocabulary_levelsInProgress"];
+const PROGRESS = ["radical_progress", "kanji_progress", "vocabulary_progress", "kana_vocabulary_progress", "radicals_size", "kanji_size", "vocabulary_size", "kana_vocab_size", "radical_levelsInProgress", "kanji_levelsInProgress", "vocabulary_levelsInProgress", "kana_vocabulary_levelsInProgress"];
 const HIGHLIGHTED = ["kanji_assoc", "highlighted_kanji"];
 
 const HOME_FETCH_KEYS = ["settings", "userInfo", ...HIGHLIGHTED, ...ASSIGNMENTS , ...PROGRESS];

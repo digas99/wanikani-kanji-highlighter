@@ -97,6 +97,7 @@ const updateHomeInterface = async (result) => {
 			}, {})
 	};
 
+	console.log(progresses);
 	if (interface["overall_progression_bar"])
 		progressionBar(document.querySelector("#progression-bar"), progresses, allSize, settings["appearance"]);
 
@@ -111,7 +112,7 @@ const updateHomeInterface = async (result) => {
 	if (interface["levels_in_progress"]) {
 		const radicalsLevelInProgress = result["radical_levelsInProgress"] || [];
 		const kanjiLevelInProgress = result["kanji_levelsInProgress"] || [];
-		const vocabularyLevelInProgress = result["vocabulary_levelsInProgress"] || [];
+		const vocabularyLevelInProgress = [...new Set([...result["vocabulary_levelsInProgress"], ...result["kana_vocabulary_levelsInProgress"]])] || [];
 		const types = ["radical", "kanji", "vocabulary"];
 		const progressBarWrappers = [];
 		const db = new Database("wanikani");
@@ -122,7 +123,7 @@ const updateHomeInterface = async (result) => {
 					db.getAll("subjects", "level", levels).then(async (result) => {
 						const bars = [];
 						levels.forEach(level => {
-							const values = result[level].filter(value => value["hidden_at"] == null && value["subject_type"] === types[i]);
+							const values = result[level].filter(value => value["hidden_at"] == null && value["subject_type"].includes(types[i]));
 							bars.push(levelProgressBar(userInfo["level"], values, level, types[i], settings["appearance"]));
 						});
 						return bars;
