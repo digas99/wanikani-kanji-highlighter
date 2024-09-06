@@ -31,7 +31,7 @@ chrome.storage.local.get(["assignments_history"], result => {
 					const statusColor = failed ? "var(--wanikani)" : "var(--wanikani-sec)";
 	
 					historyWrapper.insertAdjacentHTML("beforeend", /*html*/`
-						<div class="history-row section clickable" data-status="${failed ? "fail" : "success"}" data-type="${assignment.subject_type}" style="border-left: 5px solid ${statusColor}">
+						<div class="history-row section clickable" data-status="${failed ? "mistake" : "correct"}" data-type="${assignment.subject_type}" style="border-left: 5px solid ${statusColor}">
 							<div class="history-passed" ${!assignment.passed_at ? 'style="display: none;"' : `title="${achievementPretty} ago \x0D${achievement?.toLocaleString()}"`}><img src="/images/${achievementLogo}.png" class="icon"></div>
 							<p class="history-date" title="${new Date(assignment.updated_at).toLocaleString()}">${updatedAtPretty} ago</p>
 							<div class="tiles-list-section">
@@ -48,7 +48,7 @@ chrome.storage.local.get(["assignments_history"], result => {
 							</div>
 							<div class="history-extra" style="display: none">
 								<div><b>${assignment.level}</b> &nbsp; ${assignment.meanings[0]}</div>
-								<div style="color: ${statusColor}">${failed ? "Fail" : "Success"}</div>
+								<div style="color: ${statusColor}">${failed ? "Mistake" : "Correct"}</div>
 								<div title="${new Date(assignment.available_at).toLocaleString()}">Next in ${availableAtPretty}</div>
 							</div>
 						</div>
@@ -67,12 +67,12 @@ chrome.storage.local.get(["assignments_history"], result => {
 	filterWrapper.insertAdjacentHTML("beforeend", /*html*/`
 		<select class="history-filter select">
 			<option value="all">All</option>
-			<option value="success">Success</option>
-			<option value="fail">Fail</option>
+			<option value="correct">Correct</option>
+			<option value="mistake">Mistake</option>
 			<option value="radical">Radicals</option>
 			<option value="kanji">Kanji</option>
 			<option value="vocabulary">Vocabulary</option>
-			<option value="kana_vocabulary">Kana Vocab</option>
+			<option value="kana_vocabulary">Kana Vocabulary</option>
 		</select>
 	`);
 	const filter = document.querySelector(".history-filter");
@@ -81,8 +81,8 @@ chrome.storage.local.get(["assignments_history"], result => {
 		const rows = document.querySelectorAll(".history-row");
 		const toRemove = Array.from(rows).filter(row => {
 			if (value === "all") return false;
-			if (value === "success") return row.dataset.status === "fail";
-			if (value === "fail") return row.dataset.status === "success";
+			if (value === "correct") return row.dataset.status === "mistake";
+			if (value === "mistake") return row.dataset.status === "correct";
 			if (value === "radical") return row.dataset.type !== "radical";
 			if (value === "kanji") return row.dataset.type !== "kanji";
 			if (value === "vocabulary") return row.dataset.type !== "vocabulary";
