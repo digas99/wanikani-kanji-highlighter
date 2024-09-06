@@ -250,10 +250,12 @@ const setupRadicals = (radicals, records, radical) => {
 	const subject = {
 		"characters" : data.characters,
 		"character_images" : data.character_images,
+		"amalgamation_subject_ids" : data.amalgamation_subject_ids,
 		"document_url" : data.document_url,
 		"level" : data.level,
 		"id":radical.id,
 		"meanings": data.meanings.map(data => data.meaning),
+		"meaning_mnemonic": data.meaning_mnemonic,
 		"subject_type":radical.object,
 		"hidden_at":data.hidden_at,
 		"srs_stage" : -1,
@@ -826,8 +828,7 @@ const dataTile = (subjects, elem, value) => {
 
 		const type = subject["subject_type"];
 
-		if (type !== "radical")
-			elem.classList.add("kanjiDetails");
+		elem.classList.add("kanjiDetails");
 
 		elem.title = `${meaning} ${reading ? `| ${reading}` : ""}\x0D${type.split("_").map(word => word[0].toUpperCase() + word.slice(1)).join(" ")}`;
 		elem.setAttribute("data-item-id", subject["id"]);

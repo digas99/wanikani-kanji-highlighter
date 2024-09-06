@@ -19,7 +19,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v131)
+1. [Latest Features](#changelog-v140)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -31,24 +31,13 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
 
-## [Changelog v1.3.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.3.1)
+## [Changelog v1.4.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.0)
 
 ### Popup
-- Added Reviews History, accessible through the Reviews Page
-- Changed slightly the approach to the level progress bar on the profile page. It know shows the progress on SRS Stages, instead of the number of subjects
-- Added circular progress bar around the avatar on the side navbar, showing the progress of the current level
+- Added Details Popup for Radicals
 
 ### Bug Fixes
-- Fixed issue where kana vocabulary was missing in Levels in Progress, along with vocabulary
-- Fixed visibility issue on time for next review text on subjects tiles in the Profile Page
-
-## [Changelog v1.3.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.3.0)
-
-### Popup
-- Added a system of accolades accessible through the Profile Page
-
-### Bug Fixes
-- Fixed bug with displaying the time on each level right after a level up
+- Fixed broken Random Subject button from Popup side panel
   
 #### [(All changelogs)](CHANGELOG.md)
 

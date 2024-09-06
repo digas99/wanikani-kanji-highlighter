@@ -239,15 +239,13 @@ const subjectTile = (type, subject) => {
     subjectWrapper.classList.add(type+"_back");
     subjectWrapper.title = subject["meanings"][0];
     subjectWrapper.style.position = "relative";
-    if (type !== "radical") {
-        subjectWrapper.classList.add("clickable", "kanjiDetails");
-        subjectWrapper.setAttribute("data-item-id", subject["id"]);
-        if (subject["readings"]) {
-            if (subject["readings"][0]["reading"])
-                subjectWrapper.title += " | "+subject["readings"].filter(reading => reading["primary"])[0]["reading"];
-            else
-                subjectWrapper.title += " | "+subject["readings"][0];
-        }
+    subjectWrapper.classList.add("clickable", "kanjiDetails");
+    subjectWrapper.setAttribute("data-item-id", subject["id"]);
+    if (subject["readings"]) {
+        if (subject["readings"][0]["reading"])
+            subjectWrapper.title += " | "+subject["readings"].filter(reading => reading["primary"])[0]["reading"];
+        else
+            subjectWrapper.title += " | "+subject["readings"][0];
     }
     let backColor = hexToRGB(getComputedStyle(document.body).getPropertyValue(`--${type}-tag-color`));
     subjectWrapper.style.color = fontColorFromBackground(backColor.r, backColor.g, backColor.b);

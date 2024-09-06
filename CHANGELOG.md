@@ -1,3 +1,11 @@
+# [Changelog v1.4.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.0)
+
+## Popup
+- Added Details Popup for Radicals
+
+## Bug Fixes
+- Fixed broken Random Subject button from Popup side panel
+
 # [Changelog v1.3.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.3.1)
 Released on 06/09/2024
 
