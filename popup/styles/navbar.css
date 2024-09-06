@@ -1,5 +1,9 @@
 /* TOP NAVBAR */
 
+:root {
+    --level-progress: 0%;
+}
+
 .topNav {
     position: fixed;
     background-color: var(--default-color);
@@ -308,12 +312,30 @@
 
 #profile > div {
     margin-top: 10px;
+    width: 25px;
+    height: 25px;
 }
 
 #profile img {
+    width: 100%;
+    height: 100%;
+}
+
+.progress-container {
+    position: relative;
+    display: inline-block;
     border-radius: 50%;
-    border: 3px solid white;
-    width: 26px;
+    transition: 0.5s ease-in-out;
+    background: conic-gradient(
+        var(--wanikani) 0% var(--level-progress),
+        #ddd var(--level-progress) 100%);
+    padding: 5px;
+}
+
+.progress-container img {
+    border: 0;
+    display: block;
+    border-radius: 50%;
 }
 
 #profile:hover img {

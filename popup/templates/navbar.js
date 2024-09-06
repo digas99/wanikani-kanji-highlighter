@@ -25,7 +25,7 @@ document.write(/*html*/`
 <div class="side-panel">
     <!-- PROFILE -->
     <a href="profile.html" id="profile">
-        <div>
+        <div class="progress-container" style="--level-progress: ${localStorage.getItem('level-progress') || 0}%">
             <img src="/images/wanikani-default.png">
         </div>
         <p title="Level">${localStorage.getItem("level") || ""}</p>

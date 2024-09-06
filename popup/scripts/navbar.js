@@ -64,6 +64,41 @@ chrome.storage.local.get(["apiKey", "settings", "lessons", "reviews", "userInfo"
             window.addEventListener("mouseover", sidebarAnimation);
         }
     }
+
+    // set level progress percentage
+    const db = new Database("wanikani");
+    db.open("subjects")
+        .then(async opened => {
+            if (opened) {
+                const level = userInfo?.level || localStorage.getItem("level");
+                if (level) {
+                    const data = await db.getAll("subjects", "level", Number(level));
+                    if (data) {
+                        const subjects = data.filter(subject => subject.subject_type === "kanji" && !subject.hidden);
+                        const initiatedSubjects = subjects.filter(subject => subject.srs_stage > 0);
+                        // all size is 5 srs stages per subject (with the 5th being passed)
+                        const size = subjects.length * 5;
+                        let progress = 0;
+                        initiatedSubjects.forEach(subject => {
+                            if (subject.passed_at)
+                                progress += 5;
+                            else
+                                progress += subject.srs_stage;
+                        });
+                        const percentage = progress / size * 100;
+                        document.documentElement.style.setProperty("--level-progress", `${percentage}%`);
+                        localStorage.setItem("level-progress", percentage);
+
+                        // update on profile picture
+                        const picture = document.querySelector("#profile .progress-container");
+                        if (picture) {
+                            picture.title = `${userInfo?.username ? userInfo.username+" \x0D" : ""}${percentage.toFixed(2)}%`;
+                            picture.style.setProperty("--level-progress", `${percentage}%`);
+                        }
+                    }
+                }
+            }
+        });
 });
 
 const sidebarAnimation = e => {

@@ -116,11 +116,11 @@ const updateLevelData = async (level, db, clear) => {
     // subject types containers
     ["radical", "kanji", "vocabulary"].forEach(type => {
         const subjects = allSubjects.filter(subject => subject["subject_type"].includes(type));
-        const passedSubjects = subjects.filter(subject => subject.passed_at != null);
+        const initiatedSubjects = subjects.filter(subject => subject.srs_stage > 0);
 
         // level progress bar
         if (type == "kanji") {
-            updateLevelProgressBar(document.querySelector(".level-progress-bar"), passedSubjects.length, subjects.length, level);
+            updateLevelProgressBar(document.querySelector(".level-progress-bar"), initiatedSubjects, subjects, level);
             updateLevelUpPrediction(subjects);
         }
 
@@ -160,14 +160,25 @@ const updateLevelData = async (level, db, clear) => {
     }
 }
 
-const updateLevelProgressBar = (progressBarWrapper, passedSubjects, allSubjects, level) => {
+const updateLevelProgressBar = (progressBarWrapper, initiatedSubjects, allSubjects, level) => {
+    // all size is 5 srs stages per subject (with the 5th being passed)
+    const allSize = allSubjects.length * 5;
+    let progress = 0;
+    initiatedSubjects.forEach(subject => {
+        if (subject.passed_at)
+            progress += 5;
+        else
+            progress += subject.srs_stage;
+    });
+
     const progressBar = progressBarWrapper.querySelector("div");
-    const percentage = passedSubjects / allSubjects * 100;
+    const percentage = progress / allSize * 100;
+    progressBar.style.removeProperty("background-color");
     progressBar.style.width = (percentage >= 1 ? percentage : 100)+"%";
     if (percentage > 8.1 || percentage < 1) {
         const barLabel = progressBarWrapper.querySelector("div > p");
         barLabel.appendChild(document.createTextNode(percentage.toFixed(percentage > 12 ? 1 : 0)+"%"));
-        if (percentage < 1) {
+        if (percentage <= 0) {
             progressBar.style.backgroundColor = "#c7c7c7";
             barLabel.style.color = "black";
         }
@@ -180,24 +191,24 @@ const updateLevelProgressBar = (progressBarWrapper, passedSubjects, allSubjects,
     const progressValues = progressBarWrapper.querySelector("span");
     if (percentage < 81 && percentage >= 1) {
         progressValues.classList.remove("hidden");
-        progressValues.appendChild(document.createTextNode(passedSubjects + " / " + allSubjects));
+        progressValues.appendChild(document.createTextNode(progress + " / " + allSize));
     }
     else
         progressValues.classList.add("hidden");
 
-    progressBar.title = "Passed Kanji: "+passedSubjects+" / "+percentage.toFixed(1)+"%";
+    progressBar.title = "Passed Stages: "+progress+" / "+percentage.toFixed(1)+"%";
 
     // level up marker
     const levelUpMarker = progressBarWrapper.querySelector(".level-progress-bar-marker");
     if (level == currentLevel) {
         levelUpMarker.style.removeProperty("display");
-        const levelUpNSubjects = Math.ceil(allSubjects * 0.9);
-        const levelUpPercentage = levelUpNSubjects / allSubjects * 100;
+        const levelUpNSubjects = Math.ceil(allSize * 0.9);
+        const levelUpPercentage = levelUpNSubjects / allSize * 100;
         levelUpMarker.style.width = levelUpPercentage+"%"; 
     }
     else
         levelUpMarker.style.display = "none";
-}
+};
 
 const updateTypeContainer = (type, container, subjects) => {
     const passedSubjects = subjects.filter(subject => subject.passed_at != null);
@@ -219,7 +230,7 @@ const updateTypeContainer = (type, container, subjects) => {
 
 const subjectTile = (type, subject) => {
     const subjectWrapper = document.createElement("li");
-    const imageUrl = subject["character_images"]?.find(image => image["content_type"] == "image/svg+xml")["url"];
+    const imageUrl = subject["character_images"]?.find(image => image["content_type"] == "image/svg+xml")?.url;
     const characters = subject["characters"] ?
         subject["characters"] :
         `<svg style="width: 25px; height: 25px; margin-top: 5px;">       

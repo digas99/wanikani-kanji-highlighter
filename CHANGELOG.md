@@ -1,10 +1,14 @@
 # [Changelog v1.3.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.3.1)
+Released on 06/09/2024
 
 ## Popup
 - Added Reviews History, accessible through the Reviews Page
+- Changed slightly the approach to the level progress bar on the profile page. It know shows the progress on SRS Stages, instead of the number of subjects
+- Added circular progress bar around the avatar on the side navbar, showing the progress of the current level
 
 ## Bug Fixes
 - Fixed issue where kana vocabulary was missing in Levels in Progress, along with vocabulary
+- Fixed visibility issue on time for next review text on subjects tiles in the Profile Page
 
 # [Changelog v1.3.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.3.0)
 Released on 03/09/2024
