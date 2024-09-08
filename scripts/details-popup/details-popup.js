@@ -1,4 +1,5 @@
 const createDetailsPopup = async (id, settings) => {
+	console.log(id);
 	const detailsPopup = new SubjectDisplay(Number(id), 270, document.body,
 		async ids => {
 			if (!Array.isArray(ids))
@@ -33,7 +34,7 @@ const updateDetailsPopup = (detailsPopup, id) => {
 }
 
 (() => {
-	chrome.storage.local.get(["settings"], result => {
+	chrome.storage.local.get(["settings", "kana_vocab_assoc", "kanji_assoc", "vocabulary_assoc"], result => {
 		chrome.runtime.sendMessage({uptimeDetailsPopup:true});
 
 		const settings = result["settings"];
@@ -75,8 +76,27 @@ const updateDetailsPopup = (detailsPopup, id) => {
 		chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 			// create kanji details popup coming from search
 			if (request.infoPopupFromSearch && !atWanikani)  {
-				let id = Number(request.infoPopupFromSearch);
-				console.log(id);
+				console.log(request.infoPopupFromSearch, atWanikani, result);
+				let id = request.infoPopupFromSearch;
+				if (id.includes("rand")) {
+					let assocs = {};
+					if (id == "rand") {
+						assocs = {...result["kana_vocab_assoc"], ...result["kanji_assoc"], ...result["vocabulary_assoc"]};
+						console.log(assocs);
+					}
+					else if (id == "rand-kanji") {
+						assocs = result["kanji_assoc"];
+					}
+					else if (id == "rand-vocabulary") {
+						assocs = {...result["vocabulary_assoc"], ...result["kana_vocab_assoc"]};
+					}
+					const ids = Object.values(assocs);
+					// get random id
+					id = ids[Math.floor(Math.random() * ids.length)];
+				}
+				
+				id = Number(id);
+
 				// TODO: random kanji/vocab
 				/*if (id.split("-")[0] === "rand") {
 					let allSubjectsKeys = [Object.keys(allKanji), Object.keys(allVocab)].flat(1);
@@ -86,6 +106,7 @@ const updateDetailsPopup = (detailsPopup, id) => {
 					if (allSubjectsKeys)
 						id = allSubjectsKeys[rand(0, allSubjectsKeys.length-1)];
 				}*/
+				console.log(id, detailsPopup);
 				if (!detailsPopup)
 					detailsPopup = await createDetailsPopup(id, settings);
 				else

@@ -325,7 +325,7 @@
 						detailedInfo = this.radicalDetailedInfo(this.subject);
 					else if (this.type == "kanji")
 						detailedInfo = this.kanjiDetailedInfo(this.subject);
-					else if (this.type == "vocabulary")
+					else if (this.type == "vocabulary" || this.type == "kana_vocabulary")
 						detailedInfo = this.vocabDetailedInfo(this.subject);
 					
 					if (detailedInfo)
@@ -374,12 +374,16 @@
 
 			if (itemWrapper) {
 				const type = itemWrapper.getElementsByClassName("sd-detailsPopup_kanji")[0].getAttribute('data-item-type');
-				let detailedInfo = this.radicalDetailedInfo(this.subject);
-				if (type == "kanji")
+				let detailedInfo;
+				if (type == "radical")
+					detailedInfo = this.radicalDetailedInfo(this.subject);
+				else if (type == "kanji")
 					detailedInfo = this.kanjiDetailedInfo(this.subject);
-				else if (type == "vocabulary")
+				else if (type == "vocabulary" || type == "kana_vocabulary")
 					detailedInfo = this.vocabDetailedInfo(this.subject);
-				this.detailsPopup.appendChild(detailedInfo);
+				
+				if (detailedInfo)
+					this.detailsPopup.appendChild(detailedInfo);
 			
 				// show kanji container buttons
 				const buttons = Array.from(document.getElementsByClassName("sd-detailsPopupButton"));
@@ -1138,6 +1142,7 @@
 	// Auxiliar methods
 
 	const itemCardsSection = (kanjiInfo, idsTag, title, itemCardsclass, list) => {
+		console.log(kanjiInfo, idsTag, title, itemCardsclass, list);
 		const ids = kanjiInfo[idsTag];
 		const nmrItems = ids.length;
 		const table = infoTable(`${title} (${nmrItems})`, []);

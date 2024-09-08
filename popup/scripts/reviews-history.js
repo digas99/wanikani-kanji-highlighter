@@ -13,8 +13,9 @@ chrome.storage.local.get(["assignments_history"], result => {
 					historyCorrection.push(assignment);
 
 					const failed = srsStage.old > srsStage.new;
-					const oldSRSColor = `var(--${srsStages[srsStage.old]["short"].toLowerCase()}-color)`;
-					const oldSRSFontColor = getFontColorFromVar(`--${srsStages[srsStage.old]["short"].toLowerCase()}-color`);
+					console.log(assignment, failed, srsStage.old);
+					const oldSRSColor = srsStage.old < 0 ? "white" : `var(--${srsStages[srsStage.old]["short"].toLowerCase()}-color)`;
+					const oldSRSFontColor = srsStage.old < 0 ? "black" : getFontColorFromVar(`--${srsStages[srsStage.old]["short"].toLowerCase()}-color`);
 					const newSRSColor = `var(--${srsStages[srsStage.new]["short"].toLowerCase()}-color)`;
 					const newSRSFontColor = getFontColorFromVar(`--${srsStages[srsStage.new]["short"].toLowerCase()}-color`);
 					const updatedAt = new Date(new Date() - new Date(assignment.updated_at));
@@ -42,7 +43,7 @@ chrome.storage.local.get(["assignments_history"], result => {
 								</ul>
 							</div>
 							<div class="history-srs">
-								<div>${srsStages[srsStage.old]["name"]}</div>
+								<div>${srsStage.old < 0 ? "Locked" : srsStages[srsStage.old]["name"]}</div>
 								<div>${assignment.subject_type.charAt(0).toUpperCase()+assignment.subject_type.slice(1).split("_").join(" ")}</div>
 								<div>${srsStages[srsStage.new]["name"]}</div>
 							</div>

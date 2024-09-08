@@ -308,7 +308,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		(async () => {
 			const db = new Database("wanikani");
 			const opened = await db.open("subjects");
-			if (opened) {
+			console.log(request);
+			if (opened && request.fetchSubjects) {
 				const subjects = await db.getAll("subjects", "id", request.fetchSubjects);
 				sendResponse(subjects);
 			}
