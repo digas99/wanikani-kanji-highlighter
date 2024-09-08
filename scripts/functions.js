@@ -539,6 +539,10 @@ const loadData = async (apiToken, tabId, callback) => {
 				setupSubjects(apiToken, RADICAL_SETUP, (subjects, assocs, records, subject) => setupRadicals(subjects, records, subject))
 					.then(async result => {
 						const [radicals, fetched] = result;
+						// update radicals id list
+						const radicalsList = Object.values(radicals).map(radical => radical["id"]);
+						chrome.storage.local.set({"radical_id_list": radicalsList});
+
 						await subjectsAssignmentStats(radicals);
 						resolve(radicals);
 						const messageText = "✔ Loaded Radicals data.";
@@ -1257,4 +1261,56 @@ const getIds = subject => {
 			break;
 	}
 	return ids;
+}
+
+const subjectRandomId = (option, data) => {
+	console.log(option, data);
+	let assocs = {};
+	let characters = [];
+	let ids = [];
+	switch(option) {
+		case "rand":
+			assocs = {...data["kana_vocab_assoc"], ...data["kanji_assoc"], ...data["vocabulary_assoc"]};
+			ids = Object.values(assocs);
+			break;
+		case "rand-radical":
+			ids = data["radical_id_list"];
+			break;
+		case "rand-kanji":
+			assocs = data["kanji_assoc"];
+			ids = Object.values(assocs);
+			break;
+		case "rand-vocabulary":
+			assocs = {...data["vocabulary_assoc"], ...data["kana_vocab_assoc"]};
+			ids = Object.values(assocs);
+			break;
+		case "rand-learned":
+			characters = data["highlight_setup"]["learned"];
+			characters.forEach(character => {
+				if (data["kanji_assoc"][character])
+					ids.push(data["kanji_assoc"][character]);
+			});
+			break;
+		case "rand-not-learned":
+			characters = data["highlight_setup"]["notLearned"];
+			characters.forEach(character => {
+				if (data["kanji_assoc"][character])
+					ids.push(data["kanji_assoc"][character]);
+			});
+			break;
+		case "rand-lessons":
+			const lessons = data["lessons"]["data"];
+			ids = lessons.map(lesson => lesson["data"]["subject_id"]);
+			break;
+		case "rand-reviews":
+			const reviews = data["reviews"]["data"];
+			ids = reviews.map(review => review["data"]["subject_id"]);
+			break;
+		default:
+			break;
+	}
+
+	// get random id
+	const id = ids[Math.floor(Math.random() * ids.length)];
+	return Number(id);
 }

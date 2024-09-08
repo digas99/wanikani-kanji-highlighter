@@ -35,6 +35,12 @@ It works with any website, and provides detailed information about any kanji tha
 
 ### Popup
 - Added Details Popup for Radicals
+- In addition to Kanji and Vocabulary, added new options to Random Subject button (can be changed in settings):
+    - Radicals
+    - Learned Kanji
+    - Not Learned Kanji
+    - Lessons
+    - Reviews 
 
 ### Bug Fixes
 - Fixed broken Random Subject button from Popup side panel

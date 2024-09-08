@@ -1,7 +1,14 @@
 # [Changelog v1.4.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.0)
+Released on 09/09/2024
 
 ## Popup
 - Added Details Popup for Radicals
+- In addition to Kanji and Vocabulary, added new options to Random Subject button (can be changed in settings):
+    - Radicals
+    - Learned Kanji
+    - Not Learned Kanji
+    - Lessons
+    - Reviews 
 
 ## Bug Fixes
 - Fixed broken Random Subject button from Popup side panel

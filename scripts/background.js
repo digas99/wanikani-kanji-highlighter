@@ -52,6 +52,9 @@ chrome.runtime.onInstalled.addListener(details => {
 		else if (details.previousVersion < '1.2.7') {
 			chrome.storage.local.remove("kanji_updated")
 		}
+		else if (details.previousVersion < '1.4.0') {
+			chrome.storage.local.remove("radicals_updated");
+		}
 	}
 
 	// setup context menu

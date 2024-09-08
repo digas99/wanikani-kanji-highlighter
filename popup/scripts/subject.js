@@ -11,32 +11,32 @@ let id = url.searchParams.get("id");
 let fetchKeys = ["settings"];
 if (id == "rand")
 	fetchKeys = [...fetchKeys, "kana_vocab_assoc", "kanji_assoc", "vocabulary_assoc"];
+else if (id == "rand-radical")
+	fetchKeys = [...fetchKeys, "radical_id_list"];
 else if (id == "rand-kanji")
 	fetchKeys = [...fetchKeys, "kanji_assoc"];
 else if (id == "rand-vocabulary")
 	fetchKeys = [...fetchKeys, "vocabulary_assoc", "kana_vocab_assoc"];
+else if (id == "rand-learned" || id == "rand-not-learned")
+	fetchKeys = [...fetchKeys, "highlight_setup", "kanji_assoc"];
+else if (id == "rand-lessons")
+	fetchKeys = [...fetchKeys, "lessons"];
+else if (id == "rand-reviews")
+	fetchKeys = [...fetchKeys, "reviews"];
 
 chrome.storage.local.get(fetchKeys, async result => {
 	if (popupLoading) popupLoading.remove();
 
 	if (id.includes("rand")) {
-		let assocs = {};
-		if (id == "rand") {
-			assocs = {...result["kana_vocab_assoc"], ...result["kanji_assoc"], ...result["vocabulary_assoc"]};
-		}
-		else if (id == "rand-kanji") {
-			assocs = result["kanji_assoc"];
-		}
-		else if (id == "rand-vocabulary") {
-			assocs = {...result["vocabulary_assoc"], ...result["kana_vocab_assoc"]};
-		}
-		
-		const ids = Object.values(assocs);
-		// get random id
-		id = ids[Math.floor(Math.random() * ids.length)];
+		id = subjectRandomId(id, result);
+		if (!id)
+			window.history.back();	
+
 		// update url
 		history.replaceState(null, null, `?id=${id}`);
 	} 
+
+	id = Number(id);
 	
 	const highlightStyleSettings = result["settings"]["highlight_style"];
 	let highlightingClass, notLearnedHighlightingClass;

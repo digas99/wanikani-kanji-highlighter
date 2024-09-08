@@ -184,6 +184,12 @@ const setRandomSubjectType = (value) => {
             color = getComputedStyle(randomSubjectType).backgroundColor.match(/\d+/g).map(Number);
             randomSubjectType.style.color = fontColorFromBackground(color[0], color[1], color[2]);
         }
+        else if (value === "Radicals") {
+            img.parentElement.parentElement.setAttribute("data-item-id", "rand-radical");
+            randomSubjectType.style.backgroundColor = "var(--radical-tag-color)";
+            color = hexToRGB(getComputedStyle(document.documentElement).getPropertyValue("--radical-tag-color"));
+            randomSubjectType.style.color = fontColorFromBackground(color.r, color.g, color.b);
+        }
         else if (value === "Kanji") {
             img.parentElement.parentElement.setAttribute("data-item-id", "rand-kanji");
             randomSubjectType.style.backgroundColor = "var(--kanji-tag-color)";
@@ -194,6 +200,30 @@ const setRandomSubjectType = (value) => {
             img.parentElement.parentElement.setAttribute("data-item-id", "rand-vocabulary");
             randomSubjectType.style.backgroundColor = "var(--vocabulary-tag-color)";
             color = hexToRGB(getComputedStyle(document.documentElement).getPropertyValue("--vocabulary-tag-color"));
+            randomSubjectType.style.color = fontColorFromBackground(color.r, color.g, color.b);
+        }
+        else if (value === "Learned") {
+            img.parentElement.parentElement.setAttribute("data-item-id", "rand-learned");
+            randomSubjectType.style.backgroundColor = "var(--highlight-default-color)";
+            color = hexToRGB(getComputedStyle(document.documentElement).getPropertyValue("--highlight-default-color"));
+            randomSubjectType.style.color = fontColorFromBackground(color.r, color.g, color.b);
+        }
+        else if (value === "Not Learned") {
+            img.parentElement.parentElement.setAttribute("data-item-id", "rand-not-learned");
+            randomSubjectType.style.backgroundColor = "var(--notLearned-color)";
+            color = hexToRGB(getComputedStyle(document.documentElement).getPropertyValue("--notLearned-color"));
+            randomSubjectType.style.color = fontColorFromBackground(color.r, color.g, color.b);
+        }
+        else if (value === "Lessons") {
+            img.parentElement.parentElement.setAttribute("data-item-id", "rand-lessons");
+            randomSubjectType.style.backgroundColor = "var(--wanikani)";
+            color = hexToRGB(getComputedStyle(document.documentElement).getPropertyValue("--wanikani"));
+            randomSubjectType.style.color = fontColorFromBackground(color.r, color.g, color.b);
+        }
+        else if (value === "Reviews") {
+            img.parentElement.parentElement.setAttribute("data-item-id", "rand-reviews");
+            randomSubjectType.style.backgroundColor = "var(--wanikani-sec)";
+            color = hexToRGB(getComputedStyle(document.documentElement).getPropertyValue("--wanikani-sec"));
             randomSubjectType.style.color = fontColorFromBackground(color.r, color.g, color.b);
         }
     }
