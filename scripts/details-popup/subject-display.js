@@ -974,8 +974,6 @@
 					charsWrapper.src = svg["url"];
 				else
 					charsWrapper.src = characterImages[0]["url"];
-
-				console.log(svg, svg["url"], charsWrapper);
 			}
 
 			charsWrapper.classList.add("sd-detailsPopup_kanji");

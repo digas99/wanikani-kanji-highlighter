@@ -116,11 +116,11 @@ const updateLevelData = async (level, db, clear) => {
     // subject types containers
     ["radical", "kanji", "vocabulary"].forEach(type => {
         const subjects = allSubjects.filter(subject => subject["subject_type"].includes(type));
-        const initiatedSubjects = subjects.filter(subject => subject.srs_stage > 0);
-
+        
         // level progress bar
         if (type == "kanji") {
-            updateLevelProgressBar(document.querySelector(".level-progress-bar"), initiatedSubjects, subjects, level);
+            updateLevelProgressBar(document.querySelector(".level-progress-bar"), subjects);
+
             updateLevelUpPrediction(subjects);
         }
 
@@ -160,19 +160,13 @@ const updateLevelData = async (level, db, clear) => {
     }
 }
 
-const updateLevelProgressBar = (progressBarWrapper, initiatedSubjects, allSubjects, level) => {
-    // all size is 5 srs stages per subject (with the 5th being passed)
-    const allSize = allSubjects.length * 5;
-    let progress = 0;
-    initiatedSubjects.forEach(subject => {
-        if (subject.passed_at)
-            progress += 5;
-        else
-            progress += subject.srs_stage;
-    });
-
+const updateLevelProgressBar = (progressBarWrapper, subjects) => {
+    const info = levelUpInfo(subjects);
+    const percentage = info.progress.percentage;
+    const size = info.progress.size;
+    const passed = info.progress.passed;
+    
     const progressBar = progressBarWrapper.querySelector("div");
-    const percentage = progress / allSize * 100;
     progressBar.style.removeProperty("background-color");
     progressBar.style.width = (percentage >= 1 ? percentage : 100)+"%";
     if (percentage > 8.1 || percentage < 1) {
@@ -191,23 +185,12 @@ const updateLevelProgressBar = (progressBarWrapper, initiatedSubjects, allSubjec
     const progressValues = progressBarWrapper.querySelector("span");
     if (percentage < 81 && percentage >= 1) {
         progressValues.classList.remove("hidden");
-        progressValues.appendChild(document.createTextNode(progress + " / " + allSize));
+        progressValues.appendChild(document.createTextNode(passed + " / " + percentage.toFixed(1) + "%"));
     }
     else
         progressValues.classList.add("hidden");
 
-    progressBar.title = "Passed Stages: "+progress+" / "+percentage.toFixed(1)+"%";
-
-    // level up marker
-    const levelUpMarker = progressBarWrapper.querySelector(".level-progress-bar-marker");
-    if (level == currentLevel) {
-        levelUpMarker.style.removeProperty("display");
-        const levelUpNSubjects = Math.ceil(allSize * 0.9);
-        const levelUpPercentage = levelUpNSubjects / allSize * 100;
-        levelUpMarker.style.width = levelUpPercentage+"%"; 
-    }
-    else
-        levelUpMarker.style.display = "none";
+    progressBar.title = "Passed Stages: "+passed+" / "+size;
 };
 
 const updateTypeContainer = (type, container, subjects) => {

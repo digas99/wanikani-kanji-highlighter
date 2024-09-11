@@ -131,7 +131,7 @@
 }
 
 .searchResultItemLine span {
-	padding: 0px 4px;
+	padding: 4px;
 	
 }
 
@@ -190,21 +190,23 @@
 .searchResultItemTitle {
 	font-size: 17px;
     font-weight: 900;
-    margin-bottom: 2px;
-	padding-right: 20px !important;
 	border-bottom: 1px solid #a3a3a3;
-    padding-bottom: 2px !important;
+	padding: 6px 0 !important;
 	height: fit-content;
 }
 
 .searchResultItemInfo {
 	display: grid;
     background-color: var(--fill-color);
-	padding: 2px 6px;
+	padding: 2px 10px;
 	pointer-events: none;
 	color: var(--font-color);
 	min-height: 67px;
 	border-bottom: 7px solid var(--default-color);
+}
+
+.searchResultItemInfo span {
+	padding-left: 0 !important;
 }
 
 .searchResultItemType {

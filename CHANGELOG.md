@@ -1,3 +1,10 @@
+# [Changelog v1.4.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.1)
+Released on 11/09/2024
+
+## Popup
+- Changed the approach to the level up progress bar on the Profile Page and on the navbar avatar. It now shows the percentage to reach the level up requirements (90% of kanji passed), instead of the number of all kanji of that level.
+- Added Radicals to Subject Search results
+
 # [Changelog v1.4.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.0)
 Released on 09/09/2024
 

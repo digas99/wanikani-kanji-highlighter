@@ -1,4 +1,4 @@
-let settings, kanjiList, vocabularyList;
+let settings, radicalsList, kanjiList, vocabularyList;
 
 const searchBar = document.querySelector("#kanjiSearchInput");
 if (searchBar) {
@@ -39,8 +39,9 @@ if (searchBar) {
         const db = new Database("wanikani");
         const opened = await db.open("subjects");
         if (opened) {
-            const data = await db.getAll("subjects", "subject_type", ["kanji", "vocabulary", "kana_vocabulary"]);
+            const data = await db.getAll("subjects", "subject_type", ["radical", "kanji", "vocabulary", "kana_vocabulary"]);
             
+            radicalsList = data["radical"];
             kanjiList = data["kanji"];
             vocabularyList = [...data["vocabulary"], ...data["kana_vocabulary"]];
             
@@ -109,6 +110,7 @@ const searchSubject = (value, input, searchType, targeted, display) => {
 	else
 		type = document.getElementById("kanjiSearchType").innerText;
 	
+    let filteredRadicals = [];
 	let filteredKanji = [];
 	let filteredVocab = [];
 
@@ -118,6 +120,7 @@ const searchSubject = (value, input, searchType, targeted, display) => {
         // if it is hiragana
         if (hasKana(value)) {
             //const filterByReadings = (itemList, value) => itemList.filter(item => matchesReadings(value, item["readings"], targeted));
+            filteredRadicals = radicalsList.filter(subject => matchesReadings(input.value, subject.readings, targeted));
             filteredKanji = kanjiList.filter(subject => matchesReadings(input.value, subject.readings, targeted));
             filteredVocab = vocabularyList.filter(subject => matchesReadings(input.value, subject.readings, targeted) || new RegExp(input.value, "g").test(subject.characters));
         }
@@ -125,8 +128,11 @@ const searchSubject = (value, input, searchType, targeted, display) => {
     else {
         // if it is a chinese character
         if (hasKanji(value)) {
+            filteredRadicals = radicalsList.filter(subject => value == subject.characters);
+            if (filteredRadicals.length > 0)
+                filteredRadicals[0]["amalgamation_subject_ids"].forEach(id => filteredVocab.push(vocabularyList.filter(subject => id == subject.id)));
+
             filteredKanji = filteredKanji.concat(kanjiList.filter(subject => value == subject.characters));
-                    
             if (filteredKanji.length > 0 && !targeted) {
                 filteredKanji[0]["visually_similar_subject_ids"].forEach(id => filteredKanji.push(kanjiList.filter(subject => id == subject.id)));
                 filteredKanji[0]["amalgamation_subject_ids"].forEach(id => filteredVocab.push(vocabularyList.filter(subject => id == subject.id)));
@@ -138,32 +144,38 @@ const searchSubject = (value, input, searchType, targeted, display) => {
         }
         // if is number check for level
         else if (!isNaN(value)) {
+            filteredRadicals = radicalsList.filter(subject => subject["level"] == value);
             filteredKanji = kanjiList.filter(subject => subject["level"] == value);
             filteredVocab = vocabularyList.filter(subject => subject["level"] == value);
         }
         else if (value == "legacy") {
+            filteredRadicals = radicalsList.filter(subject => subject.hidden_at !== null);
             filteredKanji = kanjiList.filter(subject => subject.hidden_at !== null);
             filteredVocab = vocabularyList.filter(subject => subject.hidden_at !== null);
         }
         else {
             const cleanInput = input.value.toLowerCase().trim();
+            filteredRadicals = radicalsList.filter(subject => matchesMeanings(cleanInput, subject.meanings, targeted));
             filteredKanji = kanjiList.filter(subject => matchesMeanings(cleanInput, subject.meanings, targeted));
             filteredVocab = vocabularyList.filter(subject => matchesMeanings(value, subject.meanings, targeted));
         }
     }
 
+    filteredRadicals = filteredRadicals.flat();
     filteredKanji = filteredKanji.flat();
     filteredVocab = filteredVocab.flat();
 
     const nmrItemsFound = document.getElementById("nmrKanjiFound");
 
+    const firstRadical = filteredRadicals[0];
     const firstKanji = filteredKanji[0];
     const firstVocab = filteredVocab[0];
 
     const sortObjectByLevel = itemList => itemList.sort((a,b) => a["level"] > b["level"] ? 1 : -1);
+    if (filteredRadicals.length > 0) sortObjectByLevel(filteredRadicals).unshift(firstRadical);
     if (filteredKanji.length > 0) sortObjectByLevel(filteredKanji).unshift(firstKanji);
     if (filteredVocab.length > 0) sortObjectByLevel(filteredVocab).unshift(firstVocab);
-    const filteredContent = [...new Set(filteredKanji.concat(filteredVocab))].flat(0);
+    const filteredContent = [...new Set(filteredRadicals), ...new Set(filteredKanji), ...new Set(filteredVocab)].flat(0);
 
     if (nmrItemsFound) 
         nmrItemsFound.innerHTML = `<span>${filteredContent.length}<span>`;
@@ -242,11 +254,9 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         }
         else if (data["srs_stage"] && data["srs_stage"] > -1) {
             li.style.borderLeft = `4px solid var(--${srsStages[data["srs_stage"]]["short"].toLowerCase()}-color)`;
-            li.title = srsStages[data["srs_stage"]]["name"];
         }
         else {
             li.style.borderLeft = "4px solid white";
-            li.title = "Locked";
         }
 
         const dataWrapper = document.createElement("div");
@@ -257,7 +267,23 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         itemSpan.classList.add("searchResultItem");
 
         dataWrapper.appendChild(itemSpan);
-        itemSpan.appendChild(document.createTextNode(chars));
+        if (chars) {
+            itemSpan.appendChild(document.createTextNode(chars));
+        }
+        // add character image
+        else {
+            const charsWrapper = document.createElement("img");
+            itemSpan.appendChild(charsWrapper);
+            const characterImages = data["character_images"];
+            charsWrapper.style.width = "35px";
+            charsWrapper.style.filter = "invert(1)";
+            charsWrapper.style.marginBottom = "-5px";
+            const svg = characterImages.find(image => image["content_type"] == "image/svg+xml");
+            if (svg)
+                charsWrapper.src = svg["url"];
+            else
+                charsWrapper.src = characterImages[0]["url"];
+        }
 
         const itemInfoType = document.createElement("div");
         itemInfoType.classList.add("searchResultType");
@@ -272,6 +298,12 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         itemInfoWrapper.appendChild(meaning);
         meaning.classList.add("searchResultItemTitle");
         meaning.appendChild(document.createTextNode(data["meanings"].join(", ")));
+
+        if (type == "radical") {
+            li.style.minHeight = "120px";
+            itemInfoWrapper.style.minHeight = "30px";
+            meaning.style.borderBottom = "none";
+        }
 
         if (type == "kanji") {
             const on = document.createElement("span");
@@ -306,26 +338,30 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
             itemInfoType.style.color = "var(--kanji-tag-color)";
         else if (itemInfoType.innerText == "Vocabulary")
             itemInfoType.style.color = "var(--vocabulary-tag-color)";
+        else if (itemInfoType.innerText == "Radical")
+            itemInfoType.style.color = "var(--radical-tag-color)";
 
         // subject type
         const subjectType = document.createElement("div");
         li.appendChild(subjectType);
         subjectType.classList.add("searchResultItemType");
         // audio icon
-        const audioWrapper = document.createElement("div");
-        subjectType.appendChild(audioWrapper);
-        if (data["pronunciation_audios"]) {
-            audioWrapper.classList.add("clickable");
-            audioWrapper.title = "Play audio";
-            audioWrapper.addEventListener("click", () => playSubjectAudio(data["pronunciation_audios"], audioWrapper));
+        if (type != "radical") {
+            const audioWrapper = document.createElement("div");
+            subjectType.appendChild(audioWrapper);
+            if (data["pronunciation_audios"]) {
+                audioWrapper.classList.add("clickable");
+                audioWrapper.title = "Play audio";
+                audioWrapper.addEventListener("click", () => playSubjectAudio(data["pronunciation_audios"], audioWrapper));
+            }
+            else {
+                audioWrapper.classList.add("disabled");
+                audioWrapper.title = "No audio available";
+            }
+            const audio = document.createElement("img");
+            audioWrapper.appendChild(audio);
+            audio.src = chrome.runtime.getURL("/images/volume.png");
         }
-        else {
-            audioWrapper.classList.add("disabled");
-            audioWrapper.title = "No audio available";
-        }
-        const audio = document.createElement("img");
-        audioWrapper.appendChild(audio);
-        audio.src = chrome.runtime.getURL("/images/volume.png");
         // search icon
         const searchWrapper = document.createElement("div");
         subjectType.appendChild(searchWrapper);
@@ -335,6 +371,10 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         const search = document.createElement("img");
         searchWrapper.appendChild(search);
         search.src = chrome.runtime.getURL("/images/search.png");
+        if (!chars) {
+            searchWrapper.classList.add("disabled");
+            searchWrapper.title = "Can't search for this character";
+        }
         // copy icon
         const copyWrapper = document.createElement("div");
         subjectType.appendChild(copyWrapper);
@@ -344,6 +384,10 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         copyWrapper.addEventListener("click", () => copyToClipboard(chars, copy)); 
         copyWrapper.appendChild(copy);
         copy.src = chrome.runtime.getURL("/images/copy.png");
+        if (!chars) {
+            copyWrapper.classList.add("disabled");
+            copyWrapper.title = "Can't copy this character";
+        }
         // srs stage
         if (data["srs_stage"] != undefined) {
             const srsStage = document.createElement("div");

@@ -75,17 +75,9 @@ chrome.storage.local.get(["apiKey", "settings", "lessons", "reviews", "userInfo"
                     const data = await db.getAll("subjects", "level", Number(level));
                     if (data) {
                         const subjects = data.filter(subject => subject.subject_type === "kanji" && !subject.hidden);
-                        const initiatedSubjects = subjects.filter(subject => subject.srs_stage > 0);
-                        // all size is 5 srs stages per subject (with the 5th being passed)
-                        const size = subjects.length * 5;
-                        let progress = 0;
-                        initiatedSubjects.forEach(subject => {
-                            if (subject.passed_at)
-                                progress += 5;
-                            else
-                                progress += subject.srs_stage;
-                        });
-                        const percentage = progress / size * 100;
+                        
+                        const info = levelUpInfo(subjects);
+                        const percentage = info.progress.percentage;
                         document.documentElement.style.setProperty("--level-progress", `${percentage}%`);
                         localStorage.setItem("level-progress", percentage);
 

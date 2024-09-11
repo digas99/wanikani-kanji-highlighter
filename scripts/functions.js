@@ -1314,3 +1314,35 @@ const subjectRandomId = (option, data) => {
 	const id = ids[Math.floor(Math.random() * ids.length)];
 	return Number(id);
 }
+
+const levelUpInfo = subjects => {
+	const kanji = subjects.filter(subject => subject.subject_type == "kanji" && !subject.hidden);
+
+	const sliceSize = Math.floor(kanji.length * 0.1);
+	const neededKanji = subjects.sort((a, b) => b.srs_stage - a.srs_stage)
+		.slice(0, -sliceSize);
+
+	const passedKanji = neededKanji.filter(subject => subject.passed_at);
+	const remainingNeededKanji = neededKanji.filter(subject => !subject.passed_at && subject.srs_stage > 0);
+	const initiatedKanji = [...passedKanji, ...remainingNeededKanji];
+
+	// all size: 5 srs stages per kanji (with 5th being passed)
+	const size = neededKanji.length * 5;
+	let progress = 0;
+	initiatedKanji.forEach(kanji => {
+		if (kanji.passed_at)
+			progress += 5;
+		else
+			progress += kanji.srs_stage;
+	});
+	const percentage = progress/size*100;
+	return {
+		progress: {
+			passed: progress,
+			size: size,
+			percentage: percentage
+		},
+		subjects: kanji,
+		initiated: initiatedKanji,
+	};
+}
