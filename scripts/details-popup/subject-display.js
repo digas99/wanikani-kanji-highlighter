@@ -137,14 +137,10 @@
 			// clicked on sidebar copy
 			if (node.classList.contains("sd-detailsPopup_cardSideBarCopy")) {
 				const id = getItemIdFromSideBar(node.parentElement.parentElement.parentElement);
-				if (window.navigator.clipboard && id) {
-					const item = this.other[id];
-					window.navigator.clipboard.writeText(item["characters"]).
-						then(() => {
-							node.firstChild.src = "https://i.imgur.com/eL3HiGE.png";
-							setTimeout(() => node.firstChild.src = "https://i.imgur.com/kVFZ6bP.png", 1500);
-						});
-				}
+				
+				await this.copyCharacters(id);
+				node.firstChild.src = "https://i.imgur.com/eL3HiGE.png";
+				setTimeout(() => node.firstChild.src = "https://i.imgur.com/kVFZ6bP.png", 1500);
 			}
 
 			// clicked a button in kanji container
@@ -192,17 +188,14 @@
 				}
 				
 				if (node.id == "sd-detailsPopupCopy") {
-					if (window.navigator.clipboard && this.subject) {
-						window.navigator.clipboard.writeText(this.subject["characters"]).
-							then(() => {
-								Array.from(document.getElementsByClassName("sd-copiedMessage")).forEach(elem => elem.remove());
-								const copiedMessage = document.createElement("div");
-								node.appendChild(copiedMessage);
-								copiedMessage.appendChild(document.createTextNode("Copied!"));
-								copiedMessage.classList.add("sd-copiedMessage");
-								setTimeout(() => copiedMessage.remove(), 1500);
-							});
-					}
+					await this.copyCharacters();
+
+					Array.from(document.getElementsByClassName("sd-copiedMessage")).forEach(elem => elem.remove());
+					const copiedMessage = document.createElement("div");
+					node.appendChild(copiedMessage);
+					copiedMessage.appendChild(document.createTextNode("Copied!"));
+					copiedMessage.classList.add("sd-copiedMessage");
+					setTimeout(() => copiedMessage.remove(), 1500);
 				}
 					
 			}
@@ -410,6 +403,18 @@
 				const dmakExpanded = document.querySelectorAll(".sd-detailsPopup_dmakExpanded");
 				if (dmakExpanded)
 					dmakExpanded.forEach(elem => elem.remove());
+			}
+		},
+		copyCharacters: async function (id) {
+			if (!id) {
+				if (this.subject)
+					window.navigator.clipboard.writeText(this.subject["characters"]);
+			}
+			else {
+				if (window.navigator.clipboard) {
+					const item = this.other[id];
+					window.navigator.clipboard.writeText(item["characters"]);
+				}
 			}
 		},
 		// radical detailed info container

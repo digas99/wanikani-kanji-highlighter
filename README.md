@@ -19,7 +19,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v141)
+1. [Latest Features](#changelog-v142)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -30,6 +30,17 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.6. [Blacklisting a Site](#blacklisting-a-site)
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
+
+## [Changelog v1.4.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.2)
+
+### Content
+- 'No style' kanji highlight option ([#36](https://github.com/digas99/wanikani-kanji-highlighter/issues/36)) 
+- Added a new shortcut key to Subject Details popup:
+    - **Y**: Copy characters from current subject
+
+### Popup
+- Reorganized side panel to make it more intuitive ([#37](https://github.com/digas99/wanikani-kanji-highlighter/issues/37))
+- Added some Subject Details shortcut keys to Subject Details page on Extension Popup
 
 ## [Changelog v1.4.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.1)
 

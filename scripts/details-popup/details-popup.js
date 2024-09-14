@@ -172,6 +172,13 @@ const updateDetailsPopup = (detailsPopup, id) => {
 							}
 						}
 
+						if (key == 'y' || key == 'Y') {
+							// COPY CHARACTERS
+							if (detailsPopup.detailsPopup) {
+								detailsPopup.copyCharacters();
+							}
+						}
+
 						const navbar = document.getElementsByClassName("sd-popupDetails_navbar")[0];
 						if (navbar && navbar.getElementsByTagName("li").length > 0) {
 							const sectionClick = sectionValue => {

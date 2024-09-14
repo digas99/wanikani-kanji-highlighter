@@ -106,4 +106,74 @@ chrome.storage.local.get(fetchKeys, async result => {
 			});
 		}
 	});
+
+	document.addEventListener("keydown", e => {
+		const key = e.key;
+		chrome.storage.local.get(["settings"], result => {
+			const settings = result["settings"];
+			const keyBindingsActive = settings["kanji_details_popup"] ? settings["kanji_details_popup"]["key_bindings"] : defaultSettings["kanji_details_popup"]["key_bindings"];
+			if (details && details.detailsPopup && keyBindingsActive) {
+				if (key == 'b' || key == "B") {
+					// SHOW PREVIOUS KANJI INFO
+					if (details.openedSubjects.length > 0)
+						details.openedSubjects.pop();
+
+					const kanji = details.openedSubjects[details.openedSubjects.length-1];
+					if (kanji)
+						updateDetailsPopup(details, kanji.id);
+				}
+				
+				if (key == 'u' || key == 'U') {
+					// SCROLL UP
+					if (details.detailsPopup) {
+						details.detailsPopup.scrollTo(0, 0);
+					}
+				}
+
+				if (key == 'y' || key == 'Y') {
+					// COPY CHARACTERS
+					if (details.detailsPopup) {
+						details.copyCharacters();
+					}
+				}
+
+				const navbar = document.getElementsByClassName("sd-popupDetails_navbar")[0];
+				if (navbar && navbar.getElementsByTagName("li").length > 0) {
+					const sectionClick = sectionValue => {
+						const infoSection = (typeof sectionValue === "string") ? Array.from(navbar.getElementsByTagName("li")).filter(section => section.title.split(" (")[0] === sectionValue)[0] : sectionValue;
+						if (infoSection)
+							infoSection.querySelector("div").click();
+					}
+
+					if (key == 'i' || key == 'I')
+						sectionClick("Info");
+
+					if (key == 'c' || key == 'C')
+						sectionClick("Cards");
+
+					if (key == 's' || key == 'S')
+						sectionClick("Statistics");
+
+					if (key == 't' || key == 'T')
+						sectionClick("Timestamps");
+
+					const selected = Array.from(navbar.getElementsByTagName("li")).filter(section => section.style.getPropertyValue("background-color") !== '')[0];
+					if (selected) {
+						let sectionToClick;
+						if (key === "ArrowRight") {
+							e.preventDefault();
+							sectionToClick = selected.nextElementSibling ? selected.nextElementSibling : navbar.getElementsByTagName("li")[0];
+						}
+
+						if (key === "ArrowLeft") {
+							e.preventDefault();
+							sectionToClick = selected.previousElementSibling ? selected.previousElementSibling : navbar.getElementsByTagName("li")[navbar.getElementsByTagName("ul")[0].childElementCount-1];
+						}
+
+						if (sectionToClick) sectionClick(sectionToClick);
+					}
+				}
+			}
+		});
+	}); 
 });

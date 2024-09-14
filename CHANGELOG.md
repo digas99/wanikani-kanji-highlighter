@@ -1,3 +1,15 @@
+# [Changelog v1.4.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.2)
+Released on 14/09/2024
+
+## Content
+- 'No style' kanji highlight option ([#36](https://github.com/digas99/wanikani-kanji-highlighter/issues/36)) 
+- Added a new shortcut key to Subject Details popup:
+    - **Y**: Copy characters from current subject
+
+## Popup
+- Reorganized side panel to make it more intuitive ([#37](https://github.com/digas99/wanikani-kanji-highlighter/issues/37))
+- Added some Subject Details shortcut keys to Subject Details page on Extension Popup
+
 # [Changelog v1.4.1](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.1)
 Released on 11/09/2024
 
