@@ -196,14 +196,19 @@
 
 .side-panel > ul {
 	margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 75%;
 }
 
-.side-panel > ul > li {
+.side-panel > ul li {
 	height: 36px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
     font-weight: bold;
+    padding: 1px 0
 }
 
 .side-panel .side-panel-tab {
@@ -221,7 +226,7 @@
     align-items: center;
 }
 
-.side-panel > ul > li > a img {
+.side-panel > ul li > a img {
     filter: invert(1);
 }
 
@@ -264,23 +269,23 @@
 	text-align: left;
 }
 
-.side-panel-focus > ul > li {
+.side-panel-focus > ul li {
 	align-items: unset;
 	justify-content: unset;
 }
 
-.side-panel-focus > ul > li > a {
+.side-panel-focus > ul li > a {
 	display: inline-flex;
     align-items: center;
     width: 100%;
     padding-left: 15px !important;
 }
 
-.side-panel-focus > ul > li > a:hover {
+.side-panel-focus > ul li > a:hover {
 	opacity: unset !important;
 }
 
-.side-panel-focus > ul > li > a > p {
+.side-panel-focus > ul li > a > p {
 	color: white;
     padding-left: 12px;
     width: 100%;

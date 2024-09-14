@@ -31,56 +31,61 @@ document.write(/*html*/`
         <p title="Level">${localStorage.getItem("level") || ""}</p>
     </a>
     <ul>
-        <!-- HOME -->
-        <li class="side-panel-tab" style="position: relative;">
-            <a href="home.html" class="navbar_icon" style="padding: 0px 5px;">
-                <img id="home" src="/images/home.png" title="Home" style="width: 20px;">
-            </a>
-        </li>
-        <!-- SETTINGS -->
-        <li class="side-panel-tab" style="position: relative;">
-            <a href="settings.html" class="navbar_icon" style="padding: 0px 5px;">
-                <img id="settings" src="/images/settings.png" title="Settings" style="width: 20px;">
-            </a>
-        </li>
-        <!-- SEARCH -->
-        <li class="side-panel-tab" style="position: relative;">
-            <a href="search.html" class="navbar_icon" style="padding: 0px 5px;">
-                <img id="search" src="/images/search.png" title="Search" style="width: 20px;">
-            </a>
-        </li>
-        <!-- BLACKLIST -->
-        <li class="side-panel-tab" style="position: relative;">
-            <a href="#" class="navbar_icon" style="padding: 0px 5px;">
-                <img id="blacklist" src="/images/blacklist.png" title="Blacklist" style="width: 20px; margin-left: -3px; margin-right: 3px;">
-                <span class="side-panel-info-alert" style="background-color: #f100a1; color: white;">${localStorage.getItem("blacklist") || "0"}</span>
-            </a>
-        </li>
-        <!-- THEME -->
-        <li class="side-panel-tab" style="position: relative;">
-            <a class="navbar_icon" style="padding: 0px 5px;">
-                <img id="dark" src="/images/dark.png" title="Dark" style="width: 20px;">
-            </a>
-        </li>
-        <!-- ABOUT -->
-        <li class="side-panel-tab" style="position: relative;">
-            <a href="about.html" class="navbar_icon" style="padding: 0px 5px;">
-                <img id="about" src="/images/about.png" title="About" style="width: 20px;">
-            </a>
-        </li>
-        <!-- RANDOM SUBJECT -->
-        <li class="side-panel-tab kanjiDetails" data-item-id="rand" style="position: relative;" title="Random">
-            <a href="#" class="navbar_icon" style="padding: 0px 5px; pointer-events: none;">
-                <img id="random" src="/images/random.png" style="width: 20px;" title="Random">
-                <span id="random-subject-type" class="side-panel-info-alert">A</span>
-            </a>
-        </li>
-        <!-- EXIT -->
-        <li class="side-panel-tab" style="position: relative;">
-            <a href="#" class="navbar_icon" style="padding: 0px 5px;">
-                <img id="exit" src="/images/exit.png" title="Exit" style="width: 20px; margin-left: 3px; margin-right: -3px;">
-            </a>
-        </li>
+        <div class="side-panel-top">
+            <!-- HOME -->
+            <li class="side-panel-tab" style="position: relative;">
+                <a href="home.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="home" src="/images/home.png" title="Home" style="width: 20px;">
+                </a>
+            </li>
+            <!-- SETTINGS -->
+            <li class="side-panel-tab" style="position: relative;">
+                <a href="settings.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="settings" src="/images/settings.png" title="Settings" style="width: 20px;">
+                </a>
+            </li>
+            <!-- SEARCH -->
+            <li class="side-panel-tab" style="position: relative;">
+                <a href="search.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="search" src="/images/search.png" title="Search" style="width: 20px;">
+                </a>
+            </li>
+            <!-- ABOUT -->
+            <li class="side-panel-tab" style="position: relative;">
+                <a href="about.html" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="about" src="/images/about.png" title="About" style="width: 20px;">
+                </a>
+            </li>
+        </div>
+        <div class="side-panel-bottom">
+            <!-- THEME -->
+            <li class="side-panel-tab" style="position: relative;">
+                <a class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="dark" src="/images/dark.png" title="Dark" style="width: 20px;">
+                </a>
+            </li>
+            <!-- BLACKLIST -->
+            <li class="side-panel-tab" style="position: relative;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="blacklist" src="/images/blacklist.png" title="Blacklist" style="width: 20px; margin-left: -3px; margin-right: 3px;">
+                    <span class="side-panel-info-alert" style="background-color: #f100a1; color: white;">${localStorage.getItem("blacklist") || "0"}</span>
+                </a>
+            </li>
+            <!-- RANDOM SUBJECT -->
+            <li class="side-panel-tab kanjiDetails" data-item-id="rand" style="position: relative;" title="Random">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px; pointer-events: none;">
+                    <img id="random" src="/images/random.png" style="width: 20px;" title="Random">
+                    <span id="random-subject-type" class="side-panel-info-alert">A</span>
+                </a>
+            </li>
+            <div class="separator"></div>
+            <!-- EXIT -->
+            <li class="side-panel-tab" style="position: relative;">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="exit" src="/images/exit.png" title="Exit" style="width: 20px; margin-left: 3px; margin-right: -3px;">
+                </a>
+            </li>
+        </div>
     </ul>
     <!-- LOGO -->
     <div class="side-panel-tab">
@@ -95,10 +100,10 @@ document.write(/*html*/`
 document.querySelector("#secPageTitle").innerText = document.title;
 
 const updatesLoading = /*html*/`
-	<div class="separator"></div>
+	<!-- <div class="separator"></div> -->
 	
 	<!-- UPDATES -->
-	<li style="position: relative;">
+	<li style="position: relative; display:none;">
 		<a class="navbar_icon" style="padding: 0px 5px; opacity: 1 !important;">
 			<img src="/images/download.png" title="Updates" style="width: 20px;">
 			<span id="updates-loading" class="side-panel-info-alert" style="background-color: #f100a1; color: white;">0</span>
