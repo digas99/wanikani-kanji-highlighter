@@ -178,3 +178,13 @@
 .footer-icons > a > img {
 	width: 30px;
 }
+
+.features-info {
+	display: flex;
+	align-items: center;
+	column-gap: 10px;
+}
+
+.features-info img {
+	width: 20px;
+}

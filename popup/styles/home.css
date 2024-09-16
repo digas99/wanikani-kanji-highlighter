@@ -265,3 +265,14 @@ body {
 .legend .legend-label {
 
 }
+
+.help-button {
+    position: fixed;
+    bottom: 5px;
+    right: 60px;
+}
+
+.help-button img {
+    width: 30px;
+    filter: drop-shadow(2px 2px 1px white);
+}

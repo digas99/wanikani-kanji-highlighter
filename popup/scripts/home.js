@@ -173,11 +173,22 @@ const updateHomeInterface = async (result) => {
 		document.querySelector("#progress_legend")?.remove();
 }
 
-chrome.storage.local.get(["apiKey", "rating", ...HOME_FETCH_KEYS], result => {
+chrome.storage.local.get(["apiKey", "rating", "help_button", ...HOME_FETCH_KEYS], result => {
 	const settings = result["settings"] ? result["settings"] : defaultSettings;
 
 	if (popupLoading) popupLoading.remove();
 
+	// help button visibility
+	const helpButton = document.querySelector(".help-button");
+	const help = result["help_button"];
+	console.log(result, helpButton, help);
+	if (helpButton && help == false)
+		helpButton.remove();
+	helpButton.addEventListener("click", () => {
+		chrome.storage.local.set({"help_button": false});
+	});
+
+	// rating section visibility
 	const rateStars = document.querySelector(".rate-stars");
 	const rating = result["rating"] || {};
 	if (rateStars && rating) {
@@ -202,7 +213,7 @@ const kanjiListUpdate = (learned, notLearned, kanjiAssoc) => {
 		highlightList.create();
 
 	const itemCallback = (elem, value) => {
-		elem.classList.add("kanjiDetails");
+		elem.classList.add("subject-tile", "kanjiDetails");
 		if (kanjiAssoc && kanjiAssoc[value])
 			elem.setAttribute("data-item-id", kanjiAssoc[value]);
 	}

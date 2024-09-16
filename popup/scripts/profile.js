@@ -11,6 +11,7 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings", LEVELS_STATS.storage
     const apiKey = result["apiKey"];
     settings = result["settings"];
     menuSettings = settings && settings["profile_menus"] ? settings["profile_menus"] : defaultSettings["profile_menus"];
+    console.log("Menu settings:", menuSettings);
 
     levelsStats = result[LEVELS_STATS.storage.id];
 
@@ -222,7 +223,7 @@ const subjectTile = (type, subject) => {
     subjectWrapper.classList.add(type+"_back");
     subjectWrapper.title = subject["meanings"][0];
     subjectWrapper.style.position = "relative";
-    subjectWrapper.classList.add("clickable", "kanjiDetails");
+    subjectWrapper.classList.add("subject-tile", "clickable", "kanjiDetails");
     subjectWrapper.setAttribute("data-item-id", subject["id"]);
     if (subject["readings"]) {
         if (subject["readings"][0]["reading"])
@@ -399,10 +400,10 @@ const clearData = () => {
 
     // subjects progress from "All"
     document.querySelector(".subject-tab > span").innerText = "";
-    // close arrow from "All"
-    let closeArrow = document.querySelector(".subject-tab > .menu-icons > div[title='Close']");
-    if (closeArrow.querySelector("i").classList.contains("down"))
-        closeArrowAction(closeArrow, document.querySelector(".subject-types"));
+    // // close arrow from "All"
+    // let closeArrow = document.querySelector(".subject-tab > .menu-icons > div[title='Close']");
+    // if (closeArrow.querySelector("i").classList.contains("down"))
+    //     closeArrowAction(closeArrow, document.querySelector(".subject-types"));
 
     // subjects
     Array.from(document.querySelectorAll(".subject-types > div")).forEach(container => {
@@ -411,9 +412,9 @@ const clearData = () => {
         // subjects tiles
         container.querySelector(".subject-container > ul").innerHTML = "";
         // subjects close arrow
-        closeArrow = container.querySelector(".menu-icons > div[title='Close']");
-        if (closeArrow.querySelector("i").classList.contains("down"))
-            closeArrowAction(closeArrow, container.querySelector(".subject-container"));
+        // closeArrow = container.querySelector(".menu-icons > div[title='Close']");
+        // if (closeArrow.querySelector("i").classList.contains("down"))
+        //     closeArrowAction(closeArrow, container.querySelector(".subject-container"));
         
     });
 }
@@ -428,7 +429,8 @@ document.addEventListener("click", e => {
         const title = tab.firstElementChild.innerText;
         let key = Object.keys(menuSettings).filter(k => title.toLowerCase().includes(k))[0];
 
-        closeArrowAction(arrow, tab.nextElementSibling, key);
+        const result = closeArrowAction(arrow, tab.nextElementSibling, key);
+        menuSettings[key]["opened"] = result;
 
         // save changes
         chrome.storage.local.set({"settings": settings});
@@ -508,7 +510,7 @@ document.addEventListener("click", e => {
     }
 });
 
-const closeArrowAction = (arrow, subjectsContainer, key) => {
+const closeArrowAction = (arrow, subjectsContainer) => {
     const opened = !subjectsContainer.classList.contains("hidden");
     if (subjectsContainer) {
         if (opened) {
@@ -520,9 +522,8 @@ const closeArrowAction = (arrow, subjectsContainer, key) => {
             subjectsContainer.classList.remove("hidden");
         }
 
-        if (key)
-            menuSettings[key]["opened"] = !opened;
-    } 
+        return !opened;
+    }
 }
 
 document.addEventListener("input", e => {
@@ -555,21 +556,20 @@ const applyChanges = () => {
         const tab = Array.from(document.querySelectorAll(".subject-tab")).filter(tab => tab.firstElementChild.innerText.toLowerCase().includes(type))[0];
         if (tab) {
             Object.keys(menuSettings[type]).forEach(key => {
+                const title = type.charAt(0).toUpperCase()+type.slice(1);
                 if (key === "opened") {
                     if (menuSettings[type][key] == false) {
                         const closeArrow = tab.querySelector("div[title='Close']");
-                        closeArrow.click();
+                        closeArrowAction(closeArrow, tab.nextElementSibling, type);
                     }
                 }
                 else {
                     Object.keys(menuSettings[type][key]).forEach(property => {
                         if (menuSettings[type][key][property] !== defaultSettings["profile_menus"][type][key][property]) {                                                
-                            const title = type.charAt(0).toUpperCase()+type.slice(1);
                             let keys = [Object.keys(menuSettings).filter(k => title.toLowerCase().includes(k))[0]];
-                            if (title === "All")
-                                keys = Object.keys(menuSettings);
                     
-                            menuActions(tab, title, key.charAt(0).toUpperCase()+key.slice(1), property, keys, menuSettings[type][key][property]);
+                            if (title !== "All")
+                                menuActions(tab, title, key.charAt(0).toUpperCase()+key.slice(1), property, keys, menuSettings[type][key][property]);
                         }
                     });
                 }
@@ -628,6 +628,10 @@ const menuActions = (tab, subjectsType, menuTitle, property, keys, value) => {
                 case "reviews_info":
                     reviewsInfo(subjects, value);
                     keys.forEach(key => menuSettings[key]["menu"]["reviews_info"] = value);
+                    break;
+                case "disabled_subjects":
+                    disabledSubjects(subjects, value);
+                    keys.forEach(key => menuSettings[key]["menu"]["disabled_subjects"] = value);
                     break;
             }
             break;
@@ -695,6 +699,9 @@ const menuMenu = (wrapper, defaults) => {
 
     // show reviews info
     wrapper.appendChild(checkbox("Reviews info", defaults["reviews_info"]));	
+
+    // show disabled subjects
+    wrapper.appendChild(checkbox("Disabled subjects", defaults["disabled_subjects"]));
 }
 
 const colorings = (subjects, type) => {
@@ -767,6 +774,15 @@ const reviewsInfo = (subjects, checked) => {
     }
 }
 
+const disabledSubjects = (subjects, checked) => {
+    Array.from(subjects).filter(elem => elem.dataset.hidden_at).forEach(subject => {
+        if (checked)
+            subject.style.removeProperty("display");
+        else
+            subject.style.display = "none";
+    });
+}
+
 // FILTERS MENU
 
 const filterMenu = (wrapper, defaults) => {
@@ -783,7 +799,7 @@ const filters = (subjects, srs, state) => {
     
     if (srs !== "None") {
         Array.from(subjects).forEach(elem => {
-            const srsChecker = srs !== "None" && (elem.getAttribute("data-srs") == "-1" && srs !== "Locked" || elem.getAttribute("data-srs") !== "-1" && srs !== srsStages[elem.getAttribute("data-srs")]["name"]);
+            const srsChecker = srs !== "None" && (elem.getAttribute("data-srs") == "-1" && srs !== "Locked" || elem.getAttribute("data-srs") !== "-1" && srs !== srsStages[elem.getAttribute("data-srs")]?.name);
             if (srsChecker)
                 elem.classList.add("hidden");
         });
@@ -791,7 +807,7 @@ const filters = (subjects, srs, state) => {
 
     if (state !== "None") {
         Array.from(subjects).forEach(elem => {
-            const stateChecker = state !== "None" && (state !== (elem.getElementsByClassName("passed-subject-check").length > 0 ? "Passed" : "Not Passed"));
+            const stateChecker = state !== "None" && (state !== (elem?.dataset.passed_at ? "Passed" : "Not Passed"));
             if (stateChecker)
                 elem.classList.add("hidden");
         });

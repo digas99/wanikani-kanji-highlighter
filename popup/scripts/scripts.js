@@ -1,11 +1,12 @@
 let messagePopup, blacklistedSite, atWanikani;
 window.onload = () => {
-	chrome.storage.local.get(["initialFetch", "blacklist", "contextMenuSelectedText"], async result => {
+	chrome.storage.local.get(["initialFetch", "blacklist", "contextMenuSelectedText", "settings"], async result => {
+		updateSettings(result["settings"], defaultSettings);
+
 		if (result["contextMenuSelectedText"]) {
 			makeSearch(result["contextMenuSelectedText"]);
 			chrome.storage.local.remove("contextMenuSelectedText");
 		}
-
 	
 		const initialFetch = result["initialFetch"] || result["initialFetch"] == undefined;
 

@@ -1,0 +1,86 @@
+.features .section {
+	padding: 10px;
+	padding-bottom: 20px;
+}
+
+.features .section h2 {
+	padding: 10px 0;
+}
+
+.features .section p {
+	color: var(--font-sec-color);
+    font-size: 13px;
+}
+
+.features .section > div {
+	margin-left: 5px;
+	margin-top: 20px;
+}
+
+.keys-list {
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+}
+
+.keys-list-entry {
+    display: flex;
+    align-items: center;
+    column-gap: 10px;
+}
+
+.keys-list-entry > div:first-child {
+	display: flex;
+    align-items: center;
+    column-gap: 5px;
+}
+
+.keys-list-entry .keys-list-key {
+    position: relative;
+    width: fit-content;
+    align-items: center;
+    display: flex;
+    text-align: center;
+    font-weight: bold;
+}
+
+.keys-list-entry .keys-list-key img {
+    width: 25px;
+}
+
+.keys-list-entry .keys-list-key span {
+    position: absolute;
+    left: 0;
+    right: 0;
+    color: var(--fill-color);
+}
+
+.keys-list-description {
+
+}
+
+.subject-tile {
+	font-size: 30px;
+	color: white;
+}
+
+.subject-details-info {
+    display: flex;
+    align-items: center;
+    column-gap: 20px;
+}
+
+.subject-details-info-mouse-click {
+    display: flex;
+    align-items: center;
+    column-gap: 5px;
+}
+
+.subject-details-info-mouse-click img {
+    width: 30px;
+}
+
+.subject-details-info-mouse-click div {
+    color: var(--font-sec-color);
+    font-size: 12px;
+}

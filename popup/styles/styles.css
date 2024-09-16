@@ -241,12 +241,16 @@ i {
 }
 
 .simple-grid > ul li {
-    padding: 2px 6px;
     display: inline-block;
 	margin: 2px;
+}
+
+.subject-tile {
+	padding: 2px 6px;
 	text-shadow: -1px 1px 0px #727272;
 	box-shadow: -1px 2px 0px 1px var(--default-color);
-    border-radius: 6px;
+	border-radius: 6px;
+	width: fit-content;
 }
 
 .goTop {

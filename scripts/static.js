@@ -106,7 +106,8 @@ const defaultSettings = {
 			"opened": true,
 			"menu": {
 				"color_by": "Subject Type",
-				"reviews_info": true
+				"reviews_info": true,
+				"disabled_subjects": true
 			},
 			"filter": {
 				"srs_stage": "None",
@@ -121,7 +122,8 @@ const defaultSettings = {
 			"opened": true,
 			"menu": {
 				"color_by": "Subject Type",
-				"reviews_info": true
+				"reviews_info": true,
+				"disabled_subjects": true
 			},
 			"filter": {
 				"srs_stage": "None",
@@ -136,7 +138,8 @@ const defaultSettings = {
 			"opened": true,
 			"menu": {
 				"color_by": "Subject Type",
-				"reviews_info": true
+				"reviews_info": true,
+				"disabled_subjects": true
 			},
 			"filter": {
 				"srs_stage": "None",
@@ -151,7 +154,8 @@ const defaultSettings = {
 			"opened": true,
 			"menu": {
 				"color_by": "Subject Type",
-				"reviews_info": true
+				"reviews_info": true,
+				"disabled_subjects": true
 			},
 			"filter": {
 				"srs_stage": "None",

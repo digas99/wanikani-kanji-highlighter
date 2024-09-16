@@ -37,9 +37,9 @@ chrome.storage.local.get(["assignments_history"], result => {
 							<p class="history-date" title="${new Date(assignment.updated_at).toLocaleString()}">${updatedAtPretty} ago</p>
 							<div class="tiles-list-section">
 								<ul class="history-characters">
-									<div><li class="clickable kanjiDetails" data-item-id="${assignment.id}" title="${assignment.meanings[0]} \x0DLevel ${assignment.level}" style="background-color: ${oldSRSColor}; color:${oldSRSFontColor};">${assignment.characters}</li></div>
+									<div><li class="subject-tile clickable kanjiDetails" data-item-id="${assignment.id}" title="${assignment.meanings[0]} \x0DLevel ${assignment.level}" style="background-color: ${oldSRSColor}; color:${oldSRSFontColor};">${assignment.characters}</li></div>
 									<div><img class="history-transition-arrow icon" src="/images/up-arrow-thick.png"></div>
-									<div><li class="clickable kanjiDetails" data-item-id="${assignment.id}" title="${assignment.meanings[0]} \x0DLevel ${assignment.level}" style="background-color: ${newSRSColor}; color:${newSRSFontColor};">${assignment.characters}</li></div>
+									<div><li class="subject-tile clickable kanjiDetails" data-item-id="${assignment.id}" title="${assignment.meanings[0]} \x0DLevel ${assignment.level}" style="background-color: ${newSRSColor}; color:${newSRSFontColor};">${assignment.characters}</li></div>
 								</ul>
 							</div>
 							<div class="history-srs">

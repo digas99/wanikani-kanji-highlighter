@@ -19,7 +19,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v142)
+1. [Latest Features](#changelog-v143)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -30,6 +30,15 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.6. [Blacklisting a Site](#blacklisting-a-site)
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
+
+## [Changelog v1.4.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.3)
+
+### Popup
+- Added page with information on certain features to the About page
+- Added possibility to hide disabled subjects from subjects list in the Profile Page
+
+### Bug Fixes
+- Fixed some issues with customization of the subjects list in the Profile Page
 
 ## [Changelog v1.4.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.2)
 

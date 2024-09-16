@@ -1,3 +1,12 @@
+# [Changelog v1.4.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.3)
+
+## Popup
+- Added page with information on certain features to the About page
+- Added possibility to hide disabled subjects from subjects list in the Profile Page
+
+## Bug Fixes
+- Fixed some issues with customization of the subjects list in the Profile Page
+
 # [Changelog v1.4.2](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.2)
 Released on 14/09/2024
 

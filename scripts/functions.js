@@ -832,7 +832,7 @@ const dataTile = (subjects, elem, value) => {
 
 		const type = subject["subject_type"];
 
-		elem.classList.add("kanjiDetails");
+		elem.classList.add("subject-tile", "kanjiDetails");
 
 		elem.title = `${meaning} ${reading ? `| ${reading}` : ""}\x0D${type.split("_").map(word => word[0].toUpperCase() + word.slice(1)).join(" ")}`;
 		elem.setAttribute("data-item-id", subject["id"]);
@@ -1346,3 +1346,30 @@ const levelUpInfo = subjects => {
 		initiated: initiatedKanji,
 	};
 }
+
+const updateSettings = (settings, defaults) => {
+	const updated = updateObject(settings, defaults);
+	if (updated) {
+		chrome.storage.local.set({"settings": settings});
+	}
+}
+
+const updateObject = (source, updates) => {
+    let changed = false;
+
+    const deepUpdate = (src, upd) => {
+        for (const key in upd) {
+            // Check if the key doesn't exist in source
+            if (!(key in src)) {
+                src[key] = upd[key];
+                changed = true;
+            } else if (typeof src[key] === 'object' && typeof upd[key] === 'object' && !Array.isArray(src[key]) && !Array.isArray(upd[key])) {
+                // Recursively handle nested objects
+                deepUpdate(src[key], upd[key]);
+            }
+        }
+    };
+
+    deepUpdate(source, updates);
+    return changed;
+};

@@ -413,6 +413,14 @@ body {
     min-height: 40px;
 }
 
+.subject-container .kanji_back, .subject-container .radical_back {
+    padding: 6px 7px;
+}
+
+.subject-container .fill-width {
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+}
+
 .time-next-review-subject {
 	font-size: 10px;
     background-color: #42f541;

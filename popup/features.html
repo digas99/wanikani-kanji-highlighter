@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">	
+<head>
+	<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+	
+	<title>Features</title>
+	
+	<script src="/popup/templates/head.js"></script>
+
+	<link rel="stylesheet" href="styles/tiles-list.css">
+	<link rel="stylesheet" href="styles/features.css">
+	<link rel="stylesheet" href="styles/profile.css">
+</head>
+<body>
+	<!-- TOP NAVBAR -->
+	<script src="templates/navbar.js"></script>
+
+	<!-- PAGE CONTENT -->
+	<div id="sec-page">
+		<div class="features">
+			<div class="section">
+				<h2>Subject Details</h2>
+				<p>Throughout the Extension Popup, you will find <b>Subject Tiles</b> that can open a <b>Subject Details Popup</b>. Depending on which mouse button you use when clicking on it, you will open the details popup on different places. Feel free to try it on the Subject Tile bellow.</p>
+				<div class="subject-details-info">
+					<div class="subject-tile kanjiDetails clickable" data-item-id="602" style="background-color: var(--kanji-tag-color);">金</div>
+					<div class="subject-details-info-mouse-click">
+						<img class="icon" src="/images/left-click.png" alt="">
+						<div><b>Left click</b> - popup opens on the current web page you are browsing.</div>
+					</div>
+					<div class="subject-details-info-mouse-click">
+						<img class="icon" src="/images/right-click.png" alt="">
+						<div><b>Right click</b> - popup opens inside this extension popup.</div>
+					</div>
+				</div>
+			</div>
+			<div class="section">
+				<h2>Shortcut Keys</h2>
+				<p>Shortcut keys available to use on the Subject Details Popup. These will collide with any existing shortcut within the web page you are visiting.</p>
+				<div class="keys-list">
+					<div class="keys-list-entry">
+						<div>
+							<div class="keys-list-key">
+								<img class="icon" src="/images/keyboard-key.png" alt="">
+								<span>X</span>
+							</div>
+						</div>
+						<div class="keys-list-description">Close the popup.</div>
+					</div>
+					<div class="keys-list-entry">
+						<div>
+							<div class="keys-list-key">
+								<img class="icon" src="/images/keyboard-key.png" alt="">
+								<span>O</span>
+							</div>
+						</div>
+						<div class="keys-list-description">Expand the popup when it is opened on the bottom right corner.</div>
+					</div>
+					<div class="keys-list-entry">
+						<div>
+							<div class="keys-list-key">
+								<img class="icon" src="/images/keyboard-key.png" alt="">
+								<span>L</span>
+							</div>
+						</div>
+						<div class="keys-list-description">Lock current subject. Hovering over other kanji will not change the subject.</div>
+					</div>
+					<div class="keys-list-entry">
+						<div>
+							<div class="keys-list-key">
+								<img class="icon" src="/images/keyboard-key.png" alt="">
+								<span>F</span>
+							</div>
+						</div>
+						<div class="keys-list-description">Pin popup, fixing it to the page. It will not close, even if you click outside of it.</div>
+					</div>
+					<div class="keys-list-entry">
+						<div>
+							<div class="keys-list-key">
+								<img class="icon" src="/images/keyboard-key.png" alt="">
+								<span>B</span>
+							</div>
+						</div>
+						<div class="keys-list-description">Show details from the previous subject.</div>
+					</div>
+					<div class="keys-list-entry">
+						<div>
+							<div class="keys-list-key">
+								<img class="icon" src="/images/keyboard-key.png" alt="">
+								<span>Y</span>
+							</div>
+						</div>
+						<div class="keys-list-description">Copy characters from current subject to clipboard.</div>
+					</div>
+					<div class="keys-list-entry">
+						<div>
+							<div class="keys-list-key">
+								<img class="icon" src="/images/keyboard-key.png" alt="">
+								<span>U</span>
+							</div>
+						</div>
+						<div class="keys-list-description">Scroll back to the top of the popup.</div>
+					</div>
+					<div class="keys-list-entry">
+						<div>
+							<div class="keys-list-key">
+								<img class="icon" src="/images/keyboard-key.png" alt="">
+								<span>I</span>
+							</div>
+						</div>
+						<div class="keys-list-description">Scroll to the Info section.</div>
+					</div>
+					<div class="keys-list-entry">
+						<div>
+							<div class="keys-list-key">
+								<img class="icon" src="/images/keyboard-key.png" alt="">
+								<span>C</span>
+							</div>
+						</div>
+						<div class="keys-list-description">Scroll to the Cards section.</div>
+					</div>
+					<div class="keys-list-entry">
+						<div>
+							<div class="keys-list-key">
+								<img class="icon" src="/images/keyboard-key.png" alt="">
+								<span>S</span>
+							</div>
+						</div>
+						<div class="keys-list-description">Scroll to the Stats section.</div>
+					</div>
+					<div class="keys-list-entry">
+						<div>
+							<div class="keys-list-key">
+								<img class="icon" src="/images/keyboard-key.png" alt="">
+								<span>T</span>
+							</div>
+						</div>
+						<div class="keys-list-description">Scroll to the Timestamps section.</div>
+					</div>
+					<div class="keys-list-entry">
+						<div>
+							<div class="keys-list-key">
+								<img class="icon" src="/images/keyboard-key.png" alt="">
+								<span>⬅</span>
+							</div>
+							<div class="keys-list-key">
+								<img class="icon" src="/images/keyboard-key.png" alt="">
+								<span>➡</span>
+							</div>
+						</div>
+						<div class="keys-list-description">Scroll back and forth between the sections.</div>
+					</div>
+				</div>
+			</div>
+			<div class="section">
+				<h2>Subjects Data Error</h2>
+				<p>During the process of fetching data from Wanikani servers or updating the extension, it is possible for some data from the subjects to get lost. If this ever becomes noticeable - maybe wrong highlighting, or the subject details popup doesn't load - you can <b>Clear Subjects Data</b> at the bottom of the <a href="/popup/settings.html">Settings Page</a>. This will trigger a fresh fetch of all data from Wanikani and hopefully fix any unwanted error.</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- COMMON SCRIPTS -->
+	<script src="/popup/templates/scripts.js"></script>
+</body>

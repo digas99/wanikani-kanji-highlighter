@@ -88,12 +88,12 @@
 }
 
 .fill-width {
-	grid-template-columns: repeat(auto-fill,minmax(40px,1fr));
+	grid-template-columns: repeat(auto-fill,minmax(35px,1fr));
     display: grid;
 }
 
 .fill-width > li {
-	padding: 6px 2px !important;
+	padding: 6px 2px;
 	text-align: center;
 }
 
