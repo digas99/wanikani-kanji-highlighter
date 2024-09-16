@@ -1,5 +1,9 @@
 body {
-    margin: 0;
+}
+
+#sec-page {
+    margin-left: unset;
+    margin-right: unset;
 }
 
 .top-level-list {

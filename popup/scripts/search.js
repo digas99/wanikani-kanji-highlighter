@@ -262,7 +262,7 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         const dataWrapper = document.createElement("div");
         li.appendChild(dataWrapper);
         dataWrapper.setAttribute('data-item-id', data["id"]);
-        dataWrapper.classList.add("subject-tile", "kanjiDetails");
+        dataWrapper.classList.add("kanjiDetails");
         const itemSpan = document.createElement("span");
         itemSpan.classList.add("searchResultItem");
 
