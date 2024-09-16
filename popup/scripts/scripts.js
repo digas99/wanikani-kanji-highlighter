@@ -105,9 +105,11 @@ const fillStars = (stars, index) => {
 	}
 }
 
+let oldScroll = 0;
 window.onscroll = () => {
 	let goTop = document.querySelector(".goTop");
-	if (document.documentElement.scrollTop > 500) {
+	const isScrollingUp = oldScroll > this.scrollY;
+	if (document.documentElement.scrollTop > 300 && isScrollingUp) {
 		if (!goTop) {
 			goTop = document.createElement("div");
 			document.body.appendChild(goTop);
@@ -115,16 +117,17 @@ window.onscroll = () => {
 			const arrow = document.createElement("i");
 			goTop.appendChild(arrow);
 			arrow.classList.add("up");
-			setTimeout(() => goTop.style.right = "7px", 200);
+			setTimeout(() => goTop.style.bottom = "15px", 200);
 			goTop.addEventListener("click", () => window.scrollTo(0,0));
 		}
 	}
 	else {
 		if (goTop) {
-			goTop.style.removeProperty("right");
+			goTop.style.removeProperty("bottom");
 			setTimeout(() => goTop.remove(), 200);
 		}
 	}
+	oldScroll = this.scrollY;
 }
 
 chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {

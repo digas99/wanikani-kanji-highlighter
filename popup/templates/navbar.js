@@ -85,15 +85,16 @@ document.write(/*html*/`
                     <img id="exit" src="/images/exit.png" title="Exit" style="width: 20px; margin-left: 3px; margin-right: -3px;">
                 </a>
             </li>
+            <div style="height: 15px;"></div>
+            <!-- LOGO -->
+            <div class="side-panel-tab" style="background-color: unset !important;">
+                <div id="side-panel-logo" title="Wanikani Kanji Highlighter">
+                    <img src="/logo/logo.png" style="pointer-events: none;">
+                    <div class="side-panel-version">v${localStorage.getItem("version") || "0.0.0"}</div>
+                </div>
+            </div>
         </div>
     </ul>
-    <!-- LOGO -->
-    <div class="side-panel-tab">
-        <div id="side-panel-logo" title="Wanikani Kanji Highlighter">
-            <img src="/logo/logo.png" style="pointer-events: none;">
-            <div class="side-panel-version">v${localStorage.getItem("version") || "0.0.0"}</div>
-        </div>
-    </div>
 </div>
 `);
 
