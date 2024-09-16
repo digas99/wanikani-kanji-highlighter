@@ -156,7 +156,7 @@
 
 #sd-detailsPopupGoBack {
     top: 8px;
-    left: 6px;
+    left: 10px;
 	transform: rotate(-90deg);
 }
 
@@ -204,6 +204,13 @@
 	margin: auto;
 }
 
+.sd-focusPopup .sd-popupDetails_readings {
+	margin: 0 30px;
+}
+
+.sd-focusPopup .sd-popupDetails_readings_row {
+	height: unset !important;
+}
 
 	/* 3 POPUP INFO DIV */
 

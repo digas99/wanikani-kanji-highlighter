@@ -2,6 +2,11 @@ html {
 	background-color: var(--default-color) !important;
 }
 
+#sec-page {
+	margin-left: unset;
+	margin-right: unset;
+}
+
 #subject-details .sd-detailsPopup {
 	z-index: 10;
 	width: 420px;
