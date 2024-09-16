@@ -80,6 +80,7 @@
 
 .sd-focusPopup > .sd-popupDetails_detailedInfoWrapper {
 	text-align: left;
+	scroll-behavior: smooth;
 }
 
 .sd-detailsPopup_clickable { 
@@ -104,24 +105,24 @@
 
 	/* 1 SCROLLBAR */
 
-.sd-detailsPopup::-webkit-scrollbar {
-	width: 10px;
+.sd-detailsPopup .sd-popupDetails_detailedInfoWrapper::-webkit-scrollbar {
+	width: 10px !important;
 }
   
-.sd-detailsPopup::-webkit-scrollbar-track {
-	background: var(--default-color);
+.sd-detailsPopup .sd-popupDetails_detailedInfoWrapper::-webkit-scrollbar-track {
+	background: var(--default-color) !important;
 }
 
-.sd-detailsPopup::-webkit-scrollbar-thumb {
-	background-color: white;    
-	border-radius: 20px;        
+.sd-detailsPopup .sd-popupDetails_detailedInfoWrapper::-webkit-scrollbar-thumb {
+	background-color: white !important;    
+	border-radius: 20px !important;        
 }
 
 
 	/* 2 POPUP UPPER DIV */
 
 .sd-focusPopup_kanji {
-    position: fixed;
+    position: relative;
     background-color: var(--default-color);
 	transition: 0.5s;
 	z-index: 2;
@@ -209,16 +210,17 @@
 .sd-popupDetails_detailedInfoWrapper {
     color: white;
 	font-size: 15px;
-	margin-top: 200px !important;
 	transition: 0.3s;
 	text-align: left;
+	overflow: hidden auto;
+	height: 100%;
 }
 
 .sd-popupDetails_navbar {
 	width: var(--detailsPopup-width);
     height: 35px;
     background-color: white;
-    position: fixed;
+    position: absolute;
 	text-align: center;
 	z-index: 2;
 	top: 200px;
@@ -274,7 +276,7 @@
 
 .sd-popupDetails_quickStats {
 	text-align: center;
-	background-color: #3a374a;
+	background-color: var(--default-color);
 	padding: 6px;
 	z-index: 1;
 	bottom: 0;

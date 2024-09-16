@@ -161,7 +161,7 @@
 
 				if (node.id == "sd-detailsPopupGoUp") {
 					if (this.detailsPopup) {
-						this.detailsPopup.scrollTo(0, 0);
+						this.detailedInfoWrapper.scrollTo(0, 0);
 					}
 				}
 
@@ -308,9 +308,9 @@
 					this.detailsPopup.style.setProperty("border-top", "4px solid "+(srsId != null ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "white"), "important");	
 				}
 				
-				const detailedInfoWrapper = this.detailsPopup.getElementsByClassName("sd-popupDetails_detailedInfoWrapper");
-				if (detailedInfoWrapper)
-					Array.from(detailedInfoWrapper).forEach(wrapper => wrapper.remove());
+				this.detailedInfoWrapper = this.detailsPopup.getElementsByClassName("sd-popupDetails_detailedInfoWrapper");
+				if (this.detailedInfoWrapper)
+					Array.from(this.detailedInfoWrapper).forEach(wrapper => wrapper.remove());
 				
 				if (this.expanded) {
 					let detailedInfo;
@@ -359,7 +359,7 @@
 					itemWrapper.classList.add("sd-focusPopup_kanji");
 					// itemWrapper.style.setProperty("width", this.width+"px");
 				}
-				this.detailsPopup.style.setProperty("overflow", "hidden auto", "important");
+				// this.detailsPopup.style.setProperty("overflow", "hidden auto", "important");
 				this.detailsPopup.style.setProperty("max-height", window.innerHeight+"px", "important");
 			}, 200);
 
@@ -420,16 +420,16 @@
 		// radical detailed info container
 		radicalDetailedInfo: function (radicalInfo) {
 			// detailed info section
-			const detailedInfoWrapper = document.createElement("div");
-			detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
+			this.detailedInfoWrapper = document.createElement("div");
+			this.detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
 			
 			// if (radicalInfo["hidden_at"])
-			// 	detailedInfoWrapper.parentElement.style.filter = "contrast(5)";
+			// 	this.detailedInfoWrapper.parentElement.style.filter = "contrast(5)";
 
 			const updateMarginTop = () => {
 				let kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
-				if (kanjiWrapper)
-					detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
+				// if (kanjiWrapper)
+				// 	this.detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
 				return kanjiWrapper;
 			}
 
@@ -444,15 +444,16 @@
 			if (radicalInfo["timestamps"]) sections.push(["Timestamps", "https://i.imgur.com/dcT0L48.png"]);
 			// navbar
 			if (this.expanded)
-				detailedInfoWrapper.appendChild(navbar(this.detailsPopup, sections));
+				this.detailedInfoWrapper.appendChild(navbar(this.detailedInfoWrapper, sections));
 			else
-				setTimeout(() => detailedInfoWrapper.appendChild(navbar(this.detailsPopup, sections)), 200);
+				setTimeout(() => this.detailedInfoWrapper.appendChild(navbar(this.detailedInfoWrapper, sections)), 200);
 
 			// details container
 			const details = document.createElement("div");
 			details.style.setProperty("padding", "45px 15px", "important");
+			details.style.setProperty("margin-bottom", "185px", "important");
 			details.classList.add("sd-popupDetails_details");
-			detailedInfoWrapper.appendChild(details);
+			this.detailedInfoWrapper.appendChild(details);
 		
 			const infoSection = document.createElement("div");
 			details.appendChild(infoSection);
@@ -518,7 +519,7 @@
 				const statsImages = ["https://i.imgur.com/vsRTIFA.png", "https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
 
 				const quickStats = quickRevStats(["Overall", "Meaning", "Reading"], statsImages);
-				detailedInfoWrapper.insertBefore(quickStats, details);
+				this.detailedInfoWrapper.insertBefore(quickStats, details);
 				
 				details.appendChild(revStats(radicalInfo["stats"], quickStats.getElementsByTagName("ul")[0]));
 			}
@@ -535,22 +536,22 @@
 				timestampsWrapper.appendChild(timestamps(radicalInfo["hidden_at"] ? {...radicalInfo["timestamps"], ...{"legacy":radicalInfo["hidden_at"]}} : radicalInfo["timestamps"], radicalInfo["hidden_at"] ? [...images, ...["https://i.imgur.com/YQVUCpW.png"]] : images, srsStage));
 			}
 
-			this.detailsPopup.scrollTo(0, 0);
-			return detailedInfoWrapper;
+			this.detailedInfoWrapper.scrollTo(0, 0);
+			return this.detailedInfoWrapper;
 		},
 		// kanji detailed info container
 		kanjiDetailedInfo: function (kanjiInfo) {
 			// detailed info section
-			const detailedInfoWrapper = document.createElement("div");
-			detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
+			this.detailedInfoWrapper = document.createElement("div");
+			this.detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
 			
 			// if (kanjiInfo["hidden_at"])
-			// 	detailedInfoWrapper.parentElement.style.filter = "contrast(5)";
+			// 	this.detailedInfoWrapper.parentElement.style.filter = "contrast(5)";
 
 			const updateMarginTop = () => {
 				let kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
-				if (kanjiWrapper)
-					detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
+				// if (kanjiWrapper)
+				// 	this.detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
 				return kanjiWrapper;
 			}
 
@@ -565,15 +566,16 @@
 			if (kanjiInfo["timestamps"]) sections.push(["Timestamps", "https://i.imgur.com/dcT0L48.png"]);
 			// navbar
 			if (this.expanded)
-				detailedInfoWrapper.appendChild(navbar(this.detailsPopup, sections));
+				this.detailedInfoWrapper.appendChild(navbar(this.detailedInfoWrapper, sections));
 			else
-				setTimeout(() => detailedInfoWrapper.appendChild(navbar(this.detailsPopup, sections)), 200);
+				setTimeout(() => this.detailedInfoWrapper.appendChild(navbar(this.detailedInfoWrapper, sections)), 200);
 
 			// details container
 			const details = document.createElement("div");
 			details.style.setProperty("padding", "45px 15px", "important");
+			details.style.setProperty("margin-bottom", "185px", "important");
 			details.classList.add("sd-popupDetails_details");
-			detailedInfoWrapper.appendChild(details);
+			this.detailedInfoWrapper.appendChild(details);
 		
 			const infoSection = document.createElement("div");
 			details.appendChild(infoSection);
@@ -669,7 +671,7 @@
 				const statsImages = ["https://i.imgur.com/vsRTIFA.png", "https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
 
 				const quickStats = quickRevStats(["Overall", "Meaning", "Reading"], statsImages);
-				detailedInfoWrapper.insertBefore(quickStats, details);
+				this.detailedInfoWrapper.insertBefore(quickStats, details);
 				
 				details.appendChild(revStats(kanjiInfo["stats"], quickStats.getElementsByTagName("ul")[0]));
 			}
@@ -686,22 +688,22 @@
 				timestampsWrapper.appendChild(timestamps(kanjiInfo["hidden_at"] ? {...kanjiInfo["timestamps"], ...{"legacy":kanjiInfo["hidden_at"]}} : kanjiInfo["timestamps"], kanjiInfo["hidden_at"] ? [...images, ...["https://i.imgur.com/YQVUCpW.png"]] : images, srsStage));
 			}
 
-			this.detailsPopup.scrollTo(0, 0);
-			return detailedInfoWrapper;
+			this.detailedInfoWrapper.scrollTo(0, 0);
+			return this.detailedInfoWrapper;
 		},
 
 		vocabDetailedInfo: function (vocabInfo) {
 			// detailed info section
-			const detailedInfoWrapper = document.createElement("div");
-			detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
+			this.detailedInfoWrapper = document.createElement("div");
+			this.detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
 
 			// if (vocabInfo["hidden_at"])
-			// 	detailedInfoWrapper.parentElement.style.filter = "contrast(5)";
+			// 	this.detailedInfoWrapper.parentElement.style.filter = "contrast(5)";
 			
 			const updateMarginTop = () => {
 				let kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
-				if (kanjiWrapper)
-					detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
+				// if (kanjiWrapper)
+				// 	this.detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
 				return kanjiWrapper;
 			}
 
@@ -717,16 +719,17 @@
 			if (vocabInfo["timestamps"]) sections.push(["Timestamps", "https://i.imgur.com/dcT0L48.png"]);		
 			// navbar
 			if (this.expanded)
-				detailedInfoWrapper.appendChild(navbar(this.detailsPopup, sections));
+				this.detailedInfoWrapper.appendChild(navbar(this.detailedInfoWrapper, sections));
 			else
-				setTimeout(() => detailedInfoWrapper.appendChild(navbar(this.detailsPopup, sections)), 200);
+				setTimeout(() => this.detailedInfoWrapper.appendChild(navbar(this.detailedInfoWrapper, sections)), 200);
 
 			// details container
 			const details = document.createElement("div");
 			details.style.setProperty("padding", "45px 15px", "important");
+			details.style.setProperty("margin-bottom", "185px", "important");
 			details.style.setProperty("position", "relative", "important");
 			details.classList.add("sd-popupDetails_details");
-			detailedInfoWrapper.appendChild(details);
+			this.detailedInfoWrapper.appendChild(details);
 
 			const audioButtonWrapper = document.createElement("div");
 			details.appendChild(audioButtonWrapper);
@@ -852,7 +855,7 @@
 				const statsImages = ["https://i.imgur.com/vsRTIFA.png", "https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
 
 				const quickStats = quickRevStats(["Overall", "Meaning", "Reading"], statsImages);
-				detailedInfoWrapper.insertBefore(quickStats, details);
+				this.detailedInfoWrapper.insertBefore(quickStats, details);
 				
 				details.appendChild(revStats(vocabInfo["stats"], quickStats.getElementsByTagName("ul")[0]));
 			}
@@ -869,8 +872,8 @@
 				timestampsWrapper.appendChild(timestamps(vocabInfo["hidden_at"] ? {...vocabInfo["timestamps"], ...{"legacy":vocabInfo["hidden_at"]}} : vocabInfo["timestamps"], vocabInfo["hidden_at"] ? [...images, ...["https://i.imgur.com/YQVUCpW.png"]] : images, srsStage));
 			}
 
-			this.detailsPopup.scrollTo(0, 0);
-			return detailedInfoWrapper;
+			this.detailedInfoWrapper.scrollTo(0, 0);
+			return this.detailedInfoWrapper;
 		},
 
 		charContainer: function (subject, save) {
@@ -1276,7 +1279,7 @@
 			navbarLi.classList.add("sd-detailsPopup_clickable");
 			const link = document.createElement("div");
 			navbarLi.appendChild(link);
-			link.addEventListener("click", () => document.querySelector(".sd-detailsPopup").scrollTo(0, document.getElementById(`sd-popupDetails_${info[0]}Section`).offsetTop));
+			link.addEventListener("click", () => document.querySelector(".sd-popupDetails_detailedInfoWrapper").scrollTo(0, document.getElementById(`sd-popupDetails_${info[0]}Section`).offsetTop));
 			const icon = document.createElement("img");
 			link.append(icon);
 			icon.src = info[1];

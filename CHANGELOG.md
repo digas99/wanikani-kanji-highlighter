@@ -1,4 +1,10 @@
+# [Changelog v1.4.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.4)
+
+## Bug Fixes
+- Changed approach to Subject Details Popup structure to prevent bugs with scroll bar ([#39](https://github.com/digas99/wanikani-kanji-highlighter/issues/39))
+
 # [Changelog v1.4.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.3)
+Released on 16/09/2024
 
 ## Popup
 - Added page with information on certain features to the About page

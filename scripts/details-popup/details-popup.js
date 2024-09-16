@@ -167,8 +167,8 @@ const updateDetailsPopup = (detailsPopup, id) => {
 						
 						if (key == 'u' || key == 'U') {
 							// SCROLL UP
-							if (detailsPopup.detailsPopup) {
-								detailsPopup.detailsPopup.scrollTo(0, 0);
+							if (detailsPopup.detailedInfoWrapper) {
+								detailsPopup.detailedInfoWrapper.scrollTo(0, 0);
 							}
 						}
 
