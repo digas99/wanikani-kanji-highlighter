@@ -57,8 +57,17 @@ const updateHomeInterface = async (result) => {
 
 	// SEARCH
 	if (interface["search_bar"] && document.getElementById("kanjiSearchType")) {
-		const type = document.getElementById("kanjiSearchType").innerText;
-		document.querySelector("#kanjiSearchInput").addEventListener("click", () => window.location.href = "search.html"+(type ? `?type=${type}` : ""));
+		document.querySelector("#kanjiSearchInput").addEventListener("click", () => {
+			const type = document.getElementById("kanjiSearchType").innerText;
+			const content = document.getElementById("kanjiSearchInput").value;
+			console.log(type, content);
+			const url = new URL(`${window.origin}/popup/search.html`);
+			if (type) url.searchParams.set("type", type);
+			if (content) url.searchParams.set("search", content);
+			console.log(url.href);
+
+			window.location.href = url.href;
+		});
 	}
 
 	// HIGHLIGHTED KANJI
@@ -395,6 +404,10 @@ const enhancedWarning = (text, color) => {
 
 window.addEventListener("keydown", e => {
 	if (!window.location.href.includes("search") && e.key.length == 1 && e.key.match(/[a-z]/i)) {
-		makeSearch(e.key);
+		const searchInput = document.getElementById("kanjiSearchInput");
+		if (searchInput) {
+			searchInput.focus();
+			setTimeout(() => searchInput.click(), 100);
+		}
 	}
 });

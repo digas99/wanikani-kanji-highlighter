@@ -4,6 +4,23 @@ const searchBar = document.querySelector("#kanjiSearchInput");
 if (searchBar) {
     searchBar.focus();
 
+    const urlParams = new URLSearchParams(window.location.search);
+    let popupLoading;
+    // get search query from url
+    const search = urlParams.get('search');
+    if (search) {
+        if (!messagePopup) {
+            popupLoading = new MessagePopup(document.body);
+            popupLoading.create("Loading subjects...");
+            popupLoading.setLoading();
+        }
+        
+        if (search.length == 1)
+            searchBar.value = search+searchBar.value;
+        else
+            searchBar.value = search;            
+    }
+
     chrome.storage.local.get(["settings"], async result => {
         settings = result["settings"];
 
@@ -44,17 +61,11 @@ if (searchBar) {
             radicalsList = data["radical"];
             kanjiList = data["kanji"];
             vocabularyList = [...data["vocabulary"], ...data["kana_vocabulary"]];
-            
-            const urlParams = new URLSearchParams(window.location.search);
 
             searchBar.addEventListener("input", e => searchSubject(e.target.value, e.target, null, settings["search"]["targeted_search"], settings["search"]["results_display"]));
-
-            // get search query from url
-            const search = urlParams.get('search');
-            if (search) {
-                searchBar.value = search;
-                searchBar.dispatchEvent(new Event("input"));
-            }
+            
+            searchBar.dispatchEvent(new Event("input")); 
+            popupLoading?.remove();
         }
     });
 }
