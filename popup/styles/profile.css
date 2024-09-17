@@ -12,7 +12,7 @@ body {
     position: fixed;
     z-index: 9;
     background-color: white;
-    width: 90.6%;
+    width: 100%;
     overflow: auto;
     scroll-behavior: smooth;
     transition: 0.3s;
@@ -22,6 +22,10 @@ body {
     padding: 15px;
     background-color: white;
     border-right: 1px solid #e9e9e9;
+}
+
+.top-level-list > div:last-child {
+    margin-right: 44px;
 }
 
 .top-level-list > .passed-level, .top-level-list > .current-level, .top-level-list > .selected-level {
@@ -301,14 +305,20 @@ body {
 .subject-tab {
     color: white;
     position: relative;
-    padding: 5px 5px 5px 10px;
     background-color: var(--default-color);
     display: flex;
     align-items: center;
     font-size: 23px;
 }
 
-.subject-tab > span {
+.subject-tab .menu-label {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    padding-left: 10px;
+}
+
+.subject-tab .menu-label > span {
     font-size: 12px;
     margin-left: 10px;
     color: silver;
@@ -324,19 +334,35 @@ body {
 
 .menu-icons {
 	position: absolute;
-    right: 10px;
+    right: 0;
 	display: flex;
 	align-items: center;
+    height: 100%;
 }
 
-.menu-icons > img {
+.menu-icons img {
 	width: 18px;
 	height: 18px;
     filter: invert(1);
 }
 
+.menu-icons > div {
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+}
+
+.menu-icons > div:hover {
+    background-color: var(--wanikani);
+    cursor: pointer;
+}
+
+.menu-option img {
+    pointer-events: none;
+}
+
 .menu-icons > div[title="Close"] {
-    padding: 0 7px;
+    padding: 0 10px;
 }
 
 .menu-icons > div[title="Close"] > i {
@@ -345,15 +371,15 @@ body {
 }
 
 .menu-icons > div[title="Close"] > .up {
-    margin-bottom: -8px;
+    margin-bottom: -18px;
 }
 
 .menu-icons > div[title="Close"] > .down {
-    margin-bottom: -2px;
+    margin-bottom: -5px;
 }
 
 .menu-icons > * {
-    padding: 0 5px;
+    padding: 0 7px;
 }
 
 .menu-popup {
@@ -463,10 +489,11 @@ body {
 
 .time-in-level {
     background-color: white;
-    width: 352px;
     border-bottom-left-radius: 25px;
     border-bottom-right-radius: 25px;
     display: inline-block;
+    width: 100%;
+    padding: 0 1px;
 }
 
 .time-in-level > .label {

@@ -399,7 +399,7 @@ const clearData = () => {
     levelProgressBar.querySelector("span").innerText = "";
 
     // subjects progress from "All"
-    document.querySelector(".subject-tab > span").innerText = "";
+    document.querySelector(".subject-tab .menu-label > span").innerText = "";
     // // close arrow from "All"
     // let closeArrow = document.querySelector(".subject-tab > .menu-icons > div[title='Close']");
     // if (closeArrow.querySelector("i").classList.contains("down"))
@@ -408,7 +408,7 @@ const clearData = () => {
     // subjects
     Array.from(document.querySelectorAll(".subject-types > div")).forEach(container => {
         // subjects progress
-        container.querySelector(".subject-tab > span").innerText = "";
+        container.querySelector(".subject-tab .menu-label > span").innerText = "";
         // subjects tiles
         container.querySelector(".subject-container > ul").innerHTML = "";
         // subjects close arrow
@@ -450,7 +450,7 @@ document.addEventListener("click", e => {
     }
 
     // open/close menus
-    if(target.closest(".menu-icons img")) {
+    if(target.closest(".menu-option")) {
         const tab = target.closest(".subject-tab");
         const menu =  tab.querySelector(".menu-popup");
         if (menu) {
@@ -465,7 +465,7 @@ document.addEventListener("click", e => {
             if (menu.classList.contains("hidden"))
                 menu.classList.remove("hidden");
 
-            const title = target.closest(".menu-icons img").title;
+            const title = target.closest(".menu-option").title;
             if (menu.querySelector("p").innerText === title) {
                 menu.classList.add("hidden");
                 clearMenu(menu);

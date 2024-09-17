@@ -325,6 +325,7 @@
 
 #profile {
     opacity: unset !important;
+    display: block;
 }
 
 #profile > div {

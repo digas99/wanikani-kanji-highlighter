@@ -84,17 +84,23 @@ chrome.storage.local.get(["reviews"], async result => {
 		chrome.storage.local.get(["settings"], result => {
 			const futureReviewsCanvas = document.createElement("canvas");
 			reviewsChart.appendChild(futureReviewsCanvas);
-			const leftArrow = document.createElement("i");
+			const leftArrow = document.createElement("div");
 			reviewsChart.appendChild(leftArrow);
-			leftArrow.classList.add("left", "clickable", "hidden");
+			leftArrow.classList.add("chart-arrow", "clickable", "hidden");
 			leftArrow.style.left = "7px";
-			const rightArrow = document.createElement("i");
+			const leftArrowElem = document.createElement("i");
+			leftArrow.appendChild(leftArrowElem);
+			leftArrowElem.classList.add("left");
+			const rightArrow = document.createElement("div");
 			reviewsChart.appendChild(rightArrow);
+			const rightArrowElem = document.createElement("i");
+			rightArrow.appendChild(rightArrowElem);
+			rightArrow.classList.add("chart-arrow", "clickable");
 			rightArrow.style.right = "7px";
-			rightArrow.classList.add("right", "clickable");
+			rightArrowElem.classList.add("right");
 			const today = new Date();
 			const nextDay = changeDay(today, 1);
-			rightArrow.title = `${nextDay.getWeekDay()}, ${nextDay.getMonthName()} ${nextDay.getDate()+ordinalSuffix(nextDay.getDate())}`;
+			rightArrowElem.title = `${nextDay.getWeekDay()}, ${nextDay.getMonthName()} ${nextDay.getDate()+ordinalSuffix(nextDay.getDate())}`;
 			const daySelectorWrapper = document.createElement("div");
 			reviewsChart.parentElement.appendChild(daySelectorWrapper);
 			daySelectorWrapper.id = "reviewsDaySelector";
