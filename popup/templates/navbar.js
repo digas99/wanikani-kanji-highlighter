@@ -58,10 +58,11 @@ document.write(/*html*/`
             </li>
         </div>
         <div class="side-panel-bottom">
-            <!-- THEME -->
-            <li class="side-panel-tab" style="position: relative;">
-                <a class="navbar_icon" style="padding: 0px 5px;">
-                    <img id="dark" src="/images/dark.png" title="Dark" style="width: 20px;">
+            <!-- RANDOM SUBJECT -->
+            <li class="side-panel-tab kanjiDetails" data-item-id="rand" style="position: relative;" title="Random">
+                <a href="#" class="navbar_icon" style="padding: 0px 5px; pointer-events: none;">
+                    <img id="random" src="/images/random.png" style="width: 20px;" title="Random">
+                    <span id="random-subject-type" class="side-panel-info-alert">A</span>
                 </a>
             </li>
             <!-- BLACKLIST -->
@@ -71,11 +72,16 @@ document.write(/*html*/`
                     <span class="side-panel-info-alert" style="background-color: #f100a1; color: white;">${localStorage.getItem("blacklist") || "0"}</span>
                 </a>
             </li>
-            <!-- RANDOM SUBJECT -->
-            <li class="side-panel-tab kanjiDetails" data-item-id="rand" style="position: relative;" title="Random">
-                <a href="#" class="navbar_icon" style="padding: 0px 5px; pointer-events: none;">
-                    <img id="random" src="/images/random.png" style="width: 20px;" title="Random">
-                    <span id="random-subject-type" class="side-panel-info-alert">A</span>
+            <!-- THEME -->
+            <li class="side-panel-tab" style="position: relative;">
+                <a class="navbar_icon" style="padding: 0px 5px;">
+                    <img id="dark" src="/images/dark.png" title="Dark" style="width: 20px;">
+                </a>
+            </li>
+            <!-- POPOUT -->
+            <li class="side-panel-tab" style="position: relative;">
+                <a class="navbar_icon"> 
+                    <img id="popout" src="/images/popup.png" title="Popout" style="width: 20px;">
                 </a>
             </li>
             <div class="separator"></div>

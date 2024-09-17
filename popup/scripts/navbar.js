@@ -128,6 +128,13 @@ document.addEventListener("scriptsLoaded", () => {
         }
     }
 
+    // remove popout option
+    if (chrome.extension.getViews().length > 1) {
+        const button = document.querySelector("#popout");
+        if (button)
+            button.parentElement.parentElement.remove();
+    }
+
     // if site is wanikani
     if (atWanikani) {
         // remove some buttons
@@ -143,7 +150,7 @@ document.addEventListener("scriptsLoaded", () => {
     // if not valid site
     if (!validSite) {
         // remove some buttons
-        const buttons = document.querySelectorAll("#blacklist, #run, #random");
+        const buttons = document.querySelectorAll("#blacklist, #run");
         buttons.forEach(button => button?.parentElement.parentElement.remove());
     }
     
@@ -326,6 +333,22 @@ window.addEventListener("click", async e => {
                     }
                 }); 
             }
+        }
+
+        if (clickable.querySelector("#popout")) {
+            window.close();
+
+            chrome.windows.create({
+                url: `${window.location.pathname}?scroll=${window.scrollY}&${window.location.search.substring(1)}`,
+                type: "panel",
+                width: window.innerWidth,
+                height: window.innerHeight
+            });
+
+            // remove popout option to avoid multiple popouts
+            const button = document.querySelector("#popout");
+            if (button)
+                button.parentElement.parentElement.remove();
         }
     }
 

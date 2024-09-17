@@ -36,6 +36,10 @@ const changelog = () => {
 	const readmeNavbar = document.createElement("div");
 	readme.appendChild(readmeNavbar);
 	readmeNavbar.classList.add("readme-navbar");
+	if (window.type == "normal") {
+		const bodyBaseWidth = parseInt(getComputedStyle(document.body).getPropertyValue("--body-base-width"));
+		readmeNavbar.style.width = `${bodyBaseWidth-40}px`;
+	}
 	const readmeContent = document.createElement("div");
 	readme.appendChild(readmeContent);
 	readmeContent.classList.add("readme");

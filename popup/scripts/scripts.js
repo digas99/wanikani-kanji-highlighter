@@ -1,5 +1,16 @@
+chrome.windows.getCurrent(win => {
+	window.type = win.type;
+});
+
 let messagePopup, blacklistedSite, atWanikani;
 window.onload = () => {
+	// get scroll value from url
+	const urlParams = new URLSearchParams(window.location.search);
+	const scrollValue = urlParams.get("scroll");
+	if (scrollValue) {
+		window.scrollTo(0, scrollValue);
+	}
+
 	chrome.storage.local.get(["initialFetch", "blacklist", "contextMenuSelectedText", "settings"], async result => {
 		updateSettings(result["settings"], defaultSettings);
 
@@ -195,7 +206,7 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 	}
 	
 	// selected text
-	if (request.selectedText) {
+	if (request.selectedText && window.type == "popup") {
 		const selectedText = request.selectedText;
 		makeSearch(selectedText);	
 	}

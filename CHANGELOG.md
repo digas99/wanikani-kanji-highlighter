@@ -3,6 +3,9 @@
 ## Bug Fixes
 - Changed approach to Subject Details Popup structure to prevent bugs with scroll bar ([#39](https://github.com/digas99/wanikani-kanji-highlighter/issues/39))
 
+## Popup
+- Added button to sidebar to pop out the extension popup to a new window. This is useful for users that want to keep the extension open while browsing, or even to search for subjects by selecting any text on the web page.
+
 # [Changelog v1.4.3](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.3)
 Released on 16/09/2024
 

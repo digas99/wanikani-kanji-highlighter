@@ -211,22 +211,22 @@
     padding: 1px 0
 }
 
-.side-panel .side-panel-tab {
+.side-panel-tab {
     cursor: pointer;
 }
 
-.side-panel .side-panel-tab:hover {
+.side-panel-tab:hover {
     background-color: var(--wanikani);
 }
 
-.side-panel .side-panel-tab a {
+.side-panel-tab a {
     opacity: unset !important;
     height: 100%;
     display: flex;
     align-items: center;
 }
 
-.side-panel > ul li > a img {
+.side-panel-tab > a img {
     filter: invert(1);
 }
 

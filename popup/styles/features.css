@@ -1,3 +1,8 @@
+#sec-page {
+    margin: 8px !important;
+    margin-top: 45px !important;
+}
+
 .features .section {
 	padding: 10px;
 	padding-bottom: 20px;
@@ -60,14 +65,14 @@
 }
 
 .subject-tile {
-	font-size: 30px;
+	font-size: 25px;
 	color: white;
 }
 
 .subject-details-info {
     display: flex;
     align-items: center;
-    column-gap: 20px;
+    column-gap: 15px;
 }
 
 .subject-details-info-mouse-click {
@@ -83,4 +88,52 @@
 .subject-details-info-mouse-click div {
     color: var(--font-sec-color);
     font-size: 12px;
+}
+
+.popout-example {
+    margin: 10px 0;
+}
+
+.popout-example .side-panel-tab {
+    width: fit-content;
+    padding: 5px 10px;
+    background-color: var(--default-color);
+}
+
+.popout-example .side-panel-tab:hover {
+    background-color: var(--wanikani);
+}
+
+.popout-example .side-panel-tab .navbar-icon {
+    display: flex;
+    column-gap: 10px;
+    align-items: center;
+    margin: auto;
+    width: fit-content;
+}
+
+.popout-example .side-panel-tab .navbar-icon img {
+    width: 20px;
+}
+
+.popout-example .side-panel-tab .navbar-icon p {
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.popout-webpage {
+    background-color: var(--border-color);
+    color: black;
+    margin: 15px 0;
+    padding: 10px;
+    width: 90%;
+    border-radius: 5px;
+}
+
+.popout-webpage > div:first-child {
+    padding: 8px 15px;
+    background-color: var(--fill-color);
+    border-radius: 15px;
+    color: var(--font-color);
 }

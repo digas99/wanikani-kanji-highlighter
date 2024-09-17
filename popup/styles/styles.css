@@ -48,7 +48,7 @@ html {
 
 body {
 	font-family: 'Avenir LT Std', sans-serif;
-    width: var(--body-base-width);
+    min-width: var(--body-base-width);
     transition: 0.3s;
     font-size: 13px;
     padding-right: 45px;
@@ -79,7 +79,7 @@ a:hover {
 	opacity: 0.5;
 }
 
-li {
+ul li {
 	list-style: none;
 }
 

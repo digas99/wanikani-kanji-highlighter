@@ -173,6 +173,15 @@ const updateHomeInterface = async (result) => {
 		document.querySelector("#progress_legend")?.remove();
 }
 
+// setTimeout(() => {
+// 	chrome.windows.create({
+// 		url:"/popup/home.html",
+// 		type:"panel",
+// 		width:300,
+// 		height:200
+// 	});
+// }, 2000);
+
 chrome.storage.local.get(["apiKey", "rating", "help_button", ...HOME_FETCH_KEYS], result => {
 	const settings = result["settings"] ? result["settings"] : defaultSettings;
 
