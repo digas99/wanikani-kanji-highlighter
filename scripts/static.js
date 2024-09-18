@@ -40,7 +40,14 @@ const defaultSettings = {
 	},
 	"search": {
 		targeted_search: false,
-		results_display: "searchResultOptionlist"
+		results_display: "searchResultOptionlist",
+		disabled_subjects: true,
+		radicals: true,
+		kanji: true,
+		vocabulary: true,
+		passed: true,
+		locked: true,
+		in_progress: true,
 	},
 	"appearance": {
 		highlight_learned: WANIKANI_SEC_COLOR,
@@ -334,7 +341,7 @@ const INTERFACE_COLORS = {
 		"fill": "#212128",
 		"font": "#dcdcdc",
 		"font-sec": "#b4b4b4",
-		"border": "#fff",
+		"border": "#b8b8b8",
 		"highlight": "#91a1f0",
 		"fade": "#747474",
 		"styles": [`

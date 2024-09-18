@@ -86,41 +86,6 @@ input[type="color"] {
 
 	/* 10.2 SETTINGS OPTIONS */
 
-.checkbox_wrapper {
-	text-align: right;
-	position: relative;
-}
-
-.checkbox_wrapper > div {
-	pointer-events: none;
-}
-
-.custom-checkbox-back {
-	width: 35px;
-    height: 16px;
-    border-radius: 10px;
-    background-color: #cbc9c9;
-}
-
-.custom-checkbox-ball {
-	width: 20px;
-    height: 20px;
-    background-color: gray;
-    border-radius: 10px;
-    position: absolute;
-    top: -2px;
-	transition: 0.4s;
-}
-
-.checkbox-enabled > .custom-checkbox-back {
-	background-color: #636375;
-}
-
-.checkbox-enabled > .custom-checkbox-ball {
-    margin-left: 16px;
-    background-color: var(--default-color);
-}
-
 .settings_highlight_style_option {
 	padding: 0px 3px;
     border: 2px solid #7c7c7c;

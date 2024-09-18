@@ -31,12 +31,105 @@
                     <div class="searchResultNavbarOptionsWrapper" style="display: flex;">
                         <div id="nmrKanjiFound"><span>0<span></span></span></div>
                         <div class="searchOptionSeparator"></div>
-                        <div class="searchResultNavbarTarget clickable icon" title="Precise Search"><img src="../images/target.png"></div>
-                        <div class="searchOptionSeparator"></div>
                         <ul style="display: flex;">
                             <li class="searchResultNavbarOption clickable icon" title="List" id="searchResultOptionlist"><img src="../images/list.png"></li>
                             <li class="searchResultNavbarOption clickable icon" title="Big Grid" id="searchResultOptionbig-grid"><img src="../images/big-grid.png"></li>
                         </ul>
+                        <div class="searchOptionSeparator"></div>
+                        <div id="searchMenuButton" class="clickable icon" title="Options" style="opacity: 1;"><img src="../images/menu.png"></div>
+                        <div class="search-menu" style="right: -250px">
+                            <div class="search-menu-section">Misceallaneous</div>
+                            <div class="search-menu-item clickable" data-id="targeted_search" title="Search exactly for the given prompt.">
+                                <div class="search-menu-item-label">
+                                    <img class="icon" src="/images/target.png" alt="">
+                                    <label>Precise Search</label>
+                                </div>
+                                <div class="checkbox_wrapper">
+                                    <input type="checkbox" style="display: none;">
+                                    <div class="custom-checkbox-ball"></div>
+                                    <div class="custom-checkbox-back"></div>
+                                </div>
+                            </div>
+                            <div class="search-menu-item clickable" data-id="disabled_subjects" title="Show Wanikani disabled subjects.">
+                                <div class="search-menu-item-label">
+                                    <img class="icon" src="/images/no-stopping.png" alt="">
+                                    <label>Disabled Subjects</label>
+                                </div>
+                                <div class="checkbox_wrapper">
+                                    <input type="checkbox" style="display: none;">
+                                    <div class="custom-checkbox-ball"></div>
+                                    <div class="custom-checkbox-back"></div>
+                                </div>
+                            </div>
+                            <div class="search-menu-section">Subjects</div>
+                            <div class="search-menu-item clickable" data-id="radicals" title="Search for radicals.">
+                                <div class="search-menu-item-label">
+                                    <div class="subject-type-icon" style="color: var(--radical-tag-color)">部首</div>
+                                    <label>Radicals</label>
+                                </div>
+                                <div class="checkbox_wrapper">
+                                    <input type="checkbox" style="display: none;">
+                                    <div class="custom-checkbox-ball"></div>
+                                    <div class="custom-checkbox-back"></div>
+                                </div>
+                            </div>
+                            <div class="search-menu-item clickable" data-id="kanji" title="Search for kanji.">
+                                <div class="search-menu-item-label">
+                                    <div class="subject-type-icon"  style="color: var(--kanji-tag-color)">漢字</div>
+                                    <label>Kanji</label>
+                                </div>
+                                <div class="checkbox_wrapper">
+                                    <input type="checkbox" style="display: none;">
+                                    <div class="custom-checkbox-ball"></div>
+                                    <div class="custom-checkbox-back"></div>
+                                </div>
+                            </div>
+                            <div class="search-menu-item clickable" data-id="vocabulary" title="Search for vocabulary.">
+                                <div class="search-menu-item-label">
+                                    <div class="subject-type-icon" style="color: var(--vocabulary-tag-color)">単語</div>
+                                    <label>Vocabulary</label>
+                                </div>
+                                <div class="checkbox_wrapper">
+                                    <input type="checkbox" style="display: none;">
+                                    <div class="custom-checkbox-ball"></div>
+                                    <div class="custom-checkbox-back"></div>
+                                </div>
+                            </div>
+                            <div class="search-menu-section">Progress</div>
+                            <div class="search-menu-item clickable" data-id="passed" title="Show passed subjects.">
+                                <div class="search-menu-item-label">
+                                    <img class="icon" src="/images/check.png" alt="">
+                                    <label>Passed</label>
+                                </div>
+                                <div class="checkbox_wrapper">
+                                    <input type="checkbox" style="display: none;">
+                                    <div class="custom-checkbox-ball"></div>
+                                    <div class="custom-checkbox-back"></div>
+                                </div>
+                            </div>
+                            <div class="search-menu-item clickable" data-id="in_progress" title="Show subjects in progress.">
+                                <div class="search-menu-item-label">
+                                    <img class="icon" src="/images/time.png" alt="">
+                                    <label>In Progress</label>
+                                </div>
+                                <div class="checkbox_wrapper">
+                                    <input type="checkbox" style="display: none;">
+                                    <div class="custom-checkbox-ball"></div>
+                                    <div class="custom-checkbox-back"></div>
+                                </div>
+                            </div>
+                            <div class="search-menu-item clickable" data-id="locked" title="Show locked subjects.">
+                                <div class="search-menu-item-label">
+                                    <img class="icon" src="/images/padlock.png" alt="">
+                                    <label>Locked</label>
+                                </div>
+                                <div class="checkbox_wrapper">
+                                    <input type="checkbox" style="display: none;">
+                                    <div class="custom-checkbox-ball"></div>
+                                    <div class="custom-checkbox-back"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -1,3 +1,9 @@
+# [Changelog v1.4.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.5)
+
+## Popup
+- Added several filtering options to subject search
+- Added table of contents to Features Information page
+
 # [Changelog v1.4.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.4)
 Released on 17/09/2024
 

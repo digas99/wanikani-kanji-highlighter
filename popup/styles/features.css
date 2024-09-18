@@ -123,7 +123,7 @@
 }
 
 .popout-webpage {
-    background-color: var(--border-color);
+    background-color: #dcdcdc;
     color: black;
     margin: 15px 0;
     padding: 10px;
@@ -136,4 +136,36 @@
     background-color: var(--fill-color);
     border-radius: 15px;
     color: var(--font-color);
+}
+
+.anchor {
+    margin-top: -45px;
+    margin-bottom: 45px;
+}
+
+.table-of-contents {
+    position: fixed;
+    left: 0;
+    background-color: var(--default-color);
+    padding: 15px;
+    z-index: 1;
+    top: 45px;
+    transition: 0.2s;
+    height: 100%;
+    padding-top: 25px;
+}
+
+.table-of-contents h2 {
+    color: white;
+    padding-bottom: 15px;
+}
+
+.table-of-contents ul {
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+}
+
+.table-of-contents ul li {
+    font-size: 15px;
 }

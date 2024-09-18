@@ -18,7 +18,20 @@
 
 	<!-- PAGE CONTENT -->
 	<div id="sec-page">
+		<div class="table-of-contents" style="left: -200px;">
+			<h2>Table of Contents</h2>
+			<ul>
+				<li><a href="#subject-details">Subject Details</a></li>
+				<li><a href="#shortcut-keys">Shortcut Keys</a></li>
+				<li><a href="#real-time-search">Real Time Search</a></li>
+				<li><a href="#subjects-data-error">Subjects Data Error</a></li>
+				<li><a href="#legacy-subjects">Legacy Subjects</a></li>
+			</ul>
+		</div>
 		<div class="features">
+			<!-- FILL FOR NAVBAR -->
+			<div style="height: 5px;"></div>
+			<div class="anchor" id="subject-details"></div>
 			<div class="section">
 				<h2>Subject Details</h2>
 				<p>Throughout the Extension Popup, you will find <b>Subject Tiles</b> that can open a <b>Subject Details Popup</b>. Depending on which mouse button you use when clicking on it, you will open the details popup on different places. Feel free to try it on the Subject Tile bellow.</p>
@@ -34,6 +47,7 @@
 					</div>
 				</div>
 			</div>
+			<div class="anchor" id="shortcut-keys"></div>
 			<div class="section">
 				<h2>Shortcut Keys</h2>
 				<p>Shortcut keys available to use on the Subject Details Popup. These will collide with any existing shortcut within the web page you are visiting.</p>
@@ -152,6 +166,7 @@
 					</div>
 				</div>
 			</div>
+			<div class="anchor" id="real-time-search"></div>
 			<div class="section">
 				<h2>Real Time Search</h2>
 				<p>It is possible to search for subjects by highlighting any text on the <b>web</b>. This action will trigger a search in the extension popup with the selected text.</p>
@@ -177,10 +192,17 @@
 					</div>
 				</ol>
 			</div>
+			<div class="anchor" id="subjects-data-error"></div>
 			<div class="section">
 				<h2>Subjects Data Error</h2>
 				<p>During the process of fetching data from Wanikani servers or updating the extension, it is possible for some data from the subjects to get lost.</p>
 				<p>If this ever becomes noticeable - maybe wrong highlighting, or the subject details popup doesn't load - you can <b>Clear Subjects Data</b> at the bottom of the <a href="/popup/settings.html">Settings Page</a>. This will trigger a fresh fetch of all data from Wanikani and hopefully fix any unwanted error.</p>
+			</div>
+			<div class="anchor" id="legacy-subjects"></div>
+			<div class="section">
+				<h2>Legacy Subjects</h2>
+				<p>Curious about subjects that are no longer available? <a href="/popup/search.html?search=legacy">Search for 'legacy' on the <b>Search bar</b>.</a></p>
+				<p>Make sure you have the <em>Disabled Subjects</em> option enabled.</p>
 			</div>
 		</div>
 	</div>

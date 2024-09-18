@@ -32,12 +32,14 @@ if (searchBar) {
             if (resultDisplayElem) resultDisplayElem.classList.add("full_opacity");
         }
 
-        // select targeted search
-        const targetedSearch = settings["search"]["targeted_search"];
-        if (targetedSearch) {
-            const targetedSearchElem = document.querySelector(".searchResultNavbarTarget");
-            if (targetedSearchElem) targetedSearchElem.classList.add("full_opacity");
-        }
+        // select search menu options
+        Object.keys(defaultSettings["search"]).forEach(key => {
+            const searchMenuOption = document.querySelector(`.search-menu-item[data-id="${key}"]`);
+            if (searchMenuOption) {
+                const checkbox = searchMenuOption.querySelector(".checkbox_wrapper");
+                if (settings["search"][key]) checkbox.classList.add("checkbox-enabled");
+            }
+        });
 
         const inputWrapper = document.querySelector("#kanjiSearchInputWrapper");
         const typeWrapper = document.querySelector(".kanjiSearchTypeWrapper");
@@ -62,7 +64,7 @@ if (searchBar) {
             kanjiList = data["kanji"];
             vocabularyList = [...data["vocabulary"], ...data["kana_vocabulary"]];
 
-            searchBar.addEventListener("input", e => searchSubject(e.target.value, e.target, null, settings["search"]["targeted_search"], settings["search"]["results_display"]));
+            searchBar.addEventListener("input", e => searchSubject(e.target.value, e.target, null, settings["search"], settings["search"]["results_display"]));
             
             searchBar.dispatchEvent(new Event("input")); 
             popupLoading?.remove();
@@ -94,7 +96,7 @@ const changeInput = (inputWrapper, type) => {
 if (urlParams.get('type'))
     changeInput(document.querySelector("#kanjiSearchInputWrapper"), urlParams.get('type'));
 
-const searchSubject = (value, input, searchType, targeted, display) => {
+const searchSubject = (value, input, searchType, options, display) => {
     input.value = value;
 	value = value.toLowerCase().trim();
     changeInput(input.parentElement, searchType);
@@ -130,10 +132,10 @@ const searchSubject = (value, input, searchType, targeted, display) => {
     
         // if it is hiragana
         if (hasKana(value)) {
-            //const filterByReadings = (itemList, value) => itemList.filter(item => matchesReadings(value, item["readings"], targeted));
-            filteredRadicals = radicalsList.filter(subject => matchesReadings(input.value, subject.readings, targeted));
-            filteredKanji = kanjiList.filter(subject => matchesReadings(input.value, subject.readings, targeted));
-            filteredVocab = vocabularyList.filter(subject => matchesReadings(input.value, subject.readings, targeted) || new RegExp(input.value, "g").test(subject.characters));
+            //const filterByReadings = (itemList, value) => itemList.filter(item => matchesReadings(value, item["readings"], options["targeted_search"]));
+            filteredRadicals = radicalsList.filter(subject => matchesReadings(input.value, subject.readings, options["targeted_search"]));
+            filteredKanji = kanjiList.filter(subject => matchesReadings(input.value, subject.readings, options["targeted_search"]));
+            filteredVocab = vocabularyList.filter(subject => matchesReadings(input.value, subject.readings, options["targeted_search"]) || new RegExp(input.value, "g").test(subject.characters));
         }
     }
     else {
@@ -144,7 +146,7 @@ const searchSubject = (value, input, searchType, targeted, display) => {
                 filteredRadicals[0]["amalgamation_subject_ids"].forEach(id => filteredVocab.push(vocabularyList.filter(subject => id == subject.id)));
 
             filteredKanji = filteredKanji.concat(kanjiList.filter(subject => value == subject.characters));
-            if (filteredKanji.length > 0 && !targeted) {
+            if (filteredKanji.length > 0 && !options["targeted_search"]) {
                 filteredKanji[0]["visually_similar_subject_ids"].forEach(id => filteredKanji.push(kanjiList.filter(subject => id == subject.id)));
                 filteredKanji[0]["amalgamation_subject_ids"].forEach(id => filteredVocab.push(vocabularyList.filter(subject => id == subject.id)));
             }
@@ -166,15 +168,17 @@ const searchSubject = (value, input, searchType, targeted, display) => {
         }
         else {
             const cleanInput = input.value.toLowerCase().trim();
-            filteredRadicals = radicalsList.filter(subject => matchesMeanings(cleanInput, subject.meanings, targeted));
-            filteredKanji = kanjiList.filter(subject => matchesMeanings(cleanInput, subject.meanings, targeted));
-            filteredVocab = vocabularyList.filter(subject => matchesMeanings(value, subject.meanings, targeted));
+            filteredRadicals = radicalsList.filter(subject => matchesMeanings(cleanInput, subject.meanings, options["targeted_search"]));
+            filteredKanji = kanjiList.filter(subject => matchesMeanings(cleanInput, subject.meanings, options["targeted_search"]));
+            filteredVocab = vocabularyList.filter(subject => matchesMeanings(value, subject.meanings, options["targeted_search"]));
         }
     }
 
-    filteredRadicals = filteredRadicals.flat();
-    filteredKanji = filteredKanji.flat();
-    filteredVocab = filteredVocab.flat();
+    filteredRadicals = filteredRadicals.flat().filter(item => searchFilters(item, options));
+    filteredKanji = filteredKanji.flat().filter(item => searchFilters(item, options));
+    filteredVocab = filteredVocab.flat().filter(item => searchFilters(item, options));
+
+    console.log(filteredRadicals, filteredKanji, filteredVocab);
 
     const nmrItemsFound = document.getElementById("nmrKanjiFound");
 
@@ -201,6 +205,18 @@ const searchSubject = (value, input, searchType, targeted, display) => {
         const searchWrapper = document.querySelector("#searchResultItemWrapper");
         searchWrapper.appendChild(notFound("Could not find any results for the given prompt."));
     }
+}
+
+const searchFilters = (item, options) => {
+    console.log(options);
+    if (options["disabled_subjects"] == false && item.hidden_at) return false;
+    if (options["passed"] == false && item.passed_at) return false;
+    if (options["in_progress"] == false && item.srs_stage >= 0 && item.srs_stage < 5) return false;
+    if (options["locked"] == false && item.srs_stage == -1) return false; 
+    if (options["radicals"] && item.subject_type == "radical") return true;
+    if (options["kanji"] && item.subject_type == "kanji") return true;
+    if (options["vocabulary"] && item.subject_type == "vocabulary") return true;
+    return false;
 }
 
 const matchesMeanings = (input, meanings, precise) => {
@@ -378,7 +394,7 @@ const displayResults = (wrapper, results, lowerIndex, upperIndex, display) => {
         subjectType.appendChild(searchWrapper);
         searchWrapper.classList.add("clickable");
         searchWrapper.title = "Search for "+(data["characters"]);
-        searchWrapper.addEventListener("click", () => searchSubject(data["characters"], searchBar, hasKana(data["characters"]) ? "A" : "あ", settings["search"]["targeted_search"], settings["search"]["results_display"]));        
+        searchWrapper.addEventListener("click", () => searchSubject(data["characters"], searchBar, hasKana(data["characters"]) ? "A" : "あ", settings["search"], settings["search"]["results_display"]));        
         const search = document.createElement("img");
         searchWrapper.appendChild(search);
         search.src = chrome.runtime.getURL("/images/search.png");
@@ -489,23 +505,32 @@ document.addEventListener("click", e => {
 		}
 	}
 
-    // clicked in the targeted search option in search results
-	if (target.classList.contains("searchResultNavbarTarget")) {
-		chrome.storage.local.get(["settings"], result => {
-			settings = result["settings"];
-			if (settings && settings["search"]) {
-				if (settings["search"]["targeted_search"]) {
-					target.classList.remove("full_opacity");
-					settings["search"]["targeted_search"] = false;
-				}
-				else {
-					target.classList.add("full_opacity");
-					settings["search"]["targeted_search"] = true;
-				}
-				chrome.storage.local.set({"settings":settings});
+    // clicked on search menu button
+    if (target.closest("#searchMenuButton")) {
+        const searchMenu = document.querySelector(".search-menu");
+        searchMenu.classList.toggle("search-menu-slide-in");
+    }
 
-				document.getElementById("kanjiSearchInput").dispatchEvent(new Event("input"));
-			}
-		});
-	}
+    // clicked on search menu option
+    if (target.closest(".search-menu-item")) {
+        const item = target.closest(".search-menu-item");
+        const checkbox = item.querySelector(".checkbox_wrapper");
+        checkbox.classList.toggle("checkbox-enabled");
+        const itemId = item.dataset.id;
+        console.log(itemId);
+        chrome.storage.local.get(["settings"], result => {
+            settings = result["settings"];
+            if (settings && settings["search"]) {
+                console.log(settings["search"][itemId]);
+                settings["search"][itemId] = !settings["search"][itemId];
+                chrome.storage.local.set({"settings":settings});
+
+                document.getElementById("kanjiSearchInput").dispatchEvent(new Event("input"));
+            }
+        });
+    }
+    else if (!target.closest(".searchMenu")) {
+        const searchMenu = document.querySelector(".search-menu");
+        searchMenu.classList.remove("search-menu-slide-in");
+    }
 });
