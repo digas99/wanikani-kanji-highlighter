@@ -6,7 +6,7 @@ document.write(/*html*/`
     <script src="/scripts/kana.js"></script>
     <script src="/scripts/functions.js"></script>
     <script src="/scripts/database.js"></script>
-
+    
     <!-- POPUP SCRIPTS -->
     <script src="scripts/message-popup.js"></script>
     <script src="scripts/scripts.js"></script>

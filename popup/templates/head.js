@@ -2,11 +2,11 @@ document.write(/*html*/`
     <!-- HIGH PRIORITY SCRIPTS -->
     <script src="/scripts/static.js"></script>
     <script src="scripts/theme.js"></script>
-
+	
     <!-- GENERAL STYLES -->
     <link rel="stylesheet" href="styles/styles.css">
-    <link rel="stylesheet" href="styles/navbar.css">
     <link rel="stylesheet" href="styles/message-popup.css">
+    <link rel="stylesheet" href="styles/navbar.css">
     
     <!-- preload images -->
     <!-- TOPBAR -->

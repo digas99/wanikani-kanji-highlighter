@@ -330,7 +330,7 @@ i {
 }
 
 .lessons-cover {
-	width: 440px;
+	width: 100%;
     height: 230px;
     position: absolute;
     top: 50px;
@@ -338,7 +338,7 @@ i {
 }
 
 .lessons-cover > div {
-	width: 100%;
+	margin-right: 45px;
     height: 100%;
     background-position: center;
     background-repeat: no-repeat;

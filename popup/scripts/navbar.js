@@ -61,7 +61,10 @@ chrome.storage.local.get(["apiKey", "settings", "lessons", "reviews", "userInfo"
         setRandomSubjectType(settings["kanji_details_popup"]["random_subject"]);
 
         if (settings["miscellaneous"]["sidebar_animation"]) {
-            window.addEventListener("mouseover", sidebarAnimation);
+            window.addEventListener("mouseover", e => {
+                if (window.innerWidth < 540)
+                    sidebarAnimation(e);
+            });
         }
     }
 
@@ -380,7 +383,7 @@ const expandSideBar = (sidebar, open=true) => {
             Array.from(document.getElementsByClassName("navbar_icon"))
                 .filter(icon => icon.style.display !== "none")
                 .forEach(icon => {
-                    icon.getElementsByTagName("p")[0].remove();
+                    icon.getElementsByTagName("p")[0]?.remove();
                 });
 
             Array.from(document.getElementsByClassName("side-panel-info-alert"))
@@ -393,3 +396,27 @@ const expandSideBar = (sidebar, open=true) => {
         }
     }
 }
+
+// navbar size
+if (window.innerWidth >= 540) {
+    const sidebar = document.querySelector(".side-panel");
+    if (sidebar) {
+        const noTransitionStyle = `
+            .side-panel, .side-panel * {
+                transition: none !important;
+            }
+        `
+        const style = document.createElement("style");
+        style.appendChild(document.createTextNode(noTransitionStyle));
+        document.head.appendChild(style);
+        setTimeout(() => document.head.removeChild(style), 300);
+        expandSideBar(sidebar, true);
+    }
+}
+
+window.addEventListener("resize", () => {
+    const sidebar = document.querySelector(".side-panel");
+    if (sidebar) {
+        expandSideBar(sidebar, window.innerWidth >= 540);
+    }
+});

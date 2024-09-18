@@ -426,3 +426,14 @@
     color: var(--border-color);
     opacity: 0.7;
 }
+
+@media screen and (min-width: 540px) {
+    body, .topNav-lessons, .lessons-cover > div {
+        margin-right: 65px !important;
+    }
+
+    .side-panel {
+        box-shadow: unset !important;
+        width: 110px;
+    }
+}
