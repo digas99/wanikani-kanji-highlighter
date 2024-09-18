@@ -8,6 +8,7 @@ if (searchBar) {
     let popupLoading;
     // get search query from url
     const search = urlParams.get('search');
+    console.log(search);
     if (search) {
         if (!messagePopup) {
             popupLoading = new MessagePopup(document.body);
@@ -66,7 +67,9 @@ if (searchBar) {
 
             searchBar.addEventListener("input", e => searchSubject(e.target.value, e.target, null, settings["search"], settings["search"]["results_display"]));
             
-            searchBar.dispatchEvent(new Event("input")); 
+            if (search)
+                searchBar.dispatchEvent(new Event("input")); 
+
             popupLoading?.remove();
         }
     });
@@ -178,8 +181,6 @@ const searchSubject = (value, input, searchType, options, display) => {
     filteredKanji = filteredKanji.flat().filter(item => searchFilters(item, options));
     filteredVocab = filteredVocab.flat().filter(item => searchFilters(item, options));
 
-    console.log(filteredRadicals, filteredKanji, filteredVocab);
-
     const nmrItemsFound = document.getElementById("nmrKanjiFound");
 
     const firstRadical = filteredRadicals[0];
@@ -208,7 +209,6 @@ const searchSubject = (value, input, searchType, options, display) => {
 }
 
 const searchFilters = (item, options) => {
-    console.log(options);
     if (options["disabled_subjects"] == false && item.hidden_at) return false;
     if (options["passed"] == false && item.passed_at) return false;
     if (options["in_progress"] == false && item.srs_stage >= 0 && item.srs_stage < 5) return false;
@@ -533,4 +533,14 @@ document.addEventListener("click", e => {
         const searchMenu = document.querySelector(".search-menu");
         searchMenu.classList.remove("search-menu-slide-in");
     }
+});
+
+window.addEventListener("keydown", e => {
+	if (e.key.length == 1 && e.key.match(/[a-z]/i)) {
+		const searchInput = document.getElementById("kanjiSearchInput");
+		if (searchInput && !searchInput.value) {
+			searchInput.focus();
+            searchInput.click();
+		}
+	}
 });
