@@ -138,11 +138,6 @@ const setupContentScripts = () => {
 					...subjectDrawing
 				]
 			});
-
-			chrome.scripting.insertCSS({
-				target: {tabId: thisTabId},
-				files: ['styles/subject-display.css'],
-			});
 		}
 
 		const learnedKanji = response["learnedKanji"];

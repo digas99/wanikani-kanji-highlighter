@@ -235,13 +235,13 @@
 				console.log("click");
 				const wrapper = target.closest(".sd-popupDetails_strokes");
 				if (wrapper.classList.contains("sd-detailsPopup_dmakExpanded")) {
-					const kanjTitle = document.querySelector(".sd-popupDetails_kanjiTitle");
+					const kanjTitle = this.wrapper.querySelector(".sd-popupDetails_kanjiTitle");
 					if (kanjTitle)
 						kanjTitle.parentElement.insertBefore(wrapper, kanjTitle.nextSibling);
 					wrapper.classList.remove("sd-detailsPopup_dmakExpanded");
 				}
 				else {
-					document.documentElement.appendChild(wrapper);
+					this.wrapper.appendChild(wrapper);
 					wrapper.classList.add("sd-detailsPopup_dmakExpanded");
 				}
 			}
@@ -1040,6 +1040,7 @@
 			strokes.insertAdjacentHTML("beforeend", close);
 			
 			const drawingWrapper = document.createElement("div");
+			strokes.appendChild(drawingWrapper);
 			drawingWrapper.id = "sd-popupDetails_dmak";
 			drawingWrapper.classList.add("sd-detailsPopup_clickable");
 			drawingWrapper.innerHTML = /*html*/`
@@ -1047,9 +1048,11 @@
 			`;
 			
 			// save dmak wrapper outside the shadow dom
-			document.body.appendChild(drawingWrapper);
+			const dmakWrapper = document.createElement("div");
+			dmakWrapper.id = "sd-popupDetails_dmak_draw";
+			document.body.appendChild(dmakWrapper);
 
-			this.drawStrokes(kanji, drawingWrapper.id);	
+			this.drawStrokes(kanji, dmakWrapper.id);	
 	
 			// buttons
 			const drawButtons = /*html*/`
@@ -1113,10 +1116,13 @@
 				},
 				'loaded': async () => {
 					// put strokes back into the shadow dom
-					const dmakWrapper = document.querySelector("#sd-popupDetails_dmak");
+					const dmakWrapper = document.querySelector("#sd-popupDetails_dmak_draw");
 					if (dmakWrapper) {
-						const strokesWrapper = this.wrapper.querySelector(".sd-popupDetails_strokes");
-						if (strokesWrapper) strokesWrapper.insertBefore(dmakWrapper, strokesWrapper.firstChild);
+						const drawingWrapper = this.wrapper.querySelector("#sd-popupDetails_dmak");
+						if (drawingWrapper) {
+							Array.from(dmakWrapper.children).forEach(child => drawingWrapper.appendChild(child));
+							dmakWrapper.remove();
+						}
 					}
 
 					const papers = this.dmak.papers;
@@ -1313,9 +1319,9 @@
 		detailsPopup.addEventListener("scroll", e => {
 			const scrollTop = e.target.scrollTop;
 
-			const cardsSection = document.getElementById("sd-popupDetails_CardsSection");
-			const statsSection = document.getElementById("sd-popupDetails_StatisticsSection");
-			const timestampsSection = document.getElementById("sd-popupDetails_TimestampsSection");
+			const cardsSection = detailsPopup.querySelector("#sd-popupDetails_CardsSection");
+			const statsSection = detailsPopup.querySelector("#sd-popupDetails_StatisticsSection");
+			const timestampsSection = detailsPopup.querySelector("#sd-popupDetails_TimestampsSection");
 
 			if (cardsSection && scrollTop < cardsSection.offsetTop) navbarHighlightChanger(navbarUl.children[0]);
 			if (cardsSection && statsSection && scrollTop >= cardsSection.offsetTop && scrollTop < statsSection.offsetTop) navbarHighlightChanger(navbarUl.children[1]);

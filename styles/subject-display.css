@@ -1,14 +1,9 @@
 /* SUBJECT DISPLAY STYLES */
 
-:root {
-	--radical-tag-color: #65b6ae;
-	--kanji-tag-color: #e7e485;
-	--vocabulary-tag-color: #fc759b;
+:root, :host {
 	--reading-tag-bkcolor: #2e2e2e;
 	--popup-details-title-color: white;
 	--popup-details-title-bkcolor: #e36f94;
-	--detailsPopup-opacity: 0.8;
-	--detailsPopup-width: 270px;
 	--detailsPopup-lightgray: #6f6f6f;
 }
 
