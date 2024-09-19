@@ -46,7 +46,7 @@ const setupAccolades = (wrapper, accolades) => {
 					${info.milestones.map(milestone => {
 						return /*html*/`
 							<div data-value="${milestone.value}" class="${accolade?.stages?.includes(milestone.value) ? "accolades-milestone-active" : ""}">
-								<img src="${milestone.icon || `/images/accolades/${type}-${milestone.value}.png`}" title="${milestone.title}">
+								<img src="${milestone.icon || `/images/accolades/${type}-${milestone.value}-small.png`}" title="${milestone.title}">
 								<div class="accolades-title">${milestone.title}</div>
 							</div>
 						`;

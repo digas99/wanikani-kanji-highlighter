@@ -96,6 +96,9 @@ input[type="text"],
 input[type="text"]:focus {
 	border: none;
 	outline: none;
+	padding: 7px;
+    background-color: #e4e4e4;
+    color: #000000;
 }
 
 label {

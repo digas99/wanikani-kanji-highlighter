@@ -245,7 +245,7 @@ body {
 .legend {
     color: var(--font-color);
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
     padding: 5px;
 }
 
@@ -262,7 +262,7 @@ body {
 }
 
 .legend .legend-label {
-
+    white-space: nowrap;
 }
 
 .help-button {

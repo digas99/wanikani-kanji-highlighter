@@ -523,6 +523,14 @@ document.addEventListener("click", e => {
             }
         }
     }
+
+    // levels list button
+    if (target.closest(".levels-list-button")) {
+        const topLevelList = document.querySelector(".top-level-list");
+        if (topLevelList) {
+            topLevelList.classList.toggle("top-level-list-hidden");
+        }
+    }
 });
 
 const closeArrowAction = (arrow, subjectsContainer) => {
@@ -934,3 +942,12 @@ window.addEventListener("scroll", () => {
     else
         document.querySelector(".top-level-list").classList.add("top-level-list-hidden");
 });
+
+window.onload = () => {
+	// add buttons
+	const buttonsWrapper = document.querySelector('#secPageButtons');
+	// levels list button
+	buttonsWrapper.insertAdjacentHTML('beforeend', /*html*/`<a class="levels-list-button"><div><img src="/images/small-grid.png" alt="Levels List" title="Levels List"></div></a>`);
+    // accolades button
+    buttonsWrapper.insertAdjacentHTML('beforeend', /*html*/`<a href="/popup/accolades.html"><img src="/images/badge.png" alt="Accolades" title="Accolades"></a>`);
+}

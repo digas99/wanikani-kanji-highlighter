@@ -13,18 +13,28 @@
     display: flex;
     align-items: center;
     color: white;
-    margin-left: -8px;
     z-index: 11;
     height: 45px;
-    padding: 0 20px;
+}
+
+.topNav * {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
 }
 
 .topNav > a {
-    margin: 2px;
     cursor: pointer;
     height: 100%;
     align-items: center;
     display: flex;
+    padding: 0 10px;
+    opacity: unset;
+    transition: unset;
+}
+
+.topNav > a:hover {
+    background-color: var(--wanikani);
 }
 
 .topNav > a * {
@@ -58,7 +68,7 @@
 
 .topNav-lessons {
 	position: absolute;
-    right: 90px;
+    right: 60px;
     top: 0;
     display: flex;
     column-gap: 15px;
@@ -395,7 +405,6 @@
 #secPageButtons {
     display: flex;
     align-items: center;
-    margin-left: 15px;
     height: 100%;
 }
 
@@ -409,7 +418,7 @@
     cursor: pointer;
 }
 
-#secPageButtons > a > img {
+#secPageButtons > a img {
     filter: invert(1);
     width: 19px;
     margin: auto;

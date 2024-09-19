@@ -15,7 +15,8 @@ body {
     width: 100%;
     overflow: auto;
     scroll-behavior: smooth;
-    transition: 0.3s;
+    transition: 0.2s;
+    top: 50px;
 }
 
 .top-level-list > div {
@@ -251,27 +252,19 @@ body {
     color: var(--font-sec-color);
 }
 
-#edit, #accolades {
+#edit {
     position: absolute;
     top: 115px;
     filter: invert(1);
     z-index: 1;
 }
 
-#accolades img {
-    width: 20px;
-}
-
 #edit img {
-    width: 17px;
-}
-
-#accolades {
-    right: 15px;
+    width: 15px;
 }
 
 #edit {
-    right: 50px;
+    right: 15px;
 }
 
 #level-progress {
@@ -340,6 +333,12 @@ body {
 	display: flex;
 	align-items: center;
     height: 100%;
+}
+
+.menu-icons * {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
 }
 
 .menu-icons img {
@@ -523,4 +522,20 @@ body {
 .past-times > img {
     width: 20px;
     opacity: 0.6;
+}
+
+.levels-list-button {
+    width: 50px !important;
+}
+
+.levels-list-button > div {
+    width: 100%;
+    margin: auto;
+    text-align: center;
+    height: 9px;
+    overflow: hidden;
+}
+
+.levels-list-button img {
+    width: 30px !important;
 }

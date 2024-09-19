@@ -2,7 +2,7 @@
 
 document.write(/*html*/`
 <div class="topNav" ${document.title == "Home" ? "style='display: none;'" : ""}>
-    <a href="#" title="Go back" id="goBackButton" class="clickable">
+    <a href="#" title="Go back" id="goBackButton">
         <div>
             <i class="left"></i>
             <div id="secPageTitle"></div>
