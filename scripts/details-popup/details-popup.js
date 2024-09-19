@@ -1,6 +1,19 @@
 const createDetailsPopup = async (id, settings) => {
-	console.log(id);
-	const detailsPopup = new SubjectDisplay(Number(id), 270, document.body,
+	const shadowWrapper = document.createElement("div");
+	document.body.appendChild(shadowWrapper);
+	shadowWrapper.classList.add("sd-detailsPopup_shadow");
+	const shadow = shadowWrapper.attachShadow({mode: 'open'});
+
+	// add styles from styles/subject-display.css
+	chrome.runtime.sendMessage({styleSheet: "subject-display.css"}, styles => {	
+		if (styles) {
+			const style = document.createElement("style");
+			style.textContent = styles;
+			shadow.appendChild(style);
+		}
+	});
+
+	const detailsPopup = new SubjectDisplay(Number(id), 270, shadow,
 		async ids => {
 			if (!Array.isArray(ids))
 				ids = [ids];
@@ -111,7 +124,7 @@ const updateDetailsPopup = (detailsPopup, id) => {
 							
 			if (detailsPopup) {
 				// clicked outside details popup
-				if (node !== detailsPopup.detailsPopup && !detailsPopup.detailsPopup.contains(node) && !node.classList.contains("sd-detailsPopup_cardSideBarInfo") && !["sd-detailsPopupGoBack"].includes(node.id) && getComputedStyle(node).cursor !== "pointer")
+				if (!node.closest(".sd-detailsPopup_shadow") && !node.classList.contains("wkhighlighter_hoverable"))
 					detailsPopup.close(200);
 				
 				// clicked in a highlighted kanji (within the info popup)

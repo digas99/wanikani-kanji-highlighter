@@ -19,7 +19,7 @@ It works with any website, and provides detailed information about any kanji tha
 
 ## Table of contents:
 
-1. [Latest Features](#changelog-v145)
+1. [Latest Features](#changelog-v150)
 2. [Usage Guide](#usage-guide)
    - 2.1. [WaniKani API Token](#wanikani-api-token)
    - 2.2. [Kanji Details](#kanji-details)
@@ -30,6 +30,11 @@ It works with any website, and provides detailed information about any kanji tha
    - 2.6. [Blacklisting a Site](#blacklisting-a-site)
    - 2.7. [Settings](#settings)
 3. [Pictures](#pictures)
+
+## [Changelog v1.5.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.5.0)
+
+### Content
+- Isolated the Details Popup element into a Shadow DOM, to make it independent from the web page's CSS ([#40](https://github.com/digas99/wanikani-kanji-highlighter/issues/40)) [@maximedrouhin](https://github.com/maximedrouhin)
 
 ## [Changelog v1.4.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.5)
 

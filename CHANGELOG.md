@@ -1,3 +1,9 @@
+# [Changelog v1.5.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.5.0)
+
+## Content
+- Isolated the Details Popup element into a Shadow DOM, to make it independent from the web page's CSS ([#40](https://github.com/digas99/wanikani-kanji-highlighter/issues/40)) [@maximedrouhin](https://github.com/maximedrouhin)
+
+
 # [Changelog v1.4.5](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.5)
 Released on 19/09/2024
 

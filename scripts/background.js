@@ -334,6 +334,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	// drive loading request back to the popup
 	if (request.loading) chrome.runtime.sendMessage({loading: request.loading});
 
+	// get style sheet file
+	if (request.styleSheet) {
+		fetch(`/styles/${request.styleSheet}`)
+			.then(response => response.text())
+			.then(text => sendResponse(text));
+		return true;
+	}
+
+	// get script file
+	if (request.script) {
+		fetch(`/scripts/${request.script}`)
+			.then(response => response.text())
+			.then(text => sendResponse(text));
+		return true;
+	}
 
 	// LOAD DATA
 	if (request.loadData) {

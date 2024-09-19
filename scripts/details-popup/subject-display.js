@@ -20,18 +20,18 @@
 			this.autoplayAudio = options["autoplayAudio"]; 
 		}
 
-		document.addEventListener("mouseover", e => {
+		this.wrapper.addEventListener("mouseover", e => {
 			const node = e.target;
 
 			// if hovering over the details popup or any of it's children (expand small popup)
-			if (!this.expanded && this.detailsPopup && (node === this.detailsPopup || this.detailsPopup.contains(node)))
+			if (!this.expanded && this.detailsPopup && node.closest(".sd-detailsPopup"))
 				this.expand();
 
 			// if hovering over a kanji card
 			if (node.classList.contains("sd-detailsPopup_vocab_row") || node.classList.contains("sd-detailsPopup_kanji_row") || (node.classList.contains("sd-detailsPopup_cards") && (node.parentElement.parentElement.classList.contains("sd-detailsPopup_kanji_row") || node.parentElement.parentElement.classList.contains("sd-detailsPopup_vocab_row")))) {
-				document.querySelectorAll(".sd-itemLevelCard").forEach(levelCard => levelCard.style.setProperty("display", "inline", "important"));
-				document.querySelectorAll(".sd-detailsPopup_cardRow").forEach(card => card.style.setProperty("filter", "brightness(0.5)", "important"));
-				document.querySelectorAll(".sd-detailsPopup_cardSideBar").forEach(node => node.remove());
+				this.wrapper.querySelectorAll(".sd-itemLevelCard").forEach(levelCard => levelCard.style.setProperty("display", "inline", "important"));
+				this.wrapper.querySelectorAll(".sd-detailsPopup_cardRow").forEach(card => card.style.setProperty("filter", "brightness(0.5)", "important"));
+				this.wrapper.querySelectorAll(".sd-detailsPopup_cardSideBar").forEach(node => node.remove());
 				const target = node.classList.contains("sd-detailsPopup_cards") ? node.parentElement.parentElement : node;
 				target.style.setProperty("filter", "unset", "important");
 				const type = target.classList.contains("sd-detailsPopup_vocab_row") ? "vocabulary" : "kanji";
@@ -91,13 +91,13 @@
 			
 			// if hovering outside kanji card wrapper
 			if (node && !(node.classList.contains("sd-detailsPopup_cardRow") || (node.parentElement && node.parentElement.classList.contains("sd-detailsPopup_cardRow")) || node.classList.contains("sd-detailsPopup_cards") || (node.parentElement && node.parentElement.classList.contains("sd-detailsPopup_cardSideBar")) || (node. parentElement && node.parentElement.parentElement && node.parentElement.parentElement.classList.contains("sd-detailsPopup_cardSideBar")) || (node.parentElement && node.parentElement.parentElement && node.parentElement.parentElement.parentElement && node.parentElement.parentElement.parentElement.classList.contains("sd-detailsPopup_cardSideBar")))) {
-				document.querySelectorAll(".sd-itemLevelCard").forEach(levelCard => levelCard.style.removeProperty("display"));
-				document.querySelectorAll(".sd-detailsPopup_cardRow").forEach(card => card.style.removeProperty("filter"));
-				document.querySelectorAll(".sd-detailsPopup_cardSideBar").forEach(node => node.remove());
+				this.wrapper.querySelectorAll(".sd-itemLevelCard").forEach(levelCard => levelCard.style.removeProperty("display"));
+				this.wrapper.querySelectorAll(".sd-detailsPopup_cardRow").forEach(card => card.style.removeProperty("filter"));
+				this.wrapper.querySelectorAll(".sd-detailsPopup_cardSideBar").forEach(node => node.remove());
 			}
 		});
 
-		document.addEventListener("click", async e => {
+		this.wrapper.addEventListener("click", async e => {
 			const node = e.target;
 
 			// if clicked on close button
@@ -340,12 +340,12 @@
 			setTimeout(() => this.detailsPopup.style.setProperty("top", "0", "important"), 400);
 
 			// remove temp kanji info from small details popup
-			const tempKanjiTitle = this.detailsPopup.getElementsByClassName("sd-smallDetailsPopupKanjiTitle")[0];
+			const tempKanjiTitle = this.detailsPopup.querySelector(".sd-smallDetailsPopupKanjiTitle");
 			if (tempKanjiTitle)
 				tempKanjiTitle.remove();
 
 			// remove ... from readings
-			const readingsRow = Array.from(this.detailsPopup.getElementsByClassName("sd-popupDetails_readings_row"));
+			const readingsRow = Array.from(this.detailsPopup.querySelectorAll(".sd-popupDetails_readings_row"));
 			readingsRow.forEach(row => {
 				const ellipsis = row.childNodes[row.childNodes.length-1];
 				if (ellipsis && ellipsis.innerText == "...")
@@ -363,10 +363,8 @@
 				this.detailsPopup.style.setProperty("max-height", window.innerHeight+"px", "important");
 			}, 200);
 
-			console.log("expanded", itemWrapper);
-
 			if (itemWrapper) {
-				const type = itemWrapper.getElementsByClassName("sd-detailsPopup_kanji")[0].getAttribute('data-item-type');
+				const type = itemWrapper.querySelector(".sd-detailsPopup_kanji").getAttribute('data-item-type');
 				let detailedInfo;
 				if (type == "radical")
 					detailedInfo = this.radicalDetailedInfo(this.subject);
@@ -379,7 +377,7 @@
 					this.detailsPopup.appendChild(detailedInfo);
 			
 				// show kanji container buttons
-				const buttons = Array.from(document.getElementsByClassName("sd-detailsPopupButton"));
+				const buttons = Array.from(this.detailsPopup.querySelectorAll(".sd-detailsPopupButton"));
 				if (buttons)
 					buttons.forEach(button => button.classList.remove("sd-detailsPopup_hidden"));
 			}
@@ -1042,12 +1040,14 @@
 			strokes.insertAdjacentHTML("beforeend", close);
 			
 			const drawingWrapper = document.createElement("div");
-			strokes.appendChild(drawingWrapper);
 			drawingWrapper.id = "sd-popupDetails_dmak";
 			drawingWrapper.classList.add("sd-detailsPopup_clickable");
 			drawingWrapper.innerHTML = /*html*/`
-				<div class="sd-popupDetails_svgLoading">Loading Kanji Strokes animation...</div>
+			<div class="sd-popupDetails_svgLoading">Loading Kanji Strokes animation...</div>
 			`;
+			
+			// save dmak wrapper outside the shadow dom
+			document.body.appendChild(drawingWrapper);
 
 			this.drawStrokes(kanji, drawingWrapper.id);	
 	
@@ -1091,6 +1091,7 @@
 			if (!size)
 				size = 130 - (10 * characters.length);
 
+			console.log(characters, element, size);
 			this.dmak = new Dmak(characters, {
 				'element': element,
 				'uri': this.kanjiSource,
@@ -1111,19 +1112,27 @@
 					}
 				},
 				'loaded': async () => {
+					// put strokes back into the shadow dom
+					const dmakWrapper = document.querySelector("#sd-popupDetails_dmak");
+					if (dmakWrapper) {
+						const strokesWrapper = this.wrapper.querySelector(".sd-popupDetails_strokes");
+						if (strokesWrapper) strokesWrapper.insertBefore(dmakWrapper, strokesWrapper.firstChild);
+					}
+
 					const papers = this.dmak.papers;
 					if (papers) {
-						const currentCharacters = document.querySelector(".sd-detailsPopup_kanji").innerText;
+						const currentCharacters = this.wrapper.querySelector(".sd-detailsPopup_kanji")?.innerText;
+						console.log(currentCharacters, characters);
 						if (characters == currentCharacters) {
 							const currentCanvases = papers.map(paper => paper.canvas);
 
 							// iterate all svgs and remove the ones that are not in currentCanvases
-							const svgs = document.querySelectorAll("#sd-popupDetails_dmak svg");
+							const svgs = this.wrapper.querySelectorAll("#sd-popupDetails_dmak svg");
 							svgs.forEach(svg => {
 								if (!currentCanvases.includes(svg))
 									svg.remove();
 								else {
-									document.documentElement.querySelector(".sd-popupDetails_svgLoading")?.remove();
+									this.wrapper.querySelector(".sd-popupDetails_svgLoading")?.remove();
 									svg.style.setProperty("display", "block", "important");
 								}
 							});
@@ -1148,7 +1157,6 @@
 	// Auxiliar methods
 
 	const itemCardsSection = (kanjiInfo, idsTag, title, itemCardsclass, list) => {
-		console.log(kanjiInfo, idsTag, title, itemCardsclass, list);
 		const ids = kanjiInfo[idsTag];
 		const nmrItems = ids.length;
 		const table = infoTable(`${title} (${nmrItems})`, []);
@@ -1279,7 +1287,7 @@
 			navbarLi.classList.add("sd-detailsPopup_clickable");
 			const link = document.createElement("div");
 			navbarLi.appendChild(link);
-			link.addEventListener("click", () => document.querySelector(".sd-popupDetails_detailedInfoWrapper").scrollTo(0, document.getElementById(`sd-popupDetails_${info[0]}Section`).offsetTop));
+			link.addEventListener("click", () => detailsPopup.scrollTo(0, detailsPopup.querySelector(`#sd-popupDetails_${info[0]}Section`).offsetTop));
 			const icon = document.createElement("img");
 			link.append(icon);
 			icon.src = info[1];
