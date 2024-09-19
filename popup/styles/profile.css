@@ -164,6 +164,7 @@ body {
 	background-color: var(--wanikani);
     height: 100%;
 	width: 0;
+    transition: 0.3s;
 }
 
 .level-progress-bar > span {
@@ -330,6 +331,7 @@ body {
     position: absolute;
     bottom: -4px;
     left: 0;
+    transition: 0.3s;
 }
 
 .menu-icons {
@@ -384,13 +386,13 @@ body {
 
 .menu-popup {
     position: absolute;
-    top: 30px;
-    right: 5px;
+    top: 37px;
+    right: 0px;
     background-color: var(--fill-color);
     border: 2px solid var(--default-color);
     color: var(--font-color);
 	overflow: hidden;
-	transition: 0.5s;
+	transition: 0.2s;
 	z-index: 2;
 }
 

@@ -236,12 +236,13 @@ i {
 }
 
 .checkbox-enabled > .custom-checkbox-back {
-	background-color: #636375;
+	background-color: var(--checkbox-back);
 }
 
 .checkbox-enabled > .custom-checkbox-ball {
     margin-left: 16px;
-    background-color: var(--default-color);
+    background-color: var(--wanikani);
+	opacity: 0.7;
 }
 
 #sec-page {

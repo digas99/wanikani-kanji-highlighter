@@ -10,6 +10,7 @@ const setTheme = theme => {
 	documentStyle.setProperty('--border-color', interfaceAppearance["border"]);
 	documentStyle.setProperty('--highlight', interfaceAppearance["highlight"]);
 	documentStyle.setProperty('--fade', interfaceAppearance["fade"]);
+	documentStyle.setProperty('--checkbox-back', interfaceAppearance["checkbox-back"]);
 	interfaceAppearance["styles"].forEach(style => {
 		const styleElem = document.createElement("style");
 		styleElem.innerText = style;

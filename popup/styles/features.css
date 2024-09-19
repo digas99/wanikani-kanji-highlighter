@@ -147,25 +147,35 @@
     position: fixed;
     left: 0;
     background-color: var(--default-color);
-    padding: 15px;
     z-index: 1;
     top: 45px;
     transition: 0.2s;
     height: 100%;
-    padding-top: 25px;
 }
 
 .table-of-contents h2 {
     color: white;
-    padding-bottom: 15px;
+    padding: 15px;
+    padding-right: 20px;
 }
 
 .table-of-contents ul {
     display: flex;
     flex-direction: column;
-    row-gap: 10px;
 }
 
 .table-of-contents ul li {
+}
+
+.table-of-contents ul li a {
+    display: block;
     font-size: 15px;
+    padding: 5px 20px;
+    color: white;
+    opacity: unset !important;
+    transition: unset !important;
+}
+
+.table-of-contents ul li a:hover {
+    background-color: var(--wanikani);
 }

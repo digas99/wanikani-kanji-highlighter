@@ -36,6 +36,10 @@ It works with any website, and provides detailed information about any kanji tha
 ### Popup
 - Added several filtering options to subject search
 - Added table of contents to Features Information page
+- Improved some UI interactions in the Profile Page
+
+### Bug fixes
+- Fixed broken customization of the subjects list in the Profile Page when applying it to 'All'
 
 ## [Changelog v1.4.4](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.4.4)
 

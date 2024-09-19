@@ -32,4 +32,10 @@ document.addEventListener("click", e => {
 		const tableOfContents = document.querySelector('.table-of-contents');
 		tableOfContents.classList.toggle('slide-from-left');
 	}
+	else if (!target.closest('.table-of-contents') && !target.closest('#secPageButtons')) {
+		const tableOfContents = document.querySelector('.table-of-contents');
+		if (tableOfContents) {
+			tableOfContents.classList.remove('slide-from-left');
+		}
+	}
 });

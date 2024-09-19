@@ -333,7 +333,8 @@ const INTERFACE_COLORS = {
 				opacity: 0.7;
 				filter: unset !important;
 			}
-		`]
+		`],
+		"checkbox-back": "#c770aa"
 	},
 	"dark": {
 		"background": "#25252c",
@@ -349,7 +350,8 @@ const INTERFACE_COLORS = {
 				opacity: 0.7;
 				filter: invert(1) !important;
 			}
-		`]
+		`],
+		"checkbox-back": "#773962" 
 	}
 }
 

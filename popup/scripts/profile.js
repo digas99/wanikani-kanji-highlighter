@@ -61,6 +61,8 @@ chrome.storage.local.get(["apiKey", "userInfo", "settings", LEVELS_STATS.storage
             
             topLevel.addEventListener("click", async e => {
                 if (e.target.classList.contains("clickable")) {
+                    listsVisibility();
+
                     const level = Number(e.target.innerText);
                     const levelChooser = document.querySelector(".levels-chooser");
                     levelChooser.innerHTML = "";
@@ -94,6 +96,8 @@ const updateTopLevelList = level => {
 }
 
 const updateLevelData = async (level, db, clear) => {
+    listsVisibility();
+
     const data = await db.getAll("subjects", "level", level);
 
     if (clear) clearData();
@@ -145,7 +149,6 @@ const updateLevelData = async (level, db, clear) => {
         const startedAt = new Date(lastStat["unlocked_at"]);
         const passedAt = lastStat["passed_at"] ? new Date(lastStat["passed_at"]) : new Date();
         const timeInLevel = passedAt - startedAt;
-        console.log("Stats:", stats, "Started:", startedAt, "Passed:", passedAt, "Time in level:", timeInLevel);
         const options = timeInLevel >= 1000 * 60 * 60 ? {seconds: false, minutes: false} : {};
         const readable = prettyTime(timeInLevel, options);
         timeLabel.style.removeProperty("pointer-events");
@@ -170,6 +173,11 @@ const updateLevelProgressBar = (progressBarWrapper, subjects) => {
     const progressBar = progressBarWrapper.querySelector("div");
     progressBar.style.removeProperty("background-color");
     progressBar.style.width = (percentage >= 1 ? percentage : 100)+"%";
+    if (percentage < 1) {
+        progressBar.style.transition = "unset";
+        setTimeout(() => progressBar.style.removeProperty("transition"), 200);
+    }
+
     if (percentage > 8.1 || percentage < 1) {
         const barLabel = progressBarWrapper.querySelector("div > p");
         barLabel.appendChild(document.createTextNode(percentage.toFixed(percentage > 12 ? 1 : 0)+"%"));
@@ -336,7 +344,9 @@ const levelsChooserAction = (levelsList, db) => {
     Array.from(levelsList.querySelectorAll("li")).forEach((levelWrapper, i) => {
         const level = Number(levelWrapper.innerText);
         if (!isNaN(level) && i !== 1) {
-            levelWrapper.addEventListener("click", () => {                                
+            levelWrapper.addEventListener("click", () => {      
+                listsVisibility();
+
                 const newLevelsChooser = document.createElement("ul");
                 newLevelsChooser.classList.add("levels-chooser");
                 levelsChooser(level, newLevelsChooser);
@@ -457,17 +467,16 @@ document.addEventListener("click", e => {
             // hide all other menus
             Array.from(document.querySelectorAll(".menu-popup")).forEach(otherMenu => {
                 if (!otherMenu.isEqualNode(menu)) {
-                    otherMenu.classList.add("hidden");
+                    otherMenu.classList.remove("slide-from-right");
                     clearMenu(otherMenu);
                 }
             });
 
-            if (menu.classList.contains("hidden"))
-                menu.classList.remove("hidden");
+            menu.classList.add("slide-from-right");
 
             const title = target.closest(".menu-option").title;
             if (menu.querySelector("p").innerText === title) {
-                menu.classList.add("hidden");
+                menu.classList.remove("slide-from-right");
                 clearMenu(menu);
             }
             else {
@@ -487,6 +496,12 @@ document.addEventListener("click", e => {
                 }
             }
         }
+    }
+    else if (!target.closest(".menu-popup") && !target.closest(".menu-option")) {
+        Array.from(document.querySelectorAll(".menu-popup")).forEach(menu => {
+            menu.classList.remove("slide-from-right");
+            clearMenu(menu);
+        });
     }
 
     // show info on level up prediciton
@@ -533,7 +548,7 @@ document.addEventListener("input", e => {
     if (target.closest(".menu-popup")) {
         const menu = target.closest(".menu-popup");
         const tab = menu.closest(".subject-tab");
-        const title = tab.firstElementChild.innerText;
+        const title = tab.querySelector(".menu-label > div:first-child").innerText;
         const menuTitle = target.closest(".menu-popup").querySelector("p").innerText;
 
         let keys = [Object.keys(menuSettings).filter(k => title.toLowerCase().includes(k))[0]];
@@ -556,14 +571,8 @@ const applyChanges = () => {
         const tab = Array.from(document.querySelectorAll(".subject-tab")).filter(tab => tab.firstElementChild.innerText.toLowerCase().includes(type))[0];
         if (tab) {
             Object.keys(menuSettings[type]).forEach(key => {
-                const title = type.charAt(0).toUpperCase()+type.slice(1);
-                if (key === "opened") {
-                    if (menuSettings[type][key] == false) {
-                        const closeArrow = tab.querySelector("div[title='Close']");
-                        closeArrowAction(closeArrow, tab.nextElementSibling, type);
-                    }
-                }
-                else {
+                if (key !== "opened") {
+                    const title = type.charAt(0).toUpperCase()+type.slice(1);
                     Object.keys(menuSettings[type][key]).forEach(property => {
                         if (menuSettings[type][key][property] !== defaultSettings["profile_menus"][type][key][property]) {                                                
                             let keys = [Object.keys(menuSettings).filter(k => title.toLowerCase().includes(k))[0]];
@@ -574,6 +583,19 @@ const applyChanges = () => {
                     });
                 }
             });
+        }
+    });
+}
+
+const listsVisibility = () => {
+    Object.keys(menuSettings).forEach(type => {
+        const tab = Array.from(document.querySelectorAll(".subject-tab")).filter(tab => tab.firstElementChild.innerText.toLowerCase().includes(type))[0];
+        if (tab) {
+            const opened = menuSettings[type]["opened"];
+            if (opened == false) {
+                const closeArrow = tab.querySelector("div[title='Close'] i");
+                closeArrowAction(closeArrow, tab.nextElementSibling, type);
+            }
         }
     });
 }
@@ -620,7 +642,7 @@ const menuActions = (tab, subjectsType, menuTitle, property, keys, value) => {
             if (subjectsType === "All")
                 subjects = document.querySelectorAll(".subject-container > ul li");
 
-            switch(property) {    
+            switch(property) {
                 case "color_by":
                     colorings(subjects, value);
                     keys.forEach(key => menuSettings[key]["menu"]["color_by"] = value);
