@@ -28,69 +28,72 @@
 				this.expand();
 
 			// if hovering over a kanji card
-			if (node.classList.contains("sd-detailsPopup_vocab_row") || node.classList.contains("sd-detailsPopup_kanji_row") || (node.classList.contains("sd-detailsPopup_cards") && (node.parentElement.parentElement.classList.contains("sd-detailsPopup_kanji_row") || node.parentElement.parentElement.classList.contains("sd-detailsPopup_vocab_row")))) {
+			if (node.closest(".sd-detailsPopup_cardRow") && !node.closest(".sd-detailsPopup_cardSideBar")) {
 				this.wrapper.querySelectorAll(".sd-itemLevelCard").forEach(levelCard => levelCard.style.setProperty("display", "inline", "important"));
 				this.wrapper.querySelectorAll(".sd-detailsPopup_cardRow").forEach(card => card.style.setProperty("filter", "brightness(0.5)", "important"));
 				this.wrapper.querySelectorAll(".sd-detailsPopup_cardSideBar").forEach(node => node.remove());
-				const target = node.classList.contains("sd-detailsPopup_cards") ? node.parentElement.parentElement : node;
-				target.style.setProperty("filter", "unset", "important");
-				const type = target.classList.contains("sd-detailsPopup_vocab_row") ? "vocabulary" : "kanji";
-				let id = "";
-				target.childNodes.forEach(child => {
-					if (child.tagName == "A")
-						id = child.childNodes[0].getAttribute("data-item-id");
-		
-					if (child.classList.contains("sd-itemLevelCard"))
-						child.style.setProperty("display", "none", "important")
-				});
-		
-				if (target.childNodes.length <= 4) {
-					const sideBar = document.createElement("div");
-					target.appendChild(sideBar);
-					sideBar.classList.add("sd-detailsPopup_cardSideBar");
-					const ul = document.createElement("ul");
-					sideBar.appendChild(ul);
-					const classes = ["sd-detailsPopup_cardSideBarAudio", "sd-detailsPopup_cardSideBarInfo", "sd-detailsPopup_cardSideBarCopy"];
-					const icons = ["https://i.imgur.com/wjbObC4.png", "https://i.imgur.com/z5eKtlN.png", "https://i.imgur.com/kVFZ6bP.png"];
-					if (type == "kanji") {
-						classes.shift();
-						icons.shift();
-					}
-					for (const [i, src] of icons.entries()) {
-						const li = document.createElement("li");
-						ul.appendChild(li);
-						li.classList.add("sd-detailsPopup_clickable" ,classes[i]);
-						const img = document.createElement("img");
-						li.appendChild(img);
-						li.title = "Subject "+classes[i].split("sd-detailsPopup_cardSideBar")[1];
-						img.classList.add("sd-detailsPopup_cardSideBar_icon");
-						img.src = src;
-					}
+				const target = node.closest(".sd-detailsPopup_cardRow");
+				if (target) {
+					target.style.setProperty("filter", "unset", "important");
+					const type = target.dataset.type;
+					let id = "";
+					Array.from(target.children).forEach(child => {
+						if (child.tagName == "A")
+							id = child.children[0].getAttribute("data-item-id");
+			
+						if (child.classList.contains("sd-itemLevelCard"))
+							child.style.setProperty("display", "none", "important")
+					});
+			
+					if (target.children.length <= 4) {
+						const sideBar = document.createElement("div");
+						target.appendChild(sideBar);
+						sideBar.classList.add("sd-detailsPopup_cardSideBar");
+						const ul = document.createElement("ul");
+						sideBar.appendChild(ul);
+						const classes = ["sd-detailsPopup_cardSideBarAudio", "sd-detailsPopup_cardSideBarInfo", "sd-detailsPopup_cardSideBarCopy"];
+						const icons = ["https://i.imgur.com/wjbObC4.png", "https://i.imgur.com/z5eKtlN.png", "https://i.imgur.com/kVFZ6bP.png"];
+						if (!type.includes("vocab")) {
+							classes.shift();
+							icons.shift();
+						}
 
-					const list = this.other[id];
-					if (list) {
-						const srsId = list["srs_stage"] < 0 || list["srs_stage"] > 9 ? null : list["srs_stage"];
-						if (srsId != null) {
-							const srsLi = document.createElement("li");
-							ul.appendChild(srsLi);
-							srsLi.style.setProperty("font-weight", "900", "important");
-							srsLi.title = "SRS Stage";
-							srsLi.appendChild(document.createTextNode(srsStages[srsId]["short"]));
-							srsLi.style.setProperty("color", `var(--${srsStages[srsId]["short"].toLowerCase()}-color)`);
-							srsLi.style.setProperty("font-size", "13px", "important")
+						for (const [i, src] of icons.entries()) {
+							const li = document.createElement("li");
+							ul.appendChild(li);
+							li.classList.add("sd-detailsPopup_clickable" ,classes[i]);
+							const img = document.createElement("img");
+							li.appendChild(img);
+							li.title = "Subject "+classes[i].split("sd-detailsPopup_cardSideBar")[1];
+							img.classList.add("sd-detailsPopup_cardSideBar_icon");
+							img.src = src;
 						}
 	
-						const levelLi = document.createElement("li");
-						ul.appendChild(levelLi);
-						levelLi.style.setProperty("font-weight", "900", "important")
-						levelLi.title = "Subject Level";
-						levelLi.appendChild(document.createTextNode(list["level"]));
-					}	
+						const list = this.other[id];
+						if (list) {
+							const srsId = list["srs_stage"] < 0 || list["srs_stage"] > 9 ? null : list["srs_stage"];
+							if (srsId != null) {
+								const srsLi = document.createElement("li");
+								ul.appendChild(srsLi);
+								srsLi.style.setProperty("font-weight", "900", "important");
+								srsLi.title = "SRS Stage";
+								srsLi.appendChild(document.createTextNode(srsStages[srsId]["short"]));
+								srsLi.style.setProperty("color", `var(--${srsStages[srsId]["short"].toLowerCase()}-color)`);
+								srsLi.style.setProperty("font-size", "13px", "important")
+							}
+		
+							const levelLi = document.createElement("li");
+							ul.appendChild(levelLi);
+							levelLi.style.setProperty("font-weight", "900", "important")
+							levelLi.title = "Subject Level";
+							levelLi.appendChild(document.createTextNode(list["level"]));
+						}	
+				}
 				}
 			}
 			
 			// if hovering outside kanji card wrapper
-			if (node && !(node.classList.contains("sd-detailsPopup_cardRow") || (node.parentElement && node.parentElement.classList.contains("sd-detailsPopup_cardRow")) || node.classList.contains("sd-detailsPopup_cards") || (node.parentElement && node.parentElement.classList.contains("sd-detailsPopup_cardSideBar")) || (node. parentElement && node.parentElement.parentElement && node.parentElement.parentElement.classList.contains("sd-detailsPopup_cardSideBar")) || (node.parentElement && node.parentElement.parentElement && node.parentElement.parentElement.parentElement && node.parentElement.parentElement.parentElement.classList.contains("sd-detailsPopup_cardSideBar")))) {
+			if (!node.closest(".sd-detailsPopup_cardRow") && !node.closest(".sd-detailsPopup_cardSideBar")) {
 				this.wrapper.querySelectorAll(".sd-itemLevelCard").forEach(levelCard => levelCard.style.removeProperty("display"));
 				this.wrapper.querySelectorAll(".sd-detailsPopup_cardRow").forEach(card => card.style.removeProperty("filter"));
 				this.wrapper.querySelectorAll(".sd-detailsPopup_cardSideBar").forEach(node => node.remove());
@@ -200,9 +203,15 @@
 					
 			}
 			
-			// if clicking on navbar li
-			if (node.closest(".sd-popupDetails_navbar") && node.tagName === "LI") {
-				node.querySelector("div").click();
+			// navbar buttons
+			if (node.closest(".sd-popupDetails_navbar li")) {
+				const li = node.closest(".sd-popupDetails_navbar li");
+				const value = li.title.split(" ")[0];
+				if (value) {
+					const section = this.detailsPopup.querySelector(`#sd-popupDetails_${value}Section`);
+					if (section)
+						this.detailedInfoWrapper.scrollTo(0, section.offsetTop);
+				}
 			}
 
 			// dmak clicks
@@ -313,16 +322,9 @@
 					Array.from(this.detailedInfoWrapper).forEach(wrapper => wrapper.remove());
 				
 				if (this.expanded) {
-					let detailedInfo;
-					if (this.type == "radical")
-						detailedInfo = this.radicalDetailedInfo(this.subject);
-					else if (this.type == "kanji")
-						detailedInfo = this.kanjiDetailedInfo(this.subject);
-					else if (this.type == "vocabulary" || this.type == "kana_vocabulary")
-						detailedInfo = this.vocabDetailedInfo(this.subject);
-					
-					if (detailedInfo)
-						this.detailsPopup.appendChild(detailedInfo);
+					const detailsInfo = this.detailsInfoContainer(this.subject);
+					if (detailsInfo)
+						this.detailsPopup.appendChild(detailsInfo);
 
 					// show kanji container buttons
 					const buttons = Array.from(this.detailsPopup.getElementsByClassName("sd-detailsPopupButton"));
@@ -364,17 +366,9 @@
 			}, 200);
 
 			if (itemWrapper) {
-				const type = itemWrapper.querySelector(".sd-detailsPopup_kanji").getAttribute('data-item-type');
-				let detailedInfo;
-				if (type == "radical")
-					detailedInfo = this.radicalDetailedInfo(this.subject);
-				else if (type == "kanji")
-					detailedInfo = this.kanjiDetailedInfo(this.subject);
-				else if (type == "vocabulary" || type == "kana_vocabulary")
-					detailedInfo = this.vocabDetailedInfo(this.subject);
-				
-				if (detailedInfo)
-					this.detailsPopup.appendChild(detailedInfo);
+				const detailsInfo = this.detailsInfoContainer(this.subject);
+				if (detailsInfo)
+					this.detailsPopup.appendChild(detailsInfo);
 			
 				// show kanji container buttons
 				const buttons = Array.from(this.detailsPopup.querySelectorAll(".sd-detailsPopupButton"));
@@ -415,465 +409,150 @@
 				}
 			}
 		},
-		// radical detailed info container
-		radicalDetailedInfo: function (radicalInfo) {
-			// detailed info section
+		detailsInfoContainer: function (subject) {
 			this.detailedInfoWrapper = document.createElement("div");
 			this.detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
-			
-			// if (radicalInfo["hidden_at"])
-			// 	this.detailedInfoWrapper.parentElement.style.filter = "contrast(5)";
 
-			const updateMarginTop = () => {
-				let kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
-				// if (kanjiWrapper)
-				// 	this.detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
-				return kanjiWrapper;
-			}
-
-			if (!updateMarginTop()) {
-				const updater = setInterval(() => {
-					if (updateMarginTop()) clearInterval(updater);
-				}, 200);
-			}
-
+			// navbar
 			const sections = [["Info", "https://i.imgur.com/E6Hrw7w.png"], ["Cards", "https://i.imgur.com/r991llA.png"]];
-			if (radicalInfo["stats"]) sections.push(["Statistics", "https://i.imgur.com/Ufz4G1K.png"]);
-			if (radicalInfo["timestamps"]) sections.push(["Timestamps", "https://i.imgur.com/dcT0L48.png"]);
-			// navbar
-			if (this.expanded)
-				this.detailedInfoWrapper.appendChild(navbar(this.detailedInfoWrapper, sections));
-			else
-				setTimeout(() => this.detailedInfoWrapper.appendChild(navbar(this.detailedInfoWrapper, sections)), 200);
+			if (subject.stats) sections.push(["Statistics", "https://i.imgur.com/Ufz4G1K.png"]);
+			if (subject.timestamps) sections.push(["Timestamps", "https://i.imgur.com/dcT0L48.png"]);
+			const navbar = /*html*/`
+				<div class="sd-popupDetails_navbar">
+					<ul>
+						${sections.map(section => /*html*/`
+							<li title="${section[0]} (${section[0][0].toUpperCase()})" class="sd-detailsPopup_clickable" style="${section[0] == "Info" ? "background-color: #d73267;" : ""}">
+								<div>
+									<img src="${section[1]}" style="${section[0] == "Info" ? "filter: invert(1);" : ""}">
+								</div>
+							</li>
+						`).join('')}
+					</ul>
+				</div>
+			`;
+
+			// quick reviews stats
+			const statsImages = ["https://i.imgur.com/vsRTIFA.png", "https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
+			const quickStats = subject.stats ? quickRevStats(["Overall", "Meaning", "Reading"], statsImages, subject.stats) : "";
 
 			// details container
-			const details = document.createElement("div");
-			details.style.setProperty("padding", "45px 15px", "important");
-			details.style.setProperty("margin-bottom", "185px", "important");
-			details.classList.add("sd-popupDetails_details");
-			this.detailedInfoWrapper.appendChild(details);
-		
-			const infoSection = document.createElement("div");
-			details.appendChild(infoSection);
-			infoSection.id = "sd-popupDetails_InfoSection";
-			infoSection.classList.add("sd-popupDetails_anchor");
-
-			// level container
-			const level = document.createElement("div");
-			const levelTitle = document.createElement("strong");
-			levelTitle.appendChild(document.createTextNode(`Level ${radicalInfo["level"]} radical`));
-			level.appendChild(levelTitle);
-			details.appendChild(level);
-			
-			// srs stage container
-			const srsStage = document.createElement("div");
-			details.appendChild(srsStage);
-			const srsStageText = document.createElement("strong");
-			srsStage.appendChild(srsStageText);
-			const srsStageId = radicalInfo["srs_stage"];
-			if (radicalInfo["hidden_at"]) {
-				srsStageText.appendChild(document.createTextNode("Legacy"));
-				srsStageText.style.setProperty("color", "yellow", "important");
-				srsStageText.title = "This subject no longer shows up in lessons or reviews, since "+radicalInfo["hidden_at"].split("T")[0]+".";
+			const srsSectionData = {
+				"legacy": {text: "Legacy", color: "yellow", title: `This subject no longer shows up in lessons or reviews, since ${subject.hidden_at?.split("T")[0]}.`, icon: "https://i.imgur.com/YQVUCpW.png"},
+				"progress": {text: srsStages[subject.srs_stage]?.name, color: `var(--${srsStages[subject.srs_stage]?.short.toLowerCase()}-color)`, title: subject.passed_at ? `Subject passed ${daysPassed(new Date() - new Date(subject.passed_at))}.` : "", icon: subject.passed_at ? "https://i.imgur.com/a0lyk8f.png" : ""},
+				"locked": {text: "Locked", color: `var(--${srsStages[0].short.toLowerCase()}-color)`, title: "", icon: null},
 			}
-			else if (srsStageId >= 0 && srsStageId <= 9) {
-				srsStageText.appendChild(document.createTextNode(srsStages[srsStageId]["name"]));
-				srsStageText.style.setProperty("color", `var(--${srsStages[srsStageId]["short"].toLowerCase()}-color)`, "important");				
+			const srsSection = subject.hidden_at ? srsSectionData["legacy"]
+							: subject.srs_stage >= 0 && subject.srs_stage <= 9 ? srsSectionData["progress"]
+							: srsSectionData["locked"];
+
+			const details = /*html*/`
+				<div class="sd-popupDetails_details" style="padding: 45px 15px; margin-bottom: 185px; position: relative;">
+				 	<!-- AUDIO -->
+					${subject.pronunciation_audios ? /*html*/`
+						<div class="sd-detailsPopup_clickable sd-detailsPopup_subjectAudio" title="Subject Audio" style="position: absolute; top: 45px; right: 10px; filter: invert(1);">
+							<img src="https://i.imgur.com/ETwuWqJ.png" style="width: 18px;">
+						</div>
+					` : ""} 
+
+				 	<!-- INFO SECTION -->
+					<div id="sd-popupDetails_InfoSection" class="sd-popupDetails_anchor"></div>
+					<!-- LEVEL -->
+					<div><strong>Level ${subject.level} ${subject.subject_type.split("_").join(" ")}</strong></div>
+					<!-- SRS STAGE -->
+					<div title="${srsSection.title}" class="sd-detailsPopup_label-img">
+						<strong style="color: ${srsSection.color}">${srsSection.text}</strong>
+						${srsSection.icon ? `<img src="${srsSection.icon}" style="width: 13px;">` : ""}
+					</div>
+					<!-- JLPT & JOYO -->
+					${subject.jlpt || subject.joyo ? /*html*/`<div title="JLPT, Joyo" style="color: #b8b8b8;">${subject.jlpt || "" }${subject.jlpt && subject.joyo ? "," : ""} ${subject.joyo || "" }</div>` : ""}
+					<!-- PARTS OF SPEECH -->
+					${subject.parts_of_speech ? /*html*/`<div title="Parts of Speech" style="color: #b8b8b8;">${subject.parts_of_speech[0][0].toUpperCase() + subject.parts_of_speech.join(", ").slice(1)}</div>`: ""}
+
+					<!-- MEANING -->
+					<div><strong class="sd-popupDetails_kanjiTitle">${subject.meanings.join(", ")}</strong></div>
+					
+					<!-- STROKES -->
+					${this.strokes ? /*html*/`<div class="sd-popupDetails_strokes"></div>` : ""}
+					
+					<!-- MEANING MNEMONIC -->
+					${subject.meaning_mnemonic ? infoTable("Meaning Mnemonic", [subject.meaning_mnemonic, subject.meaning_hint]) : ""}
+					<!-- READING MNEMONIC -->
+					${subject.reading_mnemonic ? infoTable("Reading Mnemonic", [subject.reading_mnemonic, subject.reading_hint]) : ""}
+					
+					<!-- CARDS SECTION -->
+					<div id="sd-popupDetails_CardsSection" class="sd-popupDetails_anchor"></div>
+					<!-- COMPONENT_SUBJECTS CARDS -->
+					${subject.component_subject_ids ? itemCardsSection(subject, "component_subject_ids", "Used Radicals", "sd-detailsPopup_kanji_row", this.other) : ""}
+					<!-- VISUALLY_SIMILAR_SUBJECTS CARDS -->
+					${subject.visually_similar_subject_ids ? itemCardsSection(subject, "visually_similar_subject_ids", "Similar Kanji", "sd-detailsPopup_kanji_row", this.other) : ""}
+					<!-- AMALGAMATION SUBJECTS CARDS -->
+					${subject.amalgamation_subject_ids ? itemCardsSection(subject, "amalgamation_subject_ids", "Included in Subjects", "sd-detailsPopup_kanji_row", this.other) : ""}
+					
+					<!-- CONTEXT SENTENCES -->
+					${subject.context_sentences ? contextSentences(subject.context_sentences) : ""}		
+
+					<!-- STATISTICS SECTION -->
+					<div id="sd-popupDetails_StatisticsSection" class="sd-popupDetails_anchor"></div>
+					<!-- STATISTICS -->
+					${subject.stats ? revStats(subject.stats) : ""}
+					
+					<!-- TIMESTAMPS SECTION -->
+					<div id="sd-popupDetails_TimestampsSection" class="sd-popupDetails_anchor"></div>
+					<!-- TIMESTAMPS -->
+					${subject.timestamps ? timestamps(subject.timestamps) : ""}
+				</div>
+			`;
+
+			this.detailedInfoWrapper.insertAdjacentHTML("beforeend", `
+				${navbar}
+				${quickStats}
+				${details}
+			`);
+
+
+			// PLAY AUDIO
+			if (subject.pronunciation_audios) {
+				const audioButton = this.detailedInfoWrapper.querySelector(".sd-detailsPopup_subjectAudio");
+				audioButton.addEventListener("click", () => playSubjectAudio(subject.pronunciation_audios, audioButton));
 			}
-			else {
-				srsStageText.appendChild(document.createTextNode("Locked"));
-				srsStageText.style.setProperty("color", `var(--${srsStages[0]["short"].toLowerCase()}-color)`, "important");				
+
+			// STROKES DRAW
+			if (this.strokes) {
+				const strokesWrapper = this.detailedInfoWrapper.querySelector(".sd-popupDetails_strokes");
+				this.kanjiDrawing(subject.characters, strokesWrapper);
 			}
 
-			// meaning container
-			const meaning = document.createElement("div");
-			meaning.classList.add("sd-popupDetails_kanjiTitle");
-			const meaningTitle = document.createElement("strong");
-			meaningTitle.appendChild(document.createTextNode(radicalInfo["meanings"].join(", ")));
-			meaning.appendChild(meaningTitle);
-			details.appendChild(meaning);
-
-			// strokes container
-			if (this.strokes)
-				details.appendChild(this.kanjiDrawing(radicalInfo["characters"]));
-
-			// meaning mnemonic container
-			details.appendChild(infoTable("Meaning Mnemonic", [radicalInfo["meaning_mnemonic"], radicalInfo["meaning_hint"]]));
-
-			const cardsSection = document.createElement("div");
-			details.appendChild(cardsSection);
-			cardsSection.id = "sd-popupDetails_CardsSection";
-			cardsSection.classList.add("sd-popupDetails_anchor");
-			
-			// amalgamation subjects cards
-			details.appendChild(itemCardsSection(radicalInfo, "amalgamation_subject_ids", "Kanji", "sd-detailsPopup_kanji_row", this.other));
-
-			const statsSection = document.createElement("div");
-			details.appendChild(statsSection);
-			statsSection.id = "sd-popupDetails_StatisticsSection";
-			statsSection.classList.add("sd-popupDetails_anchor");
-
-			if (radicalInfo["stats"]) {
-				const statsImages = ["https://i.imgur.com/vsRTIFA.png", "https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
-
-				const quickStats = quickRevStats(["Overall", "Meaning", "Reading"], statsImages);
-				this.detailedInfoWrapper.insertBefore(quickStats, details);
-				
-				details.appendChild(revStats(radicalInfo["stats"], quickStats.getElementsByTagName("ul")[0]));
+			// NAVBAR INTERACTIONS
+			const navbarHighlightChanger = li => {
+				if (li && li.parentElement) {
+					Array.from(li.parentElement.children).forEach(child => {
+						child.style.removeProperty("background-color");
+						child.getElementsByTagName("img")[0].style.removeProperty("filter");
+					});
+					li.style.setProperty("background-color", "#d73267", "important");
+					li.getElementsByTagName("img")[0].style.setProperty("filter", "invert(1)", "important");
+				}	
 			}
-
-			const timestampsSection = document.createElement("div");
-			details.appendChild(timestampsSection);
-			timestampsSection.id = "sd-popupDetails_TimestampsSection";
-			timestampsSection.classList.add("sd-popupDetails_anchor");
-
-			if (radicalInfo["timestamps"]) {
-				const timestampsWrapper = infoTable("Timestamps", []);
-				details.appendChild(timestampsWrapper);
-				const images = ["https://i.imgur.com/fszQn7s.png", "https://i.imgur.com/Pi3fG6f.png", "https://i.imgur.com/bsZwaVy.png", "https://i.imgur.com/x7ialfz.png", "https://i.imgur.com/a0lyk8f.png", "https://i.imgur.com/VKoEfQD.png", "https://i.imgur.com/pXqcusW.png", "https://i.imgur.com/1EA2EWP.png"];
-				timestampsWrapper.appendChild(timestamps(radicalInfo["hidden_at"] ? {...radicalInfo["timestamps"], ...{"legacy":radicalInfo["hidden_at"]}} : radicalInfo["timestamps"], radicalInfo["hidden_at"] ? [...images, ...["https://i.imgur.com/YQVUCpW.png"]] : images, srsStage));
-			}
+	
+			// navbar changes on scroll
+			this.detailedInfoWrapper.addEventListener("scroll", e => {
+				const navbarUl = this.detailsPopup.querySelector(".sd-popupDetails_navbar ul");
+				const scrollTop = e.target.scrollTop;
+	
+				const cardsSection = this.detailsPopup.querySelector("#sd-popupDetails_CardsSection");
+				const statsSection = this.detailsPopup.querySelector("#sd-popupDetails_StatisticsSection");
+				const timestampsSection = this.detailsPopup.querySelector("#sd-popupDetails_TimestampsSection");
+	
+				if (cardsSection && scrollTop < cardsSection.offsetTop) navbarHighlightChanger(navbarUl.children[0]);
+				if (cardsSection && statsSection && scrollTop >= cardsSection.offsetTop && scrollTop < statsSection.offsetTop) navbarHighlightChanger(navbarUl.children[1]);
+				if (statsSection && timestampsSection && scrollTop >= statsSection.offsetTop && scrollTop < timestampsSection.offsetTop) navbarHighlightChanger(navbarUl.children[2]);
+				if (timestampsSection && scrollTop >= timestampsSection.offsetTop) navbarHighlightChanger(navbarUl.children[3]);
+			});
 
 			this.detailedInfoWrapper.scrollTo(0, 0);
+			
 			return this.detailedInfoWrapper;
 		},
-		// kanji detailed info container
-		kanjiDetailedInfo: function (kanjiInfo) {
-			// detailed info section
-			this.detailedInfoWrapper = document.createElement("div");
-			this.detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
-			
-			// if (kanjiInfo["hidden_at"])
-			// 	this.detailedInfoWrapper.parentElement.style.filter = "contrast(5)";
-
-			const updateMarginTop = () => {
-				let kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
-				// if (kanjiWrapper)
-				// 	this.detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
-				return kanjiWrapper;
-			}
-
-			if (!updateMarginTop()) {
-				const updater = setInterval(() => {
-					if (updateMarginTop()) clearInterval(updater);
-				}, 200);
-			}
-
-			const sections = [["Info", "https://i.imgur.com/E6Hrw7w.png"], ["Cards", "https://i.imgur.com/r991llA.png"]];
-			if (kanjiInfo["stats"]) sections.push(["Statistics", "https://i.imgur.com/Ufz4G1K.png"]);
-			if (kanjiInfo["timestamps"]) sections.push(["Timestamps", "https://i.imgur.com/dcT0L48.png"]);
-			// navbar
-			if (this.expanded)
-				this.detailedInfoWrapper.appendChild(navbar(this.detailedInfoWrapper, sections));
-			else
-				setTimeout(() => this.detailedInfoWrapper.appendChild(navbar(this.detailedInfoWrapper, sections)), 200);
-
-			// details container
-			const details = document.createElement("div");
-			details.style.setProperty("padding", "45px 15px", "important");
-			details.style.setProperty("margin-bottom", "185px", "important");
-			details.classList.add("sd-popupDetails_details");
-			this.detailedInfoWrapper.appendChild(details);
-		
-			const infoSection = document.createElement("div");
-			details.appendChild(infoSection);
-			infoSection.id = "sd-popupDetails_InfoSection";
-			infoSection.classList.add("sd-popupDetails_anchor");
-
-			// level container
-			const level = document.createElement("div");
-			const levelTitle = document.createElement("strong");
-			levelTitle.appendChild(document.createTextNode(`Level ${kanjiInfo["level"]} kanji`));
-			level.appendChild(levelTitle);
-			details.appendChild(level);
-			
-			// srs stage container
-			const srsStage = document.createElement("div");
-			details.appendChild(srsStage);
-			const srsStageText = document.createElement("strong");
-			srsStage.appendChild(srsStageText);
-			const srsStageId = kanjiInfo["srs_stage"];
-			if (kanjiInfo["hidden_at"]) {
-				srsStageText.appendChild(document.createTextNode("Legacy"));
-				srsStageText.style.setProperty("color", "yellow", "important");
-				srsStageText.title = "This subject no longer shows up in lessons or reviews, since "+kanjiInfo["hidden_at"].split("T")[0]+".";
-			}
-			else if (srsStageId >= 0 && srsStageId <= 9) {
-				srsStageText.appendChild(document.createTextNode(srsStages[srsStageId]["name"]));
-				srsStageText.style.setProperty("color", `var(--${srsStages[srsStageId]["short"].toLowerCase()}-color)`, "important");				
-			}
-			else {
-				srsStageText.appendChild(document.createTextNode("Locked"));
-				srsStageText.style.setProperty("color", `var(--${srsStages[0]["short"].toLowerCase()}-color)`, "important");				
-			}
-
-			// jlpt and joyo container
-			if (kanjiInfo["jlpt"] || kanjiInfo["joyo"]) {
-				const schoolLevel = document.createElement("div");
-				details.appendChild(schoolLevel);
-				if (kanjiInfo["joyo"]) {
-					schoolLevel.appendChild(document.createTextNode(kanjiInfo["joyo"]));
-					schoolLevel.title = "Joyo";
-				}
-
-				if (kanjiInfo["joyo"] && kanjiInfo["jlpt"]) {
-					schoolLevel.appendChild(document.createTextNode(", "));
-					schoolLevel.title += ", ";
-				}
-
-				if (kanjiInfo["jlpt"]) {
-					schoolLevel.appendChild(document.createTextNode(kanjiInfo["jlpt"]));
-					schoolLevel.title += "JLPT";
-				}
-				schoolLevel.style.setProperty("color", "#b8b8b8", "important");
-			}
-
-			// meaning container
-			const meaning = document.createElement("div");
-			meaning.classList.add("sd-popupDetails_kanjiTitle");
-			const meaningTitle = document.createElement("strong");
-			meaningTitle.appendChild(document.createTextNode(kanjiInfo["meanings"].join(", ")));
-			meaning.appendChild(meaningTitle);
-			details.appendChild(meaning);
-
-			// strokes container
-			if (this.strokes)
-				details.appendChild(this.kanjiDrawing(kanjiInfo["characters"]));
-
-			// meaning mnemonic container
-			details.appendChild(infoTable("Meaning Mnemonic", [kanjiInfo["meaning_mnemonic"], kanjiInfo["meaning_hint"]]));
-		
-			// reading mnemonic container
-			details.appendChild(infoTable("Reading Mnemonic", [kanjiInfo["reading_mnemonic"], kanjiInfo["reading_hint"]]));
-			
-			const cardsSection = document.createElement("div");
-			details.appendChild(cardsSection);
-			cardsSection.id = "sd-popupDetails_CardsSection";
-			cardsSection.classList.add("sd-popupDetails_anchor");
-			
-			// used radicals cards
-			details.appendChild(itemCardsSection(kanjiInfo, "component_subject_ids", "Used Radicals", "sd-detailsPopup_kanji_row", this.other));
-		
-			// similar kanji cards
-			details.appendChild(itemCardsSection(kanjiInfo, "visually_similar_subject_ids", "Similar Kanji", "sd-detailsPopup_kanji_row", this.other));
-		
-			// vocabulary with that kanji
-			details.appendChild(itemCardsSection(kanjiInfo, "amalgamation_subject_ids", "Vocabulary", "sd-detailsPopup_vocab_row", this.other));
-		
-			const statsSection = document.createElement("div");
-			details.appendChild(statsSection);
-			statsSection.id = "sd-popupDetails_StatisticsSection";
-			statsSection.classList.add("sd-popupDetails_anchor");
-
-			if (kanjiInfo["stats"]) {
-				const statsImages = ["https://i.imgur.com/vsRTIFA.png", "https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
-
-				const quickStats = quickRevStats(["Overall", "Meaning", "Reading"], statsImages);
-				this.detailedInfoWrapper.insertBefore(quickStats, details);
-				
-				details.appendChild(revStats(kanjiInfo["stats"], quickStats.getElementsByTagName("ul")[0]));
-			}
-
-			const timestampsSection = document.createElement("div");
-			details.appendChild(timestampsSection);
-			timestampsSection.id = "sd-popupDetails_TimestampsSection";
-			timestampsSection.classList.add("sd-popupDetails_anchor");
-
-			if (kanjiInfo["timestamps"]) {
-				const timestampsWrapper = infoTable("Timestamps", []);
-				details.appendChild(timestampsWrapper);
-				const images = ["https://i.imgur.com/fszQn7s.png", "https://i.imgur.com/Pi3fG6f.png", "https://i.imgur.com/bsZwaVy.png", "https://i.imgur.com/x7ialfz.png", "https://i.imgur.com/a0lyk8f.png", "https://i.imgur.com/VKoEfQD.png", "https://i.imgur.com/pXqcusW.png", "https://i.imgur.com/1EA2EWP.png"];
-				timestampsWrapper.appendChild(timestamps(kanjiInfo["hidden_at"] ? {...kanjiInfo["timestamps"], ...{"legacy":kanjiInfo["hidden_at"]}} : kanjiInfo["timestamps"], kanjiInfo["hidden_at"] ? [...images, ...["https://i.imgur.com/YQVUCpW.png"]] : images, srsStage));
-			}
-
-			this.detailedInfoWrapper.scrollTo(0, 0);
-			return this.detailedInfoWrapper;
-		},
-
-		vocabDetailedInfo: function (vocabInfo) {
-			// detailed info section
-			this.detailedInfoWrapper = document.createElement("div");
-			this.detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
-
-			// if (vocabInfo["hidden_at"])
-			// 	this.detailedInfoWrapper.parentElement.style.filter = "contrast(5)";
-			
-			const updateMarginTop = () => {
-				let kanjiWrapper = document.getElementsByClassName("sd-focusPopup_kanji")[0];
-				// if (kanjiWrapper)
-				// 	this.detailedInfoWrapper.style.setProperty("margin-top", kanjiWrapper.clientHeight+"px", "important");
-				return kanjiWrapper;
-			}
-
-			if (!updateMarginTop()) {
-				const updater = setInterval(() => {
-					if (updateMarginTop()) clearInterval(updater);
-				}, 200);
-			}
-
-			const sections = [["Info", "https://i.imgur.com/E6Hrw7w.png"]];
-			if (vocabInfo["subject_type"] == "vocabulary") sections.push(["Cards", "https://i.imgur.com/r991llA.png"]);
-			if (vocabInfo["stats"]) sections.push(["Statistics", "https://i.imgur.com/Ufz4G1K.png"]);
-			if (vocabInfo["timestamps"]) sections.push(["Timestamps", "https://i.imgur.com/dcT0L48.png"]);		
-			// navbar
-			if (this.expanded)
-				this.detailedInfoWrapper.appendChild(navbar(this.detailedInfoWrapper, sections));
-			else
-				setTimeout(() => this.detailedInfoWrapper.appendChild(navbar(this.detailedInfoWrapper, sections)), 200);
-
-			// details container
-			const details = document.createElement("div");
-			details.style.setProperty("padding", "45px 15px", "important");
-			details.style.setProperty("margin-bottom", "185px", "important");
-			details.style.setProperty("position", "relative", "important");
-			details.classList.add("sd-popupDetails_details");
-			this.detailedInfoWrapper.appendChild(details);
-
-			const audioButtonWrapper = document.createElement("div");
-			details.appendChild(audioButtonWrapper);
-			audioButtonWrapper.style.setProperty("position", "absolute", "important");
-			audioButtonWrapper.style.setProperty("top", "45px", "important");
-			audioButtonWrapper.style.setProperty("right", "10px", "important");
-			audioButtonWrapper.style.setProperty("filter", "invert(1)", "important");
-			audioButtonWrapper.classList.add("sd-detailsPopup_clickable")
-			audioButtonWrapper.title = "Subject Audio";
-			const audioButton = document.createElement("img");
-			audioButtonWrapper.appendChild(audioButton);
-			audioButton.src = "https://i.imgur.com/ETwuWqJ.png";
-			audioButton.style.setProperty("width", "18px", "important");
-
-			audioButton.addEventListener("click", () => playSubjectAudio(this.subject["pronunciation_audios"], audioButtonWrapper));
-
-			const infoSection = document.createElement("div");
-			details.appendChild(infoSection);
-			infoSection.id = "sd-popupDetails_InfoSection";
-			infoSection.classList.add("sd-popupDetails_anchor");
-
-			// level container
-			const level = document.createElement("div");
-			const levelTitle = document.createElement("strong");
-			levelTitle.appendChild(document.createTextNode(`Level ${vocabInfo["level"]} vocabulary`));
-			level.appendChild(levelTitle);
-			details.appendChild(level);
-
-			// srs stage container
-			const srsStage = document.createElement("div");
-			details.appendChild(srsStage);
-			const srsStageText = document.createElement("strong");
-			srsStage.appendChild(srsStageText);
-			const srsStageId = vocabInfo["srs_stage"];
-			if (vocabInfo["hidden_at"]) {
-				srsStageText.appendChild(document.createTextNode("Legacy"));
-				srsStageText.style.setProperty("color", "yellow", "important");
-				srsStageText.title = "This subject no longer shows up in lessons or reviews, since "+vocabInfo["hidden_at"].split("T")[0]+".";
-
-				srsStage.classList.add("sd-detailsPopup_label-img");
-				const passed = document.createElement("img");
-				srsStage.appendChild(passed);
-				passed.src = "https://i.imgur.com/YQVUCpW.png";
-				passed.style.setProperty("width", "13px", "important");
-				srsStage.title = "This subject no longer shows up in lessons or reviews, since "+vocabInfo["hidden_at"].split("T")[0]+".";
-			}
-			else if (srsStageId >= 0 && srsStageId <= 9) {
-				srsStageText.appendChild(document.createTextNode(srsStages[srsStageId]["name"]));
-				srsStageText.style.setProperty("color", `var(--${srsStages[srsStageId]["short"].toLowerCase()}-color)`, "important");				
-			}
-			else {
-				srsStageText.appendChild(document.createTextNode("Locked"));
-				srsStageText.style.setProperty("color", `var(--${srsStages[0]["short"].toLowerCase()}-color)`, "important");				
-			}
-
-			if (vocabInfo["parts_of_speech"]) {
-				const partOfSpeech = document.createElement("div");
-				details.appendChild(partOfSpeech);
-				partOfSpeech.appendChild(document.createTextNode(vocabInfo["parts_of_speech"][0].charAt(0).toUpperCase()+vocabInfo["parts_of_speech"].join(", ").slice(1)));
-				partOfSpeech.style.setProperty("color", "#b8b8b8", "important");
-			}
-
-			// meaning container
-			const meaning = document.createElement("div");
-			meaning.classList.add("sd-popupDetails_kanjiTitle");
-			const meaningTitle = document.createElement("strong");
-			meaningTitle.appendChild(document.createTextNode(vocabInfo["meanings"].join(", ")));
-			meaning.appendChild(meaningTitle);
-			details.appendChild(meaning);
-
-			// strokes container
-			if (this.strokes)
-				details.appendChild(this.kanjiDrawing(vocabInfo["characters"]));
-			
-			if (vocabInfo["meaning_mnemonic"]) {
-				// meaning mnemonic container
-				details.appendChild(infoTable("Meaning Mnemonic", [vocabInfo["meaning_mnemonic"]]));
-	
-				if (vocabInfo["subject_type"] == "vocabulary") {
-					// reading mnemonic container
-					details.appendChild(infoTable("Reading Mnemonic", [vocabInfo["reading_mnemonic"]]));
-		
-					const cardsSection = document.createElement("div");
-					details.appendChild(cardsSection);
-					cardsSection.id = "sd-popupDetails_CardsSection";
-					cardsSection.classList.add("sd-popupDetails_anchor");
-		
-					// used kanji
-					details.appendChild(itemCardsSection(vocabInfo, "component_subject_ids", "Used Kanji", "sd-detailsPopup_kanji_row", this.other));
-				}
-			}
-
-			// sentences
-			if (vocabInfo["context_sentences"]) {
-				const sentencesTable = infoTable("Example Sentences", []); 
-				details.appendChild(sentencesTable);
-				vocabInfo["context_sentences"].forEach(sentence => {
-					const wrapper = document.createElement("ul");
-					sentencesTable.appendChild(wrapper);
-					wrapper.classList.add("sd-detailsPopup_sentencesWrapper");
-	
-					const en = document.createElement("li");
-					wrapper.appendChild(en);
-					en.classList.add("sd-popupDetails_p");
-					en.style.setProperty("background-color", "#3a374a", "important");
-					en.style.setProperty("padding", "5px", "important");
-					en.appendChild(document.createTextNode(sentence["en"]));
-	
-					const ja = document.createElement("li");
-					wrapper.appendChild(ja);
-					ja.style.setProperty("padding", "0px 5px", "important");
-					ja.appendChild(document.createTextNode(sentence["ja"]));
-	
-				});
-			}
-
-			const statsSection = document.createElement("div");
-			details.appendChild(statsSection);
-			statsSection.id = "sd-popupDetails_StatisticsSection";
-			statsSection.classList.add("sd-popupDetails_anchor");
-
-			if (vocabInfo["stats"]) {
-				const statsImages = ["https://i.imgur.com/vsRTIFA.png", "https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
-
-				const quickStats = quickRevStats(["Overall", "Meaning", "Reading"], statsImages);
-				this.detailedInfoWrapper.insertBefore(quickStats, details);
-				
-				details.appendChild(revStats(vocabInfo["stats"], quickStats.getElementsByTagName("ul")[0]));
-			}
-
-			const timestampsSection = document.createElement("div");
-			details.appendChild(timestampsSection);
-			timestampsSection.id = "sd-popupDetails_TimestampsSection";
-			timestampsSection.classList.add("sd-popupDetails_anchor");
-
-			if (vocabInfo["timestamps"]) {
-				const timestampsWrapper = infoTable("Timestamps", []);
-				details.appendChild(timestampsWrapper);
-				const images = ["https://i.imgur.com/fszQn7s.png", "https://i.imgur.com/Pi3fG6f.png", "https://i.imgur.com/bsZwaVy.png", "https://i.imgur.com/x7ialfz.png", "https://i.imgur.com/a0lyk8f.png", "https://i.imgur.com/VKoEfQD.png", "https://i.imgur.com/pXqcusW.png", "https://i.imgur.com/1EA2EWP.png"];
-				timestampsWrapper.appendChild(timestamps(vocabInfo["hidden_at"] ? {...vocabInfo["timestamps"], ...{"legacy":vocabInfo["hidden_at"]}} : vocabInfo["timestamps"], vocabInfo["hidden_at"] ? [...images, ...["https://i.imgur.com/YQVUCpW.png"]] : images, srsStage));
-			}
-
-			this.detailedInfoWrapper.scrollTo(0, 0);
-			return this.detailedInfoWrapper;
-		},
-
 		charContainer: function (subject, save) {
 			const id = subject["id"];
 			const characters = subject["characters"];
@@ -1027,10 +706,7 @@
 		
 			return itemWrapper;
 		},
-		kanjiDrawing: function (kanji) {
-			const strokes = document.createElement("div");
-			strokes.classList.add("sd-popupDetails_strokes");
-			
+		kanjiDrawing: function (kanji, strokes) {
 			// close button
 			const close = /*html*/`
 				<div class="sd-detailsPopup_clickable" id="sd-detailsPopup_dmakExpandedClose" title="Close Drawing">
@@ -1084,8 +760,6 @@
 				</div>
 			`;
 			strokes.insertAdjacentHTML("beforeend", drawButtons);
-	
-			return strokes;
 		},
 		drawStrokes: function (characters, element, size) {
 			if (!characters) return;
@@ -1162,248 +836,82 @@
 
 	// Auxiliar methods
 
-	const itemCardsSection = (kanjiInfo, idsTag, title, itemCardsclass, list) => {
-		const ids = kanjiInfo[idsTag];
-		const nmrItems = ids.length;
-		const table = infoTable(`${title} (${nmrItems})`, []);
-		table.classList.add("sd-detailsPopup_sectionContainer");
-		if (nmrItems > 0)
-			table.appendChild(itemCards(ids, list, itemCardsclass, title !== "Used Kanji"));
-		else {
-			const nonefound = document.createElement("p");
-			table.appendChild(nonefound);
-			nonefound.appendChild(document.createTextNode("(None found)"));
-			nonefound.style.setProperty("font-weight", "900", "important");
-			nonefound.style.setProperty("padding", "5px", "important");
-		}
-		return table;
+	const itemCardsSection = (subject, idsTag, title, itemCardsclass, list) => {
+		return /*html*/`
+			${infoTable(`${title} (${subject[idsTag].length})`, [], [
+				itemCards(subject[idsTag], list, itemCardsclass, title !== "Used Kanji")
+			])}
+		`;
 	}
 
 	const itemCards = (ids, data, className, sorted) => {
-		const wrapper = document.createElement("ul");
-		wrapper.style.setProperty("margin-top", "10px", "important");
-		if (ids && data) {
-			let info = ids.map(id => data[id]);
-			if (info.length > 1)
-				wrapper.classList.add("sd-justify-list");
+		let info = ids.map(id => data[id]);
+		if (sorted && info)
+			info = info.sort((a,b) => a.level - b.level)
 
-			if (sorted && info)
-				info = info.sort((a,b) => a.level - b.level)
-			info.forEach(thisData => {
-				const rows = [];
-				if (thisData["meanings"]) rows.push(thisData["meanings"][0]);
-				if (thisData["readings"]) rows.push(thisData["subject_type"] == "kanji" ? thisData["readings"].filter(reading => reading["primary"])[0]["reading"] : thisData["readings"][0]);
-				const card = itemCard(thisData["characters"], rows, thisData["srs_stage"], thisData["level"]);
-				wrapper.appendChild(card);
-				card.classList.add("sd-detailsPopup_cardRow", className);
-				card.title = thisData["characters"]+" in WaniKani";
-
-				card.getElementsByTagName("A")[0].href = thisData["document_url"];
-
-				const p = card.getElementsByTagName("p")[0];
-				if (!thisData["characters"]) {
-					const imageUrl = thisData["character_images"]?.find(image => image["content_type"] == "image/svg+xml")["url"];
-					const characters = `<svg style="width: 40px; height: 40px;">       
-							<image xlink:href="${imageUrl}" src="${imageUrl}" width="40" height="40"></image>    
-						</svg>`;
-					const img = document.createElement("div");
-					img.innerHTML = characters;
-					p.appendChild(img);
-				}
-
-				p.classList.add("sd-detailsPopup_cards");
-				p.setAttribute('data-item-id', thisData.id);
-			});
-		}
-
-		return ids.length > 0 ? wrapper : document.createDocumentFragment();
+		return info.length > 0 ? /*html*/`
+			<ul style="margin-top: 10px;" class="${info.length > 1 ? "sd-justify-list" : ""}">
+				${info.map(subject => {
+					const rows = [];
+					if (subject.meanings) rows.push(subject.meanings[0]);
+					if (subject.readings) rows.push(subject.subject_type == "kanji" ? subject.readings.filter(reading => reading.primary)[0].reading : subject.readings[0]);
+					return itemCard(subject, rows, className);
+				}).join("")}
+			</ul>
+		`
+		: /*html*/`<p style="padding: 10px 5px;"><em>[None Found]</em></p>`;
 	}
 
-	const itemCard = (characters, textRows, srsId, level) => {
-		const li = document.createElement("li");
+	const itemCard = (subject, textRows, className) => {
+		const borderColor = subject.srs_stage >=0 && subject.srs_stage <= 9 ? `var(--${srsStages[subject.srs_stage].short.toLowerCase()}-color)` : "white";
 
-		const a = document.createElement("a");
-		li.appendChild(a);
-		a.target = "_blank";
-
-		const p = document.createElement("p");
-		a.appendChild(p);
-
-		if (characters) {
-			p.appendChild(document.createTextNode(characters));
-			if (characters.length > 4)
-				p.style.setProperty("font-size",(170/characters.length)+"px", "important");
-		}
-
-		if (textRows) {
-			textRows.forEach(row => {
-				if (row) {
-					const rowDiv = document.createElement("div");
-					li.appendChild(rowDiv);
-					rowDiv.appendChild(document.createTextNode(row));
-					rowDiv.style.setProperty("text-align", "center", "important");
-				}
-			});
-	
-		}
-
-		li.style.setProperty("border-top", "4px solid " + (srsId >=0 && srsId <= 9 ? `var(--${srsStages[srsId]["short"].toLowerCase()}-color)` : "white"), "important");
-
-		if (level) {
-			const levelDiv = document.createElement("div");
-			li.appendChild(levelDiv);
-			levelDiv.appendChild(document.createTextNode(level));
-			levelDiv.classList.add("sd-itemLevelCard");
-		}
-
-		return li;
+		return /*html*/`
+			<li class="sd-detailsPopup_cardRow ${className}" title="${subject.characters} in WaniKani" style="border-top: 4px solid ${borderColor}" data-type="${subject.subject_type}">
+				<a target="_blank" href="${subject.document_url}">
+					<p class="sd-detailsPopup_cards" data-item-id="${subject.id}">
+						${subject.characters ? subject.characters : `<div>${subject.characters}</div>`}
+					</p>
+				</a>
+				${textRows.map(row => row ? `<div style="text-align: center;">${row}</div>` : '').join("")}
+				${subject.level ? `<div class="sd-itemLevelCard">${subject.level}</div>` : ""}
+			</li>
+		`;
 	}
 
-	const infoTable = (titleText, paragraphs) => {
-		const wrapper = document.createElement("div");
-		wrapper.classList.add("sd-detailsPopup_sectionContainer");
-		
-		if (titleText) {
-			const title = document.createElement("strong");
-			title.classList.add("sd-popupDetails_title");
-			title.appendChild(document.createTextNode(titleText));
-			wrapper.appendChild(title);
-		}
-	
-		paragraphs.forEach(pText => {
-			const p = document.createElement("p");
-			p.classList.add("sd-popupDetails_p");
-			p.innerHTML = pText;
-			wrapper.appendChild(p);
-		});
-	
-		return wrapper;
+	const infoTable = (titleText, paragraphs, sections) => {
+		return /*html*/`
+			<div class="sd-detailsPopup_sectionContainer">
+				${titleText ? `<strong class="sd-popupDetails_title">${titleText}</strong>` : ""}
+				${paragraphs.map(p => p ? `<p class="sd-popupDetails_p">${p}</p>` : '').join("")}
+				${sections ? sections.join("") : ""}
+			</div>
+		`;
 	}
 
-	const navbar = (detailsPopup, sections) => {
-		const navbar = document.createElement("div");
-		navbar.classList.add("sd-popupDetails_navbar");
-		const navbarUl = document.createElement("ul");
-		navbar.appendChild(navbarUl);
+	const timestamps = values => {
+		const icons = ["https://i.imgur.com/fszQn7s.png", "https://i.imgur.com/Pi3fG6f.png", "https://i.imgur.com/bsZwaVy.png", "https://i.imgur.com/x7ialfz.png", "https://i.imgur.com/a0lyk8f.png", "https://i.imgur.com/VKoEfQD.png", "https://i.imgur.com/pXqcusW.png", "https://i.imgur.com/1EA2EWP.png"];
 
-		sections.forEach(info => {
-			const navbarLi = document.createElement("li");
-			navbarUl.appendChild(navbarLi);
-			navbarLi.title = info[0]+` (${info[0].charAt(0)})`;
-			navbarLi.classList.add("sd-detailsPopup_clickable");
-			const link = document.createElement("div");
-			navbarLi.appendChild(link);
-			link.addEventListener("click", () => detailsPopup.scrollTo(0, detailsPopup.querySelector(`#sd-popupDetails_${info[0]}Section`).offsetTop));
-			const icon = document.createElement("img");
-			link.append(icon);
-			icon.src = info[1];
-			
-			if (info[0] == "Info") {
-				navbarLi.style.setProperty("background-color", "#d73267", "important");
-				icon.style.setProperty("filter", "invert(1)", "important");
-			}
-		});
-
-		const navbarHighlightChanger = li => {
-			if (li && li.parentElement) {
-				Array.from(li.parentElement.children).forEach(child => {
-					child.style.removeProperty("background-color");
-					child.getElementsByTagName("img")[0].style.removeProperty("filter");
-				});
-				li.style.setProperty("background-color", "#d73267", "important");
-				li.getElementsByTagName("img")[0].style.setProperty("filter", "invert(1)", "important");
-			}	
-		}
-
-		// navbar changes on scroll
-		detailsPopup.addEventListener("scroll", e => {
-			const scrollTop = e.target.scrollTop;
-
-			const cardsSection = detailsPopup.querySelector("#sd-popupDetails_CardsSection");
-			const statsSection = detailsPopup.querySelector("#sd-popupDetails_StatisticsSection");
-			const timestampsSection = detailsPopup.querySelector("#sd-popupDetails_TimestampsSection");
-
-			if (cardsSection && scrollTop < cardsSection.offsetTop) navbarHighlightChanger(navbarUl.children[0]);
-			if (cardsSection && statsSection && scrollTop >= cardsSection.offsetTop && scrollTop < statsSection.offsetTop) navbarHighlightChanger(navbarUl.children[1]);
-			if (statsSection && timestampsSection && scrollTop >= statsSection.offsetTop && scrollTop < timestampsSection.offsetTop) navbarHighlightChanger(navbarUl.children[2]);
-			if (timestampsSection && scrollTop >= timestampsSection.offsetTop) navbarHighlightChanger(navbarUl.children[3]);
-		});
-
-		return navbar;
-	}
-
-
-	const dataLabel = (image, title) => {
-		const wrapper = document.createElement("div");
-		wrapper.classList.add("sd-detailsPopup_img-label");
-		const icon = document.createElement("img");
-		wrapper.appendChild(icon);
-		icon.src = image;
-		icon.style.setProperty("width", "22px", "important");
-		const titleElem = document.createElement("strong");
-		wrapper.appendChild(titleElem);
-		titleElem.appendChild(document.createTextNode(title));
-		titleElem.style.setProperty("font-size", "22px", "important");
-		return wrapper;
-	}
-
-	const dataRow = (title, value) => {
-		const wrapper = document.createElement("div");
-		wrapper.style.setProperty("padding-left", "8px", "important");
-		const titleElem = document.createElement("strong");
-		wrapper.appendChild(titleElem);
-		titleElem.appendChild(document.createTextNode(title+": "));
-		const valueElem = document.createElement("span");
-		wrapper.appendChild(valueElem);
-		valueElem.appendChild(document.createTextNode(value));
-		return wrapper;
-	}
-
-	const timestamps = (values, images, srsStage) => {
-		const timestampsWrapper = document.createElement("div");
-		timestampsWrapper.style.setProperty("margin-top", "10px", "important");
-		for (const key in values) {
-			const wrapper = document.createElement("div");
-			timestampsWrapper.appendChild(wrapper);
-			wrapper.style.setProperty("padding", "5px 0px", "important");
-			wrapper.style.setProperty("maring-bottom", "5px", "important");
-
-			const titleValue = key !== "data_updated_at" ? key.split("_")[0].charAt(0).toUpperCase()+key.split("_")[0].slice(1) : "Last Session";
-			wrapper.appendChild(dataLabel(images[Object.keys(values).indexOf(key)], titleValue));
-			
-			const time = document.createElement("p");
-			wrapper.appendChild(time);
-			time.style.setProperty("padding", "5px 0px 2px 8px", "important");
-			time.style.setProperty("color", "#c5c5c4", "important");
-			if (!values[key])
-				time.appendChild(document.createTextNode("No Data"));
-			else {
-				const timeValue = values[key].split(".")[0];
-				time.appendChild(document.createTextNode(timeValue.replace("T", "  ")));
-				const timePassedWrapper = document.createElement("p");
-				wrapper.appendChild(timePassedWrapper);
-				timePassedWrapper.style.setProperty("padding", "2px 0px 2px 8px", "important");
-				timePassedWrapper.style.setProperty("font-weight", "bold", "important");
-				const days = Number(msToDays(new Date() - new Date(values[key])).toFixed(0));
-				let timePassed;
-				if (days == 0) timePassed = "Today";
-				else if (days === 1) timePassed = "Yesterday";
-				else if (days === -1) timePassed = "Tomorrow";
-				else if (days < 0) timePassed = "In "+(days*-1)+((days*-1) === 1 ? " day" : " days");
-				else timePassed = days+" days ago";
-				timePassedWrapper.appendChild(document.createTextNode(timePassed));
-
-				if (key === "passed_at" && srsStage) {
-					srsStage.classList.add("sd-detailsPopup_label-img");
-					const passed = document.createElement("img");
-					srsStage.appendChild(passed);
-					passed.src = images[Object.keys(values).indexOf(key)];
-					passed.style.setProperty("width", "13px", "important");
-					srsStage.title = "Subject passed "+timePassed;
-				}
-			}
-		}
-		return timestampsWrapper;
+		return /*html*/`
+			${infoTable("Timestamps", [], [
+				/*html*/`
+					<div style="margin-top: 10px;">
+						${Object.keys(values).map((key, i) => {
+							const titleValue = key !== "data_updated_at" ? key.split("_")[0].charAt(0).toUpperCase()+key.split("_")[0].slice(1) : "Last Session";
+							return /*html*/`
+								<div style="padding: 5px 0px; margin-bottom: 5px;">
+									<div class="sd-detailsPopup_img-label">
+										<img src="${icons[i]}" style="width: 22px;">
+										<strong style="font-size: 22px;">${titleValue}</strong>
+									</div>
+									<p style="padding: 5px 0px 2px 8px; color: #c5c5c4;">${values[key] ? values[key].split(".")[0].replace("T", "  ") : "No Data"}</p>
+									<p style="padding: 2px 0px 2px 8px; font-weight: bold;">${values[key] ? daysPassed(new Date() - new Date(values[key])) : ""}</p>
+								</div>
+							`;
+						}).join("")}
+					</div>
+				`
+			])}
+		`;
 	}
 
 	const percentageColor = percentage => {
@@ -1415,83 +923,86 @@
 		return color;
 	}
 
-	const quickRevStats = (titles, images) => {
-		const quickStats = document.createElement("div");
-		quickStats.classList.add("sd-popupDetails_quickStats");
-		const quickStatsUl = document.createElement("ul");
-		quickStats.appendChild(quickStatsUl);
-		quickStatsUl.style.setProperty("display", "inline-flex", "important");
-		titles.forEach((title, i) => {
-			const quickStatsLi = document.createElement("li");
-			quickStatsUl.appendChild(quickStatsLi);
-			quickStatsLi.title = title;
-			quickStatsLi.style.setProperty("margin-left", "5px", "important");
-			quickStatsLi.classList.add("sd-detailsPopup_img-label");
-			const img = document.createElement("img");
-			quickStatsLi.appendChild(img);
-			img.src = images[i];
-			img.style.setProperty("width", "17px", "important");
-			const valueElem = document.createElement("span");
-			quickStatsLi.appendChild(valueElem);
-		});
-		return quickStats;
+	const quickRevStats = (titles, images, stats) => {
+		const percentages = [
+			stats.percentage_correct,
+			stats.meaning_correct/(stats.meaning_correct+stats.meaning_incorrect)*100,
+			stats.reading_correct/(stats.reading_correct+stats.reading_incorrect)*100
+		];
+
+		return /*html*/`
+			<div class="sd-popupDetails_quickStats">
+				<ul style="display: inline-flex !important;">
+					${titles.map((title, i) => {
+						return /*html*/`
+							<li title="${title}" style="margin-left: 5px;" class="sd-detailsPopup_img-label">
+								<img src="${images[i]}" style="width: 17px !important;">
+								<span style="color: ${percentageColor(percentages[i])}">${percentages[i].toFixed(0)}%</span>
+							</li>
+						`;
+					}).join("")}
+				</ul>
+			</div>
+		`;
 	}
 
-	const revStats = (values, quickStatsUl) => {
-		const stats = infoTable("Statistics", []);
-		const statsWrapper = document.createElement("div");
-		stats.appendChild(statsWrapper);
-		statsWrapper.style.setProperty("margin-top", "10px", "important");
-	
-		const overallWrapper = document.createElement("div");
-		overallWrapper.style.setProperty("margin-bottom", "10px", "important");
-		statsWrapper.appendChild(overallWrapper);
-		overallWrapper.appendChild(dataLabel("https://i.imgur.com/vsRTIFA.png", "Overall"));
-		const overallCorrectValues = [values["percentage_correct"].toFixed(0)+"%", values["meaning_correct"]+values["meaning_incorrect"]+values["reading_correct"]+values["reading_incorrect"]];
-		["Correct", "Frequency"].forEach((state, i) => {
-			const data = dataRow(state, overallCorrectValues[i]);
-			overallWrapper.appendChild(data);
-			if (i === 0)
-				data.getElementsByTagName("span")[0].style.setProperty("color", percentageColor(values["percentage_correct"]), "important")
-		});
-		const quickStatsOverall = quickStatsUl.getElementsByTagName("li")[0].getElementsByTagName("span")[0];
-		quickStatsOverall.appendChild(document.createTextNode(values["percentage_correct"].toFixed(0)+"%"));
-		quickStatsOverall.style.setProperty("color", percentageColor(values["percentage_correct"]), "important");
+	const contextSentences = sentences => {
+		return /*html*/`
+			${infoTable("Context Sentences", [], [
+				/*html*/`
+					${sentences.map(sentence => {
+						return /*html*/`
+							<ul class="sd-detailsPopup_sentencesWrapper">
+								<li class="sd-popupDetails_p" style="background-color: #3a374a; padding: 5px;">${sentence["en"]}</li>
+								<li style="padding: 0px 5px;">${sentence["ja"]}</li>
+							</ul>
+						`;
+					}).join("")}
+				`
+			])}
+		`;
+	} 
 
-		const images = ["https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
-		["Meaning", "Reading"].forEach((type, i) => {
-			const wrapper = document.createElement("div");
-			wrapper.style.setProperty("margin-bottom", "10px", "important");
-			statsWrapper.appendChild(wrapper);
-			wrapper.appendChild(dataLabel(images[i], type));
 
-			type = type.toLowerCase();
-			const valueCorrect = values[type+"_correct"];
-			const valueIncorrect = values[type+"_incorrect"];
-			const correctPercentage = (valueCorrect/(valueCorrect+valueIncorrect)*100).toFixed(0);
-			const incorrectPercentage = (valueIncorrect/(valueCorrect+valueIncorrect)*100).toFixed(0);
-			const valueBoth = valueCorrect+valueIncorrect;
-			const thisValues = [
-				valueCorrect+" ("+(correctPercentage == "NaN" ? "-" : correctPercentage)+"%)",
-				valueIncorrect+" ("+(incorrectPercentage == "NaN" ? "-" : incorrectPercentage)+"%)",
-				valueBoth, 
-				values[type+"_current_streak"]+" ("+values[type+"_max_streak"]+")"
-			];			
-			["Correct", "Incorrect", "Frequency", "Streak (max)"].forEach((title, j) => {
-				const row = dataRow(title, thisValues[j]);
-				wrapper.appendChild(row);
-				if (title === "Correct") {
-					const percentage = (valueCorrect/valueBoth*100).toFixed(0);
-					const stateValue = row.getElementsByTagName("span")[0];
-					stateValue.style.setProperty("color", percentageColor(percentage), "important");
+	const revStats = stats => {
+		const icons = ["https://i.imgur.com/vsRTIFA.png", "https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
 
-					const quickStatsVal = quickStatsUl.getElementsByTagName("li")[i+1].getElementsByTagName("span")[0];
-					quickStatsVal.appendChild(document.createTextNode((percentage == "NaN" ? "-" : percentage)+"%"));
-					quickStatsVal.style.setProperty("color", percentageColor(percentage), "important");
-				}
-			});
-		});
-		return stats;
+		return /*html*/`
+			${infoTable("Statistics", [], [
+				/*html*/`
+					<div style="margin-top: 10px;">
+						<!-- Overall -->
+						<div style="margin-bottom: 10px;">
+							<div class="sd-detailsPopup_img-label">
+								<img src="${icons[0]}" style="width: 22px;">
+								<strong style="font-size: 22px;">Overall</strong>
+							</div>
+							<div style="padding-left: 8px;"><strong>Correct: </strong><span style="color: ${percentageColor(stats.percentage_correct)}">${stats.percentage_correct.toFixed(0)}%</span></div>
+							<div style="padding-left: 8px;"><strong>Frequency: </strong>${stats.meaning_correct+stats.meaning_incorrect+stats.reading_correct+stats.reading_incorrect}</div>
+						</div>
+						<!-- Meaning & Reading -->
+						${["Meaning", "Reading"].map((type, i) => {
+							const typeLower = type.toLowerCase();
+							const correctPercentage = (stats[typeLower+"_correct"]/(stats[typeLower+"_correct"]+stats[typeLower+"_incorrect"])*100).toFixed(0);
+							const incorrectPercentage = (stats[typeLower+"_incorrect"]/(stats[typeLower+"_correct"]+stats[typeLower+"_incorrect"])*100).toFixed(0);
+							const both = stats[typeLower+"_correct"]+stats[typeLower+"_incorrect"];
+							return /*html*/`
+								<div style="margin-bottom: 10px;">
+									<div class="sd-detailsPopup_img-label">
+										<img src="${icons[i+1]}" style="width: 22px;">
+										<strong style="font-size: 22px;">${type}</strong>
+									</div>
+									<div style="padding-left: 8px;"><strong>Correct: </strong><span style="color: ${percentageColor(correctPercentage)}">${stats[typeLower+"_correct"]} (${correctPercentage}%)</span></div>
+									<div style="padding-left: 8px;"><strong>Incorrect: </strong><span>${stats[typeLower+"_incorrect"]} (${incorrectPercentage}%)</span></div>
+									<div style="padding-left: 8px;"><strong>Frequency: </strong>${both}</div>
+									<div style="padding-left: 8px;"><strong>Streak (max): </strong>${stats[typeLower+"_current_streak"]} (${stats[typeLower+"_max_streak"]})</div>
+								</div>
+							`;
+						}).join("")}
+					</div>
+				`
+			])}
+		`;
 	}
 
 	window.SubjectDisplay = SubjectDisplay;

@@ -123,4 +123,15 @@ const convertToISO8601 = (dateString) => {
 	const dateObj = new Date(dateString);
 	const isoString = dateObj.toISOString();
 	return isoString;
-  }
+}
+
+const daysPassed = ms => {
+	const days = Number(msToDays(ms).toFixed(0));
+	let timePassed;
+	if (days == 0) timePassed = "Today";
+	else if (days === 1) timePassed = "Yesterday";
+	else if (days === -1) timePassed = "Tomorrow";
+	else if (days < 0) timePassed = "In "+(days*-1)+((days*-1) === 1 ? " day" : " days");
+	else timePassed = days+" days ago";
+	return timePassed;
+}

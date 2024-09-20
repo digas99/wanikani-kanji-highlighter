@@ -44,7 +44,6 @@ const createDetailsPopup = async (id, settings) => {
 	}
 
 	document.addEventListener("keydown", e => {
-		console.log(e);
 		const key = e.key;
 		chrome.storage.local.get(["settings"], result => {
 			const settings = result["settings"];
