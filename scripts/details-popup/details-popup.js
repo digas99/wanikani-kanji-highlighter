@@ -57,7 +57,7 @@ const createDetailsPopup = async (id, settings) => {
 				if (key == 'l' || key == 'L') {
 					// LOCK KANJI ON DETAILS POPUP
 					detailsPopup.locked = !detailsPopup.locked;
-					switchClass(detailsPopup.detailsPopup.querySelector("#sd-detailsPopupSubjectLock"), "sd-detailsPopup_faded");
+					switchClass(detailsPopup.detailsPopup.querySelector("#sd-detailsPopupSubjectLock"), "sd-detailsPopup_sidebar_selected");
 				}
 
 				// if details popup is expanded
@@ -65,7 +65,7 @@ const createDetailsPopup = async (id, settings) => {
 					if (key == 'f' || key == 'F') {
 						// FIX DETAILS POPUP
 						detailsPopup.fixed = !detailsPopup.fixed;
-						switchClass(detailsPopup.detailsPopup.querySelector("#sd-detailsPopupFix"), "sd-detailsPopup_faded");
+						switchClass(detailsPopup.detailsPopup.querySelector("#sd-detailsPopupFix"), "sd-detailsPopup_sidebar_selected");
 					}	
 
 					if (key == 'b' || key == "B") {
@@ -89,6 +89,16 @@ const createDetailsPopup = async (id, settings) => {
 						// COPY CHARACTERS
 						if (detailsPopup.detailsPopup) {
 							detailsPopup.copyCharacters();
+						}
+					}
+
+					if (key == 'm' || key == 'M') {
+						// HANDLE SIDEBAR
+						if (detailsPopup.detailsPopup) {
+							const sidebar = detailsPopup.detailsPopup.querySelector(".sd-detailsPopup_sidebar");
+							if (sidebar) {
+								switchClass(sidebar, "sd-detailsPopup_sidebar_hidden");
+							}
 						}
 					}
 

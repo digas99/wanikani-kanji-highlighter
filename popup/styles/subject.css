@@ -21,6 +21,7 @@ html {
 #sd-detailsPopupGoUp {
 	right: unset;
 	left: 9px;
+	bottom: 14px;
 }
 
 #sd-detailsPopupCopy {

@@ -120,14 +120,14 @@
 				return null;
 			}
 			
-			// clicked on sidebar audio
+			// clicked on card sidebar audio
 			if (node.classList.contains("sd-detailsPopup_cardSideBarAudio")) {
 				playSubjectAudio(this.other[getItemIdFromSideBar(node.parentElement.parentElement.parentElement)]["pronunciation_audios"], node);
 				node.firstChild.src = "https://i.imgur.com/ETwuWqJ.png";
 				setTimeout(() => node.firstChild.src = "https://i.imgur.com/wjbObC4.png", 1500);
 			}
 	
-			// clicked on sidebar info
+			// clicked on card sidebar info
 			if (node.classList.contains("sd-detailsPopup_cardSideBarInfo")) {
 				const target = node.parentElement.parentElement.parentElement;
 				const id = getItemIdFromSideBar(target);
@@ -137,7 +137,7 @@
 				}
 			}
 
-			// clicked on sidebar copy
+			// clicked on card sidebar copy
 			if (node.classList.contains("sd-detailsPopup_cardSideBarCopy")) {
 				const id = getItemIdFromSideBar(node.parentElement.parentElement.parentElement);
 				
@@ -146,38 +146,68 @@
 				setTimeout(() => node.firstChild.src = "https://i.imgur.com/kVFZ6bP.png", 1500);
 			}
 
+
+			// menu button
+			if (node.closest("#sd-detailsPopupMenu")) {
+				const sidebar = this.sidebar || this.detailsPopup.querySelector(".sd-detailsPopup_sidebar");
+				if (sidebar) {
+					if (sidebar.classList.contains("sd-detailsPopup_sidebar_hidden"))
+						sidebar.classList.remove("sd-detailsPopup_sidebar_hidden");
+					else
+						sidebar.classList.add("sd-detailsPopup_sidebar_hidden");
+				}
+			}
+
+			console.log(node);
+			// sidebar buttons
+			if (node.closest("#sd-detailsPopupFix"))
+				this.fixed = !this.fixed;
+		
+			if (node.closest("#sd-detailsPopupSubjectLock"))
+				this.locked = !this.locked;
+
+			if (node.closest("#sd-detailsPopupGoUp")) {
+				if (this.detailsPopup) {
+					this.detailedInfoWrapper.scrollTo(0, 0);
+				}
+			}
+				
+			if (node.closest("#sd-detailsPopupCopy")) {
+				await this.copyCharacters();
+
+				Array.from(document.getElementsByClassName("sd-copiedMessage")).forEach(elem => elem.remove());
+				const copiedMessage = document.createElement("div");
+				node.appendChild(copiedMessage);
+				copiedMessage.appendChild(document.createTextNode("Copied!"));
+				copiedMessage.classList.add("sd-copiedMessage");
+				setTimeout(() => copiedMessage.remove(), 1500);
+			}
+
+			if (node.closest("#sd-detailsPopupKeyBindings")) {
+				chrome.storage.local.get(["settings"], result => {
+					const settings = result["settings"];
+					if (settings) {
+						settings["kanji_details_popup"]["key_bindings"] = !settings["kanji_details_popup"]["key_bindings"];
+						chrome.storage.local.set({"settings":settings});
+					}
+				});
+			}
+
+			// sidebar buttons selection
+			if (node.closest(".sd-detailsPopup_sidebar .sd-detailsPopup_clickable")) {
+				const button = node.closest(".sd-detailsPopup_sidebar .sd-detailsPopup_clickable");
+				const id = button.id;
+				if (!["sd-detailsPopupCopy"].includes(id)) {
+					const selected = button.classList.contains("sd-detailsPopup_sidebar_selected");
+					if (selected)
+						button.classList.remove("sd-detailsPopup_sidebar_selected");
+					else
+						button.classList.add("sd-detailsPopup_sidebar_selected");
+				}
+			}
+
 			// clicked a button in kanji container
 			if (node.classList.contains("sd-detailsPopupButton")) {
-				// don't switchClass in the nodes inside the array
-				if (!["sd-detailsPopupCloseX", "sd-detailsPopupGoBack", "sd-detailsPopupGoUp", "sd-detailsPopupCopy"].includes(node.id)) {
-					if (node.classList.contains("sd-detailsPopup_faded"))
-						node.classList.remove("sd-detailsPopup_faded");
-					else
-						node.classList.add("sd-detailsPopup_faded");
-				}
-
-				if (node.id == "sd-detailsPopupFix")
-					this.fixed = !this.fixed;
-				
-				if (node.id == "sd-detailsPopupSubjectLock")
-					this.locked = !this.locked;
-
-				if (node.id == "sd-detailsPopupGoUp") {
-					if (this.detailsPopup) {
-						this.detailedInfoWrapper.scrollTo(0, 0);
-					}
-				}
-
-				if (node.id == "sd-detailsPopupKeyBindings") {
-					chrome.storage.local.get(["settings"], result => {
-						const settings = result["settings"];
-						if (settings) {
-							settings["kanji_details_popup"]["key_bindings"] = !settings["kanji_details_popup"]["key_bindings"];
-							chrome.storage.local.set({"settings":settings});
-						}
-					});
-				}
-
 				if (node.id == "sd-detailsPopupGoBack") {
 					if (this.openedSubjects.length > 0)
 						this.openedSubjects.pop();
@@ -189,18 +219,6 @@
 						this.update(subject, await this.fetch(this.otherIds(subject)), true);
 					}
 				}
-				
-				if (node.id == "sd-detailsPopupCopy") {
-					await this.copyCharacters();
-
-					Array.from(document.getElementsByClassName("sd-copiedMessage")).forEach(elem => elem.remove());
-					const copiedMessage = document.createElement("div");
-					node.appendChild(copiedMessage);
-					copiedMessage.appendChild(document.createTextNode("Copied!"));
-					copiedMessage.classList.add("sd-copiedMessage");
-					setTimeout(() => copiedMessage.remove(), 1500);
-				}
-					
 			}
 			
 			// navbar buttons
@@ -374,6 +392,32 @@
 				const buttons = Array.from(this.detailsPopup.querySelectorAll(".sd-detailsPopupButton"));
 				if (buttons)
 					buttons.forEach(button => button.classList.remove("sd-detailsPopup_hidden"));
+
+				chrome.storage.local.get(["settings"], result => {
+					const settings = result["settings"];
+					const keyBindingsActive = settings["kanji_details_popup"] ? settings["kanji_details_popup"]["key_bindings"] : defaultSettings["kanji_details_popup"]["key_bindings"];
+
+					// create sidebar
+					const sidebar = /*html*/`
+						<div class="sd-detailsPopup_sidebar sd-detailsPopup_sidebar_hidden">
+							<div class="sd-detailsPopup_clickable ${keyBindingsActive ? "sd-detailsPopup_sidebar_selected" : ""}" id="sd-detailsPopupKeyBindings" title="Key Bindings">
+								<img src="https://i.imgur.com/qbI2bKH.png" alt="Key Bindings">
+							</div>
+							<div class="sd-detailsPopup_clickable ${this.lock ? "sd-detailsPopup_sidebar_selected" : ""}" id="sd-detailsPopupSubjectLock" title="Subject lock (L)">
+								<img src="https://i.imgur.com/gaKRPen.png" alt="Subject lock">
+							</div>
+							<div class="sd-detailsPopup_clickable ${this.fixed ? "sd-detailsPopup_sidebar_selected" : ""}" id="sd-detailsPopupFix" title="Subject fix (F)">
+								<img src="https://i.imgur.com/vZqwGZr.png" alt="Subject fix">
+							</div>
+							<div class="sd-detailsPopup_separator"></div>
+							<div class="sd-detailsPopup_clickable" id="sd-detailsPopupCopy" title="Copy to Clipboard">
+								<img src="https://i.imgur.com/eL3HiGE.png" alt="Copy to Clipboard">
+							</div>
+						</div>
+					`;
+					this.detailsPopup.insertAdjacentHTML("afterbegin", sidebar);
+					this.sidebar = this.detailsPopup.querySelector(".sd-detailsPopup_sidebar");
+				});
 			}
 
 			this.expanded = true;
@@ -414,22 +458,7 @@
 			this.detailedInfoWrapper.classList.add("sd-popupDetails_detailedInfoWrapper");
 
 			// navbar
-			const sections = [["Info", "https://i.imgur.com/E6Hrw7w.png"], ["Cards", "https://i.imgur.com/r991llA.png"]];
-			if (subject.stats) sections.push(["Statistics", "https://i.imgur.com/Ufz4G1K.png"]);
-			if (subject.timestamps) sections.push(["Timestamps", "https://i.imgur.com/dcT0L48.png"]);
-			const navbar = /*html*/`
-				<div class="sd-popupDetails_navbar">
-					<ul>
-						${sections.map(section => /*html*/`
-							<li title="${section[0]} (${section[0][0].toUpperCase()})" class="sd-detailsPopup_clickable" style="${section[0] == "Info" ? "background-color: #d73267;" : ""}">
-								<div>
-									<img src="${section[1]}" style="${section[0] == "Info" ? "filter: invert(1);" : ""}">
-								</div>
-							</li>
-						`).join('')}
-					</ul>
-				</div>
-			`;
+			const nav = navbar([true, true, subject.stats, subject.timestamps]);
 
 			// quick reviews stats
 			const statsImages = ["https://i.imgur.com/vsRTIFA.png", "https://i.imgur.com/uY358Y7.png", "https://i.imgur.com/01iZdz6.png"];
@@ -504,7 +533,7 @@
 			`;
 
 			this.detailedInfoWrapper.insertAdjacentHTML("beforeend", `
-				${navbar}
+				${nav}
 				${quickStats}
 				${details}
 			`);
@@ -583,19 +612,12 @@
 			const buttons = [
 				{id:"sd-detailsPopupCloseX", alt: "Close (X)", active:true, src:"https://i.imgur.com/KUjkFI9.png"},
 				{id:"sd-detailsPopupGoBack", alt: "Go back (B)", active:true, src:"https://i.imgur.com/e6j4jSV.png"},
+				{id:"sd-detailsPopupMenu", alt: "Menu (M)", active:true, src:"https://i.imgur.com/UwE9HGj.png"},
 				{id:"sd-detailsPopupGoUp", alt: "Go up (U)", active:true, src:"https://i.imgur.com/fszQn7s.png"},
-				{id:"sd-detailsPopupKeyBindings", alt: "Key Bindings", active:defaultSettings["kanji_details_popup"]["key_bindings"], src:"https://i.imgur.com/qbI2bKH.png"},
-				{id:"sd-detailsPopupSubjectLock", alt: "Subject lock (L)", active:this.locked, src:"https://i.imgur.com/gaKRPen.png"},
-				{id:"sd-detailsPopupFix", alt: "Subject fix (F)", active:this.fixed, src:"https://i.imgur.com/vZqwGZr.png"},
-				{id:"sd-detailsPopupCopy", alt: "Copy to Clipboard", active: true, src:"https://i.imgur.com/eL3HiGE.png"}
 			];
 
 			for (let i in buttons) {
 				const button = buttons[i];
-
-				// don't add go back button if there are no kanji to go back to
-				//if (button["id"] == "sd-detailsPopupGoBack" && this.openedSubjects.length == 1)
-				//	continue;
 
 				const wrapper = document.createElement("div");
 				itemWrapper.appendChild(wrapper);
@@ -610,18 +632,6 @@
 				wrapper.title = img.alt;
 				wrapper.appendChild(img);
 			}
-
-			chrome.storage.local.get(["settings"], result => {
-				const settings = result["settings"];
-				const keyBindingsButton = document.getElementById("sd-detailsPopupKeyBindings");
-				if (settings && keyBindingsButton) {
-					const keyBindingsActive = settings["kanji_details_popup"] ? settings["kanji_details_popup"]["key_bindings"] : defaultSettings["kanji_details_popup"]["key_bindings"];
-					if (keyBindingsActive)
-						keyBindingsButton.classList.remove("sd-detailsPopup_faded");
-					else
-						keyBindingsButton.classList.add("sd-detailsPopup_faded");
-				}
-			});
 
 			const infoToSave = {"id":id, "char":characters, "type":this.type};
 			// only save if the last save wasn't this kanji already
@@ -719,9 +729,7 @@
 			strokes.appendChild(drawingWrapper);
 			drawingWrapper.id = "sd-popupDetails_dmak";
 			drawingWrapper.classList.add("sd-detailsPopup_clickable");
-			drawingWrapper.innerHTML = /*html*/`
-			<div class="sd-popupDetails_svgLoading">Loading Kanji Strokes animation...</div>
-			`;
+			drawingWrapper.innerHTML = /*html*/`<div class="sd-popupDetails_svgLoading">Loading Kanji Strokes animation...</div>`;
 			
 			// save dmak wrapper outside the shadow dom
 			const dmakWrapper = document.createElement("div");
@@ -835,6 +843,30 @@
 	}
 
 	// Auxiliar methods
+
+	const navbar = tabs => {
+		const sections = [
+			{title: "Info", icon: "https://i.imgur.com/E6Hrw7w.png"},
+			{title: "Cards", icon: "https://i.imgur.com/r991llA.png"},
+			{title: "Statistics", icon: "https://i.imgur.com/Ufz4G1K.png"},
+			{title: "Timestamps", icon: "https://i.imgur.com/dcT0L48.png"}
+		].filter((_, i) => tabs[i]);
+
+		const defaultTab = section => section.title == "Info";
+		return /*html*/`
+			<div class="sd-popupDetails_navbar">
+				<ul>
+					${sections.map(section => /*html*/`
+						<li title="${section.title} (${section.title[0].toUpperCase()})" class="sd-detailsPopup_clickable" style="${defaultTab(section) ? "background-color: #d73267;" : ""}">
+							<div>
+								<img src="${section.icon}" style="${defaultTab(section) ? "filter: invert(1);" : ""}">
+							</div>
+						</li>
+					`).join('')}
+				</ul>
+			</div>
+		`;
+	}
 
 	const itemCardsSection = (subject, idsTag, title, itemCardsclass, list) => {
 		return /*html*/`
