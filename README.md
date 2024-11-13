@@ -2,6 +2,7 @@
 
 [![CodeQL](https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/codeql.yml/badge.svg)](https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/codeql.yml)
 [![Deploy Chrome Extension](https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/deploy-extension.yml/badge.svg)](https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/deploy-extension.yml)
+[![Master Version](https://img.shields.io/github/manifest-json/v/digas99/wanikani-kanji-highlighter?color=yellow&filename=manifest.json&label=master)](https://github.com/digas99/wanikani-kanji-highlighter)
 [![License](https://shields.io/github/license/digas99/wanikani-kanji-highlighter.svg)](https://github.com/digas99/wanikani-kanji-highlighter/blob/master/LICENSE)
 <br>
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/pdbjikelneighjgjojikkmhiehpcokjm.svg?color=orange)](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm)
