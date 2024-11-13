@@ -2,7 +2,7 @@
 
 [![CodeQL](https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/codeql.yml/badge.svg)](https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/codeql.yml)
 [![Deploy Chrome Extension](https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/deploy-extension.yml/badge.svg)](https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/deploy-extension.yml)
-[![Manifest](https://img.shields.io/github/manifest-json/v/digas99/wanikani-kanji-highlighter?color=yellow&filename=shieldio%2Fmanifest.json&label=manifest)](https://github.com/digas99/wanikani-kanji-highlighter/blob/master/manifest.json)
+[![Manifest](https://img.shields.io/github/manifest-json/v/digas99/wanikani-kanji-highlighter?color=yellow&filename=shieldio%2Fmanifest-version.json&label=manifest)](https://github.com/digas99/wanikani-kanji-highlighter/blob/master/manifest.json)
 [![License](https://shields.io/github/license/digas99/wanikani-kanji-highlighter.svg)](https://github.com/digas99/wanikani-kanji-highlighter/blob/master/LICENSE)
 <br>
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/pdbjikelneighjgjojikkmhiehpcokjm.svg?color=orange)](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm)
