@@ -24,8 +24,8 @@
 ---
 
 <p align="center" style="10px">
-   <a href="https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm"><img src="https://developer.chrome.com/static/docs/webstore/branding/image/HRs9MPufa1J1h5glNhut.png" alt="Get Duo Explained for Chrome" width="200"></a>
-   <a href="https://addons.mozilla.org/pt-PT/firefox/addon/wanikani-kanji-highlighter"><img src="https://github.com/user-attachments/assets/fa67055e-717a-45e2-9f99-a9c40498d94a" alt="Get Duo Explained for FireFox" width="193"></a><br>
+   <a href="https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm"><img src="https://developer.chrome.com/static/docs/webstore/branding/image/HRs9MPufa1J1h5glNhut.png" alt="Get Wanikani Kanji Highlighter for Chrome" width="200"></a>
+   <a href="https://addons.mozilla.org/pt-PT/firefox/addon/wanikani-kanji-highlighter"><img src="https://github.com/user-attachments/assets/fa67055e-717a-45e2-9f99-a9c40498d94a" alt="Get Wanikani Kanji Highlighter for FireFox" width="193"></a><br>
 </p>
 
 ---
