@@ -13,6 +13,7 @@
    <a href="https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/deploy-extension.yml"><img src="https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/deploy-extension.yml/badge.svg" alt="Deploy Chrome Extension"></a>
    <a href="https://github.com/digas99/wanikani-kanji-highlighter"><img src="https://img.shields.io/github/manifest-json/v/digas99/wanikani-kanji-highlighter?color=yellow&filename=manifest.json&label=master" alt="Master"></a>
    <a href="https://github.com/digas99/wanikani-kanji-highlighter/blob/master/LICENSE"><img src="https://shields.io/github/license/digas99/wanikani-kanji-highlighter.svg" alt="License"></a>
+   <a href="https://github.com/digas99/wanikani-kanji-highlighter/blob/master/manifest.json"><img src="https://img.shields.io/badge/manifest-v3-blueviolet" alt="Manifest"></a>
 <br>
    <a href="https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm"><img src="https://img.shields.io/chrome-web-store/v/pdbjikelneighjgjojikkmhiehpcokjm.svg?color=orange" alt="Chrome Web Store"></a>
    <a href="https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm"><img src="https://img.shields.io/chrome-web-store/users/pdbjikelneighjgjojikkmhiehpcokjm.svg?color=orange" alt="Chrome Web Store Users"></a>
@@ -24,7 +25,7 @@
 
 <p align="center" style="10px">
    <a href="https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm"><img src="https://developer.chrome.com/static/docs/webstore/branding/image/HRs9MPufa1J1h5glNhut.png" alt="Get Duo Explained for Chrome" width="200"></a>
-   <a href="https://addons.mozilla.org/pt-PT/firefox/addon/wanikani-kanji-highlighter"><img src="https://github.com/user-attachments/assets/fa67055e-717a-45e2-9f99-a9c40498d94a" alt="Get Duo Explained for FireFox" width="192"></a><br>
+   <a href="https://addons.mozilla.org/pt-PT/firefox/addon/wanikani-kanji-highlighter"><img src="https://github.com/user-attachments/assets/fa67055e-717a-45e2-9f99-a9c40498d94a" alt="Get Duo Explained for FireFox" width="193"></a><br>
 </p>
 
 ---
