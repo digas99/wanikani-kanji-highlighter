@@ -1,14 +1,33 @@
 # WaniKani Kanji Highlighter
 
-[![CodeQL](https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/codeql.yml/badge.svg)](https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/codeql.yml)
-[![Deploy Chrome Extension](https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/deploy-extension.yml/badge.svg)](https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/deploy-extension.yml)
-[![Master Version](https://img.shields.io/github/manifest-json/v/digas99/wanikani-kanji-highlighter?color=yellow&filename=manifest.json&label=master)](https://github.com/digas99/wanikani-kanji-highlighter)
-[![License](https://shields.io/github/license/digas99/wanikani-kanji-highlighter.svg)](https://github.com/digas99/wanikani-kanji-highlighter/blob/master/LICENSE)
+<p align="center">
+  <img src="logo/logo_bb.png" width="80px"/>
+</p>
+
+<p align="center">
+   Browser extension for kanji highlighting, matching kanji learned with WaniKani (Unofficial extension).
+</p>
+
+<p align="center">
+   <a href="https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/codeql.yml"><img src="https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
+   <a href="https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/deploy-extension.yml"><img src="https://github.com/digas99/wanikani-kanji-highlighter/actions/workflows/deploy-extension.yml/badge.svg" alt="Deploy Chrome Extension"></a>
+   <a href="https://github.com/digas99/wanikani-kanji-highlighter"><img src="https://img.shields.io/github/manifest-json/v/digas99/wanikani-kanji-highlighter?color=yellow&filename=manifest.json&label=master" alt="Master"></a>
+   <a href="https://github.com/digas99/wanikani-kanji-highlighter/blob/master/LICENSE"><img src="https://shields.io/github/license/digas99/wanikani-kanji-highlighter.svg" alt="License"></a>
 <br>
-[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/pdbjikelneighjgjojikkmhiehpcokjm.svg?color=orange)](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm)
-[![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/pdbjikelneighjgjojikkmhiehpcokjm.svg?color=orange)](https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm)
-[![Mozilla Addons](https://img.shields.io/amo/v/wanikani-kanji-highlighter.svg?color=blue)](https://addons.mozilla.org/en-US/firefox/addon/wanikani-kanji-highlighter/)
-[![Mozilla Addons Users](https://img.shields.io/amo/users/wanikani-kanji-highlighter.svg?color=blue)](https://addons.mozilla.org/en-US/firefox/addon/wanikani-kanji-highlighter/)
+   <a href="https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm"><img src="https://img.shields.io/chrome-web-store/v/pdbjikelneighjgjojikkmhiehpcokjm.svg?color=orange" alt="Chrome Web Store"></a>
+   <a href="https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm"><img src="https://img.shields.io/chrome-web-store/users/pdbjikelneighjgjojikkmhiehpcokjm.svg?color=orange" alt="Chrome Web Store Users"></a>
+   <a href="https://addons.mozilla.org/en-US/firefox/addon/wanikani-kanji-highlighter/"><img src="https://img.shields.io/amo/v/wanikani-kanji-highlighter.svg?color=blue" alt="Mozilla Addons"></a>
+   <a href="https://addons.mozilla.org/en-US/firefox/addon/wanikani-kanji-highlighter/"><img src="https://img.shields.io/amo/users/wanikani-kanji-highlighter.svg?color=blue" alt="Mozilla Addons Users"></a>
+</p>
+
+---
+
+<p align="center" style="10px">
+   <a href="https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm"><img src="https://developer.chrome.com/static/docs/webstore/branding/image/HRs9MPufa1J1h5glNhut.png" alt="Get Duo Explained for Chrome" width="200"></a>
+   <a href="https://addons.mozilla.org/pt-PT/firefox/addon/wanikani-kanji-highlighter"><img src="https://github.com/user-attachments/assets/fa67055e-717a-45e2-9f99-a9c40498d94a" alt="Get Duo Explained for FireFox" width="192"></a><br>
+</p>
+
+---
 
 ### Unofficial Browser Extension
 
