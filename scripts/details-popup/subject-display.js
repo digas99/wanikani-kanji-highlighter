@@ -323,8 +323,12 @@
 				if (this.autoplayAudio && this.type === "vocabulary")
 					playSubjectAudio(this.subject["pronunciation_audios"], null);
 
-				if (this.detailsPopup.firstChild)
+				console.log(this.detailsPopup, this.detailsPopup.firstChild);
+				if (!this.expanded && this.detailsPopup.firstChild)
 					this.detailsPopup.firstChild.remove();
+				else
+					Array.from(this.detailsPopup.querySelectorAll(".sd-focusPopup_kanji")).forEach(elem => elem.remove());
+				
 				this.detailsPopup.appendChild(this.charContainer(subject, save));
 
 				// srs stage border
@@ -415,7 +419,7 @@
 							</div>
 						</div>
 					`;
-					this.detailsPopup.insertAdjacentHTML("afterbegin", sidebar);
+					this.detailsPopup.insertAdjacentHTML("beforeend", sidebar);
 					this.sidebar = this.detailsPopup.querySelector(".sd-detailsPopup_sidebar");
 				});
 			}

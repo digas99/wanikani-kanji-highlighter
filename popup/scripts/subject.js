@@ -71,6 +71,11 @@ chrome.storage.local.get(fetchKeys, async result => {
 
 	await details.create(true);
 
+	// remove menu button
+	const menuButton = document.querySelector("#sd-detailsPopupMenu");
+	if (menuButton)
+		menuButton.remove();
+
 	wrapper.addEventListener("click", e => {
 		if (e.target.closest(".sd-detailsPopup_cardSideBarInfo")) {
 			const card = e.target.closest(".sd-detailsPopup_cardRow");
