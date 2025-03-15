@@ -356,8 +356,8 @@ const INTERFACE_COLORS = {
 }
 
 const KANJI_STROKES_URI = {
-	"popup": "https://wkhighlighter.me/kanji/",
-	"web": "https://wkhighlighter-ca76a5599457.herokuapp.com/kanji/"
+	"popup": "https://kanji.wkhighlighter.com/",
+	"web": "https://kanji.wkhighlighter.com/"
 };
 
 // Wanikani SRS stage intervals in ms (only for Apprentice stages)
