@@ -1,4 +1,4 @@
-const separateRomaji = input => {
+export const separateRomaji = input => {
 	let finalArray = [];
 	let word = "";
 
@@ -16,7 +16,7 @@ const separateRomaji = input => {
 	return finalArray;
 }
 
-const convertToKana = text => {
+export const convertToKana = text => {
 	let finalValue = "";
 	const vowels = ["a", "i", "u", "e", "o", "A", "I", "U", "E", "O"];
 	const split = separateRomaji(text);
@@ -33,15 +33,15 @@ const convertToKana = text => {
 	return finalValue == undefined ? '' : finalValue;
 }
 
-const hasKana = text => {
+export const hasKana = text => {
 	return text.match(/[\u3040-\u309f\u30a0-\u30ff]/);
 }
 
-const hasKanji = text => {
+export const hasKanji = text => {
 	return text.match(/[\u3400-\u9FBF]/);
 }
 
-const kana = {
+export const kana = {
 	"a": "あ",
 	"i": "い",
 	"u": "う",
@@ -464,7 +464,7 @@ const kana = {
 	"VYE": "ヴェ",
 	"VYO": "ヴョ",
 }
-const jlpt = {
+export const jlpt = {
 	n5: [
 		"書",
 		"外",
@@ -2430,7 +2430,7 @@ const jlpt = {
 	]
 }
 
-const joyo = {
+export const joyo = {
 	g1: [
 		"夕",
 		"草",

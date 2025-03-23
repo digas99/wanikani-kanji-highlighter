@@ -1,12 +1,15 @@
-importScripts(
-	"/scripts/static.js",
-	"/scripts/time.js",
-	"/scripts/fetch/data-fetch.js",
-	"/scripts/fetch/wk-fetch.js",
-	"/scripts/database.js",
-	"/scripts/functions.js",
-	"/scripts/kana.js",
-);
+// importScripts(
+// 	"/scripts/static.js",
+// 	"/scripts/time.js",
+// 	"/scripts/fetch/data-fetch.js",
+// 	"/scripts/fetch/wk-fetch.js",
+// 	"/scripts/database.js",
+// 	"/scripts/functions.js",
+// 	"/scripts/kana.js",
+// );
+
+import { defaultSettings, appSetup } from "./static.js";
+import "./database.js";
 
 const tabs = chrome.tabs;
 let thisTabId, apiToken;
@@ -163,7 +166,7 @@ const setupContentScripts = () => {
 						functionDelay: functionDelay, 
 						learned: learnedKanji,
 						notLearned: notLearnedKanji,
-						unwantedTags: unwantedTags,
+						unwantedTags: appSetup.unwantedTags,
 						learnedClass: highlightingClass,
 						notLearnedClass: notLearnedHighlightingClass,
 					}});

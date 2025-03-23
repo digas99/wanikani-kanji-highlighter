@@ -1,9 +1,9 @@
-const msToDays = ms => {
+export const msToDays = ms => {
 	return ms / (1000 * 60 * 60 * 24);
 }
 
 // millisecond to readable format
-function msToTime(ms) {
+export function msToTime(ms) {
   let seconds = (ms / 1000).toFixed(1);
   let minutes = (ms / (1000 * 60)).toFixed(1);
   let hours = (ms / (1000 * 60 * 60)).toFixed(1);
@@ -14,7 +14,7 @@ function msToTime(ms) {
   else return days + " Days"
 }
 
-function msToSimpleTime(ms) {
+export function msToSimpleTime(ms) {
 	const seconds = Math.round(ms / 1000);
 	const minutes = Math.round(ms / (1000 * 60));
 	const hours = Math.round(ms / (1000 * 60 * 60));
@@ -31,7 +31,7 @@ function msToSimpleTime(ms) {
 	}
 }
 
-function prettyTime(ms, options = {}) {
+export function prettyTime(ms, options = {}) {
     // Calculate the time components
     const seconds = Math.floor((ms / 1000) % 60);
     const minutes = Math.floor((ms / (1000 * 60)) % 60);
@@ -53,10 +53,10 @@ function prettyTime(ms, options = {}) {
     return parts.length > 0 ? parts.join(', ') : '0 seconds';
 }
 
-// setup two new functions to Date
-var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+// setup two new export functions to Date
+export const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+export const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 Date.prototype.getMonthName = function() {
 	return months[ this.getMonth() ];
@@ -66,7 +66,7 @@ Date.prototype.getWeekDay = function() {
 	return days[ this.getDay() ];
 };
 
-const simpleFormatDate = (date, format) => {
+export const simpleFormatDate = (date, format) => {
 	// make sure it is a Date object
 	date = new Date(date);
 	let dd = date.getDate();
@@ -89,21 +89,21 @@ const simpleFormatDate = (date, format) => {
 	return value;
 }
 
-const time12h = hours => new Date('1970-01-01T'+hours+'Z').toLocaleTimeString({}, {timeZone:'UTC', hour12:true, hour:'numeric', minute:'numeric'});
+export const time12h = hours => new Date('1970-01-01T'+hours+'Z').toLocaleTimeString({}, {timeZone:'UTC', hour12:true, hour:'numeric', minute:'numeric'});
 
-const setExactHour = (date, hour) => {
+export const setExactHour = (date, hour) => {
 	return new Date(new Date(new Date(new Date(date).setHours(hour)).setMinutes(0)).setSeconds(0));
 }
 
-const nextExactHour = (date, hours) => {
+export const nextExactHour = (date, hours) => {
 	return new Date(new Date(new Date(new Date(date).setHours(new Date(date).getHours()+hours)).setMinutes(0)).setSeconds(0));
 }
 
-const addHours = (date, hours) => {
+export const addHours = (date, hours) => {
 	return new Date(new Date(date).setHours(new Date(date).getHours()+hours));
 }
 
-const changeDay = (date, days) => {
+export const changeDay = (date, days) => {
 	return new Date(new Date(date).setDate((new Date(date).getDate())+days));
 }
 
@@ -112,20 +112,20 @@ const changeDay = (date, days) => {
 // 10% of an hour are 360000 milliseconds
 // 10% of a minute are 6000 milliseconds
 // 10% of a second are 100 milliseconds
-const time_delays = {
+export const time_delays = {
 	"Days":8640000,
 	"Hrs":360000,
 	"Min":6000,
 	"Sec":100
 }
 
-const convertToISO8601 = (dateString) => {
+export const convertToISO8601 = (dateString) => {
 	const dateObj = new Date(dateString);
 	const isoString = dateObj.toISOString();
 	return isoString;
 }
 
-const daysPassed = ms => {
+export const daysPassed = ms => {
 	const days = Number(msToDays(ms).toFixed(0));
 	let timePassed;
 	if (days == 0) timePassed = "Today";

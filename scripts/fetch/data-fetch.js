@@ -1,7 +1,7 @@
-// WANIKANI
+import { urls } from "../static.js";
 
 // fetch a single page from the WaniKani API
-const fetchPage = async (apiToken, page, updated) => {				
+export const fetchPage = async (apiToken, page, updated) => {				
 	const requestHeaders = new Headers({Authorization: `Bearer ${apiToken}`});
 	if (updated) {
 		// add updated_after to the url
@@ -30,7 +30,7 @@ const fetchPage = async (apiToken, page, updated) => {
 }
 
 // recursive function to fetch all pages that come after a given page (given page included)
-const fetchAllPages = async (apiToken, page, updated) => {
+export const fetchAllPages = async (apiToken, page, updated) => {
 	if (!page) return [];
 
 	if (updated) {
@@ -48,7 +48,7 @@ const fetchAllPages = async (apiToken, page, updated) => {
 }
 
 // check if the data in the endpoints has been modified since the given date
-const modifiedSince = async (apiKey, date, url) => {
+export const modifiedSince = async (apiKey, date, url) => {
 	var requestHeaders = new Headers();
 	requestHeaders.append('Authorization', `Bearer ${apiKey}`);
 	requestHeaders.append('Wanikani-Revision', '20170710');
@@ -66,14 +66,14 @@ const modifiedSince = async (apiKey, date, url) => {
 
 
 // GITHUB
-const reposVersions = async (user, repos) => {
-	return await fetch(`https://api.github.com/repos/${user}/${repos}/tags`).then(response => response.json()).then(body => body);
+export const reposVersions = async (user, repos) => {
+	return await fetch(`${urls.github_api}/repos/${user}/${repos}/tags`).then(response => response.json()).then(body => body);
 }
 
-const reposLatestVersion = async (user, repos) => {
+export const reposLatestVersion = async (user, repos) => {
 	return await reposVersions(user, repos).then(result => result[0].name);
 }
 
-const reposOldestVersion = async (user, repos) => {
+export const reposOldestVersion = async (user, repos) => {
 	return await reposVersions(user, repos).then(result => result[result.length-1].name);
 }

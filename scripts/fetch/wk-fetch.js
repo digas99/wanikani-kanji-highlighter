@@ -1,4 +1,6 @@
-const setupSubjects = async (apiToken, setup, build, callback) => {
+import { urls } from "../static.js";
+
+export const setupSubjects = async (apiToken, setup, build, callback) => {
 	let db, opened;
 	try {
 		const result = await new Promise((resolve, reject) => {
@@ -95,13 +97,13 @@ const setupSubjects = async (apiToken, setup, build, callback) => {
 	}
 };
 
-const fetchUserInfo = async(apiToken, callback) => {
+export const fetchUserInfo = async(apiToken, callback) => {
 	chrome.storage.local.get(["userInfo", "userInfo_updated"], async result => {
 		const storage = result["userInfo"];
 		const updated = result["userInfo_updated"];
 
 		if (updated){
-			const modified = await modifiedSince(apiToken, updated, "https://api.wanikani.com/v2/user");
+			const modified = await modifiedSince(apiToken, updated, `${urls.wanikani_api}/user`);
 			if (!modified) {
 				if (callback)
 					callback(storage);
@@ -109,7 +111,7 @@ const fetchUserInfo = async(apiToken, callback) => {
 			}
 		}
 
-		fetchPage(apiToken, "https://api.wanikani.com/v2/user", updated)
+		fetchPage(apiToken, `${urls.wanikani_api}/user`, updated)
 			.then(user => {
 				// too many requests
 				if (user.error) {
@@ -130,13 +132,13 @@ const fetchUserInfo = async(apiToken, callback) => {
 	});
 }
 
-const setupAssignments = async (apiToken, callback) => 
+export const setupAssignments = async (apiToken, callback) => 
 	new Promise((resolve, reject) => {
 		chrome.storage.local.get(["assignments", "assignments_updated", "assignments_history"], async result => {
 			const updated = result["assignments_updated"];
 			let assignments = result["assignments"];
 
-			fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments", updated)
+			fetchAllPages(apiToken, `${urls.wanikani_api}/assignments`, updated)
 				.then(async data => {
 					// too many requests or not modified
 					if (data.error) {
@@ -208,13 +210,13 @@ const setupAssignments = async (apiToken, callback) =>
 		});
 	});
 
-const setupAvailableAssignments = async (apiToken, callback) => {
+export const setupAvailableAssignments = async (apiToken, callback) => {
 	return new Promise((resolve, reject) => {
 		chrome.storage.local.get(["assignments", "reviews", "lessons"], async result => {
 			const assignments = result["assignments"];
 	
-			let lessons = await fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments?immediately_available_for_lessons");
-			let reviews = await fetchAllPages(apiToken, "https://api.wanikani.com/v2/assignments?immediately_available_for_review");
+			let lessons = await fetchAllPages(apiToken, `${urls.wanikani_api}/assignments?immediately_available_for_lessons`);
+			let reviews = await fetchAllPages(apiToken, `${urls.wanikani_api}/assignments?immediately_available_for_review`);
 	
 			if (!assignments) {
 				if (callback)

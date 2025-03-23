@@ -3,19 +3,19 @@
 */
 
 // GENERAL
-const errorHandling = error => console.log(error);
+export const errorHandling = error => console.log(error);
 
-const hexToRGB = hex => {
+export const hexToRGB = hex => {
 	hex = hex[0] == "#" ? hex.substring(1) : hex;
 	return ({r:parseInt(hex[0]+hex[1], 16), g:parseInt(hex[2]+hex[3], 16), b:parseInt(hex[4]+hex[5], 16)});
 }
 
 // from: https://stackoverflow.com/a/3943023/11488921
-const fontColorFromBackground = (r, g, b) => {
+export const fontColorFromBackground = (r, g, b) => {
 	return (r*0.299 + g*0.587 + b*0.114) > 186 ? "#000000" : "#ffffff";
 }
 
-const ordinalSuffix = number => {
+export const ordinalSuffix = number => {
 	switch(number) {
 		case 1:
 			return "st";
@@ -28,7 +28,7 @@ const ordinalSuffix = number => {
 	}
 }
 
-const setupReviewsDataForChart = (reviews, today, days, hoursAhead, time12h_format) => {
+export const setupReviewsDataForChart = (reviews, today, days, hoursAhead, time12h_format) => {
 	const currentHour = today.getHours();
 	let currentDay = today.getDate();
 	let hours = [];
@@ -65,7 +65,7 @@ const setupReviewsDataForChart = (reviews, today, days, hoursAhead, time12h_form
 	return ({hours:hours, reviewsPerHour:reviewsPerHour});
 }
 
-const chartAddData = (chart, labels, data) => {
+export const chartAddData = (chart, labels, data) => {
 	labels.forEach(label => chart.data.labels.push(label));
 	let counter = 0;
 	chart.data.datasets.forEach((dataset) => {
@@ -74,7 +74,7 @@ const chartAddData = (chart, labels, data) => {
 	chart.update();
 }
 
-const chartRemoveData = (chart, size) => {
+export const chartRemoveData = (chart, size) => {
 	while (size-- != 0) {
 		chart.data.labels.pop();
 		chart.data.datasets.forEach((dataset) => {
@@ -85,7 +85,7 @@ const chartRemoveData = (chart, size) => {
 }
 
 
-const setChartBaseColors = chart => {
+export const setChartBaseColors = chart => {
 	chart.options.plugins.title.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
 	chart.options.plugins.datalabels.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
 	chart.options.plugins.legend.labels.color = getComputedStyle(document.body).getPropertyValue(`--font-color`);
@@ -96,7 +96,7 @@ const setChartBaseColors = chart => {
 	chart.update();
 }
 
-const updateChartReviewsOfDay = (reviews, chart, date, numberReviewsElement, time12h_format) => {
+export const updateChartReviewsOfDay = (reviews, chart, date, numberReviewsElement, time12h_format) => {
 	const newDate = setExactHour(new Date(date), 0);
 	chartRemoveData(chart, chart.data.labels.length);
 	const nextReviews = filterAssignmentsByTime(reviews, newDate, changeDay(newDate, 1))
@@ -115,7 +115,7 @@ const updateChartReviewsOfDay = (reviews, chart, date, numberReviewsElement, tim
 	chart.update();
 }
 
-const filterAssignmentsByTime = (list, currentDate, capDate) => {
+export const filterAssignmentsByTime = (list, currentDate, capDate) => {
 	list = list[0] && list[0]["data"] ? list.map(review => review["data"]) : list;
 	const date = capDate ? new Date(capDate) : null;
 	if (date) {
@@ -138,7 +138,7 @@ const filterAssignmentsByTime = (list, currentDate, capDate) => {
 }
 
 // clears cache of this extension from chrome storage
-const clearCache = async (keysToKeep) => {
+export const clearCache = async (keysToKeep) => {
 	if (keysToKeep) {
 		const dataToKeep = {};
 
@@ -163,11 +163,11 @@ const clearCache = async (keysToKeep) => {
 
 }
 
-const clearSubjects = async () => {
+export const clearSubjects = async () => {
 	await clearCache(["apiKey", "settings", "userInfo", "userInfo_updated"]);
 }
 
-const triggerSubjectsUpdate = apiKey => {
+export const triggerSubjectsUpdate = apiKey => {
 	chrome.storage.local.remove([
 		"assignments_updated",
 		"radicals_updated",
@@ -185,11 +185,11 @@ const triggerSubjectsUpdate = apiKey => {
 	});
 }
 
-const rand = (min, max) => {
+export const rand = (min, max) => {
 	return Math.floor(Math.random() * (max - min) ) + min;
 }
 
-const counterAnimation = (currentValue, newValue, targetElem, delay) => {
+export const counterAnimation = (currentValue, newValue, targetElem, delay) => {
 	if (currentValue != newValue) {
 		const modulus = newValue - currentValue > 0 ? newValue - currentValue : (newValue - currentValue)*-1;
 		let scale = 1;
@@ -223,14 +223,14 @@ const counterAnimation = (currentValue, newValue, targetElem, delay) => {
 	return false;
 }
 
-const manageBodyWidth = (width, bodyWidth) => {
+export const manageBodyWidth = (width, bodyWidth) => {
 	console.log(width, bodyWidth);
 	if (typeof bodyWidth === "number" && typeof width === "number" && width <= bodyWidth)
 		width = bodyWidth;
 	return width;
 } 
 
-const flipArrow = (arrow, sourceDir, destDir, paddingValue) => {
+export const flipArrow = (arrow, sourceDir, destDir, paddingValue) => {
 	if (arrow) {
 		const padding = parseInt(paddingValue ? paddingValue : window.getComputedStyle(arrow).padding.split("px")[0]);
 		if (typeof padding === "number" && !isNaN(padding)) {
@@ -244,7 +244,7 @@ const flipArrow = (arrow, sourceDir, destDir, paddingValue) => {
 	}
 }
 
-const setupRadicals = (radicals, records, radical) => {
+export const setupRadicals = (radicals, records, radical) => {
 	const data = radical["data"];
 
 	const subject = {
@@ -268,7 +268,7 @@ const setupRadicals = (radicals, records, radical) => {
 	records.push(subject);
 }
 
-const setupVocab = (vocabs, assocs, records, vocab) => {
+export const setupVocab = (vocabs, assocs, records, vocab) => {
 	const data = vocab["data"];
 	
 	const subject = {
@@ -297,7 +297,7 @@ const setupVocab = (vocabs, assocs, records, vocab) => {
 	assocs[data.characters] = vocab.id;
 }
 
-const setupKanaVocab = (vocabs, assocs, records, vocab) => {
+export const setupKanaVocab = (vocabs, assocs, records, vocab) => {
 	const data = vocab["data"];
 
 	const subject = {
@@ -323,7 +323,7 @@ const setupKanaVocab = (vocabs, assocs, records, vocab) => {
 	assocs[data.characters] = vocab.id;
 }
 
-const setupKanji = (kanjis, assocs, records, kanji) => {
+export const setupKanji = (kanjis, assocs, records, kanji) => {
 	const data = kanji["data"];
 
 	const subject = {
@@ -354,9 +354,9 @@ const setupKanji = (kanjis, assocs, records, kanji) => {
 
 let progress = 0, fetches = 0;
 
-const loadEvent = new CustomEvent("loadData", {text: "", progress: progress, fetches: fetches});
+export const loadEvent = new CustomEvent("loadData", {text: "", progress: progress, fetches: fetches});
 
-const sendSetupProgress = (text, progress, tab) => {
+export const sendSetupProgress = (text, progress, tab) => {
 	loadEvent.progress = progress;
 	loadEvent.text = text;
 	loadEvent.fetches = fetches;
@@ -382,14 +382,14 @@ const sendSetupProgress = (text, progress, tab) => {
 }
 
 // check if bulk fetch was done less than 1 minute ago
-const canFetch = async () => {
+export const canFetch = async () => {
 	const bulkFetch = await new Promise(resolve => {
 		chrome.storage.local.get(["bulk_fetch"], resolve);
 	});
 	return !bulkFetch["bulk_fetch"] || new Date().getTime() - bulkFetch["bulk_fetch"] > 60000;
 }
 
-const sizeToFetch = async apiToken => {
+export const sizeToFetch = async apiToken => {
 	return new Promise(resolve => {
 		chrome.storage.local.get([RADICAL_SETUP.storage.updated, VOCAB_SETUP.storage.updated, KANA_VOCAB_SETUP.storage.updated, KANJI_SETUP.storage.updated, ASSIGNMENTS_SETUP.storage.updated, REVIEWSTATS_SETUP.storage.updated, LEVELS_STATS.storage.updated], async result => {
 			const fetches = await Promise.all(
@@ -403,7 +403,7 @@ const sizeToFetch = async apiToken => {
 	});
 }
 
-const getTab = () => {
+export const getTab = () => {
     return new Promise((resolve, reject) => {
         chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
             if (tabs && tabs.length > 0) {
@@ -416,7 +416,7 @@ const getTab = () => {
 }
 
 // transform the kanji IDs into kanji characters
-const setupLearnedKanji = kanji => {
+export const setupLearnedKanji = kanji => {
     return new Promise((resolve, reject) => {
         try {
             const learnedKanji = kanji
@@ -432,7 +432,7 @@ const setupLearnedKanji = kanji => {
 
 // get all assignments if there are none in storage or if they were modified
 // see if all subjects are already saved in storage
-const loadData = async (apiToken, tabId, callback) => {
+export const loadData = async (apiToken, tabId, callback) => {
 	console.log("[LOADING]: Loading data ...");
 	chrome.storage.local.get(["fetching", "assignments_updated", LEVELS_STATS.storage.updated], async response => {
 		const fetching = response["fetching"];
@@ -636,14 +636,14 @@ const loadData = async (apiToken, tabId, callback) => {
 	});
 }
 
-const evalProgress = (progress, fetches) => {
+export const evalProgress = (progress, fetches) => {
 	if (progress >= fetches) {
 		progress = 0;
 		fetches = 0;
 	}
 }
 
-const subjectsAssignmentStats = async list => {
+export const subjectsAssignmentStats = async list => {
 	console.log("SUBJECT ASSIGNMENT STATS");
 	console.log(list, Array.isArray(list));
 	if (list) {
@@ -715,7 +715,7 @@ const subjectsAssignmentStats = async list => {
     }
 }
 
-const subjectsReviewStats = async (apiToken, lists) => {
+export const subjectsReviewStats = async (apiToken, lists) => {
 	return new Promise(resolve => {
 		chrome.storage.local.get("reviewStats_updated", async result => {
 			const updated = result["reviewStats_updated"];
@@ -769,7 +769,7 @@ const subjectsReviewStats = async (apiToken, lists) => {
 	});
 }
 
-const blacklist = async url => {
+export const blacklist = async url => {
 	if (!url) {
 		url = await new Promise(resolve => {
 			chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
@@ -796,7 +796,7 @@ const blacklist = async url => {
     chrome.storage.local.set({"blacklist": [...new Set(blacklistedUrls)]});
 }
 
-const blacklistRemove = url => {
+export const blacklistRemove = url => {
 	return new Promise(resolve => {
 		chrome.storage.local.get(["blacklist"], data => {
 			const blacklist = data["blacklist"];
@@ -811,7 +811,7 @@ const blacklistRemove = url => {
 	});
 }
 
-const blacklisted = (blacklist, url) => {
+export const blacklisted = (blacklist, url) => {
 	if (blacklist && blacklist.length > 0) {
 		const regex = new RegExp(`^http(s)?:\/\/(www\.)?(${blacklist.join("|")})(\/)?([a-z]+.*)?`, "g");
 		return regex.test(url);
@@ -819,7 +819,7 @@ const blacklisted = (blacklist, url) => {
 	return false;
 }
 
-const dataTile = (subjects, elem, value) => {
+export const dataTile = (subjects, elem, value) => {
 	const subject = subjects.find(subject => 
 		subject["characters"] === value ||
 		subject?.character_images?.find(image => image["url"] == elem.querySelector("image")?.getAttribute("src")));
@@ -839,7 +839,7 @@ const dataTile = (subjects, elem, value) => {
 	}
 }
 
-const headerSRSDecoration = (header, srs) => {
+export const headerSRSDecoration = (header, srs) => {
 	const egg = document.createElement("div");
 	egg.classList.add("srsTitleEgg");
 	if (srs > 4 && srs < 7)
@@ -852,7 +852,7 @@ const headerSRSDecoration = (header, srs) => {
 	header.insertBefore(egg, header.firstChild);
 }
 
-const headerSubjectDecoration = (header, type) => {
+export const headerSubjectDecoration = (header, type) => {
 	const typeElem = document.createElement("span");
 	header.insertBefore(typeElem, header.firstChild);
 	typeElem.style.fontWeight = "bold";
@@ -872,7 +872,7 @@ const headerSubjectDecoration = (header, type) => {
 	typeElem.textContent = text;
 }
 
-const getCharacter = subject => {
+export const getCharacter = subject => {
 	if (subject) {
 		if (subject["characters"])
 			return subject["characters"];
@@ -889,7 +889,7 @@ const getCharacter = subject => {
 	}
 }
 
-const progressionStats = (wrapper, progresses, colors, line, menuCallback) => {
+export const progressionStats = (wrapper, progresses, colors, line, menuCallback) => {
 	let row, stageValue, stageColor;
 	console.log(progresses);
 
@@ -933,7 +933,7 @@ const progressionStats = (wrapper, progresses, colors, line, menuCallback) => {
 	});
 }
 
-const progressionMenu = (stage, progresses, value, colors) => {
+export const progressionMenu = (stage, progresses, value, colors) => {
 	const infoMenu = document.createElement("div");
 	infoMenu.classList.add("progression-menu", "hidden");
 	const infoMenuTitle = document.createElement("p");
@@ -964,7 +964,7 @@ const progressionMenu = (stage, progresses, value, colors) => {
 	return infoMenu;
 }
 
-const progressionBar = (wrapper, progresses, size, colors) => {
+export const progressionBar = (wrapper, progresses, size, colors) => {
 	let unlockedSize = 0, stageValue, stageColor;
 
 	// clear bar beforehand if needed
@@ -1018,7 +1018,7 @@ const progressionBar = (wrapper, progresses, size, colors) => {
 	}
 }
 
-const levelProgressBar = (currentLevel, values, level, type, colors) => {
+export const levelProgressBar = (currentLevel, values, level, type, colors) => {
 	const all = values.length;
 	const passed = values.filter(subject => subject["passed_at"]).length;
 	const notPassed = values.filter(subject => !subject["passed_at"]);
@@ -1059,7 +1059,7 @@ const levelProgressBar = (currentLevel, values, level, type, colors) => {
 	return progressBarWrapper;
 }
 
-const schoolProgress = (school, map, subjects) => {
+export const schoolProgress = (school, map, subjects) => {
 	Object.entries(map).forEach(([grade, kanji]) => {
 		const values = subjects.filter(subject => subject[school]?.match(/(\d+)/)[0] == grade?.match(/(\d+)/)[0] && !subject["hidden"]);
 		const data = [
@@ -1107,7 +1107,7 @@ const schoolProgress = (school, map, subjects) => {
 	});
 }
 
-const progressBarSlice = (element, value, color, title, link) => {
+export const progressBarSlice = (element, value, color, title, link) => {
 	const progressBarBar = element || document.createElement("li");
 	progressBarBar.classList.add("clickable");
 	const percentageValue = value;
@@ -1126,7 +1126,7 @@ const progressBarSlice = (element, value, color, title, link) => {
 	return progressBarBar;
 }
 
-const levelUpMarker = numberKanji => {
+export const levelUpMarker = numberKanji => {
 	const levelupMarkerWrapper = document.createElement("div");
 	levelupMarkerWrapper.classList.add("levelup-marker");
 	levelupMarkerWrapper.style.width = "87%";
@@ -1143,7 +1143,7 @@ const levelUpMarker = numberKanji => {
 	return levelupMarkerWrapper;
 }
 
-const notFound = (title) => {
+export const notFound = (title) => {
 	const wrapper = document.createElement("div");
 	wrapper.classList.add("not-found");
 	const kanji = document.createElement("p");
@@ -1156,7 +1156,7 @@ const notFound = (title) => {
 }
 
 
-const setupReviewsAlarm = reviews => {
+export const setupReviewsAlarm = reviews => {
 	if (reviews && reviews["next_reviews"]) {
 		const next_date = setNextReviewsBundle(reviews["next_reviews"])["date"];
 		if (next_date) {
@@ -1169,7 +1169,7 @@ const setupReviewsAlarm = reviews => {
 	}
 }
 
-const setupPracticeAlarm = time => {
+export const setupPracticeAlarm = time => {
 	time = time?.split(":");
 	if (time?.length === 2) {
 		let date = new Date(setExactHour(new Date(), time[0]).getTime() + time[1]*60000);
@@ -1185,7 +1185,7 @@ const setupPracticeAlarm = time => {
 	}
 }
 
-const setNextReviewsBundle = next_reviews => {
+export const setNextReviewsBundle = next_reviews => {
 	const next_revs_dates = next_reviews.map(review => new Date(review["available_at"]));
 	const next_date = new Date(Math.min.apply(null, next_revs_dates));
 	const next_revs = filterAssignmentsByTime(next_reviews, new Date(), next_date);
@@ -1198,7 +1198,7 @@ const setNextReviewsBundle = next_reviews => {
 	}
 }
 
-const playSubjectAudio = (audioList, wrapper) => {
+export const playSubjectAudio = (audioList, wrapper) => {
 	if (audioList && audioList.length > 0) {
 		const audio = new Audio();
 		audio.src = audioList[Math.floor(Math.random() * audioList.length)].url;
@@ -1222,7 +1222,7 @@ const playSubjectAudio = (audioList, wrapper) => {
 	}
 }
 
-const copyToClipboard = async (text, wrapper) => {
+export const copyToClipboard = async (text, wrapper) => {
 	if (window.navigator.clipboard) {
 		await window.navigator.clipboard.writeText(text);
 		Array.from(document.getElementsByClassName("copiedMessage")).forEach(elem => elem.remove());
@@ -1236,7 +1236,7 @@ const copyToClipboard = async (text, wrapper) => {
 	}
 }
 
-const getIds = subject => {
+export const getIds = subject => {
 	let ids = [];
 	switch (subject["subject_type"]) {
 		case "radical":
@@ -1263,7 +1263,7 @@ const getIds = subject => {
 	return ids;
 }
 
-const subjectRandomId = (option, data) => {
+export const subjectRandomId = (option, data) => {
 	console.log(option, data);
 	let assocs = {};
 	let characters = [];
@@ -1315,7 +1315,7 @@ const subjectRandomId = (option, data) => {
 	return Number(id);
 }
 
-const levelUpInfo = subjects => {
+export const levelUpInfo = subjects => {
 	const kanji = subjects.filter(subject => subject.subject_type == "kanji" && !subject.hidden);
 
 	const sliceSize = Math.floor(kanji.length * 0.1);
@@ -1347,14 +1347,14 @@ const levelUpInfo = subjects => {
 	};
 }
 
-const updateSettings = (settings, defaults) => {
+export const updateSettings = (settings, defaults) => {
 	const updated = updateObject(settings, defaults);
 	if (updated) {
 		chrome.storage.local.set({"settings": settings});
 	}
 }
 
-const updateObject = (source, updates) => {
+export const updateObject = (source, updates) => {
     let changed = false;
 
     const deepUpdate = (src, upd) => {
