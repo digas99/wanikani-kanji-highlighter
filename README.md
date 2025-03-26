@@ -19,6 +19,8 @@
    <a href="https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm"><img src="https://img.shields.io/chrome-web-store/users/pdbjikelneighjgjojikkmhiehpcokjm.svg?color=orange" alt="Chrome Web Store Users"></a>
    <a href="https://addons.mozilla.org/en-US/firefox/addon/wanikani-kanji-highlighter/"><img src="https://img.shields.io/amo/v/wanikani-kanji-highlighter.svg?color=blue" alt="Mozilla Addons"></a>
    <a href="https://addons.mozilla.org/en-US/firefox/addon/wanikani-kanji-highlighter/"><img src="https://img.shields.io/amo/users/wanikani-kanji-highlighter.svg?color=blue" alt="Mozilla Addons Users"></a>
+   <a href="https://microsoftedge.microsoft.com/addons/detail/wanikani-kanji-highlighte/bojpejhgjpipdejiphdgmikcojkhcfpl"><img src="https://img.shields.io/badge/dynamic/json?label=edge%20add-on&prefix=v&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fbojpejhgjpipdejiphdgmikcojkhcfpl" alt="Edge Addons Users"></a>
+   <a href="https://microsoftedge.microsoft.com/addons/detail/wanikani-kanji-highlighte/bojpejhgjpipdejiphdgmikcojkhcfpl"><img src="https://img.shields.io/badge/dynamic/json?label=users&query=%24.activeInstallCount&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fbojpejhgjpipdejiphdgmikcojkhcfpl" alt="Edge Addons Users"></a>
 </p>
 
 ---
