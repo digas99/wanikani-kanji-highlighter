@@ -17,15 +17,18 @@
 <br>
    <a href="https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm"><img src="https://img.shields.io/chrome-web-store/v/pdbjikelneighjgjojikkmhiehpcokjm.svg?color=orange" alt="Chrome Web Store"></a>
    <a href="https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm"><img src="https://img.shields.io/chrome-web-store/users/pdbjikelneighjgjojikkmhiehpcokjm.svg?color=orange" alt="Chrome Web Store Users"></a>
-   <a href="https://addons.mozilla.org/en-US/firefox/addon/wanikani-kanji-highlighter/"><img src="https://img.shields.io/amo/v/wanikani-kanji-highlighter.svg?color=blue" alt="Mozilla Addons"></a>
-   <a href="https://addons.mozilla.org/en-US/firefox/addon/wanikani-kanji-highlighter/"><img src="https://img.shields.io/amo/users/wanikani-kanji-highlighter.svg?color=blue" alt="Mozilla Addons Users"></a>
+   <a href="https://addons.mozilla.org/en-US/firefox/addon/wanikani-kanji-highlighter/"><img src="https://img.shields.io/amo/v/wanikani-kanji-highlighter.svg?color=purple" alt="Mozilla Addons"></a>
+   <a href="https://addons.mozilla.org/en-US/firefox/addon/wanikani-kanji-highlighter/"><img src="https://img.shields.io/amo/users/wanikani-kanji-highlighter.svg?color=purple" alt="Mozilla Addons Users"></a>
+   <a href="https://microsoftedge.microsoft.com/addons/detail/wanikani-kanji-highlighte/bojpejhgjpipdejiphdgmikcojkhcfpl"><img src="https://img.shields.io/badge/dynamic/json?label=edge%20add-on&prefix=v&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fbojpejhgjpipdejiphdgmikcojkhcfpl" alt="Edge Addons Users"></a>
+   <a href="https://microsoftedge.microsoft.com/addons/detail/wanikani-kanji-highlighte/bojpejhgjpipdejiphdgmikcojkhcfpl"><img src="https://img.shields.io/badge/dynamic/json?label=users&query=%24.activeInstallCount&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fbojpejhgjpipdejiphdgmikcojkhcfpl" alt="Edge Addons Users"></a>
 </p>
 
 ---
 
 <p align="center" style="10px">
    <a href="https://chrome.google.com/webstore/detail/wanikani-kanji-highlighte/pdbjikelneighjgjojikkmhiehpcokjm"><img src="https://developer.chrome.com/static/docs/webstore/branding/image/HRs9MPufa1J1h5glNhut.png" alt="Get Wanikani Kanji Highlighter for Chrome" width="200"></a>
-   <a href="https://addons.mozilla.org/pt-PT/firefox/addon/wanikani-kanji-highlighter"><img src="https://github.com/user-attachments/assets/fa67055e-717a-45e2-9f99-a9c40498d94a" alt="Get Wanikani Kanji Highlighter for FireFox" width="193"></a><br>
+  <a href="https://addons.mozilla.org/pt-PT/firefox/addon/wanikani-kanji-highlighter"><img src="https://github.com/user-attachments/assets/fa67055e-717a-45e2-9f99-a9c40498d94a" alt="Get Wanikani Kanji Highlighter for FireFox" width="193"></a>
+   <a href="https://microsoftedge.microsoft.com/addons/detail/wanikani-kanji-highlighte/bojpejhgjpipdejiphdgmikcojkhcfpl"><img src="https://github.com/user-attachments/assets/01972254-95b6-4ad1-9462-a433dcd9585c" alt="Get Wanikani Kanji Highlighter for Edge" width="193"></a><br>
 </p>
 
 ---
