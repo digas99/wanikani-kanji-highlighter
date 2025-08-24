@@ -4,3 +4,7 @@ new-changes.txt
 *.un~
 
 *.zip
+
+.output
+.wxt
+node_modules/
