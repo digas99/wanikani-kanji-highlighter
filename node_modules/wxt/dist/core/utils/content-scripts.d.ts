@@ -1,0 +1,12 @@
+import type { Browser } from '@wxt-dev/browser';
+import { ContentScriptEntrypoint, ResolvedConfig } from '../../types';
+import { ManifestContentScript } from './types';
+/**
+ * Returns a unique and consistent string hash based on a content scripts options.
+ *
+ * It is able to recognize default values,
+ */
+export declare function hashContentScriptOptions(options: ContentScriptEntrypoint['options']): string;
+export declare function mapWxtOptionsToContentScript(options: ContentScriptEntrypoint['options'], js: string[] | undefined, css: string[] | undefined): ManifestContentScript;
+export declare function mapWxtOptionsToRegisteredContentScript(options: ContentScriptEntrypoint['options'], js: string[] | undefined, css: string[] | undefined): Omit<Browser.scripting.RegisteredContentScript, 'id'>;
+export declare function getContentScriptJs(config: ResolvedConfig, entrypoint: ContentScriptEntrypoint): string[];

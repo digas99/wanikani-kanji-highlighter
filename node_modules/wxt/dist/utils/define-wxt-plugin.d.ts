@@ -1,0 +1,3 @@
+/** @module wxt/utils/define-wxt-plugin */
+import type { WxtPlugin } from '../types';
+export declare function defineWxtPlugin(plugin: WxtPlugin): WxtPlugin;
