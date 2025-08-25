@@ -51,9 +51,9 @@ body {
   min-width: var(--body-base-width);
   transition: 0.3s;
   font-size: 13px;
-  padding-right: 45px;
   margin: unset;
-  min-height: 400px;
+  padding-right: 45px;
+  min-height: 600px;
 }
 
 a {

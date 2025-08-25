@@ -3,9 +3,8 @@ import { storage } from "#imports";
 import { getWKManager } from '@/lib/apiClient';
 import { useWKStore } from '@/stores';
 
-import Login from '@/components/Login.vue';
-import Home from '@/components/Home.vue';
-import Sidebar from "@/components/Sidebar.vue";
+import Login from '@/views/Login.vue';
+import Sidebar from "@/components/Navbar/Sidebar.vue";
 
 const wk = useWKStore();
 wk.init();
@@ -19,6 +18,8 @@ function handleLogin(apiKey: string, proxyServer: string) {
 
 	wk.isLoggedIn = true;
 	getWKManager(apiKey, proxyServer);
+
+	wk.init();
 }
 </script>
 
@@ -28,7 +29,7 @@ function handleLogin(apiKey: string, proxyServer: string) {
 		<Login v-if="!wk.isLoggedIn" @login="handleLogin" />
 		<template v-else>
 			<Sidebar />
-			<Home />
+			<RouterView />
 		</template>
 	</template>
 </template>

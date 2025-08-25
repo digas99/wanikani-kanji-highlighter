@@ -19,9 +19,15 @@ export const useWKStore = defineStore('wk', {
 			this.isLoggedIn = true;
 
 			wkManager.getUserInfo();
-			// wkManager.getSubjects(null);
+			wkManager.updateSubjects(null);
 		}
 		this.loading = false;
     },
+	reset() {
+	  this.loading = true;
+	  this.isLoggedIn = false;
+	  storage.removeItem('sync:apiKey');
+	  storage.removeItem('sync:proxyServer');
+	}
   },
 });

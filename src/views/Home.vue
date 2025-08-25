@@ -6,7 +6,7 @@
 import { getWKManager } from '@/lib/apiClient';
 
 export default {
-	name: 'Main',
+	name: 'Home',
 
 	mounted() {
 		const wkManager = getWKManager();

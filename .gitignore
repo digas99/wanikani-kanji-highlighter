@@ -8,3 +8,4 @@ new-changes.txt
 .output
 .wxt
 node_modules/
+.env

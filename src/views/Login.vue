@@ -25,12 +25,23 @@ import logo from "@/assets/logo.png";
 export default {
 	data() {
 		return {
-			apiKey: "",
+			apiKey: import.meta.env.VITE_WANIKANI_API_KEY || "",
 			proxyServer: "https://proxy.wkhighlighter.com",
 			version: ref(chrome.runtime.getManifest().version),
 			logo
 		};
 	},
+
+	mounted() {
+		document.body.style.paddingRight = "unset";
+		document.body.style.minHeight = "unset";
+	},
+
+	beforeUnmount() {
+		document.body.style.paddingRight = null;
+		document.body.style.minHeight = null;
+	},
+
 	methods: {
 		login() {
 			this.$emit("login", this.apiKey, this.proxyServer);
