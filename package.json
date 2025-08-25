@@ -17,11 +17,12 @@
   "dependencies": {
     "pinia": "^3.0.3",
     "vue": "^3.5.13",
-    "wanikani-api-manager": "^0.0.2"
+    "wanikani-api-manager": "^0.0.6"
   },
   "devDependencies": {
     "@wxt-dev/module-vue": "^1.0.2",
     "typescript": "5.6.3",
+    "vite-plugin-vue-devtools": "^8.0.1",
     "vue-tsc": "^2.2.10",
     "wxt": "^0.20.6"
   }

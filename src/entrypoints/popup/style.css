@@ -53,6 +53,7 @@ body {
   font-size: 13px;
   padding-right: 45px;
   margin: unset;
+  min-height: 400px;
 }
 
 a {

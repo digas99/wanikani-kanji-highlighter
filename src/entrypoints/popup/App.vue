@@ -4,7 +4,8 @@ import { getWKManager } from '@/lib/apiClient';
 import { useWKStore } from '@/stores';
 
 import Login from '@/components/Login.vue';
-import Main from '@/components/Main.vue';
+import Home from '@/components/Home.vue';
+import Sidebar from "@/components/Sidebar.vue";
 
 const wk = useWKStore();
 wk.init();
@@ -25,6 +26,9 @@ function handleLogin(apiKey: string, proxyServer: string) {
 	<div v-if="wk.loading">Loading...</div>
 	<template v-else>
 		<Login v-if="!wk.isLoggedIn" @login="handleLogin" />
-		<Main v-else />
+		<template v-else>
+			<Sidebar />
+			<Home />
+		</template>
 	</template>
 </template>

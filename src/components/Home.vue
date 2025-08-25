@@ -10,7 +10,6 @@ export default {
 
 	mounted() {
 		const wkManager = getWKManager();
-		console.log(wkManager);
 	}
 }
 </script>

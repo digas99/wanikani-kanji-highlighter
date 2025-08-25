@@ -12,9 +12,14 @@ export const useWKStore = defineStore('wk', {
     	const res = await storage.getItems(['sync:apiKey', 'sync:proxyServer']);
 		const apiKey = res.find(item => item.key === 'sync:apiKey')?.value;
 		const proxyServer = res.find(item => item.key === 'sync:proxyServer')?.value;
+		console.log({ apiKey, proxyServer });
 		if (apiKey && proxyServer) {
-			getWKManager(apiKey, proxyServer);
+			const wkManager = getWKManager(apiKey, proxyServer);
+			console.log(wkManager, wkManager.apiKey);
 			this.isLoggedIn = true;
+
+			wkManager.getUserInfo();
+			// wkManager.getSubjects(null);
 		}
 		this.loading = false;
     },
