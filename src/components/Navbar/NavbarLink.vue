@@ -1,6 +1,6 @@
 <template>
 	<li class="side-panel-tab">
-		<RouterLink :to="to" class="navbar_icon" style="padding: 0px 5px;">
+		<RouterLink :to="to" class="navbar_icon">
 			<img :id="icon" :src="`/icons/sidebar/${icon}.png`" :title="icon.charAt(0).toUpperCase() + icon.slice(1)"
 				style="width: 20px;">
 			<span v-if="info" class="side-panel-info-alert" style="background-color: #f100a1; color: white;">{{ info
@@ -46,6 +46,8 @@ export default {
 	height: 100%;
 	display: flex;
 	align-items: center;
+	width: 100%;
+	justify-content: center;
 }
 
 .side-panel-tab>a img {

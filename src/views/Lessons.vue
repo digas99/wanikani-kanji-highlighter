@@ -5,7 +5,8 @@
 
 <script>
 export default {
-	name: 'Search',
+	name: "Lessons",
+
 };
 </script>
 

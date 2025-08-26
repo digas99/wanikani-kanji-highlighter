@@ -6,6 +6,8 @@ import Settings from '@/views/Settings.vue';
 import Search from '@/views/Search.vue';
 import Profile from '@/views/Profile.vue';
 import About from '@/views/About.vue';
+import Lessons from '@/views/Lessons.vue';
+import Reviews from '@/views/Reviews.vue';
 
 const router = createRouter({
 	history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -39,6 +41,16 @@ const router = createRouter({
 			path: '/about',
 			name: 'About',
 			component: About
+		},
+		{
+			path: '/lessons',
+			name: 'Lessons',
+			component: Lessons
+		},
+		{
+			path: '/reviews',
+			name: 'Reviews',
+			component: Reviews
 		}
 	]
 });

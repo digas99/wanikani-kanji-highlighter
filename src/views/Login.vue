@@ -35,11 +35,13 @@ export default {
 	mounted() {
 		document.body.style.paddingRight = "unset";
 		document.body.style.minHeight = "unset";
+		document.body.style.marginTop = "unset";
 	},
 
 	beforeUnmount() {
 		document.body.style.paddingRight = null;
 		document.body.style.minHeight = null;
+		document.body.style.marginTop = null;
 	},
 
 	methods: {

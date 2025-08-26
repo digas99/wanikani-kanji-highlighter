@@ -52,8 +52,12 @@ body {
   transition: 0.3s;
   font-size: 13px;
   margin: unset;
+}
+
+.container {
   padding-right: 45px;
-  min-height: 600px;
+  min-height: 550px;
+  margin-top: 45px;
 }
 
 a {

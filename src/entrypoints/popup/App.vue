@@ -5,6 +5,7 @@ import { useWKStore } from '@/stores';
 
 import Login from '@/views/Login.vue';
 import Sidebar from "@/components/Navbar/Sidebar.vue";
+import Topbar from "@/components/Navbar/Topbar.vue";
 
 const wk = useWKStore();
 wk.init();
@@ -28,6 +29,7 @@ function handleLogin(apiKey: string, proxyServer: string) {
 	<template v-else>
 		<Login v-if="!wk.isLoggedIn" @login="handleLogin" />
 		<template v-else>
+			<Topbar />
 			<Sidebar />
 			<RouterView />
 		</template>
