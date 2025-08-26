@@ -1,46 +1,61 @@
 <template>
 	<ul id="progression-bar">
-		<li v-for="(assignments, stage) in assignmentsBySRSStage" :key="stage"
-			:style="{ width: `${(assignments.length / totalAssignments) * 100}%` }">
-			<RouterLink :to="{ name: 'Reviews' }" :style="{ backgroundColor: srsStages[stage].color }">
-				<span v-if="showPercentage(stage)">{{ getStagePercentage(stage) }}%</span>
+		<li v-for="entry in sorted(values)" :key="entry.id"
+			:style="{ width: getStagePercentage(entry.items) + '%', backgroundColor: colors ? colors[entry.id] : '' }">
+			<RouterLink :to="{ name: 'Reviews' }" :style="{ backgroundColor: colors ? colors[entry.id] : '' }">
+				<span v-if="showPercentage(entry.items)">{{ getStagePercentage(entry.items) }}%</span>
 			</RouterLink>
 		</li>
+		<div v-if="title && description" class="extra-info">
+			<span class="title">{{ title }}</span>
+			<div class="description" v-html="description"></div>
+		</div>
 	</ul>
 </template>
 
 <script>
 import { RouterLink } from 'vue-router';
 
-import { srsStages } from '@/utils/wanikani';
-
 export default {
 	name: 'SRSProgressionBar',
 
 	computed: {
-		srsStages() {
-			return srsStages;
-		},
 		totalAssignments() {
-			return Object.values(this.assignmentsBySRSStage).flat().length;
+			return this.values.map(entry => entry.items.length).reduce((a, b) => a + b, 0);
 		}
 	},
 
 	props: {
-		assignmentsBySRSStage: {
+		values: {
 			type: Object,
-			default: () => ({})
+		},
+		colors: {
+			type: Object,
+		},
+		sorting: {
+			type: Object,
+		},
+		title: {
+			type: String,
+		},
+		description: {
+			type: String,
 		}
 	},
 
 	methods: {
-		getStagePercentage(stage) {
-			const assignments = this.assignmentsBySRSStage[stage] || [];
-			return ((assignments.length / this.totalAssignments) * 100).toFixed(1);
+		getStagePercentage(items) {
+			return ((items.length / this.totalAssignments) * 100).toFixed(1);
 		},
-		showPercentage(stage) {
-			const percentage = this.getStagePercentage(stage);
+		showPercentage(items) {
+			const percentage = this.getStagePercentage(items);
 			return percentage >= 10;
+		},
+		sorted(values) {
+			if (this.sorting && Object.keys(this.sorting).length) {
+				return values.sort((a, b) => this.sorting[a.id] - this.sorting[b.id]);
+			}
+			return values.sort((a, b) => a.id - b.id);
 		}
 	}
 }
@@ -48,11 +63,15 @@ export default {
 
 <style scoped>
 #progression-bar {
-	border-radius: 20px;
 	padding: 7px;
 	height: 25px;
 	display: flex;
 	flex-direction: row;
+	position: relative;
+}
+
+#progression-bar>li {
+	transition: width 0.2s;
 }
 
 #progression-bar>li>a {
@@ -63,11 +82,38 @@ export default {
 	height: 100%;
 }
 
+#progression-bar>li:first-child,
 #progression-bar>li:first-child>a {
 	border-radius: 5px 0 0 5px;
 }
 
+#progression-bar>li:last-child,
 #progression-bar>li:last-child>a {
 	border-radius: 0 5px 5px 0;
+}
+
+.extra-info {
+	position: absolute;
+	bottom: -50px;
+	background-color: white;
+	display: flex;
+	flex-direction: column;
+	width: 96%;
+	text-align: center;
+}
+
+.extra-info .title {
+	font-weight: bold;
+	background-color: var(--default-color);
+	color: white;
+	padding: 7px;
+}
+
+.extra-info .description {
+	color: #666;
+	padding: 5px;
+	border: 1px solid #eee;
+	border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
 }
 </style>

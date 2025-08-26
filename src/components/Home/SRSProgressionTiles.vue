@@ -1,11 +1,12 @@
 <template>
 	<div id="progression-stats">
 		<ul>
-			<li v-for="stage in Object.keys(assignmentsBySRSStage).sort((a, b) => a - b)" :key="stage"
-				:style="{ backgroundColor: srsStages[stage].color }">
+			<li v-for="entry in sorted(values)" :key="entry.id" @mouseover="handleMouseOver(entry)" :data-id="entry.id"
+				:style="{ backgroundColor: colors ? colors[entry.id] : '' }"
+				:data-color="colors ? colors[entry.id] : ''">
 				<div>
 					<RouterLink :to="{ name: 'Reviews' }">
-						{{ assignmentsBySRSStage[stage].length }}
+						{{ entry.items.length }}
 					</RouterLink>
 				</div>
 			</li>
@@ -15,21 +16,42 @@
 
 <script>
 import { RouterLink } from 'vue-router';
-import { srsStages } from '@/utils/wanikani';
 
 export default {
 	name: 'SRSProgressionTiles',
 
-	computed: {
-		srsStages() {
-			return srsStages;
+	props: {
+		values: {
+			type: Object
+		},
+		colors: {
+			type: Object
+		},
+		sorting: {
+			type: Object
 		}
 	},
 
-	props: {
-		assignmentsBySRSStage: {
-			type: Object,
-			default: () => ({})
+	methods: {
+		sorted(values) {
+			if (this.sorting) {
+				return Object.keys(this.sorting).map(key => values[key]);
+			}
+			return values.sort((a, b) => a.id - b.id);
+		},
+		handleMouseOver(entry) {
+			this.$emit('mouseover', entry.items);
+
+			// add background color gray to all others
+			const allEntries = this.$el.querySelectorAll('li');
+			allEntries.forEach(item => {
+				if (item.dataset.id != entry.id) {
+					item.style.backgroundColor = 'gray';
+				}
+				else {
+					item.style.backgroundColor = item.dataset.color;
+				}
+			});
 		}
 	}
 }
@@ -68,5 +90,9 @@ export default {
 	height: 100%;
 	align-items: center;
 	justify-content: center;
+}
+
+#progression-stats a:hover {
+	opacity: 1;
 }
 </style>
