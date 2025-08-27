@@ -2,7 +2,8 @@
 	<ul id="progression-bar">
 		<li v-for="entry in sorted(values)" :key="entry.id"
 			:style="{ width: getStagePercentage(entry.items) + '%', backgroundColor: colors ? colors[entry.id] : '' }">
-			<RouterLink :to="{ name: 'Reviews' }" :style="{ backgroundColor: colors ? colors[entry.id] : '' }">
+			<RouterLink :to="{ name: 'Subjects', query: { id: entry.id, type } }"
+				:style="{ backgroundColor: colors ? colors[entry.id] : '' }">
 				<span v-if="showPercentage(entry.items)">{{ getStagePercentage(entry.items) }}%</span>
 			</RouterLink>
 		</li>
@@ -17,7 +18,7 @@
 import { RouterLink } from 'vue-router';
 
 export default {
-	name: 'SRSProgressionBar',
+	name: 'ProgressionBar',
 
 	computed: {
 		totalAssignments() {
@@ -31,6 +32,9 @@ export default {
 		},
 		colors: {
 			type: Object,
+		},
+		type: {
+			type: String
 		},
 		sorting: {
 			type: Object,
@@ -63,7 +67,6 @@ export default {
 
 <style scoped>
 #progression-bar {
-	padding: 7px;
 	height: 25px;
 	display: flex;
 	flex-direction: row;
@@ -80,16 +83,6 @@ export default {
 	align-items: center;
 	display: flex;
 	height: 100%;
-}
-
-#progression-bar>li:first-child,
-#progression-bar>li:first-child>a {
-	border-radius: 5px 0 0 5px;
-}
-
-#progression-bar>li:last-child,
-#progression-bar>li:last-child>a {
-	border-radius: 0 5px 5px 0;
 }
 
 .extra-info {

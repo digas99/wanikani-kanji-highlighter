@@ -8,6 +8,7 @@ import Profile from '@/views/Profile.vue';
 import About from '@/views/About.vue';
 import Lessons from '@/views/Lessons.vue';
 import Reviews from '@/views/Reviews.vue';
+import Subjects from '@/views/Subjects.vue';
 
 const router = createRouter({
 	history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -51,6 +52,11 @@ const router = createRouter({
 			path: '/reviews',
 			name: 'Reviews',
 			component: Reviews
+		},
+		{
+			path: '/subjects',
+			name: 'Subjects',
+			component: Subjects
 		}
 	]
 });

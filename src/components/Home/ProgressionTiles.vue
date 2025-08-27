@@ -5,7 +5,7 @@
 				:style="{ backgroundColor: colors ? colors[entry.id] : '' }"
 				:data-color="colors ? colors[entry.id] : ''">
 				<div>
-					<RouterLink :to="{ name: 'Reviews' }">
+					<RouterLink :to="{ name: 'Subjects', query: { id: entry.id, type } }">
 						{{ entry.items.length }}
 					</RouterLink>
 				</div>
@@ -18,7 +18,7 @@
 import { RouterLink } from 'vue-router';
 
 export default {
-	name: 'SRSProgressionTiles',
+	name: 'ProgressionTiles',
 
 	props: {
 		values: {
@@ -29,6 +29,9 @@ export default {
 		},
 		sorting: {
 			type: Object
+		},
+		type: {
+			type: String
 		}
 	},
 

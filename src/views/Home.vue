@@ -1,10 +1,11 @@
 <template>
-	<div class="container" style="background-color: var(--default-color);">
+	<div class="container home" style="background-color: var(--default-color);">
 		<ReviewsInfo :next="futureAssignments?.nextReviews" />
 		<div class="stats" style="padding-bottom: 150px;">
-			<SRSProgressionTiles :values="progressionTilesValues" :colors="progressionTilesColors"
-				@mouseover="updateProgressionBar" @mouseleave="resumeRefreshProgressions" />
-			<SRSProgressionBar :values="progressionBarValues" :colors="progressionBarColors"
+			<ProgressionTiles :values="progressionTilesValues" :colors="progressionTilesColors"
+				:type="progressionTilesType" @mouseover="updateProgressionBar"
+				@mouseleave="resumeRefreshProgressions" />
+			<ProgressionBar :values="progressionBarValues" :colors="progressionBarColors" :type="progressionBarType"
 				:sorting="progressionBarSorting" :title="progressionBarTitle"
 				:description="progressionBarDescription" />
 		</div>
@@ -17,19 +18,20 @@
 import { getWKManager } from '@/lib/apiClient';
 
 import ReviewsInfo from '@/components/Home/ReviewsInfo.vue';
-import SRSProgressionTiles from '@/components/Home/SRSProgressionTiles.vue';
-import SRSProgressionBar from '@/components/Home/SRSProgressionBar.vue';
+import ProgressionTiles from '@/components/Home/ProgressionTiles.vue';
+import ProgressionBar from '@/components/Home/ProgressionBar.vue';
 import KanjiInPageList from '@/components/Home/KanjiInPageList.vue';
 
 import { srsStages } from '@/utils/wanikani';
+import { groupByType, groupBySRSStage } from '@/utils/common';
 
 export default {
 	name: 'Home',
 
 	components: {
 		ReviewsInfo,
-		SRSProgressionTiles,
-		SRSProgressionBar,
+		ProgressionTiles,
+		ProgressionBar,
 		KanjiInPageList
 	},
 
@@ -52,6 +54,7 @@ export default {
 				{ id: 9, items: [] }
 			],
 			progressionTilesColors: {},
+			progressionTilesType: null,
 			progressionBarValues: [
 				{ id: 0, items: [] },
 				{ id: 1, items: [] },
@@ -65,6 +68,7 @@ export default {
 				{ id: 9, items: [] }
 			],
 			progressionBarColors: {},
+			progressionBarType: null,
 			progressionBarSorting: {},
 			progressionBarTitle: null,
 			progressionBarDescription: null,
@@ -88,26 +92,24 @@ export default {
 		this.progressionTilesColors = this.srsStageColors;
 		this.progressionBarColors = this.srsStageColors;
 
-		this.wkManager.events.on('get:assignments:future', data => {
+		this.wkManager.events.on('get:assignments:future', ({ state, data }) => {
 			this.futureAssignments = data;
 		});
 
-		this.wkManager.events.on('get:assignments', data => {
-			const assignmentsBySrsStage = data.entries.reduce((acc, assignment) => {
-				if (!acc.find(item => item.id === assignment.srs_stage)) {
-					acc.push({ id: assignment.srs_stage, items: [] });
-				}
-				acc.find(item => item.id === assignment.srs_stage).items.push(assignment);
-				return acc;
-			}, []);
+		this.wkManager.events.on('get:assignments', ({ state, data }) => {
+			if (!data) return;
+
+			const assignmentsBySrsStage = groupBySRSStage(data);
 
 			if (assignmentsBySrsStage.length) {
 				if (this.refreshProgressions) {
 					this.progressionTilesValues = assignmentsBySrsStage;
 					this.progressionTilesColors = this.srsStageColors;
+					this.progressionTilesType = "srs";
 
 					this.progressionBarValues = assignmentsBySrsStage;
 					this.progressionBarColors = this.srsStageColors;
+					this.progressionBarType = "srs";
 					this.progressionBarSorting = {};
 				}
 			}
@@ -116,6 +118,9 @@ export default {
 
 	beforeUnmount() {
 		clearInterval(this.futureAssignmentsInterval);
+
+		this.wkManager.events.removeListener('get:assignments:future');
+		this.wkManager.events.removeListener('get:assignments');
 	},
 
 	methods: {
@@ -128,17 +133,11 @@ export default {
 			if (items.length > 0) {
 				this.progressionBarTitle = this.srsStages[items[0].srs_stage]?.name || null;
 
-				const assignments = items.reduce((acc, item) => {
-					const type = item.subject_type === "kana_vocabulary" ? "vocabulary" : item.subject_type;
-					if (!acc.find(i => i.id === type)) {
-						acc.push({ id: type, items: [] });
-					}
-					acc.find(i => i.id === type).items.push(item);
-					return acc;
-				}, []);
+				const assignments = groupByType(items);
 
 				if (assignments.length > 0) {
 					this.progressionBarValues = assignments;
+					this.progressionBarType = "type";
 					this.progressionBarSorting = { "radical": 0, "kanji": 1, "vocabulary": 2 };
 					this.progressionBarColors = {
 						"radical": "#00a1f1",
@@ -184,5 +183,21 @@ export default {
 	border-top-right-radius: 5px;
 	border-top-left-radius: 5px;
 	height: 100%;
+}
+
+#progression-bar {
+	padding: 7px;
+}
+</style>
+
+<style>
+.home #progression-bar>li:first-child,
+.home #progression-bar>li:first-child>a {
+	border-radius: 5px 0 0 5px;
+}
+
+.home #progression-bar>li:last-child,
+.home #progression-bar>li:last-child>a {
+	border-radius: 0 5px 5px 0;
 }
 </style>
