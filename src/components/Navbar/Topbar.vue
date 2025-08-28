@@ -1,6 +1,7 @@
 <template>
 	<div class="topNav">
-		<a href="#" title="Go back" id="goBackButton">
+		<a title="Go back" id="goBackButton" @click="goBack"
+			:style="{ pointerEvents: showGoBackButton ? 'auto' : 'none' }">
 			<div>
 				<i v-if="showGoBackButton" class="left"></i>
 				<div id="secPageTitle"></div>
@@ -41,6 +42,12 @@ export default {
 	watch: {
 		$route(to, from) {
 			this.showGoBackButton = to.name !== 'Home';
+		}
+	},
+
+	methods: {
+		goBack() {
+			this.$router.go(-1);
 		}
 	}
 

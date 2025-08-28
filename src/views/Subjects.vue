@@ -22,6 +22,7 @@ export default {
 			id: parseInt(this.$route.query.id),
 			functionName: null,
 			wkManager: null,
+			fetchInterval: null,
 
 			values: [],
 			colors: [],
@@ -40,6 +41,7 @@ export default {
 		await this.setMetadata();
 		if (this.functionName) {
 			this.wkManager[this.functionName](this.id)
+			this.fetchInterval = setInterval(() => this.wkManager[this.functionName](this.id), 3000);
 		}
 
 		this.wkManager.events.on('get:subjects', async ({ state, data }) => {
@@ -50,6 +52,7 @@ export default {
 
 	beforeUnmount() {
 		this.wkManager.events.removeListener('get:subjects');
+		clearInterval(this.fetchInterval);
 	},
 
 	methods: {

@@ -1,7 +1,7 @@
 <template>
 	<div class="container home" style="background-color: var(--default-color);">
 		<ReviewsInfo :next="futureAssignments?.nextReviews" />
-		<div class="stats" style="padding-bottom: 150px;">
+		<div class="stats" style="padding-bottom: 157px;">
 			<ProgressionTiles :values="progressionTilesValues" :colors="progressionTilesColors"
 				:type="progressionTilesType" @mouseover="updateProgressionBar"
 				@mouseleave="resumeRefreshProgressions" />
@@ -16,7 +16,6 @@
 
 <script>
 import { getWKManager } from '@/lib/apiClient';
-import { useWKStore } from '@/stores';
 
 import ReviewsInfo from '@/components/Home/ReviewsInfo.vue';
 import ProgressionTiles from '@/components/Home/ProgressionTiles.vue';
@@ -80,15 +79,11 @@ export default {
 	computed: {
 		srsStages() {
 			return srsStages;
-		},
-		wk() {
-			return useWKStore();
 		}
 	},
 
 	mounted() {
 		this.wkManager = getWKManager();
-		this.wkManager.getSubjects(null, ({ state, data }) => this.wk.allSubjects = data);
 
 		this.getData();
 		this.dataInterval = setInterval(this.getData, 1000);
@@ -130,6 +125,8 @@ export default {
 
 	methods: {
 		getData() {
+			console.log("Getting data...");
+
 			this.wkManager.getFutureAssignments();
 			this.wkManager.getAssignments();
 		},

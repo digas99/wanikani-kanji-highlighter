@@ -26,23 +26,30 @@ export default {
 	created() {
 		this.wkManager = getWKManager();
 
-		this.wkManager.getSubjectsById(this.id);
-
-		this.wkManager.events.on('get:subjects', ({ state, data }) => {
-			if (this.quitFetch) return;
-
-			console.log(data);
-			this.item = data[0];
-		});
+		this.fetchData();
+		this.fetchInterval = setInterval(this.fetchData, 1000);
 	},
 
 	beforeUnmount() {
-		this.wkManager.events.removeListener('get:subjects');
+		clearInterval(this.fetchInterval);
+	},
+
+	methods: {
+		fetchData() {
+			this.wkManager.getSubjectsById(this.id, ({ state, data }) => {
+				console.log(data);
+				this.item = data[0];
+			});
+		}
 	}
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.container {
+	background-color: var(--default-color);
+}
+</style>
 
 <style>
 .subject .sd-detailsPopup {
@@ -50,6 +57,8 @@ export default {
 	border-top: 4px solid;
 	z-index: unset !important;
 	position: relative !important;
+	height: 100%;
+	box-shadow: unset !important;
 }
 
 .subject .sd-focusPopup_kanji {
@@ -64,7 +73,7 @@ export default {
 }
 
 .subject .sd-popupDetails_detailedInfoWrapper {
-	height: 360px !important;
+	height: 100%;
 	background-color: var(--default-color);
 }
 </style>

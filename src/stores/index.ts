@@ -4,9 +4,10 @@ import { storage } from '#imports';
 
 export const useWKStore = defineStore('wk', {
   state: () => ({
-    loading: true,
-    isLoggedIn: false,
-	allSubjects: [],
+	loading: true,
+	isLoggedIn: false,
+	subjectsListScroll: 0,
+	allSubjects: [] as Array<any>,
   }),
   actions: {
     async init() {
@@ -20,9 +21,26 @@ export const useWKStore = defineStore('wk', {
 			this.isLoggedIn = true;
 
 			wkManager.getUserInfo();
+
+			// save a smaller curated version of all subjects data, just for app browsing
+			// all subjects, no callback or event trigger (null, null)
+			wkManager.getSubjects(null, null).then((data: Array<any>) => this.allSubjects = this.formatSubjectsData(data));
 		}
 		this.loading = false;
     },
+	formatSubjectsData(data: Array<any>) {
+		return data.map(item => ({
+			id: item.id,
+			type: item.type,
+			characters: item.characters,
+			character_images: item.character_images,
+			assignment: {
+				id: item.assignment?.id,
+				srs_stage: item.assignment?.srs_stage,
+				subject_type: item.assignment?.subject_type
+			}
+		}));
+	},
 	reset() {
 	  this.loading = true;
 	  this.isLoggedIn = false;

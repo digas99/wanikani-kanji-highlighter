@@ -29,7 +29,8 @@
 					</ul>
 				</div>
 			</div>
-			<div class="sd-popupDetails_detailedInfoWrapper">
+			<div class="sd-popupDetails_detailedInfoWrapper"
+				:style="{ paddingBottom: Object.keys(item.reviews).length > 0 ? '20px' : '' }">
 				<div class="sd-popupDetails_details">
 					<!-- AUDIO -->
 					<div v-if="item.pronunciation_audios" @click="playAudio(item.pronunciation_audios[0].url)"
@@ -83,25 +84,30 @@
 					</div>
 				</div>
 				<!-- QUICK STATS -->
-				<div v-if="item.reviews" class="sd-popupDetails_quickStats">
+				<div v-if="Object.keys(item.reviews).length > 0" class="sd-popupDetails_quickStats">
 					<ul style="display: inline-flex !important;">
-						<li title="Overall" class="sd-detailsPopup_img-label">
-							<img :src="CheckmarkIcon">
-							<span :style="{ color: this.correctnessColor(item.reviews.percentage_correct) }">{{
-								item.reviews.percentage_correct }}%</span>
+						<li v-if="!hasReviews()" style="color: #cbcbcb;">
+							No reviews yet
 						</li>
+						<template v-else>
+							<li title="Overall" class="sd-detailsPopup_img-label">
+								<img :src="CheckmarkIcon">
+								<span :style="{ color: this.correctnessColor(item.reviews.percentage_correct) }">{{
+									item.reviews.percentage_correct }}%</span>
+							</li>
 
-						<li title="Meaning" class="sd-detailsPopup_img-label">
-							<img :src="BookIcon">
-							<span :style="{ color: this.correctnessColor(meaningCorrect()) }">{{ meaningCorrect()
-							}}%</span>
-						</li>
+							<li title="Meaning" class="sd-detailsPopup_img-label">
+								<img :src="BookIcon">
+								<span :style="{ color: this.correctnessColor(meaningCorrect()) }">{{ meaningCorrect()
+								}}%</span>
+							</li>
 
-						<li title="Reading" class="sd-detailsPopup_img-label">
-							<img :src="EyeIcon">
-							<span :style="{ color: this.correctnessColor(readingCorrect()) }">{{ readingCorrect()
-							}}%</span>
-						</li>
+							<li title="Reading" class="sd-detailsPopup_img-label">
+								<img :src="EyeIcon">
+								<span :style="{ color: this.correctnessColor(readingCorrect()) }">{{ readingCorrect()
+								}}%</span>
+							</li>
+						</template>
 					</ul>
 				</div>
 			</div>
@@ -192,6 +198,10 @@ export default {
 		playAudio(url) {
 			const audio = new Audio(url);
 			audio.play();
+		},
+		hasReviews() {
+			const { meaning_correct, meaning_incorrect, reading_correct, reading_incorrect } = this.item.reviews;
+			return meaning_correct + meaning_incorrect + reading_correct + reading_incorrect > 0;
 		},
 		meaningCorrect() {
 			return this._calculatePercentage(this.item.reviews.meaning_correct, this.item.reviews.meaning_incorrect);

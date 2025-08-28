@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
+import { useWKStore } from '@/stores';
 
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
@@ -71,8 +72,18 @@ export default router;
 
 // middleware
 router.afterEach(async (to) => {
-	const title = !to.name || to.name === 'Home' ? 'WaniKani Kanji Highlighter' : to.name; 
+	const title = !to.name || to.name === 'Home' ? 'WaniKani Kanji Highlighter' : to.name ? String(to.name) : '';
+	setPageTitle(title);
 
+	// reset list scroll save
+	if (!['Subjects', 'Subject'].includes(title)) {
+		const wk = useWKStore();
+		wk.subjectsListScroll = 0;
+	}
+});
+
+const setPageTitle = (title: string) => {
+	document.title = title;
 	if (document.querySelector('#secPageTitle'))
 		document.querySelector('#secPageTitle').innerText = title;
 	
@@ -81,4 +92,4 @@ router.afterEach(async (to) => {
 		document.title = title;
 		document.querySelector('#secPageTitle').innerText = title;
 	}, 100);
-});
+};

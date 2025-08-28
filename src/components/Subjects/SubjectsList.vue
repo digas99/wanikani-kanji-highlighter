@@ -3,7 +3,8 @@
 		<div class="subjects-list-header"><b>{{ values.length }}</b> Subjects on <b>{{ titleId }}</b></div>
 		<div class="subjects-list-content">
 			<ProgressionBar :values="groupedValues" :colors="colors" :sorting="sorting" />
-			<div class="subjects-list" :style="{ maxHeight: height + 'px' }">
+			<div class="subjects-list" :style="{ maxHeight: height + 'px' }" @scrollend="saveScroll"
+				ref="scrollContainer">
 				<div v-for="{ id, items } in groupedValues" class="subjects-list-section">
 					<div>
 						<span><b></b></span>
@@ -21,6 +22,8 @@
 <script>
 import ProgressionBar from '@/components/Home/ProgressionBar.vue';
 import TilesList from '@/components/Subjects/TilesList.vue';
+
+import { useWKStore } from '@/stores/index';
 
 export default {
 	name: 'SubjectsList',
@@ -59,9 +62,22 @@ export default {
 		}
 	},
 
+	computed: {
+		wk() {
+			return useWKStore();
+		}
+	},
+
 	async created() {
 		this.groupedValues = await this.groupValues();
 		this.titleId = await this.getTitleId();
+	},
+
+	mounted() {
+		console.log(this.$refs.scrollContainer, this.wk.subjectsListScroll);
+		setTimeout(() => {
+			this.$refs.scrollContainer.scrollTop = this.wk.subjectsListScroll;
+		});
 	},
 
 	watch: {
@@ -90,6 +106,9 @@ export default {
 			}
 			return this.values;
 		},
+		saveScroll() {
+			this.wk.subjectsListScroll = this.$refs.scrollContainer.scrollTop;
+		}
 	}
 }
 </script>

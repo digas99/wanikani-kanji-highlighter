@@ -314,6 +314,7 @@
 	position: fixed;
 	width: 100%;
 	border-top: 3px solid white;
+	min-height: 24px;
 }
 
 .sd-popupDetails_quickStats > ul {
