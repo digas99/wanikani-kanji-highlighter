@@ -6,6 +6,7 @@ export const useWKStore = defineStore('wk', {
   state: () => ({
     loading: true,
     isLoggedIn: false,
+	allSubjects: [],
   }),
   actions: {
     async init() {
@@ -19,13 +20,13 @@ export const useWKStore = defineStore('wk', {
 			this.isLoggedIn = true;
 
 			wkManager.getUserInfo();
-			wkManager.updateSubjects(null);
 		}
 		this.loading = false;
     },
 	reset() {
 	  this.loading = true;
 	  this.isLoggedIn = false;
+	  this.allSubjects = [];
 	  storage.removeItem('sync:apiKey');
 	  storage.removeItem('sync:proxyServer');
 	}

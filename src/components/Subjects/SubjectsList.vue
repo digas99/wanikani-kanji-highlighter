@@ -77,7 +77,7 @@ export default {
 		async getTitleId() {
 			switch (this.type) {
 				case 'srs':
-					const { srsStages } = await import('@/utils/wanikani');
+					const { srsStages } = await import('@/utils/scripts/wanikani');
 					return srsStages[this.id].name;
 			}
 			return null;
@@ -85,7 +85,7 @@ export default {
 		async groupValues() {
 			switch (this.type) {
 				case 'srs':
-					const { groupByType } = await import('@/utils/common');
+					const { groupByType } = await import('@/utils/scripts/common');
 					return groupByType(this.values.map(item => ({ id: item.id, subject_type: item.type })));
 			}
 			return this.values;

@@ -16,14 +16,15 @@
 
 <script>
 import { getWKManager } from '@/lib/apiClient';
+import { useWKStore } from '@/stores';
 
 import ReviewsInfo from '@/components/Home/ReviewsInfo.vue';
 import ProgressionTiles from '@/components/Home/ProgressionTiles.vue';
 import ProgressionBar from '@/components/Home/ProgressionBar.vue';
 import KanjiInPageList from '@/components/Home/KanjiInPageList.vue';
 
-import { srsStages } from '@/utils/wanikani';
-import { groupByType, groupBySRSStage } from '@/utils/common';
+import { srsStages } from '@/utils/scripts/wanikani';
+import { groupByType, groupBySRSStage } from '@/utils/scripts/common';
 
 export default {
 	name: 'Home',
@@ -79,11 +80,15 @@ export default {
 	computed: {
 		srsStages() {
 			return srsStages;
+		},
+		wk() {
+			return useWKStore();
 		}
 	},
 
 	mounted() {
 		this.wkManager = getWKManager();
+		this.wkManager.getSubjects(null, ({ state, data }) => this.wk.allSubjects = data);
 
 		this.getData();
 		this.dataInterval = setInterval(this.getData, 1000);
@@ -117,7 +122,7 @@ export default {
 	},
 
 	beforeUnmount() {
-		clearInterval(this.futureAssignmentsInterval);
+		clearInterval(this.dataInterval);
 
 		this.wkManager.events.removeListener('get:assignments:future');
 		this.wkManager.events.removeListener('get:assignments');
@@ -129,8 +134,8 @@ export default {
 			this.wkManager.getAssignments();
 		},
 		updateProgressionBar(items) {
-			this.refreshProgressions = false;
 			if (items.length > 0) {
+				this.refreshProgressions = false;
 				this.progressionBarTitle = this.srsStages[items[0].srs_stage]?.name || null;
 
 				const assignments = groupByType(items);

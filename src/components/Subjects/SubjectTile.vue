@@ -1,14 +1,17 @@
 <template>
-	<RouterLink :to="{ name: 'Subjects' }" class="subject-tile" :data-item-id="item.id">
-		<span v-if="item.characters">{{ item.characters }}</span>
-		<img v-else-if="item.character_images" :style="{ width: width + 'px', height: height + 'px' }"
-			:src="item.character_images.find(img => img.content_type === 'image/svg+xml').url" :alt="item.characters" />
+	<RouterLink :to="{ name: 'Subject', params: { id: item.id } }" class="subject-tile" :data-item-id="item.id">
+		<SubjectCharacters :item="item" :height="height" :width="width" />
 	</RouterLink>
 </template>
 
 <script>
+import SubjectCharacters from '@/components/Subjects/SubjectCharacters.vue';
+
 export default {
 	name: 'SubjectTile',
+	components: {
+		SubjectCharacters
+	},
 
 	props: {
 		item: {

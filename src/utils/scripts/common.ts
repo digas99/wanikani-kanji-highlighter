@@ -30,3 +30,11 @@ export const groupBySRSStage = (items: Item[]): GroupedItem[] => {
 		return acc;
 	}, []);
 };
+
+export const correctnessColor = (percentage: number): string => {
+	if (percentage >= 90) return "#00ff00"; // Green
+	if (percentage >= 75) return "#aaff00"; // Yellow-Green
+	if (percentage >= 50) return "#ffff00"; // Yellow
+	if (percentage >= 25) return "#ffaa00"; // Orange
+	return "#ff0000"; // Red
+}

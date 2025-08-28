@@ -9,6 +9,7 @@ import About from '@/views/About.vue';
 import Lessons from '@/views/Lessons.vue';
 import Reviews from '@/views/Reviews.vue';
 import Subjects from '@/views/Subjects.vue';
+import Subject from '@/views/Subject.vue';
 
 const router = createRouter({
 	history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -57,8 +58,27 @@ const router = createRouter({
 			path: '/subjects',
 			name: 'Subjects',
 			component: Subjects
+		},
+		{
+			path: '/subject/:id',
+			name: 'Subject',
+			component: Subject
 		}
 	]
 });
 
 export default router;
+
+// middleware
+router.afterEach(async (to) => {
+	const title = !to.name || to.name === 'Home' ? 'WaniKani Kanji Highlighter' : to.name; 
+
+	if (document.querySelector('#secPageTitle'))
+		document.querySelector('#secPageTitle').innerText = title;
+	
+	// wait until the dom is rendered
+	setTimeout(() => {	
+		document.title = title;
+		document.querySelector('#secPageTitle').innerText = title;
+	}, 100);
+});

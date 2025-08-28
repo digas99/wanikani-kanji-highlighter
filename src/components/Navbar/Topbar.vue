@@ -1,8 +1,8 @@
 <template>
 	<div class="topNav">
-		<a v-if="showGoBackButton" href="#" title="Go back" id="goBackButton">
+		<a href="#" title="Go back" id="goBackButton">
 			<div>
-				<i class="left"></i>
+				<i v-if="showGoBackButton" class="left"></i>
 				<div id="secPageTitle"></div>
 			</div>
 		</a>
@@ -91,6 +91,7 @@ export default {
 .topNav>a>div {
 	display: flex;
 	align-items: center;
+	gap: 10px;
 }
 
 .topNav>a>div>i {
@@ -99,8 +100,9 @@ export default {
 }
 
 .topNav>a>div>div {
-	margin-left: 10px;
 	color: white;
+	font-size: 15px;
+	font-weight: bold;
 }
 
 .topNav .star {

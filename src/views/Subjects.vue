@@ -6,6 +6,7 @@
 
 <script>
 import { getWKManager } from '@/lib/apiClient';
+import { useWKStore } from '@/stores';
 
 import SubjectsList from '@/components/Subjects/SubjectsList.vue';
 
@@ -21,7 +22,6 @@ export default {
 			id: parseInt(this.$route.query.id),
 			functionName: null,
 			wkManager: null,
-			fetchInterval: null,
 
 			values: [],
 			colors: [],
@@ -29,40 +29,54 @@ export default {
 		}
 	},
 
+	computed: {
+		wk() {
+			return useWKStore();
+		}
+	},
+
 	async created() {
 		this.wkManager = getWKManager();
-		await this.setMetadata(this.type);
+		await this.setMetadata();
 		if (this.functionName) {
 			this.wkManager[this.functionName](this.id)
-			this.fetchInterval = setInterval(() => this.wkManager[this.functionName](this.id), 1000);
 		}
 
 		this.wkManager.events.on('get:subjects', async ({ state, data }) => {
+			console.log("Fetched:", state, data.length);
 			this.values = data;
 		});
 	},
 
 	beforeUnmount() {
 		this.wkManager.events.removeListener('get:subjects');
-		clearInterval(this.fetchInterval);
 	},
 
 	methods: {
-		async setMetadata(type) {
-			this.functionName = this.getFunctionName(type);
-			this.colors = await this.getColors(type);
+		async setMetadata() {
+			this.values = this.fetchLocalCache();
+			console.log("Fetched: local", this.values.length);
+			this.functionName = this.getFunctionName();
+			this.colors = await this.getColors();
 		},
-		getFunctionName(type) {
-			switch (type) {
+		fetchLocalCache() {
+			if (this.wk.allSubjects.length > 0) {
+				switch (this.type) {
+					case 'srs':
+						return this.wk.allSubjects.filter(item => item.assignment && item.assignment.srs_stage == this.id);
+				}
+			}
+			return [];
+		},
+		getFunctionName() {
+			switch (this.type) {
 				case 'srs':
 					return 'getSubjectsBySRSStage';
-				case 'level':
-					return 'getSubjectsByLevel';
 			}
 			return null;
 		},
-		async getColors(type) {
-			switch (type) {
+		async getColors() {
+			switch (this.type) {
 				case 'srs':
 					return {
 						"radical": "#00a1f1",
