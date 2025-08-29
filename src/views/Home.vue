@@ -1,7 +1,7 @@
 <template>
 	<div class="container home" style="background-color: var(--default-color);">
 		<ReviewsInfo :next="futureAssignments?.nextReviews" />
-		<div class="stats" style="padding-bottom: 157px;">
+		<div class="stats" style="padding-bottom: 160px;">
 			<ProgressionTiles :values="progressionTilesValues" :colors="progressionTilesColors"
 				:type="progressionTilesType" @mouseover="updateProgressionBar"
 				@mouseleave="resumeRefreshProgressions" />

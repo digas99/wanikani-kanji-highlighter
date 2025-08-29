@@ -1,6 +1,6 @@
 <template>
-	<div class="container">
-		<SubjectsList :values="values" :colors="colors" :sorting="sorting" :id="id" :type="type" />
+	<div class="container subjects">
+		<SubjectsList :values="values" :colors="colors" :sorting="sorting" :id="id" :type="type" :height="455" />
 	</div>
 </template>
 
@@ -25,6 +25,7 @@ export default {
 			functionName: null,
 			wkManager: null,
 			fetchInterval: null,
+			fetchId: null,
 
 			values: [],
 			colors: [],
@@ -45,12 +46,13 @@ export default {
 		this.wkManager = getWKManager();
 		await this.setMetadata();
 		if (this.functionName) {
+			this.fetchId = this.id;
 			this.wkManager[this.functionName](this.id)
-			this.fetchInterval = setInterval(() => this.wkManager[this.functionName](this.id), 3000);
 		}
 
-		this.wkManager.events.on('get:subjects', async ({ state, data }) => {
-			console.log("Fetched:", state, data.length);
+		this.wkManager.events.on('get:subjects', async ({ state, data, context: { caller } }) => {
+			if (state === "updated" && this.fetchId !== caller) return;
+
 			this.values = data;
 		});
 	},
@@ -94,4 +96,14 @@ export default {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.container {
+	background-color: var(--default-color);
+}
+</style>
+
+<style>
+.subjects .subjects-list-content {
+	min-height: 500px;
+}
+</style>

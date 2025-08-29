@@ -8,6 +8,8 @@ export const useWKStore = defineStore('wk', {
 	isLoggedIn: false,
 	subjectsListScroll: 0,
 	allSubjects: [] as Array<any>,
+	userAvatar: '',
+	userInfo: {}
   }),
   actions: {
     async init() {

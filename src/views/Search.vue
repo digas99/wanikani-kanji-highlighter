@@ -76,6 +76,7 @@ export default {
 	data() {
 		return {
 			wkManager: null,
+			fetchId: null,
 			showSearchMenu: false,
 			searchResultGrid: true,
 			searchIcon,
@@ -97,8 +98,10 @@ export default {
 		this.wkManager = getWKManager();
 		this.colors = this.typeColors;
 
-		this.wkManager.events.on('get:subjects', ({ state, data }) => {
-			// console.log('Subjects fetched:', data);
+		this.wkManager.events.on('get:subjects', ({ state, data, context }) => {
+			context = context.levels ? '' + context.levels[0] : context.caller;
+			if (state === "updated" && this.fetchId !== context) return;
+
 			this.results = data;
 			this.nResults = data.length;
 		});
@@ -144,6 +147,7 @@ export default {
 			// add search query to history
 			this.$router.push({ name: 'Search', query: { q: query, type: this.searchTypeKana ? 'kana' : 'romaji' } });
 
+			this.fetchId = query;
 			if (!isNaN(query))
 				this.wkManager.getSubjectsByLevel(parseInt(query));
 			else if (this.hasKanji(query))

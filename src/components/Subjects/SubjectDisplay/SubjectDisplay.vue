@@ -169,6 +169,7 @@ export default {
 
 	mounted() {
 		console.log(this.item);
+		window.scrollTo(0, 0);
 
 		// if pronunciation audio exists, play it
 		if (this.item.pronunciation_audios && this.item.pronunciation_audios.length > 0) {

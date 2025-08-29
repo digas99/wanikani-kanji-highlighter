@@ -131,16 +131,20 @@ export default {
 </script>
 
 <style scoped>
-.subjects-list-wrapper {
-	background-color: white;
-}
-
 .subjects-list-header {
 	text-align: center;
 	background-color: var(--default-color);
 	color: white;
 	padding: 15px 5px;
 	font-size: 15px;
+}
+
+.subjects-list-content {
+	overflow: hidden;
+	border-top-left-radius: 10px;
+	border-top-right-radius: 10px;
+	padding: 5px;
+	background-color: white;
 }
 
 .subjects-list-bar {

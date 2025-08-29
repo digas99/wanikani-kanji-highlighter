@@ -52,7 +52,7 @@ import { getWKManager } from '@/lib/apiClient';
 import { RouterLink } from 'vue-router';
 import { useWKStore } from '@/stores';
 
-import NavbarLink from './NavbarLink.vue';
+import NavbarLink from '@/components/Navbar/NavbarLink.vue';
 
 import WanikaniDefaultAvatar from '@/assets/wanikani-default.png';
 
@@ -72,27 +72,34 @@ export default {
         };
     },
 
+    computed: {
+        wk() {
+            return useWKStore();
+        }
+    },
+
     mounted() {
         this.wkManager = getWKManager();
         console.log(this.wkManager);
 
         this.wkManager.events.on("update:avatar", avatar => {
-            if (avatar) this.userAvatar = avatar;
+            if (avatar) {
+                this.userAvatar = avatar;
+                this.wk.userAvatar = avatar;
+            }
         });
 
         this.wkManager.events.on("update:user", user => {
             console.log(user);
             if (user) {
-                this.userInfo = user; // store user info
-                if (user.avatar) this.userAvatar = user.avatar; // set user avatar
+                this.userInfo = user;
+                this.wk.userInfo = user;
+                if (user.avatar) {
+                    this.userAvatar = user.avatar;
+                    this.wk.userAvatar = user.avatar;
+                }
             }
         });
-    },
-
-    computed: {
-        wk() {
-            return useWKStore();
-        }
     },
 
     methods: {

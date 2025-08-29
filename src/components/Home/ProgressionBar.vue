@@ -1,5 +1,5 @@
 <template>
-	<ul id="progression-bar">
+	<ul id="progression-bar" :style="{ overflow: title ? 'visible' : 'hidden' }">
 		<li v-for="entry in sorted(values)" :key="entry.id"
 			:style="{ width: getStagePercentage(entry.items) + '%', backgroundColor: colors ? colors[entry.id] : '' }">
 			<RouterLink :to="{ name: 'Subjects', query: { id: entry.id, type } }"
@@ -71,6 +71,9 @@ export default {
 	display: flex;
 	flex-direction: row;
 	position: relative;
+	border-radius: 10px;
+	overflow: hidden;
+	padding-bottom: 5px;
 }
 
 #progression-bar>li {

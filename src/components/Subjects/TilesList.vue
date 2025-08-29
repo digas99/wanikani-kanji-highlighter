@@ -63,7 +63,8 @@ export default {
 		formatList(list) {
 			const parentElem = list.closest(".subjects-list");
 			const parentIsOverflowing = parentElem.scrollHeight > parentElem.clientHeight;
-			list.style.marginRight = parentIsOverflowing ? "65px" : "45px";
+			const bodyIsOverflowing = document.body.scrollHeight > document.body.clientHeight || document.documentElement.scrollHeight > document.documentElement.clientHeight;
+			list.style.marginRight = parentIsOverflowing ? "65px" : bodyIsOverflowing ? "55px" : "45px";
 
 			const lastRow = Array.from(list.querySelectorAll("a")).filter(tile => this.isLastRow(list, tile));
 			const valuesWithoutLastRow = this.values.filter(item => !lastRow.find(tile => parseInt(tile.getAttribute("data-item-id")) === item.id));
