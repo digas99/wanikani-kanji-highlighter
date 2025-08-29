@@ -1,5 +1,5 @@
 <template>
-	<div class="container home" style="background-color: var(--default-color);">
+	<div class="container home">
 		<ReviewsInfo :next="futureAssignments?.nextReviews" />
 		<div class="stats" style="padding-bottom: 160px;">
 			<ProgressionTiles :values="progressionTilesValues" :colors="progressionTilesColors"
@@ -82,7 +82,7 @@ export default {
 		},
 		typeColors() {
 			return typeColors;
-		}
+		},
 	},
 
 	mounted() {

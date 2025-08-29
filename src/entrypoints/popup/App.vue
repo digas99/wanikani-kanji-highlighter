@@ -2,6 +2,8 @@
 import { storage } from "#imports";
 import { getWKManager } from '@/lib/apiClient';
 import { useWKStore } from '@/stores';
+import { useMagicKeys } from '@vueuse/core'
+import { useRouter, useRoute } from 'vue-router'
 
 import Login from '@/views/Login.vue';
 import Sidebar from "@/components/Navbar/Sidebar.vue";
@@ -22,6 +24,21 @@ function handleLogin(apiKey: string, proxyServer: string) {
 
 	wk.init();
 }
+
+const { current } = useMagicKeys();
+const router = useRouter();
+const route = useRoute();
+
+watch(current, (keys) => {
+	if (route.name === 'Search') return;
+
+	for (const key of keys) {
+		if (key.length === 1 && key.match(/[a-z]/i)) {
+			router.push({ name: 'Search', params: { query: key } });
+			break;
+		}
+	}
+})
 </script>
 
 <template>

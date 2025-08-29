@@ -5,7 +5,8 @@
 				<div class="textInputWrapper">
 					<img class="textInputIcon" :src="searchIcon" alt="Search">
 					<input type="text" v-model="searchQuery" :placeholder="!searchTypeKana ? 'Gold / 金 / 5' : 'きん'"
-						id="kanjiSearchInput" ref="kanjiSearchInput" @input="search" />
+						@keydown="handleKeyDown" id="kanjiSearchInput" ref="kanjiSearchInput" @input="search"
+						@focus="searchInputHasFocus = true" @blur="searchInputHasFocus = false" />
 					<div class="kanjiSearchTypeWrapper" title="Kana"
 						:id="!searchTypeKana ? 'kanjiSearchTypeKana' : 'kanjiSearchTypeRomaji'"
 						@click="handleSearchTypeChange">
@@ -56,6 +57,9 @@
 
 <script>
 import { getWKManager } from '@/lib/apiClient';
+import { useMagicKeys, whenever } from '@vueuse/core'
+import { useRouter } from 'vue-router';
+
 import { isHiragana, isKatakana, toHiragana, toRomaji, bind, unbind } from 'wanakana';
 
 import SearchMenu from '@/components/Search/SearchMenu.vue';
@@ -79,13 +83,46 @@ export default {
 			fetchId: null,
 			showSearchMenu: false,
 			searchResultGrid: true,
-			searchIcon,
+			searchInput: null,
+			searchInputHasFocus: false,
 			searchQuery: '',
 			searchTypeKana: false,
 			results: [],
 			nResults: 0,
-			colors: {}
+			colors: {},
+
+			searchIcon,
 		};
+	},
+
+	setup() {
+		const { backspace, current } = useMagicKeys()
+		const searchQuery = ref('');
+		const searchInput = ref(null);
+		const searchInputHasFocus = ref(false);
+		const router = useRouter();
+
+		// return to home page if backspace pressed on empty search
+		whenever(backspace, () => {
+			if (searchQuery.value === '') {
+				router.push({ name: 'Home' });
+			}
+		});
+
+		// trigger search when a a-z key is pressed
+		whenever(current, (keys) => {
+			const input = searchInput.value;
+			for (const key of keys) {
+				if (key.length === 1 && key.match(/[a-z]/i)) {
+					if (!searchInputHasFocus.value) {
+						input.focus();
+					}
+					break;
+				}
+			}
+		});
+
+		return { searchQuery, searchInput, searchInputHasFocus };
 	},
 
 	computed: {
@@ -119,6 +156,7 @@ export default {
 			this.handleSearchTypeChange();
 		}
 
+		this.searchInput = this.$refs.kanjiSearchInput;
 		this.$refs.kanjiSearchInput.focus();
 	},
 
@@ -186,7 +224,7 @@ export default {
 			this.$refs.kanjiSearchInput.focus();
 			this.search();
 		}
-	},
+	}
 };
 </script>
 
