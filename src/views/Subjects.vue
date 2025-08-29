@@ -10,6 +10,8 @@ import { useWKStore } from '@/stores';
 
 import SubjectsList from '@/components/Subjects/SubjectsList.vue';
 
+import { typeColors } from '@/utils/scripts/wanikani';
+
 export default {
 	name: 'Subjects',
 	components: {
@@ -33,6 +35,9 @@ export default {
 	computed: {
 		wk() {
 			return useWKStore();
+		},
+		typeColors() {
+			return typeColors;
 		}
 	},
 
@@ -81,11 +86,7 @@ export default {
 		async getColors() {
 			switch (this.type) {
 				case 'srs':
-					return {
-						"radical": "#00a1f1",
-						"kanji": "#f100a1",
-						"vocabulary": "#a100f1",
-					};
+					return this.typeColors;
 			}
 			return [];
 		},

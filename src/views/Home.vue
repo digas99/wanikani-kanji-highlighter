@@ -22,7 +22,7 @@ import ProgressionTiles from '@/components/Home/ProgressionTiles.vue';
 import ProgressionBar from '@/components/Home/ProgressionBar.vue';
 import KanjiInPageList from '@/components/Home/KanjiInPageList.vue';
 
-import { srsStages } from '@/utils/scripts/wanikani';
+import { srsStages, typeColors } from '@/utils/scripts/wanikani';
 import { groupByType, groupBySRSStage } from '@/utils/scripts/common';
 
 export default {
@@ -79,6 +79,9 @@ export default {
 	computed: {
 		srsStages() {
 			return srsStages;
+		},
+		typeColors() {
+			return typeColors;
 		}
 	},
 
@@ -141,11 +144,7 @@ export default {
 					this.progressionBarValues = assignments;
 					this.progressionBarType = "type";
 					this.progressionBarSorting = { "radical": 0, "kanji": 1, "vocabulary": 2 };
-					this.progressionBarColors = {
-						"radical": "#00a1f1",
-						"kanji": "#f100a1",
-						"vocabulary": "#a100f1",
-					};
+					this.progressionBarColors = this.typeColors;
 					this.progressionBarDescription = `<div style='display: flex; gap: 15px; justify-content: center;'>
 						<span><span style='font-weight: bold;'>Radicals:</span> ${assignments.find(item => item.id === "radical")?.items.length || 0}</span>
 						<span><span style='font-weight: bold;'>Kanji:</span> ${assignments.find(item => item.id === "kanji")?.items.length || 0}</span>

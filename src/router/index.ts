@@ -90,6 +90,7 @@ const setPageTitle = (title: string) => {
 	// wait until the dom is rendered
 	setTimeout(() => {	
 		document.title = title;
-		document.querySelector('#secPageTitle').innerText = title;
+		if (document.querySelector('#secPageTitle'))
+			document.querySelector('#secPageTitle').innerText = title;
 	}, 100);
 };

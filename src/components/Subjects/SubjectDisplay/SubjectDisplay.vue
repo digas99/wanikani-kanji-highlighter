@@ -1,6 +1,7 @@
 <template>
 	<div class="subject-details">
-		<div class="sd-detailsPopup sd-focusPopup" :style="{ borderColor: srsStageColor() }">
+		<div class="sd-detailsPopup sd-focusPopup"
+			:style="{ borderColor: subjectDisplay.srsStageColor(item, srsStages) }">
 			<div class="sd-focusPopup_kanji">
 				<div style="text-align: center;">
 					<a :href="item.document_url" target="_blank">
@@ -12,18 +13,17 @@
 						</li>
 						<template v-else>
 							<!-- READINGS -->
-							<li v-if="readings() && (!onyomiReadings() || !kunyomiReadings())"
-								class="sd-popupDetails_readings_row">
-								<span>{{ readings() }}</span>
+							<li v-if="item.type === 'vocabulary'" class="sd-popupDetails_readings_row">
+								<span>{{ subjectDisplay.readings(item) }}</span>
 							</li>
 
 							<!-- READINGS ONYOMI -->
-							<li v-if="onyomiReadings()" class="sd-popupDetails_readings_row">
-								<strong>ON:</strong> <span>{{ onyomiReadings() }}</span>
+							<li v-if="subjectDisplay.onyomiReadings(item)" class="sd-popupDetails_readings_row">
+								<strong>ON:</strong> <span>{{ subjectDisplay.onyomiReadings(item) }}</span>
 							</li>
 							<!-- READINGS KUNYOMI -->
-							<li v-if="kunyomiReadings()" class="sd-popupDetails_readings_row">
-								<strong>KUN:</strong> <span>{{ kunyomiReadings() }}</span>
+							<li v-if="subjectDisplay.kunyomiReadings(item)" class="sd-popupDetails_readings_row">
+								<strong>KUN:</strong> <span>{{ subjectDisplay.kunyomiReadings(item) }}</span>
 							</li>
 						</template>
 					</ul>
@@ -42,16 +42,18 @@
 					<div v-if="item.level"><strong>Level {{ item.level }} {{ item.type }}</strong></div>
 					<!-- STS STAGE -->
 					<div class="sd-detailsPopup_label-img">
-						<strong :style="{ color: srsStageColor() }">{{ srsStageName() }}</strong>
+						<strong :style="{ color: subjectDisplay.srsStageColor(item, srsStages) }">{{
+							subjectDisplay.srsStageName(item, srsStages) }}</strong>
 					</div>
 					<!-- JLPT & JOYO -->
 
 					<!-- PARTS OF SPEECH -->
-					<div v-if="item.parts_of_speech" style="color: #b8b8b8">{{ partsOfSpeach() }}</div>
+					<div v-if="item.parts_of_speech" style="color: #b8b8b8">{{ subjectDisplay.partsOfSpeech(item) }}
+					</div>
 
 					<!-- MEANING -->
 					<div class="sd-popupDetails_kanjiTitle">
-						<strong>{{ joinMeanings() }}</strong>
+						<strong>{{ subjectDisplay.joinMeanings(item) }}</strong>
 					</div>
 
 					<!-- STROKES -->
@@ -121,7 +123,7 @@ import '@/utils/styles/subject-display.css';
 import KanjiDrawPlayer from '@/components/Subjects/SubjectDisplay/KanjiDrawPlayer.vue';
 import SubjectCharacters from '@/components/Subjects/SubjectCharacters.vue';
 
-import { srsStages } from '@/utils/scripts/wanikani';
+import { srsStages, subjectDisplay } from '@/utils/scripts/wanikani';
 import { correctnessColor } from '@/utils/scripts/common';
 
 import SoundIcon from '@/assets/icons/subjectDetails/volume.png';
@@ -157,6 +159,9 @@ export default {
 		srsStages() {
 			return srsStages;
 		},
+		subjectDisplay() {
+			return subjectDisplay;
+		},
 		correctnessColor() {
 			return correctnessColor;
 		}
@@ -172,29 +177,6 @@ export default {
 	},
 
 	methods: {
-		srsStageName() {
-			const stage = this.item?.assignment?.srs_stage;
-			return this.srsStages[stage]?.name || "Locked";
-		},
-		srsStageColor() {
-			const stage = this.item?.assignment?.srs_stage;
-			return this.srsStages[stage]?.color || "#888";
-		},
-		partsOfSpeach() {
-			return this.item.parts_of_speech.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(', ');
-		},
-		joinMeanings() {
-			return this.item.meanings.map(m => m.meaning).join(', ');
-		},
-		onyomiReadings() {
-			return this.item.readings.filter(r => r.type === 'onyomi').map(r => r.reading).join(', ');
-		},
-		kunyomiReadings() {
-			return this.item.readings.filter(r => r.type === 'kunyomi').map(r => r.reading).join(', ');
-		},
-		readings() {
-			return this.item.readings.map(r => r.reading).join(', ');
-		},
 		playAudio(url) {
 			const audio = new Audio(url);
 			audio.play();

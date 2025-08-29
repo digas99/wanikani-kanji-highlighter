@@ -1,7 +1,17 @@
 <template>
-	<ul class="tiles-list justify-list">
+	<!-- dummy list to make calculations -->
+	<ul class="tiles-list justify-list dummy-list" ref="dummyList">
 		<SubjectTile v-for="item in values" :key="item.id" :item="item"
 			:style="{ backgroundColor: colors ? colors[item.type] : '' }" />
+	</ul>
+	<!-- actual list with tiles correctly distributed -->
+	<ul class="tiles-list justify-list">
+		<SubjectTile v-for="item in tiles" :key="item.id" :item="item"
+			:style="{ backgroundColor: colors ? colors[item.type] : '' }" />
+		<div class="last-row" ref="lastRow">
+			<SubjectTile v-for="item in lastRowTiles" :key="item.id" :item="item"
+				:style="{ backgroundColor: colors ? colors[item.type] : '' }" />
+		</div>
 	</ul>
 </template>
 
@@ -25,18 +35,44 @@ export default {
 		}
 	},
 
+	data() {
+		return {
+			tiles: [],
+			lastRowTiles: []
+		}
+	},
+
+	watch: {
+		values: {
+			handler() {
+				this.$nextTick(() => {
+					this.formatList(this.$refs.dummyList);
+				});
+			},
+			deep: true
+		}
+	},
+
 	mounted() {
 		this.$nextTick(() => {
-			this.unjustifyLastRow(this.$el);
+			this.formatList(this.$refs.dummyList);
 		});
 	},
 
 	methods: {
-		unjustifyLastRow(list) {
-			const lastRowTiles = Array.from(list.children).filter(tile => this.isLastRow(list, tile));
-			const newWrapper = document.createElement("div");
-			list.appendChild(newWrapper);
-			lastRowTiles.forEach(tile => newWrapper.appendChild(tile));
+		formatList(list) {
+			const parentElem = list.closest(".subjects-list");
+			const parentIsOverflowing = parentElem.scrollHeight > parentElem.clientHeight;
+			list.style.marginRight = parentIsOverflowing ? "65px" : "45px";
+
+			const lastRow = Array.from(list.querySelectorAll("a")).filter(tile => this.isLastRow(list, tile));
+			const valuesWithoutLastRow = this.values.filter(item => !lastRow.find(tile => parseInt(tile.getAttribute("data-item-id")) === item.id));
+			const valuesLastRow = lastRow.map(tile => {
+				const id = parseInt(tile.getAttribute("data-item-id"));
+				return this.values.find(item => item.id === id);
+			});
+			this.lastRowTiles = valuesLastRow;
+			this.tiles = valuesWithoutLastRow;
 		},
 		isLastRow(list, tile) {
 			const distanceToTop = tile.offsetTop + tile.offsetHeight + Number(getComputedStyle(tile)["margin-bottom"].replace("px", ""));
@@ -83,5 +119,11 @@ export default {
 	flex-grow: 1;
 	text-align: center;
 	justify-content: center;
+}
+
+.dummy-list {
+	position: absolute;
+	margin-right: 45px;
+	top: -9999px;
 }
 </style>

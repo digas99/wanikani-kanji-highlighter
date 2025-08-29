@@ -1,18 +1,20 @@
 <template>
 	<div class="subjects-list-wrapper">
-		<div class="subjects-list-header"><b>{{ values.length }}</b> Subjects on <b>{{ titleId }}</b></div>
-		<div class="subjects-list-content">
+		<div v-if="showTitle" class="subjects-list-header"><b>{{ values.length }}</b> Subjects on <b>{{ titleId }}</b>
+		</div>
+		<div v-if="showProgressionBar" class="subjects-list-content">
 			<ProgressionBar :values="groupedValues" :colors="colors" :sorting="sorting" />
 			<div class="subjects-list" :style="{ maxHeight: height + 'px' }" @scrollend="saveScroll"
 				ref="scrollContainer">
-				<div v-for="{ id, items } in groupedValues" class="subjects-list-section">
+				<div v-for="{ id, items } in groupedValues" :key="id" class="subjects-list-section">
 					<div>
 						<span><b></b></span>
 						<span>{{ id.charAt(0).toUpperCase() + id.slice(1) }} ({{ items.length }})</span>
 						<div><i class="up subjects-list-section-arrow"
 								:style="{ borderColor: colors ? colors[id] : '' }"></i></div>
 					</div>
-					<TilesList :values="values.filter(i => i.type === id)" :colors="colors" />
+					<TilesList :values="values.filter(item => subjectDisplay.filterByType(item, id))"
+						:colors="colors" />
 				</div>
 			</div>
 		</div>
@@ -24,6 +26,8 @@ import ProgressionBar from '@/components/Home/ProgressionBar.vue';
 import TilesList from '@/components/Subjects/TilesList.vue';
 
 import { useWKStore } from '@/stores/index';
+
+import { subjectDisplay } from '@/utils/scripts/wanikani';
 
 export default {
 	name: 'SubjectsList',
@@ -49,6 +53,14 @@ export default {
 		type: {
 			type: String,
 		},
+		showTitle: {
+			type: Boolean,
+			default: true
+		},
+		showProgressionBar: {
+			type: Boolean,
+			default: true
+		},
 		height: {
 			type: Number,
 			default: 475
@@ -65,12 +77,16 @@ export default {
 	computed: {
 		wk() {
 			return useWKStore();
+		},
+		subjectDisplay() {
+			return subjectDisplay;
 		}
 	},
 
 	async created() {
 		this.groupedValues = await this.groupValues();
-		this.titleId = await this.getTitleId();
+		if (this.showTitle)
+			this.titleId = await this.getTitleId();
 	},
 
 	mounted() {
@@ -102,7 +118,8 @@ export default {
 			switch (this.type) {
 				case 'srs':
 					const { groupByType } = await import('@/utils/scripts/common');
-					return groupByType(this.values.map(item => ({ id: item.id, subject_type: item.type })));
+					const grouped = groupByType(this.values.map(item => ({ id: item.id, subject_type: item.type })));
+					return grouped;
 			}
 			return this.values;
 		},
