@@ -16,6 +16,7 @@
 
 <script>
 import { getWKManager } from '@/lib/apiClient';
+import { useWKStore } from '@/stores';
 
 import ReviewsInfo from '@/components/Home/ReviewsInfo.vue';
 import ProgressionTiles from '@/components/Home/ProgressionTiles.vue';
@@ -83,6 +84,9 @@ export default {
 		typeColors() {
 			return typeColors;
 		},
+		wk() {
+			return useWKStore();
+		},
 	},
 
 	mounted() {
@@ -117,6 +121,10 @@ export default {
 				}
 			}
 		});
+
+		this.wkManager.events.on('update:assignments', data => {
+			console.log(data);
+		});
 	},
 
 	beforeUnmount() {
@@ -132,6 +140,8 @@ export default {
 
 			this.wkManager.getFutureAssignments();
 			this.wkManager.getAssignments();
+			if (this.wk.userInfo?.level)
+				this.wkManager.updateAssignmentsByLevel(this.wk.userInfo?.level);
 		},
 		updateProgressionBar(items) {
 			if (items.length > 0) {

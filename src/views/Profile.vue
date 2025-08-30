@@ -30,7 +30,16 @@
 			<div id="level-progress">
 				<p>Level Progress <span>(by SRS Stages completed)</span></p>
 				<div class="level-progress-bar">
-
+					<div :style="`width: ${levelProgressionInfo.progress?.percentage}%`"
+						:title="`Passed Stages: ${levelProgressionInfo.progress?.passed} / ${levelProgressionInfo.progress?.size} (${levelProgressionInfo.progress?.percentage.toFixed(1)}%)`">
+						<p v-if="levelProgressionInfo.progress?.percentage >= 8.1">
+							{{ levelProgressionInfo.progress?.percentage.toFixed(1) }}%</p>
+					</div>
+					<span v-if="levelProgressionInfo.progress?.percentage < 81"
+						:style="{ marginLeft: levelProgressionInfo.progress?.percentage == 0 ? '15px' : '6px' }">{{
+							levelProgressionInfo.progress?.passed
+						}} / {{
+							levelProgressionInfo.progress?.percentage.toFixed(1) }}%</span>
 				</div>
 			</div>
 			<div class="clickable scroll-down" title="Scroll Down"><i class="down"></i></div>
@@ -45,7 +54,7 @@ import { useWKStore } from '@/stores';
 
 import SubjectsList from '@/components/Subjects/SubjectsList.vue';
 
-import { typeColors } from '@/utils/scripts/wanikani';
+import { typeColors, levelUpInfo, formatSubjectsData } from '@/utils/scripts/wanikani';
 
 import WanikaniDefaultAvatar from '@/assets/wanikani-default.png';
 
@@ -60,6 +69,7 @@ export default {
 			userAvatar: WanikaniDefaultAvatar,
 			userInfo: {},
 			fetchId: null,
+			levelProgressionInfo: {},
 
 			beforePreviousLevel: null,
 			previousLevel: null,
@@ -78,6 +88,9 @@ export default {
 		},
 		typeColors() {
 			return typeColors;
+		},
+		levelUpInfo() {
+			return levelUpInfo;
 		}
 	},
 
@@ -104,11 +117,23 @@ export default {
 			}
 		});
 
-		this.wkManager.events.on("get:subjects", ({ state, data, context }) => {
+		this.wkManager.events.on("get:subjects", ({ state, data, context: { levels } }) => {
 			// make sure update is still relevant
-			if (state === "updated" && this.fetchId !== context[0]) return;
+			if (this.fetchId !== levels[0]) return;
 
-			this.values = data;
+			const progressionInfo = this.levelUpInfo(data);
+			if (JSON.stringify(this.levelProgressionInfo) !== JSON.stringify(progressionInfo))
+				this.levelProgressionInfo = progressionInfo;
+
+			const formattedData = formatSubjectsData(data);
+			if (JSON.stringify(this.values) !== JSON.stringify(formattedData))
+				this.values = formattedData;
+		});
+	},
+
+	mounted() {
+		setTimeout(() => {
+			if (this.wk.levelProgressionInfo) this.levelProgressionInfo = this.wk.levelProgressionInfo;
 		});
 	},
 
@@ -139,6 +164,10 @@ export default {
 		setLevels(level) {
 			this.fetchId = level;
 			this.wkManager.getSubjectsByLevel(level);
+
+			// update data from store immediately
+			this.values = this.wk.allSubjects.filter(item => item.level == level);
+			this.levelProgressionInfo = this.levelUpInfo(this.values);
 
 			this.beforePreviousLevel = level > 2 ? level - 2 : null;
 			this.previousLevel = level > 1 ? level - 1 : null;
@@ -319,7 +348,7 @@ export default {
 	border-top-right-radius: 25px;
 	border: 1px solid silver;
 	overflow: hidden;
-	background-color: #c7c7c7;
+	background-color: #ffffff;
 	box-shadow: inset 0px 2px 4px #888686;
 	display: flex;
 	position: relative;
@@ -334,7 +363,7 @@ export default {
 
 .level-progress-bar>span {
 	background-color: unset;
-	color: #888888;
+	color: #b9b9b9;
 	margin-top: 7px;
 	margin-left: 6px;
 }

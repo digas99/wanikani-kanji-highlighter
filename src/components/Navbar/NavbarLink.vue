@@ -1,10 +1,13 @@
 <template>
-	<li class="side-panel-tab">
+	<li class="side-panel-tab" :data-label="icon">
 		<RouterLink :to="to" class="navbar_icon">
-			<img :id="icon" :src="`/icons/sidebar/${icon}.png`" :title="icon.charAt(0).toUpperCase() + icon.slice(1)"
-				style="width: 20px;">
-			<span v-if="info" class="side-panel-info-alert" style="background-color: #f100a1; color: white;">{{ info
-			}}</span>
+			<div>
+				<img :id="icon" :src="`/icons/sidebar/${icon}.png`"
+					:title="icon.charAt(0).toUpperCase() + icon.slice(1)" style="width: 20px;">
+				<span v-if="info" class="side-panel-info-alert" style="background-color: #f100a1; color: white;">{{ info
+				}}</span>
+			</div>
+			<p style="pointer-events: none;">{{ icon.charAt(0).toUpperCase() + icon.slice(1) }}</p>
 		</RouterLink>
 	</li>
 </template>
@@ -54,6 +57,10 @@ export default {
 	filter: invert(1);
 }
 
+.side-panel-tab>a p {
+	display: none;
+}
+
 .side-panel>div>a {
 	display: inline-block;
 }
@@ -70,9 +77,38 @@ export default {
 	padding: 3px;
 	position: absolute;
 	top: -3px;
-	left: 26px;
+	right: 0px;
 	font-size: 10px;
 	font-weight: bold;
 	border-radius: 4px;
+	transition: 0.3s;
+}
+
+.side-panel-focus>ul li>a {
+	display: inline-flex;
+	align-items: center;
+	width: 100%;
+	padding-left: 15px !important;
+}
+
+.side-panel-focus>ul li>a:hover {
+	opacity: unset !important;
+}
+
+.side-panel-focus>ul li>a>p {
+	color: white;
+	padding-left: 12px;
+	width: 100%;
+	display: block;
+}
+
+.side-panel-focus .side-panel-info-alert {
+	right: unset;
+	left: 35px;
+}
+
+.side-panel-focus>div>a>img {
+	width: 45px;
+	border-radius: 30px;
 }
 </style>

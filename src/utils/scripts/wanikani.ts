@@ -48,4 +48,53 @@ export const subjectDisplay = {
 		let itemType = item.type === 'kana_vocabulary' ? 'vocabulary' : item.type;
 		return itemType === type;
 	}
+};
+
+// custom level up progression
+export const levelUpInfo = (subjects: Array<any>) => {
+	const kanji = subjects.filter(subject => subject.type == "kanji" && !subject.assignment.hidden);
+
+	const sliceSize = Math.floor(kanji.length * 0.1);
+	const neededKanji = kanji.sort((a, b) => b.assignment.srs_stage - a.assignment.srs_stage)
+		.slice(0, -sliceSize);
+
+	const passedKanji = neededKanji.filter(subject => subject.assignment.passed_at);
+	const remainingNeededKanji = neededKanji.filter(subject => !subject.assignment.passed_at && subject.assignment.srs_stage > 0);
+	const initiatedKanji = [...passedKanji, ...remainingNeededKanji];
+
+	// all size: 5 srs stages per kanji (with 5th being passed)
+	const size = neededKanji.length * 5;
+	let progress = 0;
+	initiatedKanji.forEach(kanji => {
+		if (kanji.assignment.passed_at)
+			progress += 5;
+		else
+			progress += kanji.assignment.srs_stage;
+	});
+	const percentage = progress/size*100;
+	return {
+		progress: {
+			passed: progress,
+			size: size,
+			percentage: percentage
+		},
+		subjects: kanji,
+		initiated: initiatedKanji,
+	};
+}
+
+export const formatSubjectsData = (data: Array<any>) => {
+	return data.map(item => ({
+		id: item.id,
+		type: item.type,
+		level: item.level,
+		characters: item.characters,
+		character_images: item.character_images,
+		assignment: {
+			id: item.assignment?.id,
+			srs_stage: item.assignment?.srs_stage,
+			subject_type: item.assignment?.subject_type,
+			passed_at: item.assignment?.passed_at
+		}
+	}));
 }

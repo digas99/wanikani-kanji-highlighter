@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { getWKManager } from '@/lib/apiClient';
 import { storage } from '#imports';
+import { levelUpInfo, formatSubjectsData } from '@/utils/scripts/wanikani';
 
 export const useWKStore = defineStore('wk', {
   state: () => ({
@@ -9,7 +10,8 @@ export const useWKStore = defineStore('wk', {
 	subjectsListScroll: 0,
 	allSubjects: [] as Array<any>,
 	userAvatar: '',
-	userInfo: {}
+	userInfo: {} as any,
+	levelProgressionInfo: {} as any
   }),
   actions: {
     async init() {
@@ -26,22 +28,14 @@ export const useWKStore = defineStore('wk', {
 
 			// save a smaller curated version of all subjects data, just for app browsing
 			// all subjects, no callback or event trigger (null, null)
-			wkManager.getSubjects(null, null).then((data: Array<any>) => this.allSubjects = this.formatSubjectsData(data));
+			wkManager.getSubjects(null, null).then(this.handleBulkSubjectFetch);
 		}
 		this.loading = false;
     },
-	formatSubjectsData(data: Array<any>) {
-		return data.map(item => ({
-			id: item.id,
-			type: item.type,
-			characters: item.characters,
-			character_images: item.character_images,
-			assignment: {
-				id: item.assignment?.id,
-				srs_stage: item.assignment?.srs_stage,
-				subject_type: item.assignment?.subject_type
-			}
-		}));
+	handleBulkSubjectFetch(data: Array<any>) {
+		this.allSubjects = formatSubjectsData(data);
+		if (this.userInfo.level)
+			this.levelProgressionInfo = levelUpInfo(data.filter(subject => subject.level == this.userInfo.level));
 	},
 	reset() {
 	  this.loading = true;

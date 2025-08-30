@@ -1,8 +1,8 @@
 <template>
-    <div class="side-panel">
+    <div class="side-panel" ref="sidePanel" @mouseover="expandSidePanel" @mouseleave="retractSidePanel">
         <!-- PROFILE -->
         <RouterLink :to="{ name: 'Profile' }" id="profile">
-            <div class="progress-container" style="--level-progress: 0%;">
+            <div class="progress-container" ref="levelProgress" style="--level-progress: 0%;">
                 <img :src="userAvatar" alt="Avatar" />
             </div>
             <p title="Level">{{ userInfo?.level || "" }}</p>
@@ -26,7 +26,7 @@
                 <!-- THEME -->
                 <NavbarLink to="#" icon="dark" />
                 <!-- POPOUT -->
-                <NavbarLink to="#" icon="popout" />
+                <NavbarLink to="#" icon="popout" @click="handlePopout" />
 
                 <div class="separator"></div>
 
@@ -69,6 +69,7 @@ export default {
             userAvatar: WanikaniDefaultAvatar,
             userInfo: null,
             version: ref(chrome.runtime.getManifest().version),
+            animationTimeout: null
         };
     },
 
@@ -78,9 +79,30 @@ export default {
         }
     },
 
+    // watch url
+    watch: {
+        '$route'(to) {
+            this.selectTab(to.name?.toLowerCase());
+        },
+        'wk.levelProgressionInfo': {
+            handler(newVal) {
+                console.log('Level progression info updated:', newVal);
+                if (newVal && newVal.progress?.percentage !== undefined) {
+                    this.$nextTick(() => {
+                        this.$refs.levelProgress.style.setProperty('--level-progress', `${newVal.progress.percentage}%`);
+                        this.$refs.levelProgress.title = `${this.userInfo?.username}\nLevel ${newVal.subjects[0].level}\n${newVal.progress.passed} / ${newVal.progress.size} (${newVal.progress.percentage.toFixed(1)}%)`;
+                    });
+                }
+            },
+            deep: true
+        }
+    },
+
     mounted() {
         this.wkManager = getWKManager();
         console.log(this.wkManager);
+
+        this.selectTab(this.$route.name?.toLowerCase());
 
         this.wkManager.events.on("update:avatar", avatar => {
             if (avatar) {
@@ -103,13 +125,53 @@ export default {
     },
 
     methods: {
+        handlePopout() {
+            window.close();
+
+            chrome.windows.create({
+                url: `${window.location.pathname}?scroll=${window.scrollY}&${window.location.search.substring(1)}`,
+                type: "panel",
+                width: window.innerWidth,
+                height: window.innerHeight
+            });
+        },
         handleExit() {
             this.wkManager?.clearUserInfo();
             this.wk.reset();
             location.reload();
+        },
+        selectTab(label) {
+            document.querySelectorAll('.side-panel-tab').forEach(tab => tab.classList.remove('side-panel-tab-selected'));
+            const sidePanelTab = document.querySelector(`.side-panel-tab[data-label="${label}"]`);
+            if (sidePanelTab) {
+                sidePanelTab.classList.add('side-panel-tab-selected');
+            }
+        },
+        expandSidePanel() {
+            if (this.animationTimeout) return;
+
+            this.animationTimeout = setTimeout(() => {
+                this.$refs.sidePanel.classList.add('side-panel-focus');
+                clearTimeout(this.animationTimeout);
+                this.animationTimeout = null;
+            }, 300);
+        },
+        retractSidePanel() {
+            clearTimeout(this.animationTimeout);
+            this.animationTimeout = null;
+
+            if (this.$refs.sidePanel.classList.contains('side-panel-focus')) {
+
+                this.$refs.sidePanel.querySelectorAll('.side-panel-info-alert').forEach(elem => {
+                    elem.style.display = "none";
+                    setTimeout(() => elem.style.removeProperty("display"), 300);
+                });
+                this.$refs.sidePanel.classList.remove('side-panel-focus');
+            }
+
         }
     }
-};
+}
 </script>
 
 <style scoped>
@@ -176,27 +238,6 @@ export default {
     justify-content: unset;
 }
 
-.side-panel-focus>ul li>a {
-    display: inline-flex;
-    align-items: center;
-    width: 100%;
-    padding-left: 15px !important;
-}
-
-.side-panel-focus>ul li>a:hover {
-    opacity: unset !important;
-}
-
-.side-panel-focus>ul li>a>p {
-    color: white;
-    padding-left: 12px;
-    width: 100%;
-}
-
-.side-panel-focus>div>a>img {
-    width: 45px;
-    border-radius: 30px;
-}
 
 .side-panel-focus #side-panel-logo {
     text-align: center;
@@ -204,6 +245,10 @@ export default {
 
 #side-panel-logo:hover .side-panel-version {
     color: var(--wanikani);
+}
+
+.side-panel-tab-selected {
+    background-color: var(--wanikani);
 }
 
 #random-subject-type {
