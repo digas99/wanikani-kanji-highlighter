@@ -14,6 +14,18 @@ import {
 } from '@/utils/scripts/extensionBadge';
 import { getRelatedSubjectIds, ensureSubjectReviewStats } from '@/utils/scripts/subjectDetailsPopup';
 import { enrichSubjectWithSchoolGrades } from '@/utils/scripts/schoolKanji';
+import { migrateFromV15IfNeeded } from '@/utils/scripts/migrateFromV15';
+import { runInitialDataSyncIfNeeded } from '@/utils/scripts/initialDataSync';
+import { maybeOpenUpgradeNotice } from '@/utils/scripts/upgradeNotice';
+
+async function runStartupMigration(): Promise<void> {
+  const result = await migrateFromV15IfNeeded();
+  await runInitialDataSyncIfNeeded();
+  await maybeOpenUpgradeNotice({
+    hadLegacyMigration: result.hadLegacyData,
+    migratedApiKey: result.migratedApiKey,
+  });
+}
 
 async function setupContextMenu(): Promise<void> {
   await browser.contextMenus.remove(CONTEXT_MENU_ID).catch(() => {});
@@ -53,9 +65,11 @@ async function applyBadge(
 
 export default defineBackground(() => {
   void setupContextMenu();
+  void runStartupMigration();
 
   browser.runtime.onInstalled.addListener(() => {
     void setupContextMenu();
+    void runStartupMigration();
   });
 
   browser.contextMenus.onClicked.addListener(async (info, tab) => {

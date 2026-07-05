@@ -16,61 +16,11 @@ import {
 	type ProfileSectionKey,
 } from '@/utils/scripts/profileSubjects';
 import { normalizeSiteEntry, DEFAULT_BLACKLIST, type PageListMode } from '@/utils/scripts/pageList';
-
-function mergeSettings(
-	base: SettingsState,
-	override: Partial<SettingsState>,
-): SettingsState {
-	const merged = structuredClone(base) as SettingsState;
-
-	for (const group of Object.keys(override) as SettingsGroup[]) {
-		const groupValue = override[group];
-		if (!groupValue || typeof groupValue !== 'object') continue;
-
-		if (group === 'profile_menus') {
-			const menus = groupValue as SettingsState['profile_menus'];
-			for (const section of Object.keys(menus) as ProfileSectionKey[]) {
-				const current = merged.profile_menus[section];
-				const incoming = menus[section];
-				if (!incoming) continue;
-
-				merged.profile_menus[section] = {
-					...current,
-					...incoming,
-					menu: { ...current.menu, ...incoming.menu },
-					filter: { ...current.filter, ...incoming.filter },
-					sort: { ...current.sort, ...incoming.sort },
-				};
-			}
-			continue;
-		}
-
-		if (group === 'list_menus') {
-			const menus = groupValue as SettingsState['list_menus'];
-			for (const key of Object.keys(menus) as ListMenuKey[]) {
-				const current = merged.list_menus[key];
-				const incoming = menus[key];
-				if (!incoming) continue;
-
-				merged.list_menus[key] = {
-					...current,
-					...incoming,
-					menu: { ...current.menu, ...incoming.menu },
-					filter: { ...current.filter, ...incoming.filter },
-					sort: { ...current.sort, ...incoming.sort },
-				};
-			}
-			continue;
-		}
-
-		merged[group] = {
-			...merged[group],
-			...groupValue,
-		} as SettingsState[typeof group];
-	}
-
-	return merged;
-}
+import {
+	mergeSettings,
+	mergeStoredSettings,
+	migrateExtensionIconSettings,
+} from '@/utils/scripts/settingsMerge';
 
 function cloneSettings(settings: SettingsState): SettingsState {
 	return structuredClone(toRaw(settings));
@@ -84,17 +34,7 @@ function normalizeStoredSiteList(list: unknown): string[] {
 	return [...new Set(normalized)];
 }
 
-function migrateExtensionIconSettings(settings: SettingsState): void {
-	const icon = settings.extension_icon as SettingsState['extension_icon'] & {
-		badge_mode?: string;
-	};
-	if (typeof icon.kanji_counter === 'boolean') {
-		delete icon.badge_mode;
-		return;
-	}
-	icon.kanji_counter = icon.badge_mode !== 'none';
-	delete icon.badge_mode;
-}
+export { mergeStoredSettings } from '@/utils/scripts/settingsMerge';
 
 export const useSettingsStore = defineStore('settings', {
 	state: () => ({

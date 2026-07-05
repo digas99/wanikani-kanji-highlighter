@@ -25,6 +25,7 @@ import {
 } from '@/utils/highlight/srsStageHighlight';
 import { normalizeLevelsStats, type LevelsStats } from '@/utils/scripts/levelStats';
 import { getRelatedSubjectIds, ensureSubjectReviewStats } from '@/utils/scripts/subjectDetailsPopup';
+import { isInitialSyncLocked } from '@/utils/scripts/initialDataSync';
 
 type SummaryState = {
 	lessons: Array<{ subject_id: number }>;
@@ -247,6 +248,14 @@ export const useWKStore = defineStore('wk', {
 			}
 
 			if (!this.initialSyncStarted) {
+				if (await isInitialSyncLocked()) {
+					this.initialSyncStarted = true;
+					this.loading = false;
+					this.syncInProgress = true;
+					await this.loadDashboardFromCache();
+					return;
+				}
+
 				this.syncProgress = { loaded: 0, total: 2, label: 'dashboard' };
 				await wkManager.getSummary(null);
 				this.syncProgress = { loaded: 1, total: 2, label: 'dashboard' };
@@ -286,6 +295,12 @@ export const useWKStore = defineStore('wk', {
 			wkManager: NonNullable<ReturnType<typeof getWKManager>>,
 			userLevel?: number,
 		) {
+			if (await isInitialSyncLocked()) {
+				this.syncInProgress = true;
+				this.loading = false;
+				return;
+			}
+
 			this.syncInProgress = true;
 			try {
 				const missing = await this.getMissingLevels(wkManager);

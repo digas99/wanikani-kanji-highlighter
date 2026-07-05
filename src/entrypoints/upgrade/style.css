@@ -1,0 +1,143 @@
+:root {
+  color-scheme: light dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--body-color, #ffffff);
+  color: var(--font-color, #343434);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--highlight, #91a1f0);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.upgrade-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px 64px;
+}
+
+.upgrade-hero {
+  margin-bottom: 32px;
+}
+
+.upgrade-logo {
+  display: block;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 16px;
+}
+
+.upgrade-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--default-color, #2a2d48);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.upgrade-hero h1 {
+  margin: 0 0 8px;
+  font-size: 2rem;
+  line-height: 1.2;
+}
+
+.upgrade-hero p {
+  margin: 0;
+  color: var(--font-sec-color, #747474);
+  font-size: 1.05rem;
+}
+
+.upgrade-card {
+  background: var(--surface-muted-color, #f7f7fb);
+  border: 1px solid var(--surface-border-color, #e6e6ef);
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin-bottom: 20px;
+}
+
+.upgrade-card h2 {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+}
+
+.upgrade-card ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.upgrade-card li + li {
+  margin-top: 8px;
+}
+
+.upgrade-warning {
+  background: var(--success-muted-color, #eefbf2);
+  border-color: var(--success-color, #6ecf8a);
+}
+
+.upgrade-warning strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--default-color, #2a2d48);
+}
+
+.upgrade-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.upgrade-actions button,
+.upgrade-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 10px;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.upgrade-primary {
+  background: var(--default-color, #2a2d48);
+  color: #fff;
+  border-color: var(--default-color, #2a2d48);
+}
+
+.upgrade-secondary {
+  background: transparent;
+  color: var(--font-color, #343434);
+  border-color: var(--border-color, #c0c0c0);
+}
+
+.upgrade-footnote {
+  margin-top: 24px;
+  font-size: 0.92rem;
+  color: var(--font-sec-color, #747474);
+}
