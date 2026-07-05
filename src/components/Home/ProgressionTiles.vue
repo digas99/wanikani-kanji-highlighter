@@ -1,14 +1,15 @@
 <template>
 	<div id="progression-stats">
 		<ul>
-			<li v-for="entry in sorted(values)" :key="entry.id" @mouseover="handleMouseOver(entry)" :data-id="entry.id"
+			<li
+				v-for="entry in sorted(values)"
+				:key="entry.id"
+				:data-id="entry.id"
 				:style="{ backgroundColor: colors ? colors[entry.id] : '' }"
-				:data-color="colors ? colors[entry.id] : ''">
-				<div>
-					<RouterLink :to="{ name: 'Subjects', query: { id: entry.id, type } }">
-						{{ entry.items.length }}
-					</RouterLink>
-				</div>
+			>
+				<RouterLink :to="{ name: 'Subjects', query: { id: entry.id, type } }">
+					{{ entry.items.length }}
+				</RouterLink>
 			</li>
 		</ul>
 	</div>
@@ -20,19 +21,23 @@ import { RouterLink } from 'vue-router';
 export default {
 	name: 'ProgressionTiles',
 
+	components: {
+		RouterLink,
+	},
+
 	props: {
 		values: {
-			type: Object
+			type: Object,
 		},
 		colors: {
-			type: Object
+			type: Object,
 		},
 		sorting: {
-			type: Object
+			type: Object,
 		},
 		type: {
-			type: String
-		}
+			type: String,
+		},
 	},
 
 	methods: {
@@ -42,22 +47,8 @@ export default {
 			}
 			return values.sort((a, b) => a.id - b.id);
 		},
-		handleMouseOver(entry) {
-			this.$emit('mouseover', entry.items);
-
-			// add background color gray to all others
-			const allEntries = this.$el.querySelectorAll('li');
-			allEntries.forEach(item => {
-				if (item.dataset.id != entry.id) {
-					item.style.backgroundColor = 'gray';
-				}
-				else {
-					item.style.backgroundColor = item.dataset.color;
-				}
-			});
-		}
-	}
-}
+	},
+};
 </script>
 
 <style scoped>
@@ -72,30 +63,19 @@ export default {
 }
 
 #progression-stats>ul>li {
-	color: white;
 	width: 100%;
-	text-align: center;
-	font-size: 25px;
-	margin: 0 1px;
-	position: relative;
 	border-radius: 5px;
-}
-
-#progression-stats>ul>li>div:not(.progression-menu) {
-	width: 100%;
-	height: 70px;
+	overflow: hidden;
 }
 
 #progression-stats a {
 	color: white !important;
 	display: flex;
 	width: 100%;
-	height: 100%;
+	height: 70px;
 	align-items: center;
 	justify-content: center;
-}
-
-#progression-stats a:hover {
-	opacity: 1;
+	font-size: 25px;
+	transition: 0.2s;
 }
 </style>

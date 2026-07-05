@@ -1,30 +1,93 @@
 <template>
-	<div class="container home">
-		<ReviewsInfo :next="futureAssignments?.nextReviews" />
-		<div class="stats" style="padding-bottom: 160px;">
-			<ProgressionTiles :values="progressionTilesValues" :colors="progressionTilesColors"
-				:type="progressionTilesType" @mouseover="updateProgressionBar"
-				@mouseleave="resumeRefreshProgressions" />
-			<ProgressionBar :values="progressionBarValues" :colors="progressionBarColors" :type="progressionBarType"
-				:sorting="progressionBarSorting" :title="progressionBarTitle"
-				:description="progressionBarDescription" />
-		</div>
-	</div>
+	<div class="container home" :class="{ 'has-highlight-notice': showHighlightedNotice }">
+		<div class="home-stack">
+			<section class="home-card reviews-card">
+				<ReviewsInfo
+					:next="wk.summary.nextReviews"
+					:lessons="wk.summary.lessons"
+					:reviews="wk.summary.reviews"
+				/>
+			</section>
 
-	<KanjiInPageList class="kanji-list" />
+			<section class="home-card">
+				<div class="home-card-title">Progress overview</div>
+				<div class="home-card-body">
+					<ProgressionTiles
+						:values="progressionTilesValues"
+						:colors="progressionTilesColors"
+						:type="progressionTilesType"
+					/>
+					<ProgressionBar
+						:values="progressionBarValues"
+						:colors="progressionBarColors"
+						:type="progressionBarType"
+						:sorting="progressionBarSorting"
+					/>
+				</div>
+			</section>
+
+			<section v-if="wk.levelsInProgress.length" class="home-card">
+				<div class="home-card-title">Levels in progress</div>
+				<div class="home-card-body">
+					<LevelsInProgress :levels="wk.levelsInProgress" />
+				</div>
+			</section>
+
+			<section v-if="showJlptProgress" class="home-card">
+				<div class="home-card-title">JLPT Kanji Progress</div>
+				<div class="home-card-body">
+					<SchoolKanjiProgress school="jlpt" :subjects="wk.allSubjects" />
+				</div>
+			</section>
+
+			<section v-if="showJoyoProgress" class="home-card">
+				<div class="home-card-title">Jōyō Kanji Progress</div>
+				<div class="home-card-body">
+					<SchoolKanjiProgress school="joyo" :subjects="wk.allSubjects" />
+				</div>
+			</section>
+
+			<section v-if="showSchoolLegend" class="home-card school-legend-card">
+				<div class="home-card-body">
+					<SchoolProgressLegend />
+				</div>
+			</section>
+
+			<KanjiInPageList
+				class="home-card highlighted-card"
+				@highlight-summary="highlightSummary = $event"
+			/>
+		</div>
+
+		<HighlightedKanjiNotice
+			v-if="showHighlightedNotice"
+			:count="highlightSummary.count"
+			:mode-label="highlightSummary.modeLabel"
+			:show-progress-bar="highlightSummary.showProgressBar"
+			:bar-values="highlightSummary.barValues"
+			:bar-colors="highlightSummary.barColors"
+			:bar-sorting="highlightSummary.barSorting"
+			@click="scrollToHighlightedList"
+		/>
+	</div>
 </template>
 
 <script>
-import { getWKManager } from '@/lib/apiClient';
 import { useWKStore } from '@/stores';
+import { useSettingsStore } from '@/stores/settings';
+import { DASHBOARD_REFRESH_MS } from '@/lib/apiClient';
 
 import ReviewsInfo from '@/components/Home/ReviewsInfo.vue';
 import ProgressionTiles from '@/components/Home/ProgressionTiles.vue';
 import ProgressionBar from '@/components/Home/ProgressionBar.vue';
+import LevelsInProgress from '@/components/Home/LevelsInProgress.vue';
 import KanjiInPageList from '@/components/Home/KanjiInPageList.vue';
+import HighlightedKanjiNotice from '@/components/Home/HighlightedKanjiNotice.vue';
+import SchoolKanjiProgress from '@/components/Home/SchoolKanjiProgress.vue';
+import SchoolProgressLegend from '@/components/Home/SchoolProgressLegend.vue';
 
-import { srsStages, typeColors } from '@/utils/scripts/wanikani';
-import { groupByType, groupBySRSStage } from '@/utils/scripts/common';
+import { srsStages } from '@/utils/scripts/wanikani';
+import { groupAssignmentsBySRSStage } from '@/utils/scripts/common';
 
 export default {
 	name: 'Home',
@@ -33,14 +96,15 @@ export default {
 		ReviewsInfo,
 		ProgressionTiles,
 		ProgressionBar,
-		KanjiInPageList
+		LevelsInProgress,
+		KanjiInPageList,
+		HighlightedKanjiNotice,
+		SchoolKanjiProgress,
+		SchoolProgressLegend,
 	},
 
 	data() {
 		return {
-			wkManager: null,
-			dataInterval: null,
-			futureAssignments: {},
 			srsStageColors: {},
 			progressionTilesValues: [
 				{ id: 0, items: [] },
@@ -71,9 +135,17 @@ export default {
 			progressionBarColors: {},
 			progressionBarType: null,
 			progressionBarSorting: {},
-			progressionBarTitle: null,
-			progressionBarDescription: null,
-			refreshProgressions: true
+			dashboardRefreshTimer: null,
+			highlightSummary: {
+				count: 0,
+				showProgressBar: false,
+				barValues: [],
+				barColors: {},
+				barSorting: {},
+				modeLabel: '',
+			},
+			highlightedListInView: false,
+			highlightListObserver: null,
 		};
 	},
 
@@ -81,95 +153,112 @@ export default {
 		srsStages() {
 			return srsStages;
 		},
-		typeColors() {
-			return typeColors;
-		},
 		wk() {
 			return useWKStore();
+		},
+		settingsStore() {
+			return useSettingsStore();
+		},
+		canShowHighlightedNotice() {
+			return this.highlightSummary.count > 0
+				&& this.settingsStore.settings.extension_popup_interface.highlighted_kanji !== false;
+		},
+		showHighlightedNotice() {
+			return this.canShowHighlightedNotice && !this.highlightedListInView;
+		},
+		showJlptProgress() {
+			return this.settingsStore.settings.extension_popup_interface.jlpt_kanji_progress !== false
+				&& this.wk.allSubjects.length > 0;
+		},
+		showJoyoProgress() {
+			return this.settingsStore.settings.extension_popup_interface.joyo_kanji_progress !== false
+				&& this.wk.allSubjects.length > 0;
+		},
+		showSchoolLegend() {
+			return this.showJlptProgress || this.showJoyoProgress;
 		},
 	},
 
 	mounted() {
-		this.wkManager = getWKManager();
-
-		this.getData();
-		this.dataInterval = setInterval(this.getData, 1000);
-
 		this.srsStageColors = Object.fromEntries(Object.entries(this.srsStages).map(([k, v]) => [k, v.color]));
 		this.progressionTilesColors = this.srsStageColors;
 		this.progressionBarColors = this.srsStageColors;
-
-		this.wkManager.events.on('get:assignments:future', ({ state, data }) => {
-			this.futureAssignments = data;
+		this.wk.loadDashboardFromCache().then(() => {
+			this.applyAssignments(this.wk.assignments);
 		});
-
-		this.wkManager.events.on('get:assignments', ({ state, data }) => {
-			if (!data) return;
-
-			const assignmentsBySrsStage = groupBySRSStage(data);
-
-			if (assignmentsBySrsStage.length) {
-				if (this.refreshProgressions) {
-					this.progressionTilesValues = assignmentsBySrsStage;
-					this.progressionTilesColors = this.srsStageColors;
-					this.progressionTilesType = "srs";
-
-					this.progressionBarValues = assignmentsBySrsStage;
-					this.progressionBarColors = this.srsStageColors;
-					this.progressionBarType = "srs";
-					this.progressionBarSorting = {};
-				}
-			}
-		});
-
-		this.wkManager.events.on('update:assignments', data => {
-			console.log(data);
-		});
+		this.dashboardRefreshTimer = setInterval(
+			() => this.wk.refreshDashboard(),
+			DASHBOARD_REFRESH_MS,
+		);
+		this.$nextTick(() => this.setupHighlightListObserver());
 	},
 
 	beforeUnmount() {
-		clearInterval(this.dataInterval);
-
-		this.wkManager.events.removeListener('get:assignments:future');
-		this.wkManager.events.removeListener('get:assignments');
+		if (this.dashboardRefreshTimer) clearInterval(this.dashboardRefreshTimer);
+		this.teardownHighlightListObserver();
 	},
 
 	methods: {
-		getData() {
-			console.log("Getting data...");
+		applyAssignments(assignments) {
+			const assignmentsBySrsStage = groupAssignmentsBySRSStage(assignments);
 
-			this.wkManager.getFutureAssignments();
-			this.wkManager.getAssignments();
-			if (this.wk.userInfo?.level)
-				this.wkManager.updateAssignmentsByLevel(this.wk.userInfo?.level);
+			this.progressionTilesValues = assignmentsBySrsStage;
+			this.progressionTilesColors = this.srsStageColors;
+			this.progressionTilesType = 'srs';
+			this.progressionBarValues = assignmentsBySrsStage;
+			this.progressionBarColors = this.srsStageColors;
+			this.progressionBarType = 'srs';
+			this.progressionBarSorting = {};
 		},
-		updateProgressionBar(items) {
-			if (items.length > 0) {
-				this.refreshProgressions = false;
-				this.progressionBarTitle = this.srsStages[items[0].srs_stage]?.name || null;
+		scrollToHighlightedList() {
+			document.getElementById('highlighted-kanji-list')?.scrollIntoView({
+				behavior: 'smooth',
+				block: 'start',
+			});
+		},
+		setupHighlightListObserver() {
+			this.teardownHighlightListObserver();
+			if (!this.canShowHighlightedNotice) return;
 
-				const assignments = groupByType(items);
+			const target = document.getElementById('highlighted-kanji-list');
+			if (!target) return;
 
-				if (assignments.length > 0) {
-					this.progressionBarValues = assignments;
-					this.progressionBarType = "type";
-					this.progressionBarSorting = { "radical": 0, "kanji": 1, "vocabulary": 2 };
-					this.progressionBarColors = this.typeColors;
-					this.progressionBarDescription = `<div style='display: flex; gap: 15px; justify-content: center;'>
-						<span><span style='font-weight: bold;'>Radicals:</span> ${assignments.find(item => item.id === "radical")?.items.length || 0}</span>
-						<span><span style='font-weight: bold;'>Kanji:</span> ${assignments.find(item => item.id === "kanji")?.items.length || 0}</span>
-						<span><span style='font-weight: bold;'>Vocabulary:</span> ${assignments.find(item => item.id === "vocabulary")?.items.length || 0}</span>
-					</div>`;
-				}
+			this.highlightListObserver = new IntersectionObserver(
+				([entry]) => {
+					this.highlightedListInView = entry.isIntersecting;
+				},
+				{ threshold: 0.12 },
+			);
+			this.highlightListObserver.observe(target);
+		},
+		teardownHighlightListObserver() {
+			this.highlightListObserver?.disconnect();
+			this.highlightListObserver = null;
+		},
+	},
+
+	watch: {
+		'wk.assignments': {
+			handler(assignments) {
+				this.applyAssignments(assignments);
+			},
+			deep: true,
+		},
+		highlightSummary: {
+			handler() {
+				this.$nextTick(() => this.setupHighlightListObserver());
+			},
+			deep: true,
+		},
+		canShowHighlightedNotice(enabled) {
+			if (!enabled) {
+				this.highlightedListInView = false;
+				this.teardownHighlightListObserver();
+				return;
 			}
+			this.$nextTick(() => this.setupHighlightListObserver());
 		},
-		resumeRefreshProgressions() {
-			this.refreshProgressions = true;
-			this.progressionBarDescription = null;
-			this.progressionBarTitle = null;
-			this.getData();
-		}
-	}
+	},
 }
 </script>
 
@@ -179,25 +268,58 @@ export default {
 	flex-direction: column;
 }
 
-.kanji-list {
-	position: fixed;
-	bottom: 0;
-	left: 0;
-	/* leave space for sidebar */
-	right: 45px;
-	margin: auto;
-	width: fit-content;
+.home {
+	padding-bottom: 24px;
+	margin-top: 0px;
 }
 
-.stats {
-	background-color: white;
-	border-top-right-radius: 5px;
-	border-top-left-radius: 5px;
-	height: 100%;
+.home.has-highlight-notice {
+	padding-bottom: 120px;
+}
+
+.home-stack {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.home-card {
+	background: var(--fill-color);
+	border: 1px solid var(--surface-border-color);
+	border-radius: 12px;
+	overflow: hidden;
+	box-shadow: 0 2px 10px var(--shadow-soft-color);
+}
+
+.reviews-card {
+	border: none;
+	border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.home-card-title {
+	padding: 9px 14px;
+	background: var(--default-color);
+	color: white;
+	font-weight: bold;
+	font-size: 13px;
+}
+
+.home-card-body {
+	padding: 10px 8px;
+}
+
+.highlighted-card {
+	padding: 0;
+}
+
+.school-legend-card .home-card-body {
+	padding-top: 6px;
+	padding-bottom: 8px;
 }
 
 #progression-bar {
-	padding: 7px;
+	padding: 7px 0 0;
 }
 </style>
 

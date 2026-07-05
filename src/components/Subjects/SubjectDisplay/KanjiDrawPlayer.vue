@@ -1,7 +1,31 @@
 <template>
-	<div v-if="item.characters" class="sd-detailsPopup_strokes">
-		<div id="sd-popupDetails_dmak">
-			<KanjiDraw :characters="item.characters" @dmak="dmak => this.dmak = dmak" />
+	<div v-if="item.characters" class="sd-detailsPopup_strokes" :class="{ 'sd-detailsPopup_dmakExpanded': expanded }">
+		<div
+			v-if="expanded"
+			class="sd-detailsPopup_clickable"
+			id="sd-detailsPopup_dmakExpandedClose"
+			title="Close Drawing"
+			@click.stop="expanded = false"
+		>
+			<img :src="iconsSource + 'close-thick.png'" alt="Close">
+		</div>
+		<div
+			id="sd-popupDetails_dmak"
+			ref="dmakContainer"
+			class="sd-detailsPopup_clickable"
+			@click="toggleExpanded"
+		>
+			<div v-if="strokesLoading" class="sd-popupDetails_svgLoading">
+				<span class="sd-popupDetails_svgLoading-spinner"></span>
+				Loading kanji strokes…
+			</div>
+			<KanjiDraw
+				:key="`${item.id}-${strokeSize ?? 'auto'}`"
+				:characters="item.characters"
+				:size="strokeSize"
+				@dmak="onDmak"
+				@loaded="strokesLoading = false"
+			/>
 		</div>
 		<div class="sd-popupDetails_drawButtons">
 			<div @click="this.previous" title="Previous Stroke" class="sd-detailsPopup_clickable"
@@ -48,38 +72,70 @@ export default {
 	props: {
 		item: {
 			type: Object,
-			required: true
-		}
+			required: true,
+		},
+		allowExpand: {
+			type: Boolean,
+			default: false,
+		},
+		strokeSize: {
+			type: Number,
+			default: null,
+		},
 	},
 
 	data() {
 		return {
-			iconsSource: '/icons/kanjiDraw/',
+			iconsSource: browser.runtime.getURL('/icons/kanjiDraw/'),
 			dmak: null,
-		}
+			strokesLoading: true,
+			expanded: false,
+		};
+	},
+
+	watch: {
+		'item.id'() {
+			this.dmak = null;
+			this.strokesLoading = true;
+			this.expanded = false;
+		},
 	},
 
 	methods: {
+		onDmak(dmak) {
+			this.dmak = dmak;
+		},
+		toggleExpanded(event) {
+			if (!this.allowExpand) return;
+			if (event.target.closest('.sd-popupDetails_drawButtons')) return;
+			this.expanded = !this.expanded;
+		},
 		previous() {
+			if (!this.dmak) return;
 			this.dmak.pause();
 			this.dmak.eraseLastStrokes(1);
 		},
 		pause() {
+			if (!this.dmak) return;
 			this.dmak.pause();
 		},
 		resume() {
+			if (!this.dmak) return;
 			this.dmak.render();
 		},
 		next() {
+			if (!this.dmak) return;
 			this.dmak.pause();
 			this.dmak.renderNextStrokes(1);
 		},
 		reload() {
+			if (!this.dmak) return;
 			this.dmak.pause();
 			this.dmak.erase();
 			setTimeout(() => this.dmak.render(), 1000);
 		},
 		clear() {
+			if (!this.dmak) return;
 			this.dmak.pause();
 			this.dmak.erase();
 		}

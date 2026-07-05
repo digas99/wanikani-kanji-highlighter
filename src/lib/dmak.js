@@ -398,7 +398,12 @@
 
 		for (var key in source) {
 			if (replacement.hasOwnProperty(key)) {
-				source[key] = (typeof replacement[key] === "object") ? assign(source[key], replacement[key]) : replacement[key];
+				var value = replacement[key];
+				if (typeof value === "object" && value !== null && value.nodeType !== 1) {
+					source[key] = assign(source[key], value);
+				} else {
+					source[key] = value;
+				}
 			}
 		}
 		return source;

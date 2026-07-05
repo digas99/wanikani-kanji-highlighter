@@ -41,44 +41,78 @@
 						}} / {{
 							levelProgressionInfo.progress?.percentage.toFixed(1) }}%</span>
 				</div>
+				<RouterLink
+					v-if="timeOnLevel.clickable"
+					:to="{ name: 'Levels' }"
+					class="time-in-level clickable"
+					:title="timeOnLevel.title"
+				>
+					<div class="label"><b>{{ timeOnLevel.label }}</b> on this level</div>
+					<div title="Level reset history" class="past-times">
+						<div class="past-times-n">{{ timeOnLevel.pastResets }}</div>
+						<img src="/icons/profile/history.png" alt="">
+					</div>
+				</RouterLink>
+				<div v-else class="time-in-level">
+					<div class="label">{{ timeOnLevel.label }}</div>
+					<div title="Level reset history" class="past-times">
+						<div class="past-times-n">{{ timeOnLevel.pastResets }}</div>
+						<img src="/icons/profile/history.png" alt="">
+					</div>
+				</div>
 			</div>
-			<div class="clickable scroll-down" title="Scroll Down"><i class="down"></i></div>
+			<div
+				v-if="levelUpPrediction"
+				class="level-up-prediction"
+				title="This prediction is considering that you review all necessary kanji from this level as soon as they are available. Remember that only 90% of kanji are required to level up."
+			>
+				<div class="level-up-prediction-value">
+					<template v-if="levelUpPrediction.canLevelUpNow">
+						You can level up <b>now</b>! Go do your reviews!
+					</template>
+					<template v-else>
+						At least <b>{{ levelUpPrediction.readable }}</b> to level up.
+						<div>{{ levelUpPrediction.levelUpAtLabel }}</div>
+					</template>
+				</div>
+				<img src="/icons/sidebar/about.png" alt="">
+			</div>
+			<div class="clickable scroll-down" title="Scroll Down" @click="scrollToSubjects"><i class="down"></i></div>
 		</div>
-		<SubjectsList :values="values" type="srs" :grid="true" :colors="colors" :showTitle="false" :height="null" />
+		<ProfileSubjectsPanel :subjects="levelSubjects" />
 	</div>
 </template>
 
 <script>
-import { getWKManager } from '@/lib/apiClient';
+import { RouterLink } from 'vue-router';
 import { useWKStore } from '@/stores';
 
-import SubjectsList from '@/components/Subjects/SubjectsList.vue';
+import ProfileSubjectsPanel from '@/components/Profile/ProfileSubjectsPanel.vue';
 
-import { typeColors, levelUpInfo, formatSubjectsData } from '@/utils/scripts/wanikani';
+import { getLevelUpPrediction, levelUpInfo } from '@/utils/scripts/wanikani';
+import { getLevelStatsEntries } from '@/utils/scripts/levelStats';
+import { prettyTime } from '@/utils/scripts/time';
+import { normalizeProfileSubjects } from '@/utils/scripts/profileSubjects';
 
 import WanikaniDefaultAvatar from '@/assets/wanikani-default.png';
 
 export default {
 	name: 'Profile',
 	components: {
-		SubjectsList
+		ProfileSubjectsPanel,
+		RouterLink,
 	},
 	data() {
 		return {
-			wkManager: null,
-			userAvatar: WanikaniDefaultAvatar,
-			userInfo: {},
 			fetchId: null,
 			levelProgressionInfo: {},
+			levelSubjects: [],
 
 			beforePreviousLevel: null,
 			previousLevel: null,
 			currentLevel: null,
 			nextLevel: null,
 			afterNextLevel: null,
-
-			values: [],
-			colors: {},
 		};
 	},
 
@@ -86,64 +120,89 @@ export default {
 		wk() {
 			return useWKStore();
 		},
-		typeColors() {
-			return typeColors;
+		userInfo() {
+			return this.wk.userInfo;
 		},
-		levelUpInfo() {
-			return levelUpInfo;
-		}
+		userAvatar() {
+			return this.wk.userAvatar || WanikaniDefaultAvatar;
+		},
+		timeOnLevel() {
+			if (!this.currentLevel) {
+				return { label: 'Not yet reached', pastResets: 0, title: '', clickable: false };
+			}
+
+			const stats = getLevelStatsEntries(this.wk.levelsStats, this.currentLevel);
+			if (!stats.length) {
+				return { label: 'Not yet reached', pastResets: 0, title: '', clickable: false };
+			}
+
+			const lastStat = stats[stats.length - 1];
+			const startedAt = new Date(lastStat.unlocked_at);
+			const passedAt = lastStat.passed_at ? new Date(lastStat.passed_at) : new Date();
+			const timeInLevel = passedAt.getTime() - startedAt.getTime();
+			const options = timeInLevel >= 1000 * 60 * 60 ? { seconds: false, minutes: false } : {};
+
+			return {
+				label: prettyTime(timeInLevel, options),
+				pastResets: stats.length - 1,
+				title: `Started at: ${startedAt.toISOString().split('.')[0]}\nPassed at: ${passedAt.toISOString().split('.')[0]}`,
+				clickable: true,
+			};
+		},
+		levelUpPrediction() {
+			const kanji = this.levelSubjects.filter(
+				subject => subject.type === 'kanji' && !subject.assignment?.hidden,
+			);
+			const prediction = getLevelUpPrediction(kanji);
+			if (!prediction) return null;
+
+			return {
+				...prediction,
+				readable: prettyTime(prediction.intervalMs, { seconds: false }),
+				levelUpAtLabel: prediction.levelUpAt.toString().split(' GMT')[0],
+			};
+		},
 	},
 
 	created() {
-		this.wkManager = getWKManager();
-		this.colors = this.typeColors;
-		if (this.wk.userInfo && Object.keys(this.wk.userInfo).length > 0) {
-			this.userInfo = this.wk.userInfo;
-			this.setLevels(this.userInfo.level);
+		const level = Number(this.$route.query.level) || this.userInfo?.level;
+		if (level) {
+			this.setLevels(level);
 		}
-		if (this.wk.userAvatar) this.userAvatar = this.wk.userAvatar;
-
-		this.wkManager.getUserInfo();
-
-		this.wkManager.events.on("update:avatar", avatar => {
-			if (avatar) this.userAvatar = avatar;
-		});
-
-		this.wkManager.events.on("update:user", user => {
-			if (user) {
-				this.userInfo = user; // store user info
-				if (user.avatar) this.userAvatar = user.avatar; // set user avatar
-				this.setLevels(user.level);
-			}
-		});
-
-		this.wkManager.events.on("get:subjects", ({ state, data, context: { levels } }) => {
-			// make sure update is still relevant
-			if (this.fetchId !== levels[0]) return;
-
-			const progressionInfo = this.levelUpInfo(data);
-			if (JSON.stringify(this.levelProgressionInfo) !== JSON.stringify(progressionInfo))
-				this.levelProgressionInfo = progressionInfo;
-
-			const formattedData = formatSubjectsData(data);
-			if (JSON.stringify(this.values) !== JSON.stringify(formattedData))
-				this.values = formattedData;
-		});
 	},
 
 	mounted() {
-		setTimeout(() => {
-			if (this.wk.levelProgressionInfo) this.levelProgressionInfo = this.wk.levelProgressionInfo;
-		});
+		if (this.wk.levelProgressionInfo?.progress) {
+			this.levelProgressionInfo = this.wk.levelProgressionInfo;
+		}
+		this.wk.refreshLevelProgressions();
 	},
 
-	beforeUnmount() {
-		this.wkManager.events.removeListener('update:avatar');
-		this.wkManager.events.removeListener('update:user');
-		this.wkManager.events.removeListener('get:subjects');
+	watch: {
+		'$route.query.level'(value) {
+			const level = Number(value) || this.userInfo?.level;
+			if (level) this.setLevels(level);
+		},
+		'wk.assignments'() {
+			if (this.currentLevel) {
+				this.levelSubjects = this.buildLevelSubjects(this.currentLevel);
+				this.levelProgressionInfo = levelUpInfo(this.levelSubjects);
+			}
+		},
 	},
 
 	methods: {
+		buildLevelSubjects(level) {
+			const materials = this.wk.allSubjects.filter(item => item.level == level);
+			const assignmentById = new Map(
+				this.wk.assignments.map(assignment => [assignment.subject_id, assignment]),
+			);
+
+			return normalizeProfileSubjects(materials.map(material => ({
+				...material,
+				assignment: assignmentById.get(material.id) || material.assignment || {},
+			})));
+		},
 		toggleLevelToTheSide(side, show) {
 			const levelsChooser = this.$refs.levelsChooser;
 			if (levelsChooser) {
@@ -163,18 +222,28 @@ export default {
 		},
 		setLevels(level) {
 			this.fetchId = level;
-			this.wkManager.getSubjectsByLevel(level);
+			this.levelSubjects = this.buildLevelSubjects(level);
+			this.levelProgressionInfo = levelUpInfo(this.levelSubjects);
 
-			// update data from store immediately
-			this.values = this.wk.allSubjects.filter(item => item.level == level);
-			this.levelProgressionInfo = this.levelUpInfo(this.values);
+			if (String(this.$route.query.level || '') !== String(level)) {
+				this.$router.replace({ query: { ...this.$route.query, level } });
+			}
+
+			this.wk.fetchSubjectsForLevel(level).then((subjects) => {
+				if (this.fetchId !== level || !subjects?.length) return;
+				this.levelSubjects = normalizeProfileSubjects(subjects);
+				this.levelProgressionInfo = levelUpInfo(this.levelSubjects);
+			});
 
 			this.beforePreviousLevel = level > 2 ? level - 2 : null;
 			this.previousLevel = level > 1 ? level - 1 : null;
 			this.currentLevel = level;
 			this.nextLevel = level < 60 ? level + 1 : null;
 			this.afterNextLevel = level < 59 ? level + 2 : null;
-		}
+		},
+		scrollToSubjects() {
+			window.scrollTo({ top: 455, behavior: 'smooth' });
+		},
 	}
 };
 </script>
@@ -189,8 +258,8 @@ export default {
 	left: 0;
 	position: fixed;
 	z-index: 9;
-	background-color: white;
-	width: 100%;
+	background-color: var(--fill-color);
+	width: var(--content-width);
 	overflow: auto;
 	scroll-behavior: smooth;
 	transition: 0.2s;
@@ -199,12 +268,12 @@ export default {
 
 .top-level-list>div {
 	padding: 15px;
-	background-color: white;
+	background-color: var(--fill-color);
 	border-right: 1px solid #e9e9e9;
 }
 
 .top-level-list>div:last-child {
-	margin-right: 44px;
+	margin-right: 0;
 }
 
 .top-level-list>.passed-level,
@@ -317,20 +386,20 @@ export default {
 
 .level-up-prediction {
 	text-align: center;
-	color: var(--fill-color);
+	color: white;
 	width: fit-content;
 	margin: 10px auto;
 	position: relative;
 }
 
-.level-up-prediction>div {
-	color: var(--border-color);
+.level-up-prediction > div {
+	color: #d0d0d0;
 }
 
 .level-up-prediction-info {
 	position: absolute;
 	width: fit-content;
-	background-color: white;
+	background-color: var(--fill-color);
 	padding: 5px;
 	border-radius: 5px;
 	color: var(--default-color) !important;
@@ -348,7 +417,7 @@ export default {
 	border-top-right-radius: 25px;
 	border: 1px solid silver;
 	overflow: hidden;
-	background-color: #ffffff;
+	background-color: var(--fill-color);
 	box-shadow: inset 0px 2px 4px #888686;
 	display: flex;
 	position: relative;
@@ -427,6 +496,7 @@ export default {
 	border-radius: 50%;
 	border: 4px solid white;
 	width: 140px;
+	background-color: var(--fill-color);
 }
 
 #username {
@@ -461,7 +531,7 @@ export default {
 }
 
 #level-progress {
-	padding: 15px 35px;
+	padding: 15px 15px;
 	position: relative;
 }
 
@@ -480,19 +550,41 @@ export default {
 }
 
 .time-in-level {
-	background-color: white;
+	background-color: var(--fill-color);
 	border-bottom-left-radius: 25px;
 	border-bottom-right-radius: 25px;
 	display: inline-block;
 	width: 100%;
 	padding: 0 1px;
+	color: inherit;
+	text-decoration: none;
 }
 
-.time-in-level>.label {
+.time-in-level > .label {
 	text-align: center;
 	padding: 15px;
 	font-size: 13px;
 	color: var(--font-sec-color);
+}
+
+.past-times {
+	position: absolute;
+	right: 50px;
+	bottom: 25px;
+	display: flex;
+	align-items: center;
+	column-gap: 5px;
+}
+
+.past-times > .past-times-n {
+	font-size: 14px;
+	font-weight: bold;
+	color: var(--font-sec-color);
+}
+
+.past-times > img {
+	width: 20px;
+	opacity: 0.6;
 }
 
 .scroll-down {
@@ -507,7 +599,7 @@ export default {
 </style>
 
 <style>
-.profile .subjects-list-content {
+.profile .profile-subjects {
 	min-height: 150px;
 }
 </style>

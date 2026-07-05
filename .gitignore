@@ -9,3 +9,5 @@ new-changes.txt
 .wxt
 node_modules/
 .env
+.env.development.local
+.dev-api-key-index

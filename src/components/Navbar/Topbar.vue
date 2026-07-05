@@ -9,18 +9,18 @@
 		</a>
 		<div id="secPageButtons"></div>
 
-		<div class="topNav-lessons">
+		<div v-if="showLessonsReviews" class="topNav-lessons">
 			<RouterLink title="Lessons" :to="{ name: 'Lessons' }">
 				<div class="lessons-icon">
 					<div></div>
 				</div>
-				<div class="lessons-count">0</div>
+				<div class="lessons-count">{{ wk.lessonsCount }}</div>
 			</RouterLink>
 			<RouterLink title="Reviews" :to="{ name: 'Reviews' }">
 				<div class="reviews-icon">
 					<div></div>
 				</div>
-				<div class="lessons-count">0</div>
+				<div class="reviews-count">{{ wk.reviewsCount }}</div>
 			</RouterLink>
 		</div>
 	</div>
@@ -29,27 +29,42 @@
 
 <script>
 import { RouterLink } from 'vue-router';
+import { useWKStore } from '@/stores';
 
 export default {
-	name: "Topbar",
+	name: 'Topbar',
 
 	data() {
 		return {
-			showGoBackButton: false
+			showGoBackButton: false,
+			showLessonsReviews: true,
 		};
 	},
 
+	computed: {
+		wk() {
+			return useWKStore();
+		},
+	},
+
 	watch: {
-		$route(to, from) {
+		$route(to) {
 			this.showGoBackButton = to.name !== 'Home';
-		}
+			this.showLessonsReviews = to.name !== 'Home';
+		},
+	},
+
+	mounted() {
+		this.showGoBackButton = this.$route.name !== 'Home';
+		this.showLessonsReviews = this.$route.name !== 'Home';
+		this.wk.refreshDashboard(false);
 	},
 
 	methods: {
 		goBack() {
 			this.$router.go(-1);
-		}
-	}
+		},
+	},
 
 };
 </script>
@@ -60,12 +75,14 @@ export default {
 	background-color: var(--default-color);
 	border-top: 5px solid var(--wanikani);
 	top: 0;
-	width: 100%;
+	left: 0;
+	width: var(--content-width);
+	max-width: var(--content-width);
 	display: flex;
 	align-items: center;
 	color: white;
 	z-index: 11;
-	height: 45px;
+	height: var(--topbar-height);
 }
 
 .topNav * {
@@ -124,7 +141,7 @@ export default {
 
 .topNav-lessons {
 	position: absolute;
-	right: 60px;
+	right: 10px;
 	top: 0;
 	display: flex;
 	column-gap: 15px;
@@ -177,7 +194,8 @@ export default {
 	background-image: url(/images/bg_reviews-500-eaacc89f5f04073e99bb83a655f9e084d7cf0c04b28461fc2ec2f2de3bd69a8c.png);
 }
 
-.topNav-lessons .lessons-count {
+.topNav-lessons .lessons-count,
+.topNav-lessons .reviews-count {
 	color: white;
 	padding: 0px 10px;
 	border-top-right-radius: 20px;
@@ -187,10 +205,13 @@ export default {
 	height: 21px;
 	display: flex;
 	align-items: center;
+	min-width: 28px;
+	justify-content: center;
 }
 
-.topNav-lessons>a:hover .lessons-count {
-	background-color: white;
+.topNav-lessons>a:hover .lessons-count,
+.topNav-lessons>a:hover .reviews-count {
+	background-color: var(--fill-color);
 	color: var(--default-color);
 }
 

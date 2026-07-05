@@ -1,98 +1,134 @@
 <template>
-	<div class="subjects-list-wrapper">
-		<div v-if="showTitle" class="subjects-list-header"><b>{{ values.length }}</b> Subjects on <b>{{ titleId }}</b>
-		</div>
-		<div v-if="showProgressionBar" class="subjects-list-content">
-			<ProgressionBar :values="groupedValues" :colors="colors" :sorting="sorting" />
-			<div class="subjects-list" :style="{ maxHeight: height + 'px' }" @scrollend="saveScroll"
-				ref="scrollContainer">
-				<div v-for="{ id, items } in groupedValues" :key="id" class="subjects-list-section">
-					<div>
-						<span><b></b></span>
-						<span>{{ id.charAt(0).toUpperCase() + id.slice(1) }} ({{ items.length }})</span>
-						<div><i class="up subjects-list-section-arrow"
-								:style="{ borderColor: colors ? colors[id] : '' }"></i></div>
-					</div>
-					<TilesList :values="values.filter(item => subjectDisplay.filterByType(item, id))"
-						:colors="colors" />
-				</div>
-			</div>
-		</div>
-	</div>
+	<SubjectListPanel
+		ref="panel"
+		class="subjects-list-wrapper"
+		:header-title="showTitle ? headerTitle : ''"
+		:sections="panelSections"
+		:show-bar="showProgressionBar && groupedValues.length > 0"
+		:menu-key="menuKey"
+		:style="panelHeightStyle"
+		@scroll="saveScroll"
+	>
+		<template #bar>
+			<ProgressionBar
+				:values="groupedValues"
+				:colors="colors"
+				:sorting="sorting"
+				scroll-to-sections
+				@section-select="scrollToSection"
+			/>
+		</template>
+	</SubjectListPanel>
 </template>
 
 <script>
 import ProgressionBar from '@/components/Home/ProgressionBar.vue';
-import TilesList from '@/components/Subjects/TilesList.vue';
-
+import SubjectListPanel from '@/components/Subjects/SubjectListPanel.vue';
 import { useWKStore } from '@/stores/index';
 
-import { subjectDisplay } from '@/utils/scripts/wanikani';
+const LEVEL_TYPE_LABELS = {
+	radical: 'Radicals',
+	kanji: 'Kanji',
+	vocabulary: 'Vocabulary',
+};
 
 export default {
 	name: 'SubjectsList',
 
 	components: {
 		ProgressionBar,
-		TilesList
+		SubjectListPanel,
 	},
 
 	props: {
 		values: {
-			type: Object,
+			type: [Array, Object],
+			default: () => [],
 		},
 		colors: {
 			type: Object,
+			default: () => ({}),
 		},
 		sorting: {
 			type: Object,
+			default: () => ({}),
 		},
 		id: {
 			type: Number,
+			default: null,
 		},
 		type: {
 			type: String,
+			default: '',
+		},
+		jumpSection: {
+			type: String,
+			default: null,
 		},
 		showTitle: {
 			type: Boolean,
-			default: true
+			default: true,
 		},
 		showProgressionBar: {
 			type: Boolean,
-			default: true
+			default: true,
 		},
 		height: {
 			type: Number,
-			default: 475
-		}
+			default: 475,
+		},
+		menuKey: {
+			type: String,
+			default: 'subjects',
+		},
 	},
 
 	data() {
 		return {
 			groupedValues: [],
-			titleId: null
-		}
+			titleId: null,
+		};
 	},
 
 	computed: {
 		wk() {
 			return useWKStore();
 		},
-		subjectDisplay() {
-			return subjectDisplay;
-		}
+		panelSections() {
+			return this.groupedValues.map(({ id, items }) => ({
+				sectionId: String(id),
+				label: this.sectionLabel(id),
+				countLabel: `(${items.length})`,
+				subjects: items,
+				accentColor: this.colors?.[id] ?? '',
+				headerVariant: 'compact',
+			}));
+		},
+		headerTitle() {
+			const count = Array.isArray(this.values) ? this.values.length : 0;
+			return `<b>${count}</b> Subjects on <b>${this.titleId ?? ''}</b>`;
+		},
+		panelHeightStyle() {
+			return {
+				'--subject-list-height': `${this.height}px`,
+			};
+		},
 	},
 
 	async created() {
 		this.groupedValues = await this.groupValues();
-		if (this.showTitle)
+		if (this.showTitle) {
 			this.titleId = await this.getTitleId();
+		}
 	},
 
 	mounted() {
-		console.log(this.$refs.scrollContainer, this.wk.subjectsListScroll);
-		setTimeout(() => {
-			this.$refs.scrollContainer.scrollTop = this.wk.subjectsListScroll;
+		this.$nextTick(() => {
+			if (this.jumpSection) {
+				this.scrollToSection(this.jumpSection);
+				return;
+			}
+			this.$refs.panel?.setScrollTop(this.wk.subjectsListScroll);
 		});
 	},
 
@@ -101,114 +137,76 @@ export default {
 			async handler() {
 				this.groupedValues = await this.groupValues();
 			},
-			deep: true
+			deep: true,
+		},
+		jumpSection(sectionId) {
+			if (!sectionId) return;
+			this.$nextTick(() => this.scrollToSection(sectionId));
 		},
 	},
 
 	methods: {
+		sectionLabel(id) {
+			if (this.type !== 'level') {
+				return `${String(id).charAt(0).toUpperCase()}${String(id).slice(1)}`;
+			}
+			if (String(id) === '5') return 'Passed';
+			if (String(id) === '-1') return 'Locked';
+			return `Stage ${id}`;
+		},
 		async getTitleId() {
 			switch (this.type) {
-				case 'srs':
+				case 'srs': {
 					const { srsStages } = await import('@/utils/scripts/wanikani');
-					return srsStages[this.id].name;
+					return srsStages[this.id]?.name ?? null;
+				}
+				case 'level': {
+					const level = this.$route.query.level;
+					const subjectType = this.$route.query.subjectType;
+					const typeLabel = LEVEL_TYPE_LABELS[subjectType] || subjectType || 'Subjects';
+					return `Level ${level} ${typeLabel}`;
+				}
 			}
 			return null;
 		},
 		async groupValues() {
 			switch (this.type) {
-				case 'srs':
+				case 'srs': {
 					const { groupByType } = await import('@/utils/scripts/common');
-					const grouped = groupByType(this.values.map(item => ({ id: item.id, subject_type: item.type })));
-					return grouped;
+					return groupByType(this.values.map(item => ({
+						...item,
+						subject_type: item.type || item.subject_type,
+					})));
+				}
+				case 'level': {
+					const { groupBySRSStage } = await import('@/utils/scripts/common');
+					const grouped = groupBySRSStage(this.values.map(item => ({
+						...item,
+						srs_stage: item.srs_stage ?? item.assignment?.srs_stage,
+					})));
+					if (this.sorting && Object.keys(this.sorting).length) {
+						return grouped.sort((a, b) =>
+							(this.sorting[a.id] ?? 0) - (this.sorting[b.id] ?? 0),
+						);
+					}
+					return grouped.sort((a, b) => Number(a.id) - Number(b.id));
+				}
 			}
 			return this.values;
 		},
-		saveScroll() {
-			this.wk.subjectsListScroll = this.$refs.scrollContainer.scrollTop;
-		}
-	}
-}
+		saveScroll(scrollTop) {
+			this.wk.subjectsListScroll = scrollTop;
+		},
+
+		scrollToSection(sectionId) {
+			this.$refs.panel?.scrollToSection(String(sectionId));
+		},
+	},
+};
 </script>
 
 <style scoped>
-.subjects-list-header {
-	text-align: center;
+.subjects-list-wrapper {
 	background-color: var(--default-color);
-	color: white;
-	padding: 15px 5px;
-	font-size: 15px;
-}
-
-.subjects-list-content {
-	overflow: hidden;
-	border-top-left-radius: 10px;
-	border-top-right-radius: 10px;
-	padding: 5px;
-	background-color: white;
-}
-
-.subjects-list-bar {
-	height: 20px;
-}
-
-.subjects-list-bar>ul {
-	height: 100%;
-	display: flex;
-}
-
-.subjects-list-bar>ul>li {
-	position: relative;
-}
-
-.subjects-list-bar>ul>li>a {
-	height: 100%;
-	display: block;
-}
-
-.subjects-list-bar-label {
-	position: absolute;
-	width: 60px;
-	height: 24px;
-	border-radius: 5px;
-	background-color: var(--default-color);
-	top: 25px;
-	color: white;
-	left: 0;
-	right: 0;
-	margin: auto;
-	font-size: 20px;
-	text-align: center;
-	z-index: 1;
-	border: 2px solid white;
-	box-shadow: 0px 0px 5px black;
-}
-
-.subjects-list {
-	overflow: auto;
-	scroll-behavior: smooth;
-}
-
-.subjects-list-section {
-	padding: 5px;
-}
-
-.subjects-list-section>div {
-	font-size: 18px;
-	padding: 7px;
-	background-color: var(--default-color);
-	color: white;
-	display: flex;
-	align-items: center;
-	column-gap: 10px;
-}
-
-.subjects-list-section>div {
-	display: flex;
-}
-
-.subjects-list-section-arrow {
-	padding: 4px;
-	border-color: white;
-	margin-bottom: -7px;
 }
 </style>

@@ -22,20 +22,8 @@
 <script>
 import { RouterLink } from 'vue-router';
 
-import { getWKManager } from '@/lib/apiClient';
-
 export default {
 	name: 'ReviewsInfo',
-
-	data() {
-		return {
-			wkManager: null,
-		};
-	},
-
-	mounted() {
-		this.wkManager = getWKManager();
-	},
 
 	props: {
 		next: {
@@ -85,7 +73,6 @@ export default {
 	width: 100%;
 	text-align: center;
 	font-size: 2rem;
-	font-weight: bold;
 	color: white;
 }
 

@@ -28,7 +28,7 @@
 				@click="$emit('search', item.characters)"><img src="@/assets/icons/search/search.png"></div>
 			<div v-if="item.characters" class="clickable" title="Copy" @click="copyToClipboard(item.characters)"><img
 					src="@/assets/icons/search/copy.png"></div>
-			<div v-if="item.assignment?.srs_stage"><span
+			<div v-if="item.assignment?.srs_stage != null"><span
 					:style="{ color: subjectDisplay.srsStageColor(item, srsStages) }">{{
 						srsStages[item.assignment.srs_stage].short }}</span></div>
 			<div><span>{{ item.level }}</span></div>
@@ -158,7 +158,7 @@ export default {
 
 .searchResultItemLevel {
 	position: absolute;
-	background-color: white;
+	background-color: var(--fill-color);
 	color: black;
 	padding: 3px !important;
 	font-size: 12px;
@@ -180,7 +180,7 @@ export default {
 }
 
 .searchResultItemInfo {
-	background-color: white;
+	background-color: var(--fill-color);
 	padding: 2px 10px;
 	pointer-events: none;
 	color: black;

@@ -20,11 +20,31 @@
             </div>
             <div class="side-panel-bottom">
                 <!-- RANDOM SUBJECT -->
-                <NavbarLink to="#" icon="random" info="A" />
-                <!-- BLACKLIST -->
-                <NavbarLink to="#" icon="blacklist" info="0" />
+                <NavbarLink
+                    to="#"
+                    icon="random"
+                    :info="randomBadge.label"
+                    :info-style="randomBadgeStyle"
+                    @click="openRandomSubject"
+                />
+                <!-- PAGE LIST -->
+                <NavbarLink
+                    v-if="showPageListButton"
+                    to="#"
+                    :icon="pageListIcon"
+                    :title="pageListTitle"
+                    :label="pageListLabel"
+                    :info="pageListBadge"
+                    @click="togglePageListForActiveTab"
+                />
                 <!-- THEME -->
-                <NavbarLink to="#" icon="dark" />
+                <NavbarLink
+                    to="#"
+                    :icon="themeToggleIcon"
+                    :title="themeToggleLabel"
+                    :label="themeToggleLabel"
+                    @click="handleThemeToggle"
+                />
                 <!-- POPOUT -->
                 <NavbarLink to="#" icon="popout" @click="handlePopout" />
 
@@ -48,13 +68,26 @@
 </template>
 
 <script>
-import { getWKManager } from '@/lib/apiClient';
 import { RouterLink } from 'vue-router';
 import { useWKStore } from '@/stores';
+import { useSettingsStore } from '@/stores/settings';
 
 import NavbarLink from '@/components/Navbar/NavbarLink.vue';
 
 import WanikaniDefaultAvatar from '@/assets/wanikani-default.png';
+import {
+	getRandomSubjectBadge,
+	pickRandomSubjectId,
+} from '@/utils/scripts/randomSubject';
+import {
+	getMainDomain,
+	hostMatchesSiteEntry,
+} from '@/utils/scripts/pageList';
+import { getActiveBrowserTab, parseBrowserTabSite } from '@/utils/scripts/activeBrowserTab';
+import {
+	getTheme,
+	toggleTheme,
+} from '@/utils/scripts/theme';
 
 export default {
     name: 'Sidebar',
@@ -65,18 +98,84 @@ export default {
 
     data() {
         return {
-            wkManager: null,
-            userAvatar: WanikaniDefaultAvatar,
-            userInfo: null,
             version: ref(chrome.runtime.getManifest().version),
-            animationTimeout: null
+            animationTimeout: null,
+            activeTabSite: null,
+            validSite: false,
+            atWanikani: false,
+            tabResolved: false,
+            theme: getTheme(),
         };
     },
 
     computed: {
+        themeToggleIcon() {
+            return this.theme === 'light' ? 'dark' : 'light';
+        },
+        themeToggleLabel() {
+            return this.theme === 'light' ? 'Dark' : 'Light';
+        },
         wk() {
             return useWKStore();
-        }
+        },
+        settingsStore() {
+            return useSettingsStore();
+        },
+        randomSubjectMode() {
+            return this.settingsStore.settings.kanji_details_popup.random_subject;
+        },
+        randomBadge() {
+            return getRandomSubjectBadge(
+                this.randomSubjectMode,
+                this.settingsStore.settings.appearance,
+            );
+        },
+        randomBadgeStyle() {
+            return {
+                backgroundColor: this.randomBadge.backgroundColor,
+                color: this.randomBadge.color,
+            };
+        },
+        userInfo() {
+            return this.wk.userInfo;
+        },
+        userAvatar() {
+            return this.wk.userAvatar || WanikaniDefaultAvatar;
+        },
+        pageListMode() {
+            return this.settingsStore.pageListMode;
+        },
+        showPageListButton() {
+            if (this.atWanikani) return false;
+            if (this.tabResolved && !this.validSite) return false;
+            return true;
+        },
+        currentSiteListed() {
+            if (!this.activeTabSite) return false;
+            const list = this.pageListMode === 'whitelist'
+                ? this.settingsStore.whitelist
+                : this.settingsStore.blacklist;
+            return list.some(entry => hostMatchesSiteEntry(this.activeTabSite, entry));
+        },
+        pageListIcon() {
+            if (this.currentSiteListed) return 'run';
+            return this.pageListMode === 'whitelist' ? 'whitelist' : 'blacklist';
+        },
+        pageListTitle() {
+            if (this.pageListIcon === 'run') {
+                return this.pageListMode === 'whitelist' ? 'Stop highlighting here' : 'Enable highlighting here';
+            }
+            return this.pageListMode === 'whitelist' ? 'Whitelist site' : 'Blacklist site';
+        },
+        pageListLabel() {
+            if (this.pageListIcon === 'run') return 'Run';
+            return this.pageListMode === 'whitelist' ? 'Whitelist' : 'Blacklist';
+        },
+        pageListBadge() {
+            if (this.pageListIcon === 'run') return '';
+            const count = this.settingsStore.activePageListCount;
+            return count > 0 ? String(count) : '';
+        },
     },
 
     // watch url
@@ -99,32 +198,76 @@ export default {
     },
 
     mounted() {
-        this.wkManager = getWKManager();
-        console.log(this.wkManager);
-
         this.selectTab(this.$route.name?.toLowerCase());
-
-        this.wkManager.events.on("update:avatar", avatar => {
-            if (avatar) {
-                this.userAvatar = avatar;
-                this.wk.userAvatar = avatar;
-            }
-        });
-
-        this.wkManager.events.on("update:user", user => {
-            console.log(user);
-            if (user) {
-                this.userInfo = user;
-                this.wk.userInfo = user;
-                if (user.avatar) {
-                    this.userAvatar = user.avatar;
-                    this.wk.userAvatar = user.avatar;
-                }
-            }
-        });
+        void this.refreshActiveTabSite();
     },
 
     methods: {
+        handleThemeToggle() {
+            this.theme = toggleTheme();
+        },
+        openRandomSubject() {
+            this.wk.getRandomSubjectContext().then(context => {
+                const subjectId = pickRandomSubjectId(this.randomSubjectMode, context);
+
+                if (!subjectId) {
+                    window.alert(`No subjects available for "${this.randomSubjectMode}".`);
+                    return;
+                }
+
+                this.$router.push({ name: 'Subject', params: { id: subjectId } });
+            });
+        },
+        async refreshActiveTabSite() {
+            try {
+                const tab = await getActiveBrowserTab();
+                const parsed = parseBrowserTabSite(tab);
+                this.validSite = parsed.validSite;
+                this.activeTabSite = parsed.activeTabSite;
+                this.atWanikani = parsed.atWanikani;
+            } catch {
+                this.validSite = false;
+                this.activeTabSite = null;
+                this.atWanikani = false;
+            } finally {
+                this.tabResolved = true;
+            }
+        },
+        async togglePageListForActiveTab() {
+            await this.refreshActiveTabSite();
+            if (!this.activeTabSite || !this.validSite || this.atWanikani) return;
+
+            const site = this.activeTabSite;
+            const mode = this.pageListMode;
+
+            if (this.currentSiteListed) {
+                if (mode === 'whitelist') {
+                    await this.settingsStore.removeWhitelistedSite(
+                        this.settingsStore.whitelist.find(entry => hostMatchesSiteEntry(site, entry)) ?? site,
+                    );
+                } else {
+                    await this.settingsStore.removeBlacklistedSite(
+                        this.settingsStore.blacklist.find(entry => hostMatchesSiteEntry(site, entry)) ?? site,
+                    );
+                }
+            } else if (mode === 'whitelist') {
+                await this.settingsStore.addSiteToList('whitelist', getMainDomain(site));
+            } else {
+                await this.settingsStore.addSiteToList('blacklist', getMainDomain(site));
+            }
+
+            try {
+                const tab = await getActiveBrowserTab();
+                const tabId = tab?.id;
+                if (tabId != null) {
+                    await browser.tabs.reload(tabId);
+                }
+            } catch {
+                // Ignore reload failures on restricted pages.
+            }
+
+            setTimeout(() => window.location.reload(), 500);
+        },
         handlePopout() {
             window.close();
 
@@ -135,11 +278,10 @@ export default {
                 height: window.innerHeight
             });
         },
-        handleExit() {
-            this.wkManager?.clearUserInfo();
-            this.wk.reset();
-            location.reload();
-        },
+		handleExit() {
+			if (!window.confirm('Log out and clear your local session data?')) return;
+			this.wk.logout().then(() => location.reload());
+		},
         selectTab(label) {
             document.querySelectorAll('.side-panel-tab').forEach(tab => tab.classList.remove('side-panel-tab-selected'));
             const sidePanelTab = document.querySelector(`.side-panel-tab[data-label="${label}"]`);
@@ -177,7 +319,7 @@ export default {
 <style scoped>
 .side-panel {
     height: 100%;
-    width: 45px;
+    width: var(--sidebar-width);
     position: fixed;
     right: 0;
     top: 0;
@@ -282,7 +424,7 @@ export default {
     border-radius: 50%;
     transition: 0.5s ease-in-out;
     background: conic-gradient(var(--wanikani) 0% var(--level-progress),
-            #ddd var(--level-progress) 100%);
+            var(--fade) var(--level-progress) 100%);
     padding: 7px;
 }
 

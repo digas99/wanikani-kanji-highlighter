@@ -20,7 +20,7 @@
 						<div class="searchOptionSeparator"></div>
 						<ul style="display: flex;">
 							<li class="searchResultNavbarOption clickable icon" title="List" id="searchResultOptionlist"
-								@click="searchResultGrid = !searchResultGrid"><img
+								@click="toggleResultDisplay"><img
 									:src="searchResultGrid ? '/icons/search/list.png' : '/icons/search/small-grid.png'"
 									alt="List"></li>
 						</ul>
@@ -29,26 +29,70 @@
 							@click="showSearchMenu = !showSearchMenu"><img
 								:src="showSearchMenu ? '/icons/search/close-medium.png' : '/icons/search/menu.png'"
 								alt="Menu"></div>
-						<SearchMenu @close="showSearchMenu = false" :class="{ 'search-menu-slide-in': showSearchMenu }"
-							style="right: -250px" />
+						<SearchMenu
+							:class="{ 'search-menu-slide-in': showSearchMenu }"
+							style="right: -250px"
+							@filter-change="onSearchFiltersChanged"
+						/>
 					</div>
 				</div>
 			</div>
 			<div class="searchResults">
-				<div v-if="nResults === 0" class="no-results">
-					<span>金</span>
-					<span>No results found</span>
-				</div>
-				<template v-else>
+				<div v-if="nResults > 0">
 					<!-- Tiles View -->
-					<SubjectsList v-if="searchResultGrid" :values="results" type="srs" :grid="searchResultGrid"
-						:colors="colors" :showTitle="false" :height="445" />
+					<SubjectsList
+						v-if="searchResultGrid"
+						:values="results"
+						type="srs"
+						:colors="colors"
+						:show-title="false"
+						:height="445"
+						menu-key="search"
+					/>
 
 					<!-- Detailed View -->
 					<ul v-else class="searchResultItemWrapper">
 						<SearchResultItem v-for="item in results" :key="item.id" :item="item" @search="search" />
 					</ul>
-				</template>
+				</div>
+				<div v-else-if="!searchQuery.trim() && historySubjects.length" class="search-history">
+					<div class="search-history-header">
+						<span class="search-history-title">Recently viewed</span>
+						<div class="search-history-actions">
+							<span class="search-history-count">{{ historySubjects.length }}</span>
+							<button
+								type="button"
+								class="search-history-clear clickable"
+								title="Clear recently viewed subjects"
+								@click="clearHistory"
+							>
+								Clear
+							</button>
+						</div>
+					</div>
+					<SubjectsList
+						v-if="searchResultGrid"
+						:values="historySubjects"
+						type="srs"
+						:colors="colors"
+						:show-title="false"
+						:show-progression-bar="false"
+						:height="445"
+						menu-key="search"
+					/>
+					<ul v-else class="searchResultItemWrapper">
+						<SearchResultItem
+							v-for="item in historySubjects"
+							:key="item.id"
+							:item="item"
+							@search="search"
+						/>
+					</ul>
+				</div>
+				<div v-else class="no-results">
+					<span>金</span>
+					<span>{{ searchQuery.trim() ? 'No results found' : 'Search for kanji, readings, meanings, or levels' }}</span>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -56,7 +100,7 @@
 </template>
 
 <script>
-import { getWKManager } from '@/lib/apiClient';
+import { useWKStore } from '@/stores';
 import { useMagicKeys, whenever } from '@vueuse/core'
 import { useRouter } from 'vue-router';
 
@@ -66,7 +110,10 @@ import SearchMenu from '@/components/Search/SearchMenu.vue';
 import SubjectsList from '@/components/Subjects/SubjectsList.vue';
 import SearchResultItem from '@/components/Search/SearchResultItem.vue';
 
+import { useSettingsStore } from '@/stores/settings';
 import { typeColors } from '@/utils/scripts/wanikani';
+import { filterSearchResults } from '@/utils/scripts/searchFilters';
+import { clearSearchHistory, getSearchHistoryIds } from '@/utils/scripts/searchHistory';
 
 import searchIcon from '@/assets/icons/search/search.png';
 
@@ -82,13 +129,15 @@ export default {
 			wkManager: null,
 			fetchId: null,
 			showSearchMenu: false,
-			searchResultGrid: true,
+			searchResultGrid: false,
+			rawResults: [],
 			searchInput: null,
 			searchInputHasFocus: false,
 			searchQuery: '',
 			searchTypeKana: false,
 			results: [],
 			nResults: 0,
+			historySubjects: [],
 			colors: {},
 
 			searchIcon,
@@ -126,21 +175,44 @@ export default {
 	},
 
 	computed: {
+		wk() {
+			return useWKStore();
+		},
+		settingsStore() {
+			return useSettingsStore();
+		},
+		searchFilterOptions() {
+			const search = this.settingsStore.settings.search;
+			return {
+				disabled_subjects: search.disabled_subjects,
+				radicals: search.radicals,
+				kanji: search.kanji,
+				vocabulary: search.vocabulary,
+				passed: search.passed,
+				in_progress: search.in_progress,
+				locked: search.locked,
+			};
+		},
 		typeColors() {
 			return typeColors;
 		}
 	},
 
 	created() {
-		this.wkManager = getWKManager();
+		this.wkManager = this.wk.manager;
 		this.colors = this.typeColors;
+		this.searchResultGrid = this.settingsStore.settings.search.results_display === 'searchResultOptionbig-grid';
+
+		if (!this.wkManager) return;
 
 		this.wkManager.events.on('get:subjects', ({ state, data, context }) => {
-			context = context.levels ? '' + context.levels[0] : context.caller;
-			if (state === "updated" && this.fetchId !== context) return;
+			if (!context) return;
 
-			this.results = data;
-			this.nResults = data.length;
+			const fetchKey = context.levels ? String(context.levels[0]) : context.caller;
+			if (!fetchKey || (state === 'updated' && this.fetchId !== fetchKey)) return;
+
+			this.rawResults = data;
+			this.applySearchFilters();
 		});
 	},
 
@@ -158,15 +230,53 @@ export default {
 
 		this.searchInput = this.$refs.kanjiSearchInput;
 		this.$refs.kanjiSearchInput.focus();
+		void this.loadSearchHistory();
 	},
 
-	onBeforeUnmount() {
-		this.wkManager.events.removeListener('get:subjects');
+	activated() {
+		void this.loadSearchHistory();
+	},
+
+	beforeUnmount() {
+		this.wkManager?.events.removeListener('get:subjects');
 	},
 
 	methods: {
+		applySearchFilters() {
+			this.results = filterSearchResults(this.rawResults, this.searchFilterOptions);
+			this.nResults = this.results.length;
+		},
+		onSearchFiltersChanged(key) {
+			if (key === 'targeted_search') {
+				if (this.searchQuery.trim()) this.search();
+				return;
+			}
+			this.applySearchFilters();
+		},
+		async toggleResultDisplay() {
+			this.searchResultGrid = !this.searchResultGrid;
+			const display = this.searchResultGrid
+				? 'searchResultOptionbig-grid'
+				: 'searchResultOptionlist';
+			await this.settingsStore.setSetting('search', 'results_display', display);
+		},
+		async loadSearchHistory() {
+			const ids = await getSearchHistoryIds();
+			if (!ids.length) {
+				this.historySubjects = [];
+				return;
+			}
+
+			const subjects = await Promise.all(
+				ids.map(id => this.wk.getSubjectById(id)),
+			);
+			this.historySubjects = subjects.filter(Boolean);
+		},
+		async clearHistory() {
+			await clearSearchHistory();
+			this.historySubjects = [];
+		},
 		search(query) {
-			console.log('Search query:', query);
 			// sanitize input
 			query = typeof query === 'string' ? query.trim() : this.searchQuery.trim();
 			query = this.hasKana(query) ? toHiragana(query) : query;
@@ -174,8 +284,10 @@ export default {
 				query = toHiragana(query);
 
 			if (!query) {
+				this.rawResults = [];
 				this.results = [];
 				this.nResults = 0;
+				void this.loadSearchHistory();
 				return;
 			}
 
@@ -186,14 +298,17 @@ export default {
 			this.$router.push({ name: 'Search', query: { q: query, type: this.searchTypeKana ? 'kana' : 'romaji' } });
 
 			this.fetchId = query;
+			const searchOptions = {
+				precise: this.settingsStore.settings.search.targeted_search,
+			};
 			if (!isNaN(query))
 				this.wkManager.getSubjectsByLevel(parseInt(query));
 			else if (this.hasKanji(query))
-				this.wkManager.querySubjectsByCharacters(query);
+				this.wkManager.querySubjectsByCharacters(query, null, searchOptions);
 			else if (isHiragana(query) || isKatakana(query))
-				this.wkManager.querySubjectsByReading(toHiragana(query));
+				this.wkManager.querySubjectsByReading(toHiragana(query), null, searchOptions);
 			else
-				this.wkManager.querySubjectsByMeaning(query);
+				this.wkManager.querySubjectsByMeaning(query, null, searchOptions);
 		},
 		hasKanji(text) {
 			const kanjiRegex = /[\u4E00-\u9FAF]/;
@@ -254,7 +369,7 @@ export default {
 	position: relative;
 	height: 20px;
 	align-items: center;
-	background-color: white;
+	background-color: var(--fill-color);
 	border: 2px solid white;
 }
 
@@ -279,11 +394,11 @@ export default {
 
 .textInputIcon {
 	margin-right: 5px;
-	border-right: 1px solid #797979;
+	border-right: 1px solid var(--surface-border-color);
 	width: 14px;
 	height: 14px;
 	opacity: 0.7;
-	background-color: white;
+	background-color: var(--fill-color);
 	padding: 8px;
 	border-top-left-radius: 50%;
 	border-bottom-left-radius: 50%;
@@ -329,7 +444,7 @@ export default {
 }
 
 .searchResults {
-	background-color: white;
+	background-color: var(--fill-color);
 	min-height: 480px;
 	border-top-left-radius: 10px;
 	border-top-right-radius: 10px;
@@ -401,6 +516,53 @@ export default {
 	padding-right: 10px;
 }
 
+.search-history {
+	padding-top: 4px;
+}
+
+.search-history-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 14px 6px;
+}
+
+.search-history-actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.search-history-title {
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--default-color);
+}
+
+.search-history-count {
+	font-size: 12px;
+	color: var(--muted-color);
+}
+
+.search-history-clear {
+	border: none;
+	background: transparent;
+	padding: 0;
+	font: inherit;
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--wanikani);
+	cursor: pointer;
+}
+
+.search-history-clear:hover {
+	opacity: 0.8;
+}
+
+.search-history :deep(.panel-content) {
+	border-radius: 0;
+}
+
 .no-results {
 	text-align: center;
 	padding: 10px;
@@ -429,7 +591,7 @@ export default {
 }
 
 .searchResultItemWrapper::-webkit-scrollbar-track {
-	background: white;
+	background: var(--fill-color);
 }
 
 .searchResultItemWrapper::-webkit-scrollbar-thumb {

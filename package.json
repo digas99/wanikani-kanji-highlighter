@@ -16,12 +16,14 @@
   },
   "dependencies": {
     "@vueuse/core": "^13.8.0",
+    "chart.js": "^4.5.1",
     "pinia": "^3.0.3",
     "raphael": "^2.3.0",
+    "tiny-segmenter": "^0.2.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.1",
     "wanakana": "^5.3.1",
-    "wanikani-api-manager": "^0.0.20"
+    "wanikani-api-manager": "file:../wanikani-api-manager"
   },
   "devDependencies": {
     "@wxt-dev/module-vue": "^1.0.2",

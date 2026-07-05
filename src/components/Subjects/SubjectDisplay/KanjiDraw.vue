@@ -1,5 +1,5 @@
 <template>
-	<div id="sd-popupDetails_dmak_draw"></div>
+	<div ref="drawHost" class="sd-popupDetails_dmak_draw"></div>
 </template>
 
 <script>
@@ -14,99 +14,145 @@ export default {
 	props: {
 		kanjiSource: {
 			type: String,
-			default: 'https://kanji.wkhighlighter.com/'
+			default: 'https://kanji.wkhighlighter.com/',
 		},
 		characters: {
 			type: String,
-			required: true
+			required: true,
 		},
 		size: {
 			type: Number,
-			default: null
-		}
+			default: null,
+		},
 	},
+
+	emits: ['dmak', 'loaded'],
 
 	data() {
 		return {
 			dmak: null,
+			drawGeneration: 0,
 		};
 	},
 
+	watch: {
+		characters() {
+			this.initDraw();
+		},
+		size() {
+			this.initDraw();
+		},
+	},
+
 	mounted() {
-		this.drawStrokes(this.characters, 'sd-popupDetails_dmak_draw', this.size);
-		this.$emit('dmak', this.dmak);
+		this.initDraw();
+	},
+
+	beforeUnmount() {
+		this.destroyDraw();
 	},
 
 	methods: {
-		drawStrokes(characters, elementId, size) {
-			if (!characters) return;
+		initDraw() {
+			const host = this.$refs.drawHost;
+			if (!host || !this.characters) return;
+
+			host.replaceChildren();
+
+			const generation = this.drawGeneration + 1;
+			this.drawGeneration = generation;
+			this.drawStrokes(this.characters, host, this.size, generation);
+			this.$emit('dmak', this.dmak);
+		},
+		destroyDraw() {
+			this.drawGeneration += 1;
+
+			if (this.dmak) {
+				this.dmak.pause?.();
+				this.dmak.erase?.();
+				this.dmak = null;
+			}
+
+			this.$refs.drawHost?.replaceChildren();
+		},
+		drawStrokes(characters, hostElement, size, generation) {
+			if (!characters || !hostElement) return;
 
 			if (!size) size = 130 - (10 * characters.length);
 
-			console.log(characters, elementId, size);
+			const wanikani = this.readThemeVar('--wanikani', '#f100a1', hostElement);
+			const wanikaniSec = this.readThemeVar('--wanikani-sec', '#00aaff', hostElement);
+
 			this.dmak = new Dmak(characters, {
-				'element': elementId,
-				'uri': this.kanjiSource,
-				'width': size,
-				'height': size,
-				'step': 0.005,
-				'stroke': {
-					'attr': {
-						'active': getComputedStyle(document.documentElement).getPropertyValue('--wanikani'),
-						'stroke': '#fff',
+				element: hostElement,
+				uri: this.kanjiSource,
+				width: size,
+				height: size,
+				step: 0.005,
+				stroke: {
+					attr: {
+						active: wanikani,
+						stroke: '#fff',
 					},
-					'order': {
-						'visible': true,
-						'attr': {
+					order: {
+						visible: true,
+						attr: {
 							'font-size': 10,
-							'fill': getComputedStyle(document.documentElement).getPropertyValue('--wanikani-sec'),
-						}
-					}
+							fill: wanikaniSec,
+						},
+					},
 				},
-				'loaded': async () => {
-					// put strokes back into the shadow dom
-					const dmakWrapper = document.querySelector("#sd-popupDetails_dmak_draw");
-					if (dmakWrapper) {
-						const drawingWrapper = document.querySelector("#sd-popupDetails_dmak");
-						if (drawingWrapper) {
-							Array.from(dmakWrapper.children).forEach(child => drawingWrapper.appendChild(child));
-							dmakWrapper.remove();
-						}
-					}
+				loaded: () => {
+					if (generation !== this.drawGeneration) return;
+					if (this.dmak) this.dmak.options.element = hostElement;
 
-					const papers = this.dmak.papers;
-					if (papers) {
-						const currentCharacters = document.querySelector(".sd-detailsPopup_kanji")?.innerText;
-						console.log(currentCharacters, characters);
-						if (characters == currentCharacters) {
-							const currentCanvases = papers.map(paper => paper.canvas);
+					const papers = this.dmak?.papers;
+					if (!papers || generation !== this.drawGeneration) return;
 
-							// iterate all svgs and remove the ones that are not in currentCanvases
-							const svgs = document.querySelectorAll("#sd-popupDetails_dmak svg");
-							svgs.forEach(svg => {
-								if (!currentCanvases.includes(svg))
-									svg.remove();
-								else {
-									document.querySelector(".sd-popupDetails_svgLoading")?.remove();
-									svg.style.setProperty("display", "block", "important");
-								}
-							});
-						}
+					papers.forEach((paper, i) => {
+						const canvas = paper.canvas;
+						canvas.style.setProperty('display', 'block', 'important');
+						const nStrokes = this.dmak.strokes.filter(stroke => stroke.char == i).length;
+						const title = `Kanji ${this.dmak.text.charAt(i)} has ${nStrokes} strokes`;
+						canvas.insertAdjacentHTML('afterbegin', `<title>${title}</title>`);
+					});
 
-						// add title to each canvas with number of strokes
-						papers.forEach((paper, i) => {
-							const canvas = paper.canvas;
-							const nStrokes = this.dmak.strokes.filter(stroke => stroke.char == i).length;
-							const title = `Kanji ${this.dmak.text.charAt(i)} has ${nStrokes} strokes`;
-							const titleWrapper = /*html*/`<title>${title}</title>`;
-							canvas.insertAdjacentHTML("afterbegin", titleWrapper);
-						});
-					}
-				}
+					this.$emit('loaded');
+				},
 			});
-		}
-	}
+			if (this.dmak) this.dmak.options.element = hostElement;
+		},
+		readThemeVar(name, fallback, element) {
+			let node = element;
+			while (node) {
+				const value = getComputedStyle(node).getPropertyValue(name).trim();
+				if (value) return value;
+				node = node.parentElement;
+			}
+
+			const root = element?.getRootNode?.();
+			if (root instanceof ShadowRoot) {
+				const value = getComputedStyle(root.host).getPropertyValue(name).trim();
+				if (value) return value;
+			}
+
+			return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+		},
+	},
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.sd-popupDetails_dmak_draw {
+	display: flex;
+	flex-wrap: nowrap;
+	justify-content: center;
+	align-items: center;
+	gap: 4px;
+	width: 100%;
+}
+
+.sd-popupDetails_dmak_draw :deep(svg) {
+	display: block;
+}
+</style>

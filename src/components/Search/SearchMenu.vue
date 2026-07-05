@@ -1,91 +1,63 @@
 <template>
 	<div class="search-menu">
-		<div class="search-menu-section">Misceallaneous</div>
-		<div class="search-menu-item clickable" data-id="targeted_search" title="Search exactly for the given prompt.">
+		<div class="search-menu-section">Miscellaneous</div>
+		<div
+			v-for="item in miscItems"
+			:key="item.key"
+			class="search-menu-item clickable"
+			:title="item.title"
+			@click="toggle(item.key)"
+		>
 			<div class="search-menu-item-label">
-				<img class="icon" src="/icons/search/target.png" alt="">
-				<label>Precise Search</label>
+				<img class="icon" :src="item.icon" alt="">
+				<label>{{ item.label }}</label>
 			</div>
-			<div class="checkbox_wrapper">
-				<input type="checkbox" style="display: none;">
-				<div class="custom-checkbox-ball"></div>
-				<div class="custom-checkbox-back"></div>
-			</div>
-		</div>
-		<div class="search-menu-item clickable" data-id="disabled_subjects" title="Show Wanikani disabled subjects.">
-			<div class="search-menu-item-label">
-				<img class="icon" src="/icons/search/no-stopping.png" alt="">
-				<label>Disabled Subjects</label>
-			</div>
-			<div class="checkbox_wrapper checkbox-enabled">
+			<div
+				class="checkbox_wrapper clickable setting-control"
+				:class="{ 'checkbox-enabled': searchSettings[item.key] }"
+			>
 				<input type="checkbox" style="display: none;">
 				<div class="custom-checkbox-ball"></div>
 				<div class="custom-checkbox-back"></div>
 			</div>
 		</div>
 		<div class="search-menu-section">Subjects</div>
-		<div class="search-menu-item clickable" data-id="radicals" title="Search for radicals.">
+		<div
+			v-for="item in subjectItems"
+			:key="item.key"
+			class="search-menu-item clickable"
+			:title="item.title"
+			@click="toggle(item.key)"
+		>
 			<div class="search-menu-item-label">
-				<div class="subject-type-icon" style="color: var(--radical-tag-color)">部首</div>
-				<label>Radicals</label>
+				<div class="subject-type-icon" :style="{ color: item.color }">{{ item.icon }}</div>
+				<label>{{ item.label }}</label>
 			</div>
-			<div class="checkbox_wrapper checkbox-enabled">
-				<input type="checkbox" style="display: none;">
-				<div class="custom-checkbox-ball"></div>
-				<div class="custom-checkbox-back"></div>
-			</div>
-		</div>
-		<div class="search-menu-item clickable" data-id="kanji" title="Search for kanji.">
-			<div class="search-menu-item-label">
-				<div class="subject-type-icon" style="color: var(--kanji-tag-color)">漢字</div>
-				<label>Kanji</label>
-			</div>
-			<div class="checkbox_wrapper checkbox-enabled">
-				<input type="checkbox" style="display: none;">
-				<div class="custom-checkbox-ball"></div>
-				<div class="custom-checkbox-back"></div>
-			</div>
-		</div>
-		<div class="search-menu-item clickable" data-id="vocabulary" title="Search for vocabulary.">
-			<div class="search-menu-item-label">
-				<div class="subject-type-icon" style="color: var(--vocabulary-tag-color)">単語</div>
-				<label>Vocabulary</label>
-			</div>
-			<div class="checkbox_wrapper checkbox-enabled">
+			<div
+				class="checkbox_wrapper clickable setting-control"
+				:class="{ 'checkbox-enabled': searchSettings[item.key] }"
+			>
 				<input type="checkbox" style="display: none;">
 				<div class="custom-checkbox-ball"></div>
 				<div class="custom-checkbox-back"></div>
 			</div>
 		</div>
 		<div class="search-menu-section">Progress</div>
-		<div class="search-menu-item clickable" data-id="passed" title="Show passed subjects.">
+		<div
+			v-for="item in progressItems"
+			:key="item.key"
+			class="search-menu-item clickable"
+			:title="item.title"
+			@click="toggle(item.key)"
+		>
 			<div class="search-menu-item-label">
-				<img class="icon" src="/icons/search/check.png" alt="">
-				<label>Passed</label>
+				<img class="icon" :src="item.icon" alt="">
+				<label>{{ item.label }}</label>
 			</div>
-			<div class="checkbox_wrapper checkbox-enabled">
-				<input type="checkbox" style="display: none;">
-				<div class="custom-checkbox-ball"></div>
-				<div class="custom-checkbox-back"></div>
-			</div>
-		</div>
-		<div class="search-menu-item clickable" data-id="in_progress" title="Show subjects in progress.">
-			<div class="search-menu-item-label">
-				<img class="icon" src="/icons/search/time.png" alt="">
-				<label>In Progress</label>
-			</div>
-			<div class="checkbox_wrapper checkbox-enabled">
-				<input type="checkbox" style="display: none;">
-				<div class="custom-checkbox-ball"></div>
-				<div class="custom-checkbox-back"></div>
-			</div>
-		</div>
-		<div class="search-menu-item clickable" data-id="locked" title="Show locked subjects.">
-			<div class="search-menu-item-label">
-				<img class="icon" src="/icons/search/padlock.png" alt="">
-				<label>Locked</label>
-			</div>
-			<div class="checkbox_wrapper checkbox-enabled">
+			<div
+				class="checkbox_wrapper clickable setting-control"
+				:class="{ 'checkbox-enabled': searchSettings[item.key] }"
+			>
 				<input type="checkbox" style="display: none;">
 				<div class="custom-checkbox-ball"></div>
 				<div class="custom-checkbox-back"></div>
@@ -95,14 +67,102 @@
 </template>
 
 <script>
+import { useSettingsStore } from '@/stores/settings';
+
+const miscItems = [
+	{
+		key: 'targeted_search',
+		label: 'Precise Search',
+		title: 'Search exactly for the given prompt.',
+		icon: '/icons/search/target.png',
+	},
+	{
+		key: 'disabled_subjects',
+		label: 'Disabled Subjects',
+		title: 'Show Wanikani disabled subjects.',
+		icon: '/icons/search/no-stopping.png',
+	},
+];
+
+const subjectItems = [
+	{
+		key: 'radicals',
+		label: 'Radicals',
+		title: 'Search for radicals.',
+		icon: '部首',
+		color: 'var(--radical-tag-color)',
+	},
+	{
+		key: 'kanji',
+		label: 'Kanji',
+		title: 'Search for kanji.',
+		icon: '漢字',
+		color: 'var(--kanji-tag-color)',
+	},
+	{
+		key: 'vocabulary',
+		label: 'Vocabulary',
+		title: 'Search for vocabulary.',
+		icon: '単語',
+		color: 'var(--vocabulary-tag-color)',
+	},
+];
+
+const progressItems = [
+	{
+		key: 'passed',
+		label: 'Passed',
+		title: 'Show passed subjects.',
+		icon: '/icons/search/check.png',
+	},
+	{
+		key: 'in_progress',
+		label: 'In Progress',
+		title: 'Show subjects in progress.',
+		icon: '/icons/search/time.png',
+	},
+	{
+		key: 'locked',
+		label: 'Locked',
+		title: 'Show locked subjects.',
+		icon: '/icons/search/padlock.png',
+	},
+];
+
 export default {
 	name: 'SearchMenu',
-}
+	emits: ['filter-change'],
+
+	data() {
+		return {
+			miscItems,
+			subjectItems,
+			progressItems,
+		};
+	},
+
+	computed: {
+		settingsStore() {
+			return useSettingsStore();
+		},
+		searchSettings() {
+			return this.settingsStore.settings.search;
+		},
+	},
+
+	methods: {
+		async toggle(key) {
+			const next = !this.searchSettings[key];
+			await this.settingsStore.setSetting('search', key, next);
+			this.$emit('filter-change', key);
+		},
+	},
+};
 </script>
 
 <style scoped>
 .search-menu {
-	background-color: white;
+	background-color: var(--fill-color);
 	position: absolute;
 	top: 40px;
 	right: 10px;

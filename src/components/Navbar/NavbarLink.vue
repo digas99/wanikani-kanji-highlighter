@@ -1,13 +1,16 @@
 <template>
 	<li class="side-panel-tab" :data-label="icon">
-		<RouterLink :to="to" class="navbar_icon">
+		<RouterLink :to="to" class="navbar_icon" @click="onClick">
 			<div>
 				<img :id="icon" :src="`/icons/sidebar/${icon}.png`"
-					:title="icon.charAt(0).toUpperCase() + icon.slice(1)" style="width: 20px;">
-				<span v-if="info" class="side-panel-info-alert" style="background-color: #f100a1; color: white;">{{ info
-				}}</span>
+					:title="linkTitle" style="width: 20px;">
+				<span
+					v-if="info"
+					class="side-panel-info-alert"
+					:style="infoStyle"
+				>{{ info }}</span>
 			</div>
-			<p style="pointer-events: none;">{{ icon.charAt(0).toUpperCase() + icon.slice(1) }}</p>
+			<p style="pointer-events: none;">{{ linkLabel }}</p>
 		</RouterLink>
 	</li>
 </template>
@@ -20,16 +23,51 @@ export default {
 	props: {
 		to: {
 			type: [String, Object],
-			required: true
+			required: true,
 		},
 		icon: {
 			type: String,
-			required: true
+			required: true,
 		},
 		info: {
 			type: String,
-			required: false
-		}
+			required: false,
+		},
+		infoStyle: {
+			type: Object,
+			default: () => ({
+				backgroundColor: '#f100a1',
+				color: 'white',
+			}),
+		},
+		title: {
+			type: String,
+			required: false,
+		},
+		label: {
+			type: String,
+			required: false,
+		},
+	},
+
+	computed: {
+		linkTitle() {
+			return this.title || this.icon.charAt(0).toUpperCase() + this.icon.slice(1);
+		},
+		linkLabel() {
+			return this.label || this.linkTitle;
+		},
+	},
+
+	emits: ['click'],
+
+	methods: {
+		onClick(event) {
+			if (this.to === '#') {
+				event.preventDefault();
+			}
+			this.$emit('click', event);
+		},
 	},
 };
 </script>

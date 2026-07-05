@@ -1,16 +1,25 @@
 <template>
-	<ul id="progression-bar" :style="{ overflow: title ? 'visible' : 'hidden' }">
-		<li v-for="entry in sorted(values)" :key="entry.id"
+	<ul id="progression-bar">
+		<li v-for="(entry, index) in sorted(values)" :key="entry.id"
+			:class="{ 'round-right': shouldRoundRight(index) }"
 			:style="{ width: getStagePercentage(entry.items) + '%', backgroundColor: colors ? colors[entry.id] : '' }">
-			<RouterLink :to="{ name: 'Subjects', query: { id: entry.id, type } }"
-				:style="{ backgroundColor: colors ? colors[entry.id] : '' }">
+			<a
+				v-if="scrollToSections"
+				href="#"
+				class="progression-bar-action"
+				:style="{ backgroundColor: colors ? colors[entry.id] : '' }"
+				@click.prevent="onSectionSelect(entry.id)"
+			>
+				<span v-if="showPercentage(entry.items)">{{ getStagePercentage(entry.items) }}%</span>
+			</a>
+			<RouterLink
+				v-else
+				:to="getLink(entry)"
+				:style="{ backgroundColor: colors ? colors[entry.id] : '' }"
+			>
 				<span v-if="showPercentage(entry.items)">{{ getStagePercentage(entry.items) }}%</span>
 			</RouterLink>
 		</li>
-		<div v-if="title && description" class="extra-info">
-			<span class="title">{{ title }}</span>
-			<div class="description" v-html="description"></div>
-		</div>
 	</ul>
 </template>
 
@@ -20,8 +29,11 @@ import { RouterLink } from 'vue-router';
 export default {
 	name: 'ProgressionBar',
 
+	emits: ['section-select'],
+
 	computed: {
 		totalAssignments() {
+			// console.log(this.values);
 			return this.values.map(entry => entry.items.length).reduce((a, b) => a + b, 0);
 		}
 	},
@@ -39,16 +51,31 @@ export default {
 		sorting: {
 			type: Object,
 		},
-		title: {
-			type: String,
+		scrollToSections: {
+			type: Boolean,
+			default: false,
 		},
-		description: {
-			type: String,
-		}
+		linkQuery: {
+			type: Function,
+			default: null,
+		},
 	},
 
 	methods: {
+		getLink(entry) {
+			if (this.linkQuery) {
+				return this.linkQuery(entry);
+			}
+			return {
+				name: 'Subjects',
+				query: { id: entry.id, type: this.type },
+			};
+		},
+		onSectionSelect(sectionId) {
+			this.$emit('section-select', sectionId);
+		},
 		getStagePercentage(items) {
+			// console.log(items, this.totalAssignments);
 			return ((items.length / this.totalAssignments) * 100).toFixed(1);
 		},
 		showPercentage(items) {
@@ -56,10 +83,28 @@ export default {
 			return percentage >= 10;
 		},
 		sorted(values) {
+			const entries = Array.isArray(values) ? [...values] : [];
 			if (this.sorting && Object.keys(this.sorting).length) {
-				return values.sort((a, b) => this.sorting[a.id] - this.sorting[b.id]);
+				return entries.sort((a, b) => this.sorting[a.id] - this.sorting[b.id]);
 			}
-			return values.sort((a, b) => a.id - b.id);
+			return entries.sort((a, b) => String(a.id).localeCompare(String(b.id)));
+		},
+		isLastItemWhite() {
+			if (!this.$el || !this.$el.querySelector) return false;
+			const element = this.$el.querySelector('#progression-bar>li:last-child');
+			if (!element) return false;
+			const bgColor = window.getComputedStyle(element).backgroundColor;
+			return bgColor === 'rgb(255, 255, 255)' || bgColor === 'rgba(255, 255, 255, 1)' || bgColor === 'white';
+		},
+		shouldRoundRight(index) {
+			const sortedValues = this.sorted(this.values);
+			const isLast = index === sortedValues.length - 1;
+			const isSecondToLast = index === sortedValues.length - 2;
+			
+			if (this.isLastItemWhite()) {
+				return isSecondToLast;
+			}
+			return isLast;
 		}
 	}
 }
@@ -80,36 +125,23 @@ export default {
 	transition: width 0.2s;
 }
 
+#progression-bar>li.round-right {
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+	overflow: hidden;
+}
+
 #progression-bar>li>a {
 	color: white;
 	justify-content: center;
 	align-items: center;
 	display: flex;
 	height: 100%;
+	text-decoration: none;
 }
 
-.extra-info {
-	position: absolute;
-	bottom: -50px;
-	background-color: white;
-	display: flex;
-	flex-direction: column;
-	width: 96%;
-	text-align: center;
-}
-
-.extra-info .title {
-	font-weight: bold;
-	background-color: var(--default-color);
-	color: white;
-	padding: 7px;
-}
-
-.extra-info .description {
-	color: #666;
-	padding: 5px;
-	border: 1px solid #eee;
-	border-bottom-left-radius: 5px;
-	border-bottom-right-radius: 5px;
+.progression-bar-action {
+	width: 100%;
+	cursor: pointer;
 }
 </style>
