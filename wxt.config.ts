@@ -20,6 +20,10 @@ export default defineConfig({
     ]
   }),
   srcDir: 'src',
+  // WXT's source package can't hold the library (a sibling folder): the deploy workflow makes it
+  zip: {
+    zipSources: false,
+  },
   manifest: {
 	// shown in the browser's extensions list (without it, the package's name and a placeholder)
 	name: 'WaniKani Kanji Highlighter',

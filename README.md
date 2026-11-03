@@ -56,6 +56,7 @@ This is an unofficial browser extension that highlights kanji and words on any w
    - 2.10. [Settings](#settings)
    - 2.11. [Troubleshooting](#troubleshooting)
 3. [Building from Source](#building-from-source)
+4. [Publishing](#publishing)
 
 ## What's New in v2.0.0
 
@@ -255,3 +256,20 @@ Then load the build into your browser:
 | Firefox | `npm run build:firefox` | `.output/firefox-mv2` | In `about:debugging`, open **This Firefox**, click **Load Temporary Add-on** and pick the folder's `manifest.json` |
 
 For development, `npm run dev` and `npm run dev:firefox` run the extension with live reloading. After changing the library, run `npm run build:lib` in its folder again so the extension picks up the changes.
+
+## Publishing
+
+The [Deploy Extension](.github/workflows/deploy-extension.yml) workflow builds the packages and submits them to the stores:
+
+- **Publishing a GitHub release** submits to all three stores. Its tag must be `v` plus the version in `package.json`, like `v2.0.0`. It builds with the library's `main` branch, so merge any library changes first.
+- **Running it by hand** (_Actions → Deploy Extension → Run workflow_) only builds the packages and checks the store credentials, unless you tick **publish**. You can also pick a single store and the library branch to build with.
+
+It needs these repository secrets:
+
+| Store | Secrets | Where to get them |
+| ----- | ------- | ----------------- |
+| Chrome | `CHROME_PUBLISHER_ID`, `CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL`, `CHROME_SERVICE_ACCOUNT_PRIVATE_KEY` | [Create a service account](https://developer.chrome.com/docs/webstore/service-accounts) and add it in the Chrome Web Store dashboard's **Account** section. The email and private key are in its JSON key file, and the publisher ID is in the dashboard's URL, after `devconsole/`. |
+| Firefox | `FIREFOX_JWT_ISSUER`, `FIREFOX_JWT_SECRET` | [Add-on Developer Hub → API keys](https://addons.mozilla.org/developers/addon/api/key/) |
+| Edge | `EDGE_CLIENT_ID`, `EDGE_API_KEY` | [Partner Center → Microsoft Edge → Publish API](https://partner.microsoft.com/dashboard/microsoftedge/publishapi). API keys have an expiry date. |
+
+The hand-run check really tests the Chrome and Firefox credentials, but it can't test Edge's, because the publishing tool skips Edge entirely on a check.

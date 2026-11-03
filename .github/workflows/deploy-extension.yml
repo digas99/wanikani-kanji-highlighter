@@ -1,118 +1,184 @@
 name: Deploy Extension
 
+# A published release builds the packages and submits them to every store.
+# Run by hand, it builds them and checks the store credentials: it only submits with "publish" ticked.
+
 on:
   release:
     types:
       - published
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Submit to the stores (off = only build, and check the credentials)
+        type: boolean
+        default: false
+      store:
+        description: Which store
+        type: choice
+        options:
+          - all
+          - chrome
+          - firefox
+          - edge
+        default: all
+      library-ref:
+        description: Branch or tag of wanikani-api-manager to build with
+        type: string
+        default: main
+
+permissions:
+  contents: read
+
+env:
+  # read by publish-extension: anything but a release or a ticked "publish" stops before uploading
+  DRY_RUN: ${{ (github.event_name == 'release' || inputs.publish) && 'false' || 'true' }}
+  # not WXT's own copy: only recent versions use the Chrome Web Store's API v2 (v1.1 is shut down)
+  PUBLISH_EXTENSION: publish-browser-extension@6.2.0
+  WEB_EXT: web-ext@10.8.0
 
 jobs:
-  # Step 1: Pack Extension for Chromium
-  packChromium:
+  package:
+    name: Build the packages
     runs-on: ubuntu-latest
-    outputs:
-      zip_path: ${{ steps.pack.outputs.zipFilePath }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Build Extension
-        id: pack
-        uses: cardinalby/webext-buildtools-pack-extension-dir-action@v1
+      - name: Check out the extension
+        uses: actions/checkout@v7
         with:
-          extensionDir: '.'
-          zipFilePath: 'build/extension-chromium.zip'
+          path: wanikani-kanji-highlighter
 
-      - name: Upload Packed Extension
-        uses: actions/upload-artifact@v4
+      # the extension installs it from ../wanikani-api-manager (it isn't on npm)
+      - name: Check out the library
+        uses: actions/checkout@v7
         with:
-          name: extension-chromium
-          path: build/extension-chromium.zip
+          repository: digas99/wanikani-api-manager
+          ref: ${{ inputs.library-ref || 'main' }}
+          path: wanikani-api-manager
 
-  # Step 1.1.1: Fetch Google Access Token
-  fetchGToken:
-    runs-on: ubuntu-latest
-    needs: packChromium
-    outputs:
-      access_token_path: google-access-token
-    steps:
-      - id: fetchToken
-        uses: cardinalby/google-api-fetch-token-action@v1
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
         with:
-          clientId: ${{ secrets.G_CLIENT_ID }}
-          clientSecret: ${{ secrets.G_CLIENT_SECRET }}
-          refreshToken: ${{ secrets.G_REFRESH_TOKEN }}
+          node-version: 24
 
-      - name: Save access token
+      - name: Check the release tag matches the version
+        if: github.event_name == 'release'
+        working-directory: wanikani-kanji-highlighter
+        env:
+          TAG: ${{ github.event.release.tag_name }}
         run: |
-          echo "${{ steps.fetchToken.outputs.accessToken }}" > access_token.txt
-    
-      - name: Upload token as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: google-access-token
-          path: access_token.txt
+          version=$(node -p "require('./package.json').version")
+          if [ "$TAG" != "v$version" ]; then
+            echo "::error::Release tag $TAG doesn't match version $version in package.json"
+            exit 1
+          fi
 
-  # Step 1.1.2: Upload Extension to the Chrome Web Store
-  uploadGoogle:
+      - name: Build the library
+        working-directory: wanikani-api-manager
+        run: |
+          npm ci
+          npm run build:lib
+
+      - name: Build and zip the extension
+        working-directory: wanikani-kanji-highlighter
+        run: |
+          npm ci
+          npm run zip
+          npm run zip:firefox
+
+      - name: Lint the Firefox build
+        working-directory: wanikani-kanji-highlighter
+        run: npx --yes "$WEB_EXT" lint --source-dir .output/firefox-mv2
+
+      # Firefox's reviewers rebuild the extension from source, which takes the library too
+      - name: Collect the packages and the source package
+        run: |
+          mkdir packages sources
+          cp wanikani-kanji-highlighter/.output/*.zip packages/
+          git -C wanikani-kanji-highlighter archive --prefix=wanikani-kanji-highlighter/ HEAD | tar -x -C sources
+          git -C wanikani-api-manager archive --prefix=wanikani-api-manager/ HEAD -- . ':!docs' ':!demo' | tar -x -C sources
+          cp wanikani-kanji-highlighter/.github/SOURCE_PACKAGE.md sources/README.md
+          version=$(node -p "require('./wanikani-kanji-highlighter/package.json').version")
+          (cd sources && zip -qr "../packages/wanikani-kanji-highlighter-$version-sources.zip" .)
+
+      - name: Upload the packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: packages
+          path: packages/*.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  chrome:
+    name: Chrome Web Store
+    needs: package
+    if: github.event_name == 'release' || inputs.store == 'all' || inputs.store == 'chrome'
     runs-on: ubuntu-latest
-    needs: [packChromium, fetchGToken]
     steps:
-      - name: Download token artifact
-        uses: actions/download-artifact@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
         with:
-          name: google-access-token
+          node-version: 24
 
-      - name: Download extension artifact
-        uses: actions/download-artifact@v4
+      - name: Download the packages
+        uses: actions/download-artifact@v8
         with:
-          name: extension-chromium
+          name: packages
 
-      - name: Read access token
-        id: read-token
-        run: echo "ACCESS_TOKEN=$(cat access_token.txt)" >> $GITHUB_ENV
+      - name: Submit to the Chrome Web Store
+        env:
+          CHROME_API_VERSION: v2
+          CHROME_EXTENSION_ID: pdbjikelneighjgjojikkmhiehpcokjm
+          CHROME_PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+          CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL: ${{ secrets.CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL }}
+          CHROME_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.CHROME_SERVICE_ACCOUNT_PRIVATE_KEY }}
+        run: |
+          # the key works pasted from the service account's JSON file, with its line breaks as \n
+          export CHROME_SERVICE_ACCOUNT_PRIVATE_KEY="$(printf '%b' "$CHROME_SERVICE_ACCOUNT_PRIVATE_KEY")"
+          npx --yes "$PUBLISH_EXTENSION" --chrome-zip *-chrome.zip
 
-      - name: Upload to Chrome Web Store
-        uses: cardinalby/webext-buildtools-chrome-webstore-action@v1
-        with:
-          zipFilePath: 'extension-chromium.zip'
-          extensionId: 'pdbjikelneighjgjojikkmhiehpcokjm'
-          apiAccessToken: ${{ env.ACCESS_TOKEN }}
-
-  # Step 1.1.3: Publish Extension to the Chrome Web Store
-  publishGoogle:
+  firefox:
+    name: Firefox Add-ons
+    needs: package
+    if: github.event_name == 'release' || inputs.store == 'all' || inputs.store == 'firefox'
     runs-on: ubuntu-latest
-    needs: uploadGoogle
     steps:
-      - name: Download token artifact
-        uses: actions/download-artifact@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
         with:
-          name: google-access-token
+          node-version: 24
 
-      - name: Read access token
-        id: read-token
-        run: echo "ACCESS_TOKEN=$(cat access_token.txt)" >> $GITHUB_ENV
-
-      - name: Publish to Chrome Web Store
-        uses: cardinalby/webext-buildtools-chrome-webstore-publish-action@v1
+      - name: Download the packages
+        uses: actions/download-artifact@v8
         with:
-          extensionId: 'pdbjikelneighjgjojikkmhiehpcokjm'
-          apiAccessToken: ${{ env.ACCESS_TOKEN }}
-  
-  # Step 1.2.1: Upload and Publish to the Microsoft Edge Add-ons
-  uploadAndPublishEdge:
+          name: packages
+
+      - name: Submit to Firefox Add-ons
+        env:
+          FIREFOX_EXTENSION_ID: wanikani-kanji-highlighter@wkhighlighter.com
+          FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
+        run: npx --yes "$PUBLISH_EXTENSION" --firefox-zip *-firefox.zip --firefox-sources-zip *-sources.zip
+
+  edge:
+    name: Edge Add-ons
+    needs: package
+    if: github.event_name == 'release' || inputs.store == 'all' || inputs.store == 'edge'
     runs-on: ubuntu-latest
-    needs: packChromium
     steps:
-      - name: Download extension artifact
-        uses: actions/download-artifact@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
         with:
-          name: extension-chromium
-      
-      - name: Publish to Microsoft Edge Add-ons
-        uses: wdzeng/edge-addon@v2
+          node-version: 24
+
+      - name: Download the packages
+        uses: actions/download-artifact@v8
         with:
-          zip-path: 'extension-chromium.zip'
-          product-id: 'fc9fbef4-2a2a-41e4-8b2e-5dc5986cad74'
-          api-key: ${{ secrets.EDGE_API_KEY }}
-          client-id: ${{ secrets.EDGE_CLIENT_ID }}
+          name: packages
+
+      # Edge takes the same package as Chrome
+      - name: Submit to Edge Add-ons
+        env:
+          EDGE_PRODUCT_ID: fc9fbef4-2a2a-41e4-8b2e-5dc5986cad74
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+        run: npx --yes "$PUBLISH_EXTENSION" --edge-zip *-chrome.zip
