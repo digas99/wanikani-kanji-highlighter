@@ -3,9 +3,14 @@
   --sidebar-width: 45px;
   --content-padding-x: 10px;
   --topbar-height: 45px;
+  /* until main.ts measures the visible width (minus a page scrollbar) */
   --content-width: calc(var(--body-base-width) - var(--sidebar-width));
-  --body-color: #ffffff;
+  --body-color: #f3f3f8;
   --default-color: #2a2d48;
+  /* shared with the subject details popup */
+  --pill-color: #e36f94;
+  --card-radius: 12px;
+  --control-radius: 8px;
   --fill-color: #fff;
   --font-color: #343434;
   --font-sec-color: #747474;
@@ -77,8 +82,181 @@
   color: var(--font-color);
 }
 
-html {
+/* toasts at the top of the popup (friends' level-ups, the yesterday recap), stacked */
+.top-toasts {
+  position: fixed;
+  top: 10px;
+  left: calc(10px + var(--frame-left, 0px));
+  width: calc(var(--content-width, 100%) - 20px);
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.top-toasts > * {
+  pointer-events: auto;
+}
+
+/* on body, not html: on phones html is only as wide as the screen, the page is 470px */
+body {
   border-top: 5px solid var(--wanikani);
+}
+
+/* a window wider than the popup (a tab, popped out): the page stays popup-wide, in the middle */
+html {
+  background-color: var(--body-color);
+}
+
+body {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-shadow: 0 0 0 1px var(--surface-border-color, rgba(0, 0, 0, 0.06)), 0 0 24px rgba(0, 0, 0, 0.06);
+}
+
+/* Startup placeholder (index.html), until the app mounts over it. The popup opens at
+   this size right away; the bars are the app's top bar and sidebar (dark in both themes). */
+/* dark placeholder until the app applies the theme (public/popup-boot-theme.js),
+   colors from utils/scripts/theme.ts */
+html[data-boot-theme='dark'] .app-boot {
+  --body-color: #171928;
+  --default-color: #262940;
+  --fill-color: #1f2134;
+  --surface-border-color: #33365a;
+}
+
+html[data-boot-theme='dark'] .app-boot-shimmer {
+  background-color: #2b2e48;
+  background-image: linear-gradient(90deg, transparent 20%, rgba(255, 255, 255, 0.09) 50%, transparent 80%);
+}
+
+html[data-boot-theme='dark'] body {
+  background-color: #171928;
+}
+
+.app-boot {
+  position: relative;
+  height: 595px; /* popups max out at 600px, minus the 5px top border */
+  overflow: hidden;
+  background-color: var(--body-color);
+}
+
+.app-boot-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px var(--content-padding-x);
+}
+
+.app-boot-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--card-radius);
+  border: 1px solid var(--surface-border-color);
+  background-color: var(--fill-color);
+}
+
+.app-boot-row {
+  display: flex;
+  gap: 10px;
+}
+
+.app-boot-grow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 7px;
+}
+
+/* same moving highlight as .sd-shimmer (subject details skeleton). The base is a solid
+   color: faint translucent gradient stops barely painted here, so only the glow is a gradient */
+.app-boot-shimmer {
+  display: block;
+  border-radius: 6px;
+  background-color: #ececf3;
+  background-image: linear-gradient(90deg, transparent 20%, rgba(255, 255, 255, 0.75) 50%, transparent 80%);
+  background-size: 200% 100%;
+  animation: app-boot-shimmer 1.3s ease-in-out infinite;
+}
+
+@keyframes app-boot-shimmer {
+  from { background-position: 150% 0; }
+  to { background-position: -50% 0; }
+}
+
+.app-boot-line {
+  height: 11px;
+}
+
+.app-boot-badge {
+  width: 54px;
+  height: 54px;
+  border-radius: 10px;
+}
+
+.app-boot-action {
+  flex: 1;
+  height: 88px;
+  border-radius: 10px;
+}
+
+.app-boot-pill {
+  width: 140px;
+  height: 21px;
+  border-radius: 999px;
+}
+
+.app-boot-tiles {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.app-boot-tiles > span {
+  height: 66px;
+  border-radius: 8px;
+}
+
+.app-boot-sidebar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding-top: 14px;
+  background-color: var(--default-color);
+}
+
+.app-boot-sidebar > span {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.app-boot-sidebar > .app-boot-avatar {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 14px;
+  border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-boot-shimmer {
+    animation: none;
+  }
 }
 
 body {
@@ -100,7 +278,11 @@ body {
   padding-left: var(--content-padding-x);
   padding-right: var(--content-padding-x);
   box-sizing: border-box;
-  min-height: 560px;
+  /* A browser popup sizes itself to its content, so the window height alone can't hold it
+     open: 550px keeps it at its full 600px (with the 45px top bar and the 5px pink border on
+     <body>), without scrolling past it. Taller windows (popped out, mobile) are filled.
+     Pages with a list sized to the window (Lessons, Search…) are tuned to fit in 600px. */
+  min-height: max(550px, calc(100vh - var(--topbar-height) - 5px));
   margin-top: var(--topbar-height);
   overflow-x: hidden;
 }
@@ -220,7 +402,25 @@ i {
 
 ::-webkit-scrollbar-thumb,
 #reviewsMaterialList>ul::-webkit-scrollbar-thumb {
-  background-color: var(--default-color);
+  background-color: var(--muted-color);
+  border-radius: 999px;
+}
+
+/* Section / card label: the pink pill used by the subject details popup */
+.wkh-pill-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--pill-color);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.4;
 }
 
 .clickable {
@@ -291,13 +491,17 @@ i {
   opacity: 1;
 }
 
+/* Settings tabs: segmented control, like the details popup's section tabs */
 .settings-tabs {
   display: flex;
   flex-wrap: nowrap;
-  gap: 0;
+  gap: 3px;
+  padding: 3px;
   overflow-x: auto;
-  margin-bottom: 0;
-  border-bottom: 2px solid var(--tab-border-color);
+  margin: 10px 0;
+  border-radius: 10px;
+  background: var(--surface-muted-color);
+  border: 1px solid var(--surface-border-color);
   scrollbar-width: none;
 }
 
@@ -305,35 +509,53 @@ i {
   display: none;
 }
 
+/* more tabs past the edge: that edge fades out */
+.settings-tabs.fade-end {
+  -webkit-mask-image: linear-gradient(to right, #000 82%, transparent);
+  mask-image: linear-gradient(to right, #000 82%, transparent);
+}
+
+.settings-tabs.fade-start {
+  -webkit-mask-image: linear-gradient(to left, #000 82%, transparent);
+  mask-image: linear-gradient(to left, #000 82%, transparent);
+}
+
+.settings-tabs.fade-start.fade-end {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 18%, #000 82%, transparent);
+}
+
 .settings-tab {
-  flex: 0 0 auto;
+  flex: 1 0 auto;
   border: none;
-  border-bottom: 3px solid transparent;
+  border-radius: 7px;
   background: transparent;
   color: var(--tab-inactive-color);
-  padding: 9px 11px;
+  padding: 7px 10px;
   font-size: 11px;
   font-weight: 700;
   font-family: inherit;
   white-space: nowrap;
-  margin-bottom: -2px;
-  transition: color 0.2s, border-color 0.2s;
+  cursor: pointer;
+  transition: color 0.2s, background-color 0.2s;
 }
 
 .settings-tab.active {
-  color: var(--default-color);
-  border-bottom-color: var(--wanikani);
+  color: #fff;
+  background: var(--pill-color);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
 }
 
 .settings-tab:hover:not(.active) {
-  color: var(--default-color);
+  color: var(--heading-color, #2a2d48);
+  background: var(--fill-color);
   opacity: 1;
 }
 
 .settings-note {
   margin: 10px 0 12px;
   padding: 8px 10px;
-  border-radius: 6px;
+  border-radius: var(--control-radius);
   background: var(--surface-muted-color);
   border-left: 3px solid var(--wanikani-sec);
   color: var(--font-sec-color);
@@ -341,28 +563,45 @@ i {
   line-height: 1.45;
 }
 
+/* the page itself scrolls: a fixed-height box inside it looked cut off (mobile, popped out)
+   and its minimum height made short windows scroll a few pixels into nothing */
 .settings-panel {
-  max-height: 455px;
-  overflow-y: auto;
   padding-right: 2px;
 }
 
+/* Settings sections: cards with a pink pill label (details popup style) */
+/* a section a link pointed to (Settings ?section=): briefly outlined */
+.settings-section.settings-flash {
+  animation: settings-flash 1.8s ease-out;
+}
+
+@keyframes settings-flash {
+  0%, 35% { box-shadow: 0 0 0 3px var(--wanikani, #f100a1), 0 2px 10px var(--shadow-soft-color); }
+  100% { box-shadow: 0 0 0 0 transparent, 0 2px 10px var(--shadow-soft-color); }
+}
+
 .settings-section {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   border: 1px solid var(--surface-border-color);
-  border-radius: 8px;
+  border-radius: var(--card-radius);
   overflow: hidden;
-  background: var(--surface-subtle-color);
+  background: var(--fill-color);
+  box-shadow: 0 2px 10px var(--shadow-soft-color);
 }
 
 .settings-section-title {
   text-align: left;
-  padding: 9px 12px;
-  background: var(--default-color);
-  color: white;
-  margin: 0;
-  font-weight: bold;
-  font-size: 13px;
+  width: fit-content;
+  margin: 12px 12px 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--pill-color);
+  color: #fff;
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.4;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -374,6 +613,13 @@ i {
 
 .settings-section-body {
   background: var(--fill-color);
+}
+
+/* a note straight in a section (not in a row): the rows' side padding */
+.settings-section-body > .settings-description,
+.settings-section-body > .muted {
+  margin: 0;
+  padding: 8px 12px;
 }
 
 .settings-badge {
@@ -438,7 +684,7 @@ i {
   min-width: 108px;
   max-width: 130px;
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--control-radius);
   padding: 5px 8px;
   background: var(--fill-color);
   font-family: inherit;
@@ -457,7 +703,7 @@ i {
   min-width: 24px;
   text-align: center;
   font-weight: 700;
-  color: var(--default-color);
+  color: var(--heading-color, #2a2d48);
 }
 
 .settings-slider input[type='range'] {
@@ -501,11 +747,95 @@ i {
   color: var(--sample-color, var(--wanikani-sec));
 }
 
+.home-layout-settings {
+  padding: 4px 12px 12px;
+}
+
+.home-layout-settings .settings-description {
+  margin: 0 0 10px;
+}
+
 .blacklist-wrapper {
   padding: 10px 12px;
   max-height: 180px;
   overflow: auto;
-  background: var(--fill-color);
+  background: var(--surface-subtle-color);
+  border-bottom: 1px solid var(--row-border-color);
+}
+
+.blacklist-wrapper:last-child {
+  border-bottom: none;
+}
+
+/* Site access: the black/whitelist rows open their list in place, inside the same card */
+.site-list-toggle {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--row-border-color);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s, opacity 0.15s;
+}
+
+.site-list-toggle:hover {
+  background: var(--surface-subtle-color);
+}
+
+.site-list-toggle > span:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* the list the default behaviour doesn't use: still editable, just quieter */
+.site-list-inactive {
+  opacity: 0.65;
+}
+
+.site-list-active {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--pill-color);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: 1px;
+}
+
+.site-list-toggle-end {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.site-list-count {
+  min-width: 26px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--surface-muted-color);
+  color: var(--font-sec-color);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.site-list-chevron {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--font-sec-color);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s ease;
+}
+
+.site-list-chevron.open {
+  transform: rotate(180deg);
 }
 
 .site-list-help {
@@ -522,7 +852,7 @@ i {
   flex: 1 1 auto;
   min-width: 0;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--control-radius);
   padding: 6px 8px;
   font-size: 12px;
   background: var(--input-bg-color);
@@ -559,35 +889,122 @@ i {
   color: var(--font-sec-color);
 }
 
-.color-group .color-inputs {
+/* Theme tab: round color swatches with a caption under each */
+.color-swatches {
   display: inline-flex;
-  gap: 4px;
+  gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
-.settings-page input[type='color'] {
-  width: 34px;
-  height: 28px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  padding: 0;
-  background: transparent;
+.color-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 34px;
+  cursor: pointer;
 }
 
-.appearance-buttons {
+.color-swatch > span {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--font-sec-color);
+  white-space: nowrap;
+}
+
+.settings-page .color-swatch input[type='color'] {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 2px solid var(--fill-color);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--surface-border-color);
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.settings-page .color-swatch:hover input[type='color'] {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 1px var(--font-sec-color);
+}
+
+.settings-page .color-swatch input[type='color']::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.settings-page .color-swatch input[type='color']::-webkit-color-swatch {
+  border: none;
+  border-radius: 50%;
+}
+
+.settings-page .color-swatch input[type='color']::-moz-color-swatch {
+  border: none;
+  border-radius: 50%;
+}
+
+/* every SRS stage in order (Initiate → Burned) */
+.srs-preview {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: center;
-  padding: 12px;
-  background: var(--fill-color);
-  border-top: 1px solid var(--row-border-color);
+  height: 10px;
+  margin: 2px 12px 12px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.srs-preview > span {
+  flex: 1;
+}
+
+.appearance-presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 10px 12px 12px;
+}
+
+.appearance-preset {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 9px;
+  border: 1px solid var(--surface-border-color);
+  border-radius: 10px;
+  background: var(--surface-subtle-color);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.appearance-preset:hover {
+  border-color: var(--pill-color);
+  transform: translateY(-1px);
+}
+
+.appearance-preset-strip {
+  display: flex;
+  width: 100%;
+  height: 14px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.appearance-preset-strip > span {
+  flex: 1;
+}
+
+.appearance-preset-name {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--font-color);
+  text-align: center;
 }
 
 .settings-button {
   padding: 7px 12px;
-  border-radius: 6px;
+  border-radius: var(--control-radius);
+  cursor: pointer;
   border: 1px solid var(--default-color);
   background: var(--default-color);
   color: white;
@@ -598,7 +1015,7 @@ i {
 
 .settings-button.secondary {
   background: var(--fill-color);
-  color: var(--default-color);
+  color: var(--heading-color, #2a2d48);
 }
 
 .settings-button.flaming {
@@ -623,13 +1040,13 @@ i {
   border-color: var(--danger-border-color);
 }
 
+/* on the card itself, right under the button (a grey strip made the card look two-tone) */
 .danger-description {
   color: var(--font-sec-color);
   font-size: 11px;
-  padding: 10px 12px 12px;
+  padding: 8px 12px 12px;
   margin: 0;
   line-height: 1.4;
-  background: var(--surface-muted-color);
 }
 
 .practice-reminder-time {
@@ -647,8 +1064,23 @@ i {
   opacity: 0.45;
 }
 
+.side-panel-help {
+  background: var(--surface-subtle-color);
+}
+
+.side-panel-help .settings-button {
+  justify-self: start;
+}
+
 .settings-section-title .arrow {
   border-color: white;
   padding: 3px;
   margin-left: auto;
+}
+
+/* text inputs: rounded like the rest of the controls */
+input[type="text"],
+input[type="password"],
+input[type="search"] {
+  border-radius: var(--control-radius);
 }

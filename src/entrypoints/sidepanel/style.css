@@ -1,0 +1,25 @@
+:root {
+  /* height of the panel's own header (the section tabs stick right below it) */
+  --topbar-height: 44px;
+  --detailsPopup-width: 100vw;
+  --default-color: #2a2d48;
+  --wanikani: #f100a1;
+  --wanikani-sec: #00aaff;
+  --radical-tag-color: #00a1f1;
+  --kanji-tag-color: #f100a1;
+  --vocabulary-tag-color: #a100f1;
+  --pill-color: #e36f94;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--default-color);
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+a {
+  text-decoration: none;
+}

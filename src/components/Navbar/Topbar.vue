@@ -1,11 +1,12 @@
 <template>
 	<div class="topNav">
-		<a title="Go back" id="goBackButton" @click="goBack"
+		<!-- back, and the page's title (filled in by the router): one soft pill on hover -->
+		<a title="Go back" id="goBackButton" class="topNav-back" @click="goBack"
 			:style="{ pointerEvents: showGoBackButton ? 'auto' : 'none' }">
-			<div>
-				<i v-if="showGoBackButton" class="left"></i>
-				<div id="secPageTitle"></div>
-			</div>
+			<svg v-if="showGoBackButton" class="topNav-back-arrow" viewBox="0 0 24 24" aria-hidden="true">
+				<path d="M15 5l-7 7 7 7" />
+			</svg>
+			<span id="secPageTitle"></span>
 		</a>
 		<div id="secPageButtons"></div>
 
@@ -75,7 +76,7 @@ export default {
 	background-color: var(--default-color);
 	border-top: 5px solid var(--wanikani);
 	top: 0;
-	left: 0;
+	left: var(--frame-left, 0px);
 	width: var(--content-width);
 	max-width: var(--content-width);
 	display: flex;
@@ -94,39 +95,49 @@ export default {
 	/* Standard syntax */
 }
 
-.topNav>a {
-	cursor: pointer;
-	height: 100%;
-	align-items: center;
+/* back + title: a pill with a soft highlight on hover (not the bar's whole height in pink) */
+.topNav-back {
 	display: flex;
-	padding: 0 10px;
+	align-items: center;
+	gap: 6px;
+	height: 32px;
+	margin-left: 6px;
+	padding: 0 10px 0 6px;
+	border-radius: 9px;
+	color: white;
+	cursor: pointer;
 	opacity: unset;
-	transition: unset;
+	transition: background-color 0.15s;
 }
 
-.topNav>a:hover {
-	background-color: var(--wanikani);
+.topNav-back:hover {
+	background-color: rgba(255, 255, 255, 0.1);
 }
 
-.topNav>a * {
+.topNav-back:active {
+	background-color: rgba(255, 255, 255, 0.16);
+}
+
+.topNav-back * {
 	pointer-events: none;
 }
 
-.topNav>a>div {
-	display: flex;
-	align-items: center;
-	gap: 10px;
+.topNav-back-arrow {
+	flex-shrink: 0;
+	width: 18px;
+	height: 18px;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2.6;
+	stroke-linecap: round;
+	stroke-linejoin: round;
 }
 
-.topNav>a>div>i {
-	border-color: white;
-	padding: 4px;
-}
-
-.topNav>a>div>div {
-	color: white;
-	font-size: 15px;
-	font-weight: bold;
+#secPageTitle {
+	font-size: 14px;
+	font-weight: 700;
+	line-height: 1;
+	white-space: nowrap;
 }
 
 .topNav .star {
@@ -212,7 +223,7 @@ export default {
 .topNav-lessons>a:hover .lessons-count,
 .topNav-lessons>a:hover .reviews-count {
 	background-color: var(--fill-color);
-	color: var(--default-color);
+	color: var(--heading-color, #2a2d48);
 }
 
 #goBack {

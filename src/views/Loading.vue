@@ -1,99 +1,205 @@
 <template>
     <div class="loading-page">
         <div class="loading-stack">
+            <!-- the sync: a ring with how far it got, what it's doing, about how long is left -->
             <section class="load-card hero-card">
-                <div class="hero-spinner"></div>
-                <div class="hero-title">Loading Subjects…</div>
+                <div class="hero-ring" :class="{ spinning: !hasTotal || waiting }" :title="hasTotal ? `${syncPercent}%` : ''">
+                    <svg viewBox="0 0 44 44" aria-hidden="true">
+                        <circle class="ring-track" cx="22" cy="22" r="19" />
+                        <circle
+                            class="ring-fill"
+                            cx="22"
+                            cy="22"
+                            r="19"
+                            :stroke-dasharray="RING"
+                            :stroke-dashoffset="hasTotal && !waiting ? RING * (1 - syncPercent / 100) : RING * 0.72"
+                        />
+                    </svg>
+                    <span v-if="hasTotal && !waiting" class="ring-label">{{ syncPercent }}%</span>
+                </div>
+                <div class="hero-title">{{ waiting ? 'Waiting for WaniKani…' : 'Loading Subjects…' }}</div>
                 <div class="hero-sub">
-                    Syncing {{ wk.syncProgress.label || 'levels' }}
-                    ({{ wk.syncProgress.loaded }}/{{ wk.syncProgress.total || '…' }})
+                    <template v-if="waiting">
+                        WaniKani asked to slow down (rate limit): resumes in <b>{{ waitSeconds }}s</b>
+                    </template>
+                    <template v-else>{{ stepLabel }}<template v-if="etaLabel"> · {{ etaLabel }}</template></template>
                 </div>
-                <div class="progress-track">
-                    <div
-                        class="progress-fill"
-                        :class="{ indeterminate: !wk.syncProgress.total }"
-                        :style="wk.syncProgress.total ? { width: syncPercent + '%' } : {}"
-                    ></div>
+                <div class="hero-saved">
+                    <b>{{ wk.allSubjects.length.toLocaleString() }}</b> subjects saved so far
                 </div>
-                <div class="hero-hint">The first sync downloads all 60 WaniKani levels and may take a few minutes.</div>
+                <div class="hero-hint">
+                    The first sync downloads all 60 WaniKani levels.
+                    <b>You can close this:</b> it carries on in the background.
+                </div>
             </section>
 
-            <section class="load-card">
+            <!-- what's known already (arrives in seconds, long before the subjects) -->
+            <section v-if="username" class="load-card welcome-card">
+                <img class="welcome-avatar" :src="wk.userAvatar || defaultAvatar" alt="" />
+                <div class="welcome-text">
+                    <div class="welcome-title">Welcome, <b>{{ username }}</b></div>
+                    <div class="welcome-chips">
+                        <span v-if="userLevel" class="welcome-chip">Level {{ userLevel }}</span>
+                        <span class="welcome-chip reviews">{{ wk.reviewsCount }} {{ wk.reviewsCount === 1 ? 'review' : 'reviews' }} waiting</span>
+                        <span class="welcome-chip lessons">{{ wk.lessonsCount }} {{ wk.lessonsCount === 1 ? 'lesson' : 'lessons' }}</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- the subjects saved so far: by type, by SRS stage (in your colours) -->
+            <section v-if="wk.allSubjects.length" class="load-card">
                 <div class="load-card-title">Progress overview</div>
                 <div class="load-card-body">
-                    <ProgressionBar :values="typeValues" :colors="typeColors" :type="'type'"/>
-                    <ProgressionBar :values="progressionValues" :colors="srsStageColors" :type="'srs'"/>
-                    <ProgressionTiles :values="progressionValues" :colors="srsStageColors" :type="'srs'"/>
+                    <ProgressionBar :values="typeValues" :colors="typeColorsThemed" :type="'type'" />
+                    <div class="legend">
+                        <span v-for="entry in TYPE_LEGEND" :key="entry.key"><span class="dot" :style="{ background: typeColorsThemed[entry.key] }"></span>{{ entry.label }}</span>
+                    </div>
+                    <ProgressionBar :values="progressionValues" :colors="srsStageColors" :type="'srs'" />
+                    <div class="legend">
+                        <span v-for="entry in SRS_LEGEND" :key="entry.key"><span class="dot" :style="{ background: srsStageColors[entry.stage] }"></span>{{ entry.label }}</span>
+                    </div>
                 </div>
             </section>
 
-            <section class="load-card">
-                <div class="cached-row">
-                    <span class="cached-label">Cached subjects</span>
-                    <span class="cached-count">{{ wk.allSubjects.length }}</span>
-                </div>
+            <!-- something to read meanwhile: what the extension does -->
+            <section class="load-card tip-card">
+                <span class="tip-label">Did you know?</span>
+                <Transition name="tip" mode="out-in">
+                    <p :key="tipIndex" class="tip-text">{{ TIPS[tipIndex] }}</p>
+                </Transition>
             </section>
         </div>
     </div>
 </template>
 
 <script>
+import { browser } from 'wxt/browser';
 import { useWKStore } from '@/stores';
+import { useSettingsStore } from '@/stores/settings';
 
-import ProgressionTiles from '@/components/Home/ProgressionTiles.vue';
 import ProgressionBar from '@/components/Home/ProgressionBar.vue';
 
 import { srsStages, typeColors } from '@/utils/scripts/wanikani';
 import { groupAssignmentsBySRSStage } from '@/utils/scripts/common';
+import defaultAvatar from '@/assets/wanikani-default.png';
+
+const RING = 2 * Math.PI * 19;
+
+/** SRS stage → its colour in Settings → Appearance */
+const STAGE_COLOR_KEYS = ['int_color', 'ap1_color', 'ap2_color', 'ap3_color', 'ap4_color', 'gr1_color', 'gr2_color', 'mst_color', 'enl_color', 'brn_color'];
+
+const TYPE_LEGEND = [
+    { key: 'radical', label: 'Radicals' },
+    { key: 'kanji', label: 'Kanji' },
+    { key: 'vocabulary', label: 'Vocabulary' },
+];
+
+/** the bar's stages, by group (each group's last stage's colour) */
+const SRS_LEGEND = [
+    { key: 'apprentice', label: 'Apprentice', stage: 4 },
+    { key: 'guru', label: 'Guru', stage: 6 },
+    { key: 'master', label: 'Master', stage: 7 },
+    { key: 'enlightened', label: 'Enlightened', stage: 8 },
+    { key: 'burned', label: 'Burned', stage: 9 },
+];
+
+const TIPS = [
+    'Hover a highlighted kanji or word on any page to see its meaning, readings and your progress.',
+    'The Home page shows a calendar of everything you started, passed and burned: click a day to see its subjects.',
+    'Pick how pages are highlighted in Settings → Highlight: by learned, SRS stage, JLPT level or Jōyō grade.',
+    'Turn on the reading level bar (Settings → Reading) to see how much of a page’s kanji you know.',
+    'Back up your settings and history to a file or your Google Drive in Settings → Data.',
+    'On WaniKani’s reviews, the extension can show the subject’s SRS stage and stats, and a review timer (Settings → Details).',
+    'The Trouble page lists the subjects you keep getting wrong, ready to practice.',
+    'Right-click selected Japanese text on a page to look it up in the extension.',
+    'Add friends by their WaniKani username to follow their levels.',
+];
+const TIP_EVERY_MS = 7000;
 
 export default {
     name: 'Loading',
     components: {
-        ProgressionTiles,
-        ProgressionBar
+        ProgressionBar,
     },
 
     data() {
         return {
-            progressionValues: [
-				{ id: 0, items: [] },
-				{ id: 1, items: [] },
-				{ id: 2, items: [] },
-				{ id: 3, items: [] },
-				{ id: 4, items: [] },
-				{ id: 5, items: [] },
-				{ id: 6, items: [] },
-				{ id: 7, items: [] },
-				{ id: 8, items: [] },
-				{ id: 9, items: [] },
-			],
+            progressionValues: Array.from({ length: 10 }, (_, id) => ({ id, items: [] })),
             typeValues: [
                 { id: 'radical', items: [] },
                 { id: 'kanji', items: [] },
                 { id: 'vocabulary', items: [] },
-                { id: 'kana_vocabulary', items: [] }
+                { id: 'kana_vocabulary', items: [] },
             ],
-			srsStageColors: {},
-			typeColors: typeColors,
-        }
+            defaultAvatar,
+            RING,
+            TYPE_LEGEND,
+            SRS_LEGEND,
+            TIPS,
+            tipIndex: Math.floor(Math.random() * TIPS.length),
+            /** where the levels' download started (for the time left) */
+            started: null,
+            now: Date.now(),
+        };
     },
 
     computed: {
         wk() {
             return useWKStore();
         },
-		srsStages() {
-			return srsStages;
-		},
+        appearance() {
+            return useSettingsStore().settings.appearance ?? {};
+        },
+        srsStageColors() {
+            return Object.fromEntries(Object.entries(srsStages).map(([stage, value]) => [stage, this.appearance[STAGE_COLOR_KEYS[stage]] || value.color]));
+        },
+        typeColorsThemed() {
+            return {
+                radical: this.appearance.radical_color || typeColors.radical,
+                kanji: this.appearance.kanji_color || typeColors.kanji,
+                vocabulary: this.appearance.vocab_color || typeColors.vocabulary,
+                kana_vocabulary: this.appearance.vocab_color || typeColors.kana_vocabulary,
+            };
+        },
+        hasTotal() {
+            return Boolean(this.wk.syncProgress.total);
+        },
         syncPercent() {
             const { loaded, total } = this.wk.syncProgress;
             if (!total) return 0;
             return Math.min(100, Math.round((loaded / total) * 100));
         },
-    },
-
-	mounted() {
-        this.srsStageColors = Object.fromEntries(Object.entries(this.srsStages).map(([k, v]) => [k, v.color]));
+        stepLabel() {
+            const { loaded, total, label } = this.wk.syncProgress;
+            if (label === 'dashboard') return 'Getting your dashboard';
+            if (label === 'subjects' && total) return `Level ${Math.min(loaded + 1, total)} of ${total}`;
+            return 'Getting ready';
+        },
+        /** from how fast the levels came so far (once a few have) */
+        etaLabel() {
+            const { loaded, total, label } = this.wk.syncProgress;
+            if (label !== 'subjects' || !this.started || !total || loaded >= total) return '';
+            const done = loaded - this.started.loaded;
+            const elapsed = this.now - this.started.at;
+            if (done < 2 || elapsed < 3000) return '';
+            const left = ((total - loaded) * elapsed) / done;
+            if (left < 60_000) return 'less than a minute left';
+            const minutes = Math.round(left / 60_000);
+            return `about ${minutes} min left`;
+        },
+        waiting() {
+            const notice = this.wk.rateLimitNotice;
+            return Boolean(notice && notice.retryAt > this.now);
+        },
+        waitSeconds() {
+            return Math.max(1, Math.ceil((this.wk.rateLimitNotice.retryAt - this.now) / 1000));
+        },
+        username() {
+            return this.wk.userInfo?.username ?? '';
+        },
+        userLevel() {
+            return this.wk.userInfo?.level ?? null;
+        },
     },
 
     watch: {
@@ -101,14 +207,39 @@ export default {
             handler(subjects) {
                 this.updateProgressViews(subjects);
             },
-            deep: true,
+            immediate: true,
+        },
+        // the levels' download started (or restarted): the time left counts from here
+        'wk.syncProgress': {
+            handler(progress) {
+                if (progress.label !== 'subjects') return;
+                if (!this.started || progress.loaded < this.started.loaded) this.started = { loaded: progress.loaded, at: Date.now() };
+            },
             immediate: true,
         },
     },
 
+    mounted() {
+        this.clock = setInterval(() => { this.now = Date.now(); }, 1000);
+        this.tipTimer = setInterval(() => { this.tipIndex = (this.tipIndex + 1) % TIPS.length; }, TIP_EVERY_MS);
+        // closing the popup hands the sync to the background (it goes on from where this got)
+        try {
+            this.port = browser.runtime.connect({ name: 'wkh:first-sync' });
+        } catch {
+            this.port = null;
+        }
+    },
+
+    beforeUnmount() {
+        clearInterval(this.clock);
+        clearInterval(this.tipTimer);
+        // done here (not closed): nothing to hand over
+        this.port?.disconnect();
+    },
+
     methods: {
         updateProgressViews(subjects) {
-            const progressionValues = groupAssignmentsBySRSStage(
+            this.progressionValues = groupAssignmentsBySRSStage(
                 subjects.map(subject => ({
                     ...subject,
                     srs_stage: subject.assignment?.srs_stage,
@@ -116,13 +247,9 @@ export default {
                 })),
             );
             const typeValues = this.typeValues.map(entry => ({ ...entry, items: [] }));
-
-            subjects.forEach(subject => {
-                const typeIndex = typeValues.findIndex(entry => entry.id === subject.type);
-                if (typeIndex !== -1) typeValues[typeIndex].items.push(subject);
-            });
-
-            this.progressionValues = progressionValues;
+            for (const subject of subjects) {
+                typeValues.find(entry => entry.id === subject.type)?.items.push(subject);
+            }
             this.typeValues = typeValues;
         },
     },
@@ -138,7 +265,7 @@ export default {
 .loading-stack {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 8px;
 }
 
 .load-card {
@@ -157,101 +284,220 @@ export default {
     text-align: center;
 }
 
-.hero-spinner {
-    width: 26px;
-    height: 26px;
-    margin-bottom: 14px;
-    border: 4px solid var(--surface-border-color);
-    border-top-color: var(--wanikani);
-    border-radius: 50%;
+/* the progress as a ring, its percentage inside (spinning while there's no count yet) */
+.hero-ring {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 12px;
+}
+
+.hero-ring svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.hero-ring.spinning svg {
     animation: spin 0.9s linear infinite;
 }
 
+.ring-track {
+    fill: none;
+    stroke: var(--surface-border-color);
+    stroke-width: 4;
+}
+
+.ring-fill {
+    fill: none;
+    stroke: var(--wanikani);
+    stroke-width: 4;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.4s ease;
+}
+
+.ring-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--heading-color, #2a2d48);
+    font-variant-numeric: tabular-nums;
+}
+
 @keyframes spin {
+    from {
+        transform: rotate(-90deg);
+    }
     to {
-        transform: rotate(360deg);
+        transform: rotate(270deg);
     }
 }
 
 .hero-title {
     font-size: 19px;
     font-weight: bold;
-    color: var(--default-color);
+    color: var(--heading-color, #2a2d48);
 }
 
 .hero-sub {
-    font-size: 12px;
-    color: var(--muted-color);
+    font-size: 12.5px;
+    color: var(--font-sec-color);
     margin-top: 6px;
+    font-variant-numeric: tabular-nums;
+}
+
+.hero-saved {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--font-sec-color);
+}
+
+.hero-saved b {
+    color: var(--wanikani);
 }
 
 .hero-hint {
     font-size: 11px;
+    line-height: 1.5;
     color: var(--font-sec-color);
     margin-top: 10px;
 }
 
-.progress-track {
-    width: 100%;
-    max-width: 260px;
-    height: 8px;
-    margin: 12px auto 0;
-    background: rgba(0, 0, 0, 0.08);
-    border-radius: 999px;
-    overflow: hidden;
+.hero-hint b {
+    color: var(--font-color);
 }
 
-.progress-fill {
-    height: 100%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, var(--wanikani), var(--wanikani-sec));
-    transition: width 0.4s ease;
-}
-
-.progress-fill.indeterminate {
-    width: 40%;
-    animation: progress-indeterminate 1.2s ease-in-out infinite;
-}
-
-@keyframes progress-indeterminate {
-    0% {
-        margin-left: -40%;
-    }
-    100% {
-        margin-left: 100%;
-    }
-}
-
-.load-card-title {
-    padding: 9px 14px;
-    background: var(--default-color);
-    color: white;
-    font-weight: bold;
-    font-size: 13px;
-}
-
-.load-card-body {
-    padding: 10px 8px;
-}
-
-.cached-row {
+/* who's syncing: known in seconds */
+.welcome-card {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+    gap: 12px;
     padding: 12px 14px;
 }
 
-.cached-label {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--default-color);
+.welcome-avatar {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--surface-border-color);
+    background: var(--surface-muted-color);
 }
 
-.cached-count {
+.welcome-title {
     font-size: 14px;
-    font-weight: bold;
-    color: var(--wanikani);
+    color: var(--heading-color, #2a2d48);
+}
+
+.welcome-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.welcome-chip {
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--surface-muted-color);
+    color: var(--font-color);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.welcome-chip.reviews {
+    background: color-mix(in srgb, var(--wanikani-sec, #00aaff) 15%, transparent);
+    color: var(--wanikani-sec, #00aaff);
+}
+
+.welcome-chip.lessons {
+    background: color-mix(in srgb, var(--wanikani, #f100a1) 13%, transparent);
+    color: var(--wanikani, #f100a1);
+}
+
+.load-card-title {
+	/* pink pill label, as in the subject details popup */
+	display: block;
+	width: fit-content;
+	margin: 12px 12px 2px;
+	padding: 3px 10px;
+	border-radius: 999px;
+	background: var(--pill-color, #e36f94);
+	color: #fff;
+	font-weight: 700;
+	font-size: 11.5px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	line-height: 1.4;
+}
+
+.load-card-body {
+    padding: 6px 10px 12px;
+}
+
+/* what each colour of the bar above is */
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px 12px;
+    margin: 5px 2px 4px;
+    font-size: 11px;
+    color: var(--font-sec-color);
+}
+
+.legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* a span (an <i> would get the global icon style) */
+.legend .dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+}
+
+/* tips while waiting */
+.tip-card {
+    padding: 12px 14px;
+}
+
+.tip-label {
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pill-color, #e36f94);
+}
+
+.tip-text {
+    margin: 4px 0 0;
+    min-height: 3em;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--font-color);
+}
+
+.tip-enter-active,
+.tip-leave-active {
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.tip-enter-from {
+    opacity: 0;
+    transform: translateY(4px);
+}
+
+.tip-leave-to {
+    opacity: 0;
+    transform: translateY(-4px);
 }
 
 #progression-bar {

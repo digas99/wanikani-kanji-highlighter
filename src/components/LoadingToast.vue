@@ -50,8 +50,8 @@ export default {
 <style scoped>
 .sync-toast {
 	position: fixed;
-	left: 10px;
-	right: 10px;
+	left: calc(10px + var(--frame-left, 0px));
+	right: calc(10px + var(--frame-right, 0px));
 	bottom: 10px;
 	z-index: 100;
 	padding: 12px 14px;
@@ -59,7 +59,7 @@ export default {
 	background: var(--fill-color);
 	border: 1px solid var(--surface-border-color);
 	box-shadow: 0 4px 18px var(--shadow-soft-color);
-	color: var(--default-color);
+	color: var(--heading-color, #2a2d48);
 }
 
 .sync-toast-content {

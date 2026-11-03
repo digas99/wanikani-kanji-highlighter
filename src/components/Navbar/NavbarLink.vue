@@ -1,8 +1,16 @@
 <template>
 	<li class="side-panel-tab" :data-label="icon">
-		<RouterLink :to="to" class="navbar_icon" @click="onClick">
+		<!-- an action ("#": theme, notifications, pop out…): a plain link, never a navigation.
+		     (A RouterLink to "#" goes to the current page without its query: Practice lost its
+		     title and deck, a list its filters.) -->
+		<component
+			:is="isAction ? 'a' : 'RouterLink'"
+			v-bind="isAction ? { href: '#' } : { to }"
+			class="navbar_icon"
+			@click="onClick"
+		>
 			<div>
-				<img :id="icon" :src="`/icons/sidebar/${icon}.png`"
+				<img :id="icon" :src="iconSrc || `/icons/sidebar/${icon}.png`"
 					:title="linkTitle" style="width: 20px;">
 				<span
 					v-if="info"
@@ -11,7 +19,7 @@
 				>{{ info }}</span>
 			</div>
 			<p style="pointer-events: none;">{{ linkLabel }}</p>
-		</RouterLink>
+		</component>
 	</li>
 </template>
 
@@ -28,6 +36,11 @@ export default {
 		icon: {
 			type: String,
 			required: true,
+		},
+		/** an icon that isn't /icons/sidebar/<icon>.png (e.g. an SVG) */
+		iconSrc: {
+			type: String,
+			default: '',
 		},
 		info: {
 			type: String,
@@ -57,13 +70,16 @@ export default {
 		linkLabel() {
 			return this.label || this.linkTitle;
 		},
+		isAction() {
+			return this.to === '#';
+		},
 	},
 
 	emits: ['click'],
 
 	methods: {
 		onClick(event) {
-			if (this.to === '#') {
+			if (this.isAction) {
 				event.preventDefault();
 			}
 			this.$emit('click', event);
@@ -73,6 +89,11 @@ export default {
 </script>
 
 <style scoped>
+/*
+ * Same layout collapsed and expanded: a fixed icon column (the collapsed width) and the
+ * label next to it, clipped by the sidebar. Expanding only changes the sidebar's width
+ * and fades the label in, so nothing jumps or rewraps mid-animation.
+ */
 .side-panel-tab {
 	cursor: pointer;
 	position: relative;
@@ -88,6 +109,14 @@ export default {
 	display: flex;
 	align-items: center;
 	width: 100%;
+}
+
+/* icon column: always as wide as the collapsed sidebar, icon centered */
+.side-panel-tab>a>div {
+	position: relative;
+	flex-shrink: 0;
+	width: var(--sidebar-width);
+	display: flex;
 	justify-content: center;
 }
 
@@ -96,57 +125,27 @@ export default {
 }
 
 .side-panel-tab>a p {
-	display: none;
+	color: white;
+	white-space: nowrap;
+	opacity: 0;
+	transition: opacity 0.12s ease;
 }
 
-.side-panel>div>a {
-	display: inline-block;
+.side-panel-focus .side-panel-tab>a p {
+	opacity: 1;
+	/* once there's room for it */
+	transition: opacity 0.18s ease 0.08s;
 }
 
-.side-panel>div>a>img {
-	width: 26px;
-	border-radius: 15px;
-	pointer-events: none;
-	border: 2px solid white;
-	transition: 0.3s;
-}
-
+/* badge on the icon ("A" on Random, list counts): same spot in both states */
 .side-panel-info-alert {
 	padding: 3px;
 	position: absolute;
-	top: -3px;
-	right: 0px;
+	top: -9px;
+	right: 2px;
 	font-size: 10px;
 	font-weight: bold;
 	border-radius: 4px;
-	transition: 0.3s;
-}
-
-.side-panel-focus>ul li>a {
-	display: inline-flex;
-	align-items: center;
-	width: 100%;
-	padding-left: 15px !important;
-}
-
-.side-panel-focus>ul li>a:hover {
-	opacity: unset !important;
-}
-
-.side-panel-focus>ul li>a>p {
-	color: white;
-	padding-left: 12px;
-	width: 100%;
-	display: block;
-}
-
-.side-panel-focus .side-panel-info-alert {
-	right: unset;
-	left: 35px;
-}
-
-.side-panel-focus>div>a>img {
-	width: 45px;
-	border-radius: 30px;
+	line-height: 1;
 }
 </style>

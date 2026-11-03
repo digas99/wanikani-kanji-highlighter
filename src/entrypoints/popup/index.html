@@ -4,12 +4,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wanikani Kanji Highlighter</title>
+  <title>WaniKani Kanji Highlighter</title>
   <meta name="manifest.type" content="browser_action" />
+  <script src="/popup-boot-theme.js" vite-ignore></script>
 </head>
 
 <body>
-  <div id="app"></div>
+  <div id="app">
+    <!-- shown until the app mounts (replaced by it): gives the popup its full size and
+         layout from the first frame, instead of a tiny blank window that then grows -->
+    <!-- Home-shaped skeleton (the popup always opens on Home), same shimmer as the
+         subject details skeleton -->
+    <div class="app-boot" aria-busy="true" aria-label="Loading">
+      <div class="app-boot-content">
+        <div class="app-boot-card app-boot-hero">
+          <div class="app-boot-row">
+            <span class="app-boot-shimmer app-boot-badge"></span>
+            <div class="app-boot-grow">
+              <span class="app-boot-shimmer app-boot-line" style="width: 35%"></span>
+              <span class="app-boot-shimmer app-boot-line" style="width: 100%; height: 7px"></span>
+              <span class="app-boot-shimmer app-boot-line" style="width: 55%; height: 8px"></span>
+            </div>
+          </div>
+          <div class="app-boot-row">
+            <span class="app-boot-shimmer app-boot-action"></span>
+            <span class="app-boot-shimmer app-boot-action"></span>
+          </div>
+          <span class="app-boot-shimmer app-boot-line" style="width: 100%; height: 28px"></span>
+        </div>
+        <div class="app-boot-card">
+          <span class="app-boot-shimmer app-boot-pill"></span>
+          <div class="app-boot-tiles">
+            <span class="app-boot-shimmer"></span><span class="app-boot-shimmer"></span><span class="app-boot-shimmer"></span><span class="app-boot-shimmer"></span><span class="app-boot-shimmer"></span>
+            <span class="app-boot-shimmer"></span><span class="app-boot-shimmer"></span><span class="app-boot-shimmer"></span><span class="app-boot-shimmer"></span><span class="app-boot-shimmer"></span>
+          </div>
+          <span class="app-boot-shimmer app-boot-line" style="width: 100%; height: 20px"></span>
+        </div>
+        <div class="app-boot-card">
+          <span class="app-boot-shimmer app-boot-pill"></span>
+          <span class="app-boot-shimmer app-boot-line" style="width: 100%; height: 22px"></span>
+          <span class="app-boot-shimmer app-boot-line" style="width: 100%; height: 22px"></span>
+        </div>
+      </div>
+      <div class="app-boot-sidebar">
+        <span class="app-boot-avatar"></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
   <script type="module" src="./main.ts"></script>
 </body>
 

@@ -5,6 +5,8 @@ type ThemeColors = {
 	default: string;
 	fill: string;
 	font: string;
+	/** Titles / emphasized text on the page background (navy in light, near-white in dark). */
+	heading: string;
 	'font-sec': string;
 	border: string;
 	highlight: string;
@@ -38,25 +40,27 @@ type ThemeColors = {
 /** Interface colors ported from v1.5 (`scripts/static.js`). */
 export const INTERFACE_COLORS: Record<Theme, ThemeColors> = {
 	light: {
-		background: '#ffffff',
+		// soft off-white page so white cards stand out (like the details popup's cards)
+		background: '#f3f3f8',
 		default: '#2a2d48',
 		fill: '#fff',
 		font: '#343434',
-		'font-sec': '#747474',
-		border: '#c0c0c0',
+		heading: '#2a2d48',
+		'font-sec': '#6f7187',
+		border: '#cfd0dc',
 		highlight: '#91a1f0',
-		fade: '#d8d8d8',
+		fade: '#d8d8e2',
 		'checkbox-back': '#c770aa',
-		'surface-border': '#e6e6ef',
-		'surface-muted': '#f7f7fb',
-		'surface-subtle': '#fafafa',
-		'row-border': '#efeff4',
-		'input-bg': '#e4e4e4',
-		'input-text': '#000000',
-		muted: '#7c7c7c',
-		'tab-inactive': '#666666',
-		'tab-border': '#e8e8e8',
-		'scrollbar-track': 'silver',
+		'surface-border': '#e4e4ee',
+		'surface-muted': '#f1f1f7',
+		'surface-subtle': '#f7f7fb',
+		'row-border': '#ececf3',
+		'input-bg': '#ececf3',
+		'input-text': '#1d1f33',
+		muted: '#7a7c92',
+		'tab-inactive': '#6f7187',
+		'tab-border': '#e4e4ee',
+		'scrollbar-track': 'transparent',
 		success: '#6ecf8a',
 		'success-muted': '#eefbf2',
 		error: '#c0392b',
@@ -71,38 +75,40 @@ export const INTERFACE_COLORS: Record<Theme, ThemeColors> = {
 		'mock-text': '#383838',
 		'flaming-text': '#d40000',
 	},
+	// Deep navy family, the same as the subject details popup (instead of neutral near-black).
 	dark: {
-		background: '#25252c',
-		default: '#13131b',
-		fill: '#212128',
-		font: '#dcdcdc',
-		'font-sec': '#b4b4b4',
-		border: '#b8b8b8',
-		highlight: '#91a1f0',
-		fade: '#747474',
+		background: '#171928',
+		default: '#262940',
+		fill: '#1f2134',
+		font: '#e1e2ec',
+		heading: '#f0f0f6',
+		'font-sec': '#a6a9c2',
+		border: '#4a4e70',
+		highlight: '#9fadf3',
+		fade: '#3d4061',
 		'checkbox-back': '#773962',
-		'surface-border': '#3a3a44',
-		'surface-muted': '#2a2a32',
-		'surface-subtle': '#1e1e24',
-		'row-border': '#3a3a44',
-		'input-bg': '#3a3a42',
-		'input-text': '#dcdcdc',
-		muted: '#9a9a9a',
-		'tab-inactive': '#b4b4b4',
-		'tab-border': '#3a3a44',
-		'scrollbar-track': '#3a3a44',
+		'surface-border': '#33365a',
+		'surface-muted': '#292c46',
+		'surface-subtle': '#1b1d2f',
+		'row-border': '#2d3050',
+		'input-bg': '#2c2f4b',
+		'input-text': '#e1e2ec',
+		muted: '#9598b3',
+		'tab-inactive': '#a6a9c2',
+		'tab-border': '#33365a',
+		'scrollbar-track': 'transparent',
 		success: '#5cb876',
-		'success-muted': '#1e2e24',
-		error: '#e57373',
-		'danger-bg': '#8b2e26',
-		'danger-border': '#6d231c',
+		'success-muted': '#1d3029',
+		error: '#ef7b7b',
+		'danger-bg': '#8b2e3a',
+		'danger-border': '#6d2330',
 		'shadow-soft': 'rgba(0, 0, 0, 0.35)',
 		'accent-badge': '#ffd4ef',
-		'chart-arrow': '#888888',
-		'neutral-button-bg': '#4a4a54',
-		'neutral-button-border': '#666666',
-		'mock-surface': '#2a2a32',
-		'mock-text': '#dcdcdc',
+		'chart-arrow': '#8f92ad',
+		'neutral-button-bg': '#3c4062',
+		'neutral-button-border': '#52577d',
+		'mock-surface': '#292c46',
+		'mock-text': '#e1e2ec',
 		'flaming-text': '#ff6b6b',
 	},
 };
@@ -120,6 +126,7 @@ function applyThemeColors(theme: Theme): void {
 	root.style.setProperty('--default-color', colors.default);
 	root.style.setProperty('--fill-color', colors.fill);
 	root.style.setProperty('--font-color', colors.font);
+	root.style.setProperty('--heading-color', colors.heading);
 	root.style.setProperty('--font-sec-color', colors['font-sec']);
 	root.style.setProperty('--border-color', colors.border);
 	root.style.setProperty('--highlight', colors.highlight);
@@ -165,9 +172,13 @@ export function getTheme(): Theme {
 	return localStorage.getItem(STORAGE_KEY) === 'dark' ? 'dark' : 'light';
 }
 
+export const THEME_CHANGE_EVENT = 'wkh:theme-change';
+
 export function setTheme(theme: Theme): void {
 	applyThemeColors(theme);
 	localStorage.setItem(STORAGE_KEY, theme);
+	// Canvas charts read their colors when drawn: let them redraw.
+	window.dispatchEvent(new CustomEvent(THEME_CHANGE_EVENT, { detail: theme }));
 }
 
 export function toggleTheme(): Theme {

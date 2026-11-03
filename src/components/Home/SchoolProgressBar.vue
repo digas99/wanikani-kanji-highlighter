@@ -14,7 +14,7 @@
 			<RouterLink
 				:to="{
 					name: 'SchoolSubjects',
-					query: { school, grade, jump: segment.column },
+					query: { school, grade, jump: segment.column, ...(kind === 'vocabulary' ? { kind } : {}) },
 				}"
 			>
 				<span v-if="segment.width > 8">{{ segment.count }}</span>
@@ -49,6 +49,11 @@ export default {
 		segments: {
 			type: Array,
 			default: () => [],
+		},
+		/** 'kanji' | 'vocabulary': which list the segments open */
+		kind: {
+			type: String,
+			default: 'kanji',
 		},
 	},
 };

@@ -14,6 +14,13 @@ import Topbar from "@/components/Navbar/Topbar.vue";
 import Loading from "@/views/Loading.vue";
 import LoadingToast from "@/components/LoadingToast.vue";
 import RateLimitNotice from "@/components/RateLimitNotice.vue";
+import FriendLevelUpToast from "@/components/FriendLevelUpToast.vue";
+import MilestoneToast from "@/components/MilestoneToast.vue";
+import { announceNewFeatures } from '@/utils/scripts/featureNotices';
+import { loadTroubleSubjects, useTroubleSubjects, watchReviewStatistics } from '@/utils/scripts/troubleSubjects';
+import { watchDailyActivity } from '@/utils/scripts/dailyActivity';
+import { useAccolades } from '@/utils/scripts/useAccolades';
+import { noteAccolades, noteLevel } from '@/utils/scripts/milestones';
 
 const wk = useWKStore();
 const settings = useSettingsStore();
@@ -41,6 +48,8 @@ let popoutWindow = false;
 let removeSelectionListener: (() => void) | undefined;
 
 onMounted(async () => {
+	// the badge (reviews, lessons…: when that's its choice) from a fresh summary
+	void browser.runtime.sendMessage({ type: 'wkh:badgeRefresh' }).catch(() => {});
 	try {
 		const win = await browser.windows.getCurrent();
 		popoutWindow = win.type === 'popup';
@@ -65,7 +74,59 @@ onUnmounted(() => {
 watch(
 	appReady,
 	(ready) => {
-		if (ready) void consumeContextMenuSearch();
+		if (!ready) return;
+		void consumeContextMenuSearch();
+		// new features: once each, in the bell's notifications (no popup)
+		void announceNewFeatures();
+	},
+	{ immediate: true },
+);
+
+// trouble subjects (their marks on tiles, the list): worked out once ready, again when the
+// assignments arrive (only Apprentice counts), after each activity sync, and whenever review
+// statistics are saved (a new device fills them in bit by bit: details, levels, the full fetch)
+const troubleMarksOn = computed(() => settings.settings.extension_popup_interface?.trouble_marks !== false);
+function refreshTrouble() {
+	if (!appReady.value) return;
+	if (!troubleMarksOn.value) {
+		useTroubleSubjects().byId = new Map();
+		return;
+	}
+	void loadTroubleSubjects(getWKManager(), wk.assignments);
+}
+watch([appReady, troubleMarksOn, () => wk.assignments.length], refreshTrouble, { immediate: true });
+const unwatchActivity = watchDailyActivity(refreshTrouble);
+onUnmounted(unwatchActivity);
+// the manager exists once logged in: listen from then on
+let unwatchReviews: (() => void) | null = null;
+watch(appReady, ready => {
+	if (!ready || unwatchReviews) return;
+	unwatchReviews = watchReviewStatistics(getWKManager(), refreshTrouble);
+}, { immediate: true });
+onUnmounted(() => unwatchReviews?.());
+
+// your level-ups and new accolades (toast, notifications, Home's celebration)
+watch(
+	() => (appReady.value ? Number(wk.userInfo?.level) || 0 : 0),
+	(level) => {
+		if (level) void noteLevel(level);
+	},
+	{ immediate: true },
+);
+
+const accolades = useAccolades();
+/** Unlocked accolades, once everything they're counted from is in (else some would look new later). */
+const unlockedAccolades = computed(() => {
+	if (!appReady.value || !accolades.complete.value) return null;
+	return accolades.groups.value.flatMap(group => group.milestones
+		.filter(milestone => milestone.unlocked)
+		.map(milestone => ({ id: milestone.id, type: group.type, title: `${group.title}: ${milestone.title}`, image: milestone.image })));
+});
+
+watch(
+	() => unlockedAccolades.value?.map(accolade => accolade.id).join(','),
+	() => {
+		if (unlockedAccolades.value) void noteAccolades(unlockedAccolades.value, accolades.groups.value.map(group => group.type));
 	},
 	{ immediate: true },
 );
@@ -106,9 +167,20 @@ async function handleLogin(apiKey: string, proxyServer: string) {
 		<template v-else>
 			<Topbar v-if="!isHome" />
 			<Sidebar />
-			<RouterView />
+			<!-- toasts at the top (friends' level-ups, Home's yesterday recap): stacked here -->
+			<div id="top-toasts" class="top-toasts"></div>
+			<!-- Home is kept while you're on other pages: coming back shows it at once (rebuilding
+			     it each time took over a second); it follows the store's changes meanwhile -->
+			<RouterView v-slot="{ Component }">
+				<KeepAlive include="Home">
+					<component :is="Component" />
+				</KeepAlive>
+			</RouterView>
+			<MilestoneToast />
+			<FriendLevelUpToast />
 		</template>
 	</template>
 	<LoadingToast v-if="wk.isLoggedIn" />
-	<RateLimitNotice v-if="wk.isLoggedIn" />
+	<!-- the loading screen says it itself (in place of its progress) -->
+	<RateLimitNotice v-if="wk.isLoggedIn && !wk.showLoadingScreen" />
 </template>

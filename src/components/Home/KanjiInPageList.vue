@@ -8,6 +8,12 @@
 			menu-key="highlighted"
 			empty-message="Nothing highlighted on this page"
 		>
+			<!-- the pages history, on the header's right (no row of its own under the list) -->
+			<template v-if="pageHistoryOn" #header-end>
+				<RouterLink :to="{ name: 'Pages' }" class="kanji-list-header-link" title="The pages you read before, with their reading level">
+					Pages read ›
+				</RouterLink>
+			</template>
 			<template #bar>
 				<ProgressionBar
 					:values="barValues"
@@ -18,6 +24,27 @@
 				/>
 			</template>
 		</SubjectListPanel>
+		<!-- the pages read before (Settings → Page reading level → Keep a history);
+		     nothing highlighted here: the last few of them -->
+		<div v-if="showRecent" class="kanji-list-recent">
+			<!-- the link to all of them in the box's own header (no extra row under it) -->
+			<div class="kanji-list-recent-head">
+				<span class="kanji-list-recent-title">Recently read</span>
+				<RouterLink :to="{ name: 'Pages' }" class="kanji-list-recent-all">All pages read ›</RouterLink>
+			</div>
+			<PageHistoryRow
+				v-for="entry in recentPages"
+				:key="entry.url"
+				:entry="entry"
+				:view="pageStatsView"
+				:appearance="settings.settings.appearance"
+				:to="{ name: 'Page', query: { url: entry.url } }"
+			/>
+		</div>
+		<!-- nothing highlighted and no recent pages yet: the link under the empty list -->
+		<RouterLink v-if="pageHistoryOn && !showRecent && !highlightItems.length" :to="{ name: 'Pages' }" class="kanji-list-history">
+			All pages read ›
+		</RouterLink>
 	</div>
 </template>
 
@@ -42,6 +69,11 @@ import {
 import ProgressionBar from '@/components/Home/ProgressionBar.vue';
 import SubjectListPanel from '@/components/Subjects/SubjectListPanel.vue';
 import { getHighlightModeLabel } from '@/utils/scripts/defaultSettings';
+import PageHistoryRow from '@/components/PageStats/PageHistoryRow.vue';
+import { readPageHistory } from '@/utils/scripts/pageHistory';
+import { resolvePageStatsView } from '@/utils/scripts/pageStats';
+
+const RECENT_PAGES = 3;
 
 function subjectHighlightKey(subject) {
 	const type = subject.type === 'kanji' ? 'kanji' : 'vocabulary';
@@ -54,6 +86,7 @@ export default {
 	components: {
 		ProgressionBar,
 		SubjectListPanel,
+		PageHistoryRow,
 	},
 
 	emits: ['highlight-summary'],
@@ -61,7 +94,11 @@ export default {
 	data() {
 		return {
 			subjects: [],
+			/** the page's subjects are being read from the cache (the notice's bar waits for them) */
+			subjectsLoading: false,
 			highlightItems: [],
+			/** the last pages of the history (shown when nothing is highlighted here) */
+			recentPages: [],
 		};
 	},
 
@@ -74,6 +111,16 @@ export default {
 		},
 		show() {
 			return this.settings.settings.extension_popup_interface.highlighted_kanji !== false;
+		},
+		pageHistoryOn() {
+			return this.settings.settings.page_stats?.history === true;
+		},
+		/** nothing highlighted here: the last pages read instead */
+		showRecent() {
+			return this.pageHistoryOn && !this.highlightItems.length && this.recentPages.length > 0;
+		},
+		pageStatsView() {
+			return resolvePageStatsView(this.settings.settings);
 		},
 		highlightCount() {
 			return this.highlightItems.length;
@@ -115,6 +162,7 @@ export default {
 			return {
 				count: this.highlightCount,
 				showProgressBar: this.showProgressBar,
+				barLoading: this.subjectsLoading,
 				barValues: this.barValues,
 				barColors: this.barColors,
 				barSorting: this.barSorting,
@@ -270,6 +318,9 @@ export default {
 
 	mounted() {
 		this.fetchHighlighted();
+		if (this.pageHistoryOn) {
+			void readPageHistory().then(entries => { this.recentPages = entries.slice(0, RECENT_PAGES); });
+		}
 	},
 
 	activated() {
@@ -298,11 +349,15 @@ export default {
 					this.subjects = [];
 					return;
 				}
+				// the count is known; the subjects (for the bar) take a moment from the cache
+				this.subjectsLoading = true;
 				this.subjects = await this.wk.getHighlightedSubjects(items);
 			} catch {
 				// No content script on this page (restricted URL, blacklisted, or not yet injected).
 				this.highlightItems = [];
 				this.subjects = [];
+			} finally {
+				this.subjectsLoading = false;
 			}
 		},
 	},
@@ -310,6 +365,67 @@ export default {
 </script>
 
 <style scoped>
+/* the history's rows are made for the navy pages: a navy box, light or dark theme */
+.kanji-list-recent {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	/* the card's last thing: the same space below as on its sides */
+	margin: 0 10px 10px;
+	padding: 10px;
+	border-radius: 12px;
+	background-color: var(--default-color);
+	background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0));
+}
+
+.kanji-list-header-link {
+	color: var(--pill-color, #e36f94);
+	white-space: nowrap;
+}
+
+.kanji-list-header-link:hover {
+	opacity: 1;
+	text-decoration: underline;
+}
+
+.kanji-list-recent-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+.kanji-list-recent-all {
+	font-size: 11.5px;
+	font-weight: 700;
+	color: var(--pill-color, #e36f94);
+	white-space: nowrap;
+}
+
+.kanji-list-recent-all:hover {
+	opacity: 1;
+	text-decoration: underline;
+}
+
+.kanji-list-recent-title {
+	font-size: 10.5px;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #c4c6da;
+}
+
+/* a footer of its own: the list above scrolls (and is cut mid-row) */
+.kanji-list-history {
+	display: block;
+	padding: 9px 14px;
+	border-top: 1px solid var(--row-border-color, rgba(0, 0, 0, 0.08));
+	text-align: right;
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--pill-color, #e36f94);
+}
+
 .kanji-list :deep(.panel-content) {
 	border-radius: 0;
 	padding: 0;
@@ -321,7 +437,13 @@ export default {
 
 .kanji-list :deep(.panel-sections) {
 	max-height: 260px;
-	padding: 0 5px 5px;
+	padding: 0 8px 8px;
+}
+
+.kanji-list-recent + .kanji-list-history {
+	/* below the recent pages' box: no line needed */
+	margin-top: 4px;
+	border-top: none;
 }
 
 .kanji-list :deep(.panel-header) {

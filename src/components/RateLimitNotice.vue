@@ -33,7 +33,7 @@ let tickTimer: ReturnType<typeof setInterval> | null = null;
 
 const secondsLeft = computed(() => {
 	if (!wk.rateLimitNotice) return 0;
-	return Math.max(0, Math.ceil((wk.rateLimitNotice.retryAt - now.value) / 1000));
+	return Math.max(0, Math.ceil((wk.rateLimitNotice.retryAt - Math.max(now.value, Date.now())) / 1000));
 });
 
 const progressPercent = computed(() => {
@@ -71,11 +71,14 @@ watch(
 	{ immediate: true },
 );
 
-watch(secondsLeft, seconds => {
-	if (wk.rateLimitNotice && seconds <= 0) {
+// also when it first shows: a wait that ended while it was hidden (the loading screen shows its
+// own) is already at 0, and would never change to close it
+watch(secondsLeft, () => {
+	// the real time, not the (cached) countdown: only a wait that really ended closes
+	if (wk.rateLimitNotice && wk.rateLimitNotice.retryAt <= Date.now()) {
 		wk.dismissRateLimitNotice();
 	}
-});
+}, { immediate: true });
 
 onBeforeUnmount(stopTick);
 </script>
@@ -83,8 +86,8 @@ onBeforeUnmount(stopTick);
 <style scoped>
 .rate-limit-notice {
 	position: fixed;
-	left: 10px;
-	right: 10px;
+	left: calc(10px + var(--frame-left, 0px));
+	right: calc(10px + var(--frame-right, 0px));
 	bottom: 10px;
 	z-index: 100;
 	overflow: hidden;
@@ -92,7 +95,7 @@ onBeforeUnmount(stopTick);
 	background: var(--fill-color);
 	border: 1px solid var(--surface-border-color);
 	box-shadow: 0 4px 18px var(--shadow-soft-color);
-	color: var(--default-color);
+	color: var(--heading-color, #2a2d48);
 }
 
 .rate-limit-header {

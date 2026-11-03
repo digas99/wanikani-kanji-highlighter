@@ -8,16 +8,19 @@
 </template>
 
 <script>
+import { LOCKED_SEGMENT_COLOR } from '@/utils/scripts/schoolKanji';
+
 export default {
 	name: 'SchoolProgressLegend',
 
 	data() {
 		return {
+			// as the bars read, left to right
 			items: [
-				{ column: 'locked', label: 'Locked', color: '#ffffff' },
-				{ column: 'progress', label: 'In progress', color: 'var(--ap4-color)' },
-				{ column: 'passed', label: 'Passed', color: '#000000' },
 				{ column: 'burned', label: 'Burned', color: 'var(--brn-color)' },
+				{ column: 'passed', label: 'Passed', color: '#000000' },
+				{ column: 'progress', label: 'In progress', color: 'var(--ap4-color)' },
+				{ column: 'locked', label: 'Locked', color: LOCKED_SEGMENT_COLOR },
 			],
 		};
 	},
@@ -25,10 +28,12 @@ export default {
 </script>
 
 <style scoped>
+/* one row (wrapping only when narrow), each item its own width: also beside a link */
 .school-progress-legend {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-	gap: 6px 10px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 12px;
+	min-width: 0;
 	padding: 4px 2px 0;
 }
 
