@@ -96,6 +96,50 @@ export const levelUpInfo = (subjects: Array<any>) => {
 	};
 }
 
+/**
+ * The level's progress (see levelUpInfo) when a day started: its subjects back at the stage they
+ * had then, as far as it's known (`stages`: DaySummary.stages, `date`: its YYYY-MM-DD). Subjects
+ * with their lesson that day started at nothing; the ones passed that day weren't passed yet.
+ */
+export const levelProgressBeforeDay = (
+	subjects: Array<any>,
+	stages: Record<string, [number | null, number | null]>,
+	date: string,
+) => {
+	const dayStart = new Date(`${date}T00:00:00`).getTime();
+	const thatDay = (time: unknown) => Boolean(time) && new Date(time as string).getTime() >= dayStart;
+	return levelUpInfo(subjects.map(subject => {
+		const assignment = subject.assignment;
+		if (!assignment) return subject;
+		return {
+			...subject,
+			assignment: {
+				...assignment,
+				srs_stage: thatDay(assignment.started_at) ? 0 : stages[subject.id]?.[0] ?? assignment.srs_stage,
+				passed_at: thatDay(assignment.passed_at) ? null : assignment.passed_at,
+			},
+		};
+	})).progress;
+};
+
+/**
+ * What a level bar changed since `before` (both levelUpInfo().progress): where that part is on the
+ * bar, and how much. Null when it's the same.
+ */
+export const levelProgressChange = (now: any, before: any) => {
+	const stages = now?.passed - before?.passed;
+	if (!stages) return null;
+	const percent = now.percentage - before.percentage;
+	return {
+		gained: stages > 0,
+		stages,
+		from: Math.min(before.percentage, now.percentage),
+		to: Math.max(before.percentage, now.percentage),
+		label: `${percent > 0 ? '+' : '−'}${Math.abs(percent).toFixed(1)}%`,
+		title: `Today: ${stages > 0 ? '+' : '−'}${Math.abs(stages)} ${Math.abs(stages) === 1 ? 'stage' : 'stages'} (${percent > 0 ? '+' : '−'}${Math.abs(percent).toFixed(1)}%)`,
+	};
+};
+
 const HOUR_MS = 60 * 60 * 1000;
 
 /** Levels 1–2 are accelerated: shorter Apprentice intervals. */

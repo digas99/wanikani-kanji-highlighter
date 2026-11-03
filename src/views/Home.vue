@@ -55,6 +55,7 @@
 				:level="wk.userInfo?.level ?? null"
 				:username="wk.userInfo?.username ?? ''"
 				:level-progress="wk.levelProgressionInfo?.progress ?? null"
+				:level-progress-before-today="levelProgressBeforeToday"
 			>
 				<!-- Today: reviews, accuracy, lessons… since midnight -->
 				<TodayActivity
@@ -237,7 +238,7 @@ import HighlightedKanjiNotice from '@/components/Home/HighlightedKanjiNotice.vue
 import SchoolKanjiProgress from '@/components/Home/SchoolKanjiProgress.vue';
 import SchoolProgressLegend from '@/components/Home/SchoolProgressLegend.vue';
 
-import { srsStages } from '@/utils/scripts/wanikani';
+import { levelProgressBeforeDay, srsStages } from '@/utils/scripts/wanikani';
 import { groupAssignmentsBySRSStage } from '@/utils/scripts/common';
 import { hasSchoolProgressSnapshot, LOCKED_SEGMENT_COLOR } from '@/utils/scripts/schoolKanji';
 import { computeSinceLastVisit, getSinceLastVisit } from '@/utils/scripts/progressSnapshot';
@@ -381,6 +382,13 @@ export default {
 		progressBarSorting() {
 			// Initiate → Burned, then Locked at the end
 			return { ...Object.fromEntries([...Array(10).keys()].map(stage => [stage, stage])), '-1': 10 };
+		},
+		/** The level bar when today started (null until the level's subjects and today's tracking are in) */
+		levelProgressBeforeToday() {
+			const today = this.activity?.today;
+			const subjects = this.wk.levelProgressionInfo?.subjects;
+			if (!today?.date || !subjects?.length) return null;
+			return levelProgressBeforeDay(subjects, today.stages ?? {}, today.date);
 		},
 		/** Today's reviews, per SRS stage: how many subjects moved in and out of it */
 		todayMoves() {

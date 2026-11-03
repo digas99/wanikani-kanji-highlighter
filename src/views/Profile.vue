@@ -70,7 +70,14 @@
 			</div>
 			<div id="level-progress">
 				<p>
-					Level Progress <span>(by SRS Stages completed)</span>
+					Level Progress <span v-if="!todayChange">(by SRS Stages completed)</span>
+					<!-- what today changed, on the current level's bar below -->
+					<b
+						v-if="todayChange"
+						class="level-today-label"
+						:class="todayChange.gained ? 'gain' : 'loss'"
+						:title="todayChange.title"
+					>{{ todayChange.label }} today</b>
 					<button type="button" class="all-levels-button" title="All levels" aria-label="All levels" @click="levelPickerOpen = true">
 						<svg viewBox="0 0 24 24" aria-hidden="true">
 							<rect x="3" y="3" width="5" height="5" rx="1" /><rect x="9.5" y="3" width="5" height="5" rx="1" /><rect x="16" y="3" width="5" height="5" rx="1" />
@@ -85,6 +92,13 @@
 						<p v-if="levelProgressionInfo.progress?.percentage >= 8.1">
 							{{ levelProgressionInfo.progress?.percentage.toFixed(1) }}%</p>
 					</div>
+					<div
+						v-if="todayChange"
+						class="level-today-part"
+						:class="todayChange.gained ? 'gain' : 'loss'"
+						:style="{ left: `${todayChange.from}%`, width: `${todayChange.to - todayChange.from}%` }"
+						:title="todayChange.title"
+					></div>
 					<span v-if="levelProgressionInfo.progress?.percentage < 81"
 						:style="{ marginLeft: levelProgressionInfo.progress?.percentage == 0 ? '15px' : '6px' }">{{
 							levelProgressionInfo.progress?.passed
@@ -167,7 +181,8 @@ import ProfileSubjectsPanel from '@/components/Profile/ProfileSubjectsPanel.vue'
 import LevelPicker from '@/components/Profile/LevelPicker.vue';
 import LevelUpPath from '@/components/Profile/LevelUpPath.vue';
 
-import { getLevelUpPrediction, levelUpInfo } from '@/utils/scripts/wanikani';
+import { getLevelUpPrediction, levelProgressBeforeDay, levelProgressChange, levelUpInfo } from '@/utils/scripts/wanikani';
+import { readActivityView, watchDailyActivity } from '@/utils/scripts/dailyActivity';
 import { getLevelStatsEntries } from '@/utils/scripts/levelStats';
 import { prettyTime } from '@/utils/scripts/time';
 import { normalizeProfileSubjects } from '@/utils/scripts/profileSubjects';
@@ -190,6 +205,8 @@ export default {
 			fetchId: null,
 			levelProgressionInfo: {},
 			levelSubjects: [],
+			/** today's activity (utils/scripts/dailyActivity) */
+			today: null,
 
 			beforePreviousLevel: null,
 			previousLevel: null,
@@ -208,6 +225,12 @@ export default {
 		},
 		userInfo() {
 			return this.wk.userInfo;
+		},
+		/** What today changed on the level bar: only on the current level, where today's work goes. */
+		todayChange() {
+			const { progress, subjects } = this.levelProgressionInfo;
+			if (this.currentLevel !== this.userInfo?.level || !this.today?.date || !progress || !subjects?.length) return null;
+			return levelProgressChange(progress, levelProgressBeforeDay(subjects, this.today.stages ?? {}, this.today.date));
 		},
 		userAvatar() {
 			return this.wk.userAvatar || WanikaniDefaultAvatar;
@@ -336,6 +359,12 @@ export default {
 			this.levelProgressionInfo = this.wk.levelProgressionInfo;
 		}
 		this.wk.refreshLevelProgressions();
+		void readActivityView().then(view => { this.today = view.today; });
+		this.unwatchActivity = watchDailyActivity(view => { this.today = view.today; });
+	},
+
+	beforeUnmount() {
+		this.unwatchActivity?.();
 	},
 
 	watch: {
@@ -715,7 +744,45 @@ svg.profile-stat-icon {
 	margin-left: 8px;
 }
 
+/* today's part of the bar, as on Home (gained: green; lost: what it was, see-through and dotted) */
+.level-progress-bar>.level-today-part {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	box-sizing: border-box;
+}
+
+.level-today-part.gain {
+	background: #30a46c;
+}
+
+.level-today-part.loss {
+	border: 1.5px dotted #e5484d;
+	background: rgba(229, 72, 77, 0.08);
+}
+
+.level-today-label {
+	margin-left: auto;
+	font-size: 12px;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.level-today-label.gain {
+	color: #5bd68f;
+}
+
+.level-today-label.loss {
+	color: #ff7a7e;
+}
+
+.level-today-label + .all-levels-button {
+	margin-left: 6px;
+}
+
 .level-progress-bar>div>p {
+	position: relative;
+	z-index: 1;
 	height: 100%;
 	color: white;
 	display: flex;

@@ -98,6 +98,7 @@ export type ProfileSubject = {
 	component_subject_ids?: number[];
 	assignment: {
 		srs_stage: number | null;
+		started_at?: string | null;
 		passed_at?: string | null;
 		available_at?: string | null;
 		hidden?: boolean;
@@ -158,6 +159,7 @@ export function normalizeProfileSubject(subject: any): ProfileSubject {
 		...(subject.component_subject_ids ? { component_subject_ids: subject.component_subject_ids } : {}),
 		assignment: {
 			srs_stage: srsStage,
+			started_at: assignment.started_at ?? null,
 			passed_at: passedAt,
 			available_at: assignment.available_at ?? null,
 			hidden,

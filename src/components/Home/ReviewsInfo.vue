@@ -14,9 +14,24 @@
 			<div class="hero-info">
 				<RouterLink :to="{ name: 'Profile' }" class="hero-level clickable" title="Open your profile">
 					<span class="hero-level-info">
-						<span class="hero-username">{{ username || 'WaniKani' }}</span>
+						<span class="hero-name-row">
+							<span class="hero-username">{{ username || 'WaniKani' }}</span>
+							<!-- right above the bar's part it describes -->
+							<span
+								v-if="todayChange"
+								class="hero-progress-today-label"
+								:class="todayChange.gained ? 'gain' : 'loss'"
+							>{{ todayChange.label }} today</span>
+						</span>
 						<span class="hero-progress-track" :title="levelProgressTitle">
 							<span class="hero-progress-fill" :style="{ width: `${displayedPercent}%` }"></span>
+							<!-- what today changed: the part gained (or lost), at its place on the bar -->
+							<span
+								v-if="todayChange"
+								class="hero-progress-today"
+								:class="[todayChange.gained ? 'gain' : 'loss', { shown: barReady }]"
+								:style="{ left: `${todayChange.from}%`, width: `${todayChange.to - todayChange.from}%` }"
+							></span>
 						</span>
 					</span>
 				</RouterLink>
@@ -126,6 +141,7 @@
 <script>
 import { RouterLink } from 'vue-router';
 import { prettyTime } from '@/utils/scripts/time';
+import { levelProgressChange } from '@/utils/scripts/wanikani';
 import { useFriendCount } from '@/utils/scripts/friendCount';
 import { useSettingsStore } from '@/stores/settings';
 import { readPageHistory, watchPageHistory } from '@/utils/scripts/pageHistory';
@@ -167,6 +183,11 @@ export default {
 		},
 		/** levelUpInfo().progress: { passed, size, percentage } */
 		levelProgress: {
+			type: Object,
+			default: null,
+		},
+		/** the same, when today started (null: not known) */
+		levelProgressBeforeToday: {
 			type: Object,
 			default: null,
 		},
@@ -236,7 +257,15 @@ export default {
 		levelProgressTitle() {
 			const progress = this.levelProgress;
 			if (!progress?.size) return 'Level progress';
-			return `Passed SRS stages of the level's radicals and the kanji needed to level up: ${progress.passed} / ${progress.size} (${this.levelPercent.toFixed(1)}%)`;
+			const passed = `Passed SRS stages of the level's radicals and the kanji needed to level up: ${progress.passed} / ${progress.size} (${this.levelPercent.toFixed(1)}%)`;
+			const change = this.todayChange;
+			if (!change) return passed;
+			return `${passed}\n${change.title}`;
+		},
+		/** The bar's change since today started: where it is on the bar, and how much (null: none). */
+		todayChange() {
+			if (!this.levelProgressKnown || !this.levelProgressBeforeToday) return null;
+			return levelProgressChange(this.levelProgress, this.levelProgressBeforeToday);
 		},
 		/** Countdown is computed live: the cached summary's "time" string goes stale. */
 		nextInfo() {
@@ -518,6 +547,8 @@ export default {
 }
 
 .hero-progress-track {
+	position: relative;
+	display: block;
 	height: 7px;
 	border-radius: 999px;
 	background: rgba(255, 255, 255, 0.12);
@@ -532,8 +563,58 @@ export default {
 	transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* today's part of the bar: appears once the bar has grown to its place */
+.hero-progress-today {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	box-sizing: border-box;
+	opacity: 0;
+	transition: opacity 0.3s ease 0.7s;
+}
+
+.hero-progress-today.shown {
+	opacity: 1;
+}
+
+.hero-progress-today.gain {
+	border-radius: 0 999px 999px 0;
+	background: #5bd68f;
+}
+
+/* lost today: what it was, see-through and dotted (as in the review summary) */
+.hero-progress-today.loss {
+	border: 1px dotted #ff7a7e;
+	border-radius: 0 999px 999px 0;
+	background: rgba(255, 122, 126, 0.12);
+}
+
+.hero-name-row {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 8px;
+	min-width: 0;
+}
+
+.hero-progress-today-label {
+	flex-shrink: 0;
+	font-size: 11px;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.hero-progress-today-label.gain {
+	color: #5bd68f;
+}
+
+.hero-progress-today-label.loss {
+	color: #ff7a7e;
+}
+
 @media (prefers-reduced-motion: reduce) {
-	.hero-progress-fill {
+	.hero-progress-fill,
+	.hero-progress-today {
 		transition: none;
 	}
 }
