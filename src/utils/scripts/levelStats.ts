@@ -30,7 +30,8 @@ export function getLevelStatsEntries(
 
 export function levelDurationDays(entry: LevelProgressionEntry): number {
 	const startedAt = new Date(entry.unlocked_at);
-	const endedAt = entry.passed_at ? new Date(entry.passed_at) : new Date();
+	// a level left by a reset ends then, not now
+	const endedAt = new Date(entry.passed_at ?? entry.abandoned_at ?? Date.now());
 	return (endedAt.getTime() - startedAt.getTime()) / (1000 * 60 * 60 * 24);
 }
 

@@ -1,17 +1,21 @@
 <template>
 	<div class="container reviews-page">
 		<QueueSubjectsView
+			ref="list"
 			:header-title="headerTitle"
 			:sections="displaySections"
 			:height="250"
 			:bar-sorting="barSorting"
 			empty-message="No reviews found. You're all caught up!"
+			:loading="!wk.dashboardRefreshedAt"
 		/>
 		<ReviewsChart
 			:assignments="wk.assignments"
+			:initial-date="typeof $route.query.date === 'string' ? $route.query.date : ''"
 			@select="onChartSelect"
 			@reset="onChartReset"
 		/>
+		<WorkloadForecast :assignments="wk.assignments" />
 	</div>
 </template>
 
@@ -19,6 +23,7 @@
 import { useWKStore } from '@/stores';
 import QueueSubjectsView from '@/components/Queue/QueueSubjectsView.vue';
 import ReviewsChart from '@/components/Reviews/ReviewsChart.vue';
+import WorkloadForecast from '@/components/Reviews/WorkloadForecast.vue';
 import { SRS_STAGE_IDS } from '@/utils/scripts/common';
 import {
 	buildQueueSubjectItems,
@@ -31,6 +36,7 @@ export default {
 	components: {
 		QueueSubjectsView,
 		ReviewsChart,
+		WorkloadForecast,
 	},
 
 	data() {
@@ -81,11 +87,27 @@ export default {
 	},
 
 	methods: {
-		onChartSelect({ assignments, title }) {
+		onChartSelect({ assignments, title, reveal = false }) {
 			this.chartSelection = { assignments, title };
+			// clicked a bar: scroll just enough for the list above the chart to show
+			if (reveal) {
+				this.$nextTick(() => {
+					const list = this.$refs.list?.$el;
+					if (!list) return;
+					// just below the fixed top bar (scrollIntoView would hide it under the bar)
+					const topbar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--topbar-height')) || 45;
+					const top = list.getBoundingClientRect().top + window.scrollY - topbar - 8;
+					if (top < window.scrollY) window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+				});
+			}
 		},
 		onChartReset() {
 			this.chartSelection = null;
+			// opened on a day (Home's calendar): a reload shouldn't go back to it
+			if (this.$route.query.date) {
+				const { date, ...query } = this.$route.query;
+				this.$router.replace({ query });
+			}
 		},
 	},
 };

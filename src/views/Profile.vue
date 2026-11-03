@@ -1,17 +1,58 @@
 <template>
 	<div class="container profile">
 		<div class="levels-chooser-wrapper">
+			<!-- first: a tile each (icon, value, what it is), like a toolbar -->
+			<div class="profile-stats">
+				<RouterLink :to="{ name: 'Accolades' }" class="profile-stat" title="Accolades">
+					<img v-if="latestAccolade" :src="latestAccolade.image" alt="" class="profile-stat-icon" />
+					<svg v-else viewBox="0 0 24 24" class="profile-stat-icon" aria-hidden="true">
+						<circle cx="12" cy="9" r="5" /><path d="M8.5 13l-1.5 8 5-2.5 5 2.5-1.5-8" />
+					</svg>
+					<span class="profile-stat-text">
+						<b>{{ accoladeTotals.unlocked }}/{{ accoladeTotals.total }}</b>
+						<small>Accolades</small>
+					</span>
+				</RouterLink>
+				<RouterLink :to="{ name: 'Friends' }" class="profile-stat" title="Compare levels with friends">
+					<svg viewBox="0 0 24 24" class="profile-stat-icon" aria-hidden="true">
+						<circle cx="9" cy="8" r="3.2" /><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" />
+						<circle cx="17" cy="9" r="2.6" /><path d="M15.8 13.7c2.9.2 5.2 2.2 5.2 5" />
+					</svg>
+					<span class="profile-stat-text">
+						<b>{{ friendCount }}</b>
+						<small>{{ friendCount === 1 ? 'Friend' : 'Friends' }}</small>
+					</span>
+				</RouterLink>
+				<!-- about which JLPT level your kanji and words are at (an estimate, not "ready to pass") -->
+				<RouterLink :to="{ name: 'School', query: { school: 'jlpt' } }" class="profile-stat" :title="jlptTitle">
+					<span class="profile-stat-icon profile-stat-jlpt" aria-hidden="true">JLPT</span>
+					<span class="profile-stat-text">
+						<b v-if="jlpt.ready">≈ {{ jlpt.ready }}</b>
+						<b v-else-if="jlpt.next">{{ jlpt.next.label }} {{ jlptNextPercent }}%</b>
+						<b v-else>–</b>
+						<small>Kanji &amp; vocab</small>
+					</span>
+				</RouterLink>
+			</div>
 			<div class="levels-chooser-cover"></div>
+			<!-- the picture on the left, over the banner; the name (its edit at the right) and when
+			     you started beside it, under the banner -->
+			<div class="profile-head">
 			<div id="profile-pic">
 				<a target="_blank" :href="userInfo?.profile_url" :title="userInfo?.profile_url">
 					<img :src="userAvatar" alt="Profile Picture" />
 				</a>
 			</div>
-			<div id="username">{{ userInfo?.username }}</div>
-			<div id="started">Started at {{ userInfo?.started_at?.split("T")[0] }}</div>
-			<div id="edit"><a href="https://www.wanikani.com/settings/account"
-					title="https://www.wanikani.com/settings/account" target="_blank"><img
-						src="@/assets/icons/profile/edit.png" alt="Edit"></a></div>
+			<div class="profile-info">
+				<div class="profile-name">
+					<span id="username">{{ userInfo?.username }}</span>
+					<a id="edit" href="https://www.wanikani.com/settings/account"
+						title="Edit your WaniKani account" target="_blank"><img
+							src="@/assets/icons/profile/edit.png" alt="Edit"></a>
+				</div>
+				<div id="started">Started at {{ userInfo?.started_at?.split("T")[0] }}</div>
+			</div>
+			</div>
 			<div class="levels-chooser" ref="levelsChooser">
 				<div class="levels-chooser-small-level" style="left: -85px;">{{ beforePreviousLevel }}</div>
 				<span title="Previous" @mouseover="toggleLevelToTheSide('left', true)"
@@ -19,7 +60,7 @@
 					<div>{{ previousLevel }}</div>
 				</span>
 				<span title="Current">
-					<div>{{ currentLevel }}</div>
+					<div class="levels-chooser-current" title="Pick a level" @click="levelPickerOpen = true">{{ currentLevel }}</div>
 				</span>
 				<span title="Next" @mouseover="toggleLevelToTheSide('right', true)"
 					@mouseleave="toggleLevelToTheSide('right', false)" @click="changeLevel(nextLevel)">
@@ -28,7 +69,16 @@
 				<div class="levels-chooser-small-level" style="right: -85px;">{{ afterNextLevel }}</div>
 			</div>
 			<div id="level-progress">
-				<p>Level Progress <span>(by SRS Stages completed)</span></p>
+				<p>
+					Level Progress <span>(by SRS Stages completed)</span>
+					<button type="button" class="all-levels-button" title="All levels" aria-label="All levels" @click="levelPickerOpen = true">
+						<svg viewBox="0 0 24 24" aria-hidden="true">
+							<rect x="3" y="3" width="5" height="5" rx="1" /><rect x="9.5" y="3" width="5" height="5" rx="1" /><rect x="16" y="3" width="5" height="5" rx="1" />
+							<rect x="3" y="9.5" width="5" height="5" rx="1" /><rect x="9.5" y="9.5" width="5" height="5" rx="1" /><rect x="16" y="9.5" width="5" height="5" rx="1" />
+							<rect x="3" y="16" width="5" height="5" rx="1" /><rect x="9.5" y="16" width="5" height="5" rx="1" /><rect x="16" y="16" width="5" height="5" rx="1" />
+						</svg>
+					</button>
+				</p>
 				<div class="level-progress-bar">
 					<div :style="`width: ${levelProgressionInfo.progress?.percentage}%`"
 						:title="`Passed Stages: ${levelProgressionInfo.progress?.passed} / ${levelProgressionInfo.progress?.size} (${levelProgressionInfo.progress?.percentage.toFixed(1)}%)`">
@@ -39,7 +89,25 @@
 						:style="{ marginLeft: levelProgressionInfo.progress?.percentage == 0 ? '15px' : '6px' }">{{
 							levelProgressionInfo.progress?.passed
 						}} / {{
-							levelProgressionInfo.progress?.percentage.toFixed(1) }}%</span>
+							levelProgressionInfo.progress?.size }}</span>
+				</div>
+				<!-- how much of the level is burned (once it's reached) -->
+				<div
+					v-if="timeOnLevel.clickable && levelBurn.total"
+					class="level-burn"
+					:class="{ all: levelBurn.all }"
+					:title="`Burned: ${levelBurn.burned} / ${levelBurn.total}`"
+				>
+					<svg viewBox="4 1 16 22" aria-hidden="true">
+						<path d="M12 1.5c.6 3.2 2.6 5 4.2 7.1A7.6 7.6 0 0 1 18 13.5 6 6 0 0 1 12 22a6 6 0 0 1-6-6c0-2.3 1-4 2.3-5.3.1 1.6.9 2.7 2 3-.7-3.4.5-7.3 1.7-12.2z" />
+					</svg>
+					<template v-if="levelBurn.all">
+						<span class="level-burn-label"><b>All {{ levelBurn.total }}</b> burned</span>
+					</template>
+					<template v-else>
+						<span class="level-burn-bar"><span :style="{ width: `${(levelBurn.burned / levelBurn.total) * 100}%` }"></span></span>
+						<span class="level-burn-label"><b>{{ levelBurn.burned }}</b> / {{ levelBurn.total }} burned</span>
+					</template>
 				</div>
 				<RouterLink
 					v-if="timeOnLevel.clickable"
@@ -61,38 +129,51 @@
 					</div>
 				</div>
 			</div>
-			<div
+			<!-- the fastest level up: when, and the kanji it counts on -->
+			<LevelUpPath
 				v-if="levelUpPrediction"
-				class="level-up-prediction"
-				title="This prediction is considering that you review all necessary kanji from this level as soon as they are available. Remember that only 90% of kanji are required to level up."
-			>
-				<div class="level-up-prediction-value">
-					<template v-if="levelUpPrediction.canLevelUpNow">
-						You can level up <b>now</b>! Go do your reviews!
-					</template>
-					<template v-else>
-						At least <b>{{ levelUpPrediction.readable }}</b> to level up.
-						<div>{{ levelUpPrediction.levelUpAtLabel }}</div>
-					</template>
-				</div>
-				<img src="/icons/sidebar/about.png" alt="">
-			</div>
+				:key="currentLevel"
+				:path="levelUpPrediction.path"
+				:spare="levelUpPrediction.spare"
+				:readable="levelUpPrediction.readable"
+				:level-up-at="levelUpPrediction.levelUpAt"
+				:can-level-up-now="levelUpPrediction.canLevelUpNow"
+				:locked-kanji="levelUpPrediction.lockedKanji"
+				:title="levelUpPredictionTitle"
+			/>
 			<div class="clickable scroll-down" title="Scroll Down" @click="scrollToSubjects"><i class="down"></i></div>
 		</div>
 		<ProfileSubjectsPanel :subjects="levelSubjects" />
+
+		<LevelPicker
+			:open="levelPickerOpen"
+			:selected-level="currentLevel"
+			:user-level="userInfo?.level ?? null"
+			:max-level="userInfo?.subscription?.max_level_granted ?? 60"
+			:progress-by-level="levelProgressByLevel"
+			:burn-by-level="levelBurnByLevel"
+			@select="pickLevel"
+			@close="levelPickerOpen = false"
+		/>
 	</div>
 </template>
 
 <script>
+import { toRaw } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useWKStore } from '@/stores';
 
 import ProfileSubjectsPanel from '@/components/Profile/ProfileSubjectsPanel.vue';
+import LevelPicker from '@/components/Profile/LevelPicker.vue';
+import LevelUpPath from '@/components/Profile/LevelUpPath.vue';
 
 import { getLevelUpPrediction, levelUpInfo } from '@/utils/scripts/wanikani';
 import { getLevelStatsEntries } from '@/utils/scripts/levelStats';
 import { prettyTime } from '@/utils/scripts/time';
 import { normalizeProfileSubjects } from '@/utils/scripts/profileSubjects';
+import { useAccolades } from '@/utils/scripts/useAccolades';
+import { useFriendCount } from '@/utils/scripts/friendCount';
+import { JLPT_READY_SHARE, jlptReadiness, jlptRows } from '@/utils/scripts/schoolKanji';
 
 import WanikaniDefaultAvatar from '@/assets/wanikani-default.png';
 
@@ -100,6 +181,8 @@ export default {
 	name: 'Profile',
 	components: {
 		ProfileSubjectsPanel,
+		LevelPicker,
+		LevelUpPath,
 		RouterLink,
 	},
 	data() {
@@ -113,6 +196,9 @@ export default {
 			currentLevel: null,
 			nextLevel: null,
 			afterNextLevel: null,
+			levelPickerOpen: false,
+			// a ref: unwrapped here, it stays up to date as friends change
+			friendCount: useFriendCount(),
 		};
 	},
 
@@ -126,6 +212,66 @@ export default {
 		userAvatar() {
 			return this.wk.userAvatar || WanikaniDefaultAvatar;
 		},
+		/** level → % of its (non-hidden) subjects passed, for the level picker's bars. */
+		levelProgressByLevel() {
+			const totals = {};
+			for (const subject of this.wk.allSubjects) {
+				if (!subject.level || subject.assignment?.hidden || subject.hidden_at) continue;
+				const entry = totals[subject.level] ?? (totals[subject.level] = { passed: 0, total: 0 });
+				entry.total += 1;
+				if (subject.assignment?.passed_at) entry.passed += 1;
+			}
+			return Object.fromEntries(Object.entries(totals).map(
+				([level, { passed, total }]) => [level, total ? (passed / total) * 100 : 0],
+			));
+		},
+		/** level → % of its (non-hidden) subjects burned, for the level picker. */
+		levelBurnByLevel() {
+			const totals = {};
+			for (const subject of this.wk.allSubjects) {
+				if (!subject.level || subject.assignment?.hidden || subject.hidden_at) continue;
+				const entry = totals[subject.level] ?? (totals[subject.level] = { burned: 0, total: 0 });
+				entry.total += 1;
+				if (subject.assignment?.burned_at || subject.assignment?.srs_stage === 9) entry.burned += 1;
+			}
+			return Object.fromEntries(Object.entries(totals).map(
+				([level, { burned, total }]) => [level, total ? (burned / total) * 100 : 0],
+			));
+		},
+		/** JLPT readiness (kanji and words passed per level, schoolKanji.ts) */
+		jlpt() {
+			const complete = this.wk.allSubjectsInMemory;
+			return jlptReadiness(
+				jlptRows(this.wk.allSubjects, 'kanji', complete),
+				jlptRows(this.wk.allSubjects, 'vocabulary', complete),
+			);
+		},
+		/** how far along the next level is: by its side furthest from ready (kanji or words) */
+		jlptNextPercent() {
+			const next = this.jlpt.next;
+			if (!next) return 0;
+			const progress = Math.min(next.kanji / JLPT_READY_SHARE.kanji, next.words / JLPT_READY_SHARE.words);
+			return Math.min(99, Math.floor(progress * 100));
+		},
+		jlptTitle() {
+			const percent = value => `${Math.floor(value * 100)}%`;
+			const rule = `${percent(JLPT_READY_SHARE.kanji)} of the kanji and ${percent(JLPT_READY_SHARE.words)} of the words passed, up to that level`;
+			const { ready, next } = this.jlpt;
+			const lines = [
+				ready
+					? `Your kanji and words are at about JLPT ${ready} (${rule}). If you're thinking of the JLPT, ${ready} study materials should feel familiar on the kanji and vocabulary side.`
+					: `Your kanji and words are working toward JLPT N5 (about there at ${rule}).`,
+			];
+			if (next) lines.push(`${next.label}: ${percent(next.kanji)} of the kanji, ${percent(next.words)} of the words (with the easier levels').`);
+			lines.push('An estimate from WaniKani\'s kanji and words only: grammar, reading and listening aren\'t counted.');
+			return lines.join('\n');
+		},
+		accoladeTotals() {
+			return useAccolades().totals.value;
+		},
+		latestAccolade() {
+			return useAccolades().latest.value;
+		},
 		timeOnLevel() {
 			if (!this.currentLevel) {
 				return { label: 'Not yet reached', pastResets: 0, title: '', clickable: false };
@@ -136,7 +282,8 @@ export default {
 				return { label: 'Not yet reached', pastResets: 0, title: '', clickable: false };
 			}
 
-			const lastStat = stats[stats.length - 1];
+			// entries are newest attempt first (see normalizeLevelsStats)
+			const lastStat = stats[0];
 			const startedAt = new Date(lastStat.unlocked_at);
 			const passedAt = lastStat.passed_at ? new Date(lastStat.passed_at) : new Date();
 			const timeInLevel = passedAt.getTime() - startedAt.getTime();
@@ -149,17 +296,30 @@ export default {
 				clickable: true,
 			};
 		},
+		/** the shown level's (visible) subjects burned: SRS stage 9 */
+		levelBurn() {
+			const subjects = this.levelSubjects.filter(subject => !subject.isHidden);
+			const burned = subjects.filter(subject => subject.assignment?.srs_stage === 9).length;
+			return { burned, total: subjects.length, all: subjects.length > 0 && burned === subjects.length };
+		},
+		levelUpPredictionTitle() {
+			return 'The fastest possible level up: every radical and kanji of this level answered right, '
+				+ 'each lesson and review done as soon as it\'s available. Kanji that aren\'t unlocked yet '
+				+ 'count from when their radicals can reach Guru. Only 90% of the kanji are needed to level up.';
+		},
 		levelUpPrediction() {
-			const kanji = this.levelSubjects.filter(
-				subject => subject.type === 'kanji' && !subject.assignment?.hidden,
-			);
-			const prediction = getLevelUpPrediction(kanji);
+			// radicals from other levels (rare): their assignment and level
+			const assignmentById = new Map(this.wk.assignments.map(assignment => [assignment.subject_id, assignment]));
+			const levelById = new Map(this.wk.allSubjects.map(subject => [subject.id, subject.level]));
+			const prediction = getLevelUpPrediction(this.levelSubjects, {
+				assignmentOf: id => assignmentById.get(id),
+				levelOf: id => levelById.get(id),
+			});
 			if (!prediction) return null;
 
 			return {
 				...prediction,
 				readable: prettyTime(prediction.intervalMs, { seconds: false }),
-				levelUpAtLabel: prediction.levelUpAt.toString().split(' GMT')[0],
 			};
 		},
 	},
@@ -181,7 +341,8 @@ export default {
 	watch: {
 		'$route.query.level'(value) {
 			const level = Number(value) || this.userInfo?.level;
-			if (level) this.setLevels(level);
+			// setLevels updates the query itself; don't load the same level twice
+			if (level && level !== this.currentLevel) this.setLevels(level);
 		},
 		'wk.assignments'() {
 			if (this.currentLevel) {
@@ -215,6 +376,10 @@ export default {
 				}
 			}
 		},
+		pickLevel(level) {
+			this.levelPickerOpen = false;
+			this.changeLevel(level);
+		},
 		changeLevel(level) {
 			if (level) {
 				this.setLevels(level);
@@ -231,7 +396,10 @@ export default {
 
 			this.wk.fetchSubjectsForLevel(level).then((subjects) => {
 				if (this.fetchId !== level || !subjects?.length) return;
-				this.levelSubjects = normalizeProfileSubjects(subjects);
+				const next = normalizeProfileSubjects(subjects);
+				// usually what the cache already showed: skip re-rendering every tile
+				if (JSON.stringify(next) === JSON.stringify(toRaw(this.levelSubjects))) return;
+				this.levelSubjects = next;
 				this.levelProgressionInfo = levelUpInfo(this.levelSubjects);
 			});
 
@@ -255,7 +423,7 @@ export default {
 
 .top-level-list {
 	display: flex;
-	left: 0;
+	left: var(--frame-left, 0px);
 	position: fixed;
 	z-index: 9;
 	background-color: var(--fill-color);
@@ -306,8 +474,8 @@ export default {
 	transition: 0.3s;
 }
 
+/* under the tiles (in the flow); the picture overlaps its bottom edge */
 .levels-chooser-cover {
-	position: absolute;
 	width: 100%;
 	height: 100px;
 	background-color: var(--wanikani);
@@ -316,12 +484,123 @@ export default {
 	border-bottom: 4px solid white;
 }
 
+/* the header: the picture on the left, from 15px into the banner (as before the bar above);
+   the name and start date beside it, just under the banner (it flows: no fixed positions) */
+.profile-head {
+	position: relative;
+	z-index: 2;
+	display: flex;
+	align-items: flex-start;
+	gap: 15px;
+	margin-top: -85px;
+	padding: 0 15px;
+}
+
+.profile-info {
+	flex: 1;
+	min-width: 0;
+	/* the banner's bottom (85px) and a little */
+	padding-top: 95px;
+}
+
+/* the name, the pencil at the right end */
+.profile-name {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+/* a bar under the top bar, as wide as the banner: Accolades, Friends, JLPT, split by thin
+   lines, like a second navigation bar */
+.profile-stats {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	/* the top of a card the banner continues (the cells' hover kept inside the curve) */
+	border-radius: 12px 12px 0 0;
+	overflow: hidden;
+	background: rgba(0, 0, 0, 0.22);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.profile-stat {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-width: 0;
+	padding: 9px 7px;
+	color: #fff;
+	text-decoration: none;
+	transition: background-color 0.15s;
+}
+
+.profile-stat + .profile-stat {
+	border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.profile-stat:hover {
+	opacity: 1;
+	background: rgba(255, 255, 255, 0.07);
+}
+
+.profile-stat-icon {
+	flex-shrink: 0;
+	width: 22px;
+	height: 22px;
+}
+
+svg.profile-stat-icon {
+	width: 18px;
+	height: 18px;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+}
+
+/* the JLPT tile's "icon": a small tag */
+.profile-stat-jlpt {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: auto;
+	height: auto;
+	padding: 2px 4px;
+	border-radius: 5px;
+	background: #3d6fd6;
+	font-size: 8.5px;
+	font-weight: 800;
+	letter-spacing: 0.04em;
+}
+
+.profile-stat-text {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	line-height: 1.15;
+}
+
+.profile-stat-text b {
+	font-size: 13px;
+	white-space: nowrap;
+}
+
+.profile-stat-text small {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 10px;
+	color: #b3b6cc;
+}
+
 .levels-chooser {
 	display: flex;
 	align-items: center;
 	position: relative;
 	transition: 0.3s;
-	padding-top: 175px;
+	/* the header above it is in the flow now */
+	padding-top: 12px;
 }
 
 .levels-chooser span {
@@ -365,6 +644,39 @@ export default {
 	width: 100%;
 }
 
+.levels-chooser-current {
+	cursor: pointer;
+	transition: opacity 0.15s;
+}
+
+.levels-chooser-current:hover {
+	opacity: 0.8;
+}
+
+/* opens the 60-level picker: a small icon at the end of the "Level Progress" line */
+.all-levels-button {
+	display: flex;
+	margin-left: auto;
+	padding: 5px;
+	border: none;
+	border-radius: 6px;
+	background: transparent;
+	color: rgba(255, 255, 255, 0.55);
+	cursor: pointer;
+	transition: background-color 0.15s, color 0.15s;
+}
+
+.all-levels-button:hover {
+	background: rgba(255, 255, 255, 0.1);
+	color: #fff;
+}
+
+.all-levels-button svg {
+	width: 14px;
+	height: 14px;
+	fill: currentColor;
+}
+
 .levels-chooser-small-level {
 	font-size: 30px;
 	opacity: 0.3;
@@ -373,53 +685,19 @@ export default {
 	pointer-events: none;
 }
 
-.level-up-prediction img {
-	width: 13px;
-	filter: invert(1);
-	position: absolute;
-	right: -30px;
-	top: 0;
-	bottom: 0;
-	margin: auto;
-	opacity: 0.6;
-}
-
-.level-up-prediction {
-	text-align: center;
-	color: white;
-	width: fit-content;
-	margin: 10px auto;
-	position: relative;
-}
-
-.level-up-prediction > div {
-	color: #d0d0d0;
-}
-
-.level-up-prediction-info {
-	position: absolute;
-	width: fit-content;
-	background-color: var(--fill-color);
-	padding: 5px;
-	border-radius: 5px;
-	color: var(--default-color) !important;
-	left: -40px;
-	right: -40px;
-	z-index: 10;
-	top: 35px;
-	box-shadow: 0 0 5px 0px;
-}
-
+/* bar + "time on this level" read as one card; the header behind is dark in both themes */
 .level-progress-bar {
+	box-sizing: border-box;
 	width: 100%;
-	height: 30px;
-	border-top-left-radius: 25px;
-	border-top-right-radius: 25px;
-	border: 1px solid silver;
+	height: 28px;
+	border-radius: var(--card-radius, 12px) var(--card-radius, 12px) 0 0;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-bottom: none;
 	overflow: hidden;
+	/* the empty part of the bar follows the theme (white / dark) */
 	background-color: var(--fill-color);
-	box-shadow: inset 0px 2px 4px #888686;
 	display: flex;
+	align-items: center;
 	position: relative;
 }
 
@@ -432,17 +710,19 @@ export default {
 
 .level-progress-bar>span {
 	background-color: unset;
-	color: #b9b9b9;
-	margin-top: 7px;
-	margin-left: 6px;
+	color: var(--font-sec-color);
+	font-size: 13px;
+	margin-left: 8px;
 }
 
 .level-progress-bar>div>p {
 	height: 100%;
 	color: white;
-	text-align: center;
-	padding-top: 7px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	font-weight: bold;
+	font-size: 13px;
 }
 
 .level-progress-bar-marker {
@@ -478,13 +758,8 @@ export default {
 	color: black;
 }
 
-#profile-pic {
-	padding: 15px;
-	position: absolute;
-	z-index: 1;
-}
-
 #profile-pic a {
+	display: block;
 	opacity: unset !important;
 }
 
@@ -492,42 +767,53 @@ export default {
 	border-color: var(--wanikani)
 }
 
+#profile-pic {
+	flex-shrink: 0;
+}
+
+/* on the left, over the banner's edge */
 #profile-pic img {
+	display: block;
 	border-radius: 50%;
 	border: 4px solid white;
 	width: 140px;
+	height: 140px;
+	object-fit: cover;
 	background-color: var(--fill-color);
 }
 
 #username {
-	position: absolute;
-	left: 170px;
-	top: 110px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 	font-size: 17px;
 	color: white;
 }
 
 #started {
-	position: absolute;
-	left: 170px;
-	top: 135px;
+	margin-top: 4px;
 	font-size: 15px;
 	color: gray;
 }
 
+/* the pencil, right after the name */
 #edit {
-	position: absolute;
-	top: 115px;
-	filter: invert(1);
-	z-index: 1;
+	display: flex;
+	flex-shrink: 0;
+	padding: 3px;
+	border-radius: 6px;
+	opacity: 0.7;
+	transition: opacity 0.15s, background-color 0.15s;
+}
+
+#edit:hover {
+	opacity: 1;
+	background: rgba(255, 255, 255, 0.1);
 }
 
 #edit img {
-	width: 15px;
-}
-
-#edit {
-	right: 15px;
+	width: 13px;
+	filter: invert(1);
 }
 
 #level-progress {
@@ -549,41 +835,106 @@ export default {
 	font-size: 12px;
 }
 
+/* between the bar and the time: a slim red bar of what's burned */
+.level-burn {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 14px;
+	background-color: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-bottom: none;
+	border-top: none;
+	box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.level-burn svg {
+	flex-shrink: 0;
+	width: 10px;
+	height: 13px;
+	fill: #ff3b3b;
+}
+
+.level-burn-bar {
+	flex: 1;
+	height: 6px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.12);
+	overflow: hidden;
+}
+
+.level-burn-bar span {
+	display: block;
+	height: 100%;
+	border-radius: 999px;
+	background: #e20000;
+}
+
+.level-burn-label {
+	flex-shrink: 0;
+	font-size: 12px;
+	color: rgba(255, 255, 255, 0.7);
+	font-variant-numeric: tabular-nums;
+}
+
+.level-burn-label b {
+	color: #fff;
+}
+
+/* all burned: no bar, the label centred */
+.level-burn.all {
+	justify-content: center;
+}
+
 .time-in-level {
-	background-color: var(--fill-color);
-	border-bottom-left-radius: 25px;
-	border-bottom-right-radius: 25px;
-	display: inline-block;
+	background-color: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-top: none;
+	border-radius: 0 0 var(--card-radius, 12px) var(--card-radius, 12px);
+	display: block;
+	box-sizing: border-box;
 	width: 100%;
-	padding: 0 1px;
+	position: relative;
 	color: inherit;
 	text-decoration: none;
+	transition: background-color 0.15s;
+}
+
+a.time-in-level:hover {
+	background-color: rgba(255, 255, 255, 0.09);
 }
 
 .time-in-level > .label {
 	text-align: center;
-	padding: 15px;
+	padding: 12px 70px;
 	font-size: 13px;
-	color: var(--font-sec-color);
+	color: rgba(255, 255, 255, 0.7);
+}
+
+.time-in-level > .label b {
+	color: #fff;
 }
 
 .past-times {
 	position: absolute;
-	right: 50px;
-	bottom: 25px;
+	right: 14px;
+	top: 0;
+	bottom: 0;
 	display: flex;
 	align-items: center;
 	column-gap: 5px;
 }
 
 .past-times > .past-times-n {
-	font-size: 14px;
+	font-size: 13px;
 	font-weight: bold;
-	color: var(--font-sec-color);
+	color: rgba(255, 255, 255, 0.7);
 }
 
 .past-times > img {
-	width: 20px;
+	width: 16px;
+	/* black icon: make it light on the dark header */
+	filter: invert(1);
 	opacity: 0.6;
 }
 

@@ -81,11 +81,33 @@
 					</div>
 				</li>
 				<li>
+					<label title="The circle on the subjects you keep getting wrong">Trouble info</label>
+					<div
+						class="checkbox_wrapper clickable setting-control"
+						:class="{ 'checkbox-enabled': menu.menu.show_trouble !== false }"
+						@click="updateMenuOption('show_trouble', menu.menu.show_trouble === false)"
+					>
+						<div class="custom-checkbox-ball"></div>
+						<div class="custom-checkbox-back"></div>
+					</div>
+				</li>
+				<li>
 					<label>Disabled subjects</label>
 					<div
 						class="checkbox_wrapper clickable setting-control"
 						:class="{ 'checkbox-enabled': menu.menu.disabled_subjects }"
 						@click="updateMenuOption('disabled_subjects', !menu.menu.disabled_subjects)"
+					>
+						<div class="custom-checkbox-ball"></div>
+						<div class="custom-checkbox-back"></div>
+					</div>
+				</li>
+				<li>
+					<label>Meanings</label>
+					<div
+						class="checkbox_wrapper clickable setting-control"
+						:class="{ 'checkbox-enabled': menu.menu.show_meaning }"
+						@click="updateMenuOption('show_meaning', !menu.menu.show_meaning)"
 					>
 						<div class="custom-checkbox-ball"></div>
 						<div class="custom-checkbox-back"></div>

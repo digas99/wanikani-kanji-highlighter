@@ -1,4 +1,4 @@
-import { srsStages, typeColors } from '@/utils/scripts/wanikani';
+import { primaryMeaning, primaryReading, srsStages, typeColors } from '@/utils/scripts/wanikani';
 
 export type ProfileSectionKey = 'all' | 'radical' | 'kanji' | 'vocabulary';
 
@@ -8,6 +8,10 @@ export type ProfileMenuEntry = {
 		color_by: 'Subject Type' | 'Subject Progress' | 'SRS Stage';
 		reviews_info: boolean;
 		disabled_subjects: boolean;
+		/** Print the primary meaning under each tile. */
+		show_meaning: boolean;
+		/** The trouble subjects' circle (troubleSubjects.ts). */
+		show_trouble: boolean;
 	};
 	filter: {
 		srs_stage: string;
@@ -33,6 +37,8 @@ export function createDefaultProfileMenuEntry(): ProfileMenuEntry {
 			color_by: 'SRS Stage',
 			reviews_info: true,
 			disabled_subjects: true,
+			show_meaning: false,
+			show_trouble: true,
 		},
 		filter: {
 			srs_stage: 'None',
@@ -54,7 +60,7 @@ export function createDefaultProfileMenus(): Record<ProfileSectionKey, ProfileMe
 	};
 }
 
-export type ListMenuKey = 'lessons' | 'reviews' | 'search' | 'subjects' | 'highlighted';
+export type ListMenuKey = 'lessons' | 'reviews' | 'search' | 'subjects' | 'highlighted' | 'reviewed' | 'pages' | 'trouble';
 
 export function createDefaultListMenus(): Record<ListMenuKey, ProfileMenuEntry> {
 	return {
@@ -63,6 +69,9 @@ export function createDefaultListMenus(): Record<ListMenuKey, ProfileMenuEntry> 
 		search: createDefaultProfileMenuEntry(),
 		subjects: createDefaultProfileMenuEntry(),
 		highlighted: createDefaultProfileMenuEntry(),
+		reviewed: createDefaultProfileMenuEntry(),
+		pages: createDefaultProfileMenuEntry(),
+		trouble: createDefaultProfileMenuEntry(),
 	};
 }
 
@@ -83,6 +92,10 @@ export type ProfileSubject = {
 	character_images?: Array<{ content_type: string; url: string }>;
 	meanings?: Array<{ meaning: string }>;
 	readings?: Array<{ reading?: string; primary?: boolean }>;
+	meaning: string;
+	reading: string;
+	/** kanji: the radicals that unlock it (for the level-up prediction) */
+	component_subject_ids?: number[];
 	assignment: {
 		srs_stage: number | null;
 		passed_at?: string | null;
@@ -140,6 +153,9 @@ export function normalizeProfileSubject(subject: any): ProfileSubject {
 		character_images: subject.character_images,
 		meanings: subject.meanings,
 		readings: subject.readings,
+		meaning: primaryMeaning(subject),
+		reading: primaryReading(subject),
+		...(subject.component_subject_ids ? { component_subject_ids: subject.component_subject_ids } : {}),
 		assignment: {
 			srs_stage: srsStage,
 			passed_at: passedAt,

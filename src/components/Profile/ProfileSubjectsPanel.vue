@@ -94,7 +94,35 @@ export default {
 }
 
 .subject-types {
-	padding: 8px;
-	background: var(--surface-muted-color);
+	padding: 8px 5px;
+	background: var(--fill-color);
+}
+
+/* each type as a small card, as the other tile lists' groups: rounded title, the tiles in a
+   bounded, slightly tinted body under it */
+.subject-types :deep(.subject-list-section) {
+	margin-bottom: 8px;
+}
+
+.subject-types :deep(.subject-list-section:last-child) {
+	margin-bottom: 0;
+}
+
+.subject-types :deep(.section-header) {
+	border-top: none;
+	border-radius: 10px 10px 0 0;
+}
+
+/* closed: just the title, rounded all round */
+.subject-types :deep(.section-collapsed .section-header) {
+	border-radius: 10px;
+}
+
+.subject-types :deep(.section-body) {
+	padding: 4px;
+	border: 1px solid var(--surface-border-color);
+	border-top: none;
+	border-radius: 0 0 10px 10px;
+	background: color-mix(in srgb, var(--default-color) 5%, var(--fill-color));
 }
 </style>
