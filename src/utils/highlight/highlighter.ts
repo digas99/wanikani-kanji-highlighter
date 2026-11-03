@@ -1,15 +1,19 @@
 /**
- * DOM highlighter for WaniKani kanji and vocabulary.
+ * Highlighter for WaniKani kanji and vocabulary.
  *
  * Two targets are supported:
- *   - "kanji":      wraps individual learned / not-learned kanji characters.
- *   - "vocabulary": tokenizes Japanese text with TinySegmenter and wraps runs of
- *                   tokens that match a known WaniKani vocabulary word
+ *   - "kanji":      individual learned / not-learned kanji characters.
+ *   - "vocabulary": tokenizes Japanese text with TinySegmenter and matches runs of
+ *                   tokens that are a known WaniKani vocabulary word
  *                   (greedy longest match).
  *
  * Coloring modes:
  *   - "learned":    learned vs not-yet-learned (two colors / styles)
  *   - "srs_stage":  one color per SRS stage (Initiate through Burned, plus Locked)
+ *
+ * What's highlighted is found per text node (findMatches); how it's shown depends on
+ * the renderer: by default each match is wrapped in a span, while web pages use a
+ * renderer that paints the matches without touching the page (see rangeHighlights.ts).
  *
  * Works on any subtree, so it can be driven as a full-page pass or incrementally
  * (per element entering the viewport).
@@ -22,6 +26,8 @@ import {
 	type SrsStageKey,
 } from './srsStageHighlight';
 import type { JlptGradeKey, JoyoGradeKey, SchoolGradeKey } from './schoolGradeHighlight';
+import { ConjugationMatcher } from './deinflect';
+import { scanWords } from './wordScan';
 
 export type HighlightTarget = 'kanji' | 'vocabulary' | 'mixed';
 export type HighlightColorBy = 'learned' | 'srs_stage' | 'jlpt' | 'joyo';
@@ -41,10 +47,14 @@ export type HighlightConfig = {
 	notLearnedChars: string;
 	learnedWords: string[];
 	notLearnedWords: string[];
+	/** word → how it conjugates (deinflect.ts): conjugated forms on pages find their word */
+	wordInflections?: Record<string, number>;
 	kanjiByStage: Record<SrsStageKey, string>;
 	vocabByStage: Record<SrsStageKey, string[]>;
 	kanjiByJlpt: Record<JlptGradeKey, string>;
 	kanjiByJoyo: Record<JoyoGradeKey, string>;
+	vocabByJlpt?: Record<JlptGradeKey, string[]>;
+	vocabByJoyo?: Record<JoyoGradeKey, string[]>;
 	stageColors: Record<SrsStageKey, string>;
 	gradeColors: Record<SchoolGradeKey, string>;
 	learnedClass: string;
@@ -54,11 +64,51 @@ export type HighlightConfig = {
 	highlightNotLearned: boolean;
 };
 
-type SpanMeta =
+export type MatchMeta =
 	| { mode: 'learned'; learned: boolean }
 	| { mode: 'srs_stage'; stageKey: SrsStageKey }
 	| { mode: 'jlpt'; gradeKey: JlptGradeKey }
 	| { mode: 'joyo'; gradeKey: JoyoGradeKey };
+
+/**
+ * A kanji / word to highlight, by position in a text node's text. `value`: the WaniKani word (a
+ * conjugated one's dictionary form: 話して → 話す); the text highlighted is the text's own.
+ */
+export type HighlightMatch = {
+	start: number;
+	end: number;
+	value: string;
+	type: 'kanji' | 'vocabulary';
+	meta: MatchMeta;
+};
+
+/** On a highlight span whose text is a conjugated form: the word it is (話して → 話す). */
+export const HIGHLIGHT_VALUE_ATTRIBUTE = 'data-wkh-value';
+
+/** The WaniKani word a highlight span is (its text, or the word its conjugated text is). */
+export function highlightValueOf(span: Element): string {
+	return (span.getAttribute(HIGHLIGHT_VALUE_ATTRIBUTE) ?? span.textContent ?? '').trim();
+}
+
+/** how much longer than its word a conjugated form may be (話していませんでした) */
+const MAX_CONJUGATION = 10;
+
+/** Shows the matches of a text node some other way than wrapping them in spans. */
+export interface HighlightRenderer {
+	render(node: Text, matches: HighlightMatch[]): void;
+	/**
+	 * Text split over several nodes (a word with furigana: <ruby>話<rt>はな</rt></ruby>していました):
+	 * the matches by position in the nodes' joined text, some spanning nodes.
+	 */
+	renderRun?(nodes: Text[], matches: HighlightMatch[]): void;
+}
+
+/** Which painted highlight (CSS ::highlight name) a match belongs to. */
+export function highlightNameFor(meta: MatchMeta): string {
+	if (meta.mode === 'srs_stage') return `wkh-srs-${meta.stageKey}`;
+	if (meta.mode === 'jlpt' || meta.mode === 'joyo') return `wkh-${meta.mode}-${meta.gradeKey}`;
+	return meta.learned ? 'wkh-learned' : 'wkh-not-learned';
+}
 
 /** Marker class shared by every highlighted span (used for cleanup + skip). */
 export const HIGHLIGHT_MARK_CLASS = 'wkhighlighter_clickable';
@@ -68,7 +118,12 @@ const UNWANTED_TAGS = new Set([
 	'SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'INPUT', 'SELECT', 'OPTION',
 	'CODE', 'PRE', 'KBD', 'SAMP', 'TITLE', 'HEAD', 'SVG', 'IMG', 'CANVAS',
 	'VIDEO', 'AUDIO', 'IFRAME', 'OBJECT', 'MATH',
+	// furigana: a reading over the text, not text to read
+	'RT', 'RP',
 ]);
+
+/** Elements that end a run of text (words aren't joined across them: furigana runs stay inside). */
+const BLOCK_SELECTOR = 'p, div, li, dd, dt, td, th, h1, h2, h3, h4, h5, h6, blockquote, figcaption, caption, section, article, header, footer, main, aside, nav, body';
 
 /** Hiragana, katakana, CJK ideographs and halfwidth kana. */
 const JAPANESE_REGEX = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9f]/;
@@ -93,6 +148,7 @@ function stageKeyToSrsStage(stageKey: SrsStageKey): number | null {
 
 export class KanjiHighlighter {
 	private readonly config: HighlightConfig;
+	private readonly renderer: HighlightRenderer | null;
 	private readonly highlightedItems = new Map<string, HighlightedItem>();
 
 	// Learned mode.
@@ -102,9 +158,10 @@ export class KanjiHighlighter {
 	private readonly charStageMap = new Map<string, SrsStageKey>();
 	private readonly wordStageMap = new Map<string, SrsStageKey>();
 
-	// JLPT / Jōyō grade mode (kanji only).
+	// JLPT / Jōyō grade mode (kanji, and words: their grades come with the highlight data).
 	private readonly charJlptMap = new Map<string, JlptGradeKey>();
 	private readonly charJoyoMap = new Map<string, JoyoGradeKey>();
+	private readonly wordGradeMap = new Map<string, SchoolGradeKey>();
 
 	// Kanji target.
 	private readonly splitRegex: RegExp | null = null;
@@ -114,9 +171,13 @@ export class KanjiHighlighter {
 	private readonly learnedWordSet: Set<string>;
 	private readonly activeWordSet: Set<string> = new Set();
 	private readonly maxWordLength: number = 0;
+	/** conjugated verbs / adjectives → their word */
+	private readonly conjugations: ConjugationMatcher;
 
-	constructor(config: HighlightConfig) {
+	/** Without a renderer, matches are wrapped in spans (the page's text is split up). */
+	constructor(config: HighlightConfig, renderer: HighlightRenderer | null = null) {
 		this.config = config;
+		this.renderer = renderer;
 		this.learnedCharSet = new Set(config.learnedChars);
 		this.learnedWordSet = new Set(config.learnedWords);
 
@@ -144,6 +205,13 @@ export class KanjiHighlighter {
 			}
 		}
 
+		if (config.colorBy === 'jlpt' || config.colorBy === 'joyo') {
+			const byGrade = (config.colorBy === 'jlpt' ? config.vocabByJlpt : config.vocabByJoyo) ?? {};
+			for (const [gradeKey, words] of Object.entries(byGrade)) {
+				for (const word of words as string[]) if (word) this.wordGradeMap.set(word, gradeKey as SchoolGradeKey);
+			}
+		}
+
 		if (wantsKanji) {
 			let activeChars = '';
 			if (config.colorBy === 'srs_stage') {
@@ -159,7 +227,9 @@ export class KanjiHighlighter {
 				);
 			}
 			if (activeChars.length) {
-				const charClass = `[${activeChars}]`;
+				// escaped: a stray ] \ ^ or - in the data would make the class invalid (no highlights
+				// at all) or a range
+				const charClass = `[${activeChars.replace(/[\\\]\[^-]/g, '\\$&')}]`;
 				this.splitRegex = new RegExp(charClass, 'g');
 				this.testRegex = new RegExp(charClass);
 			}
@@ -170,6 +240,9 @@ export class KanjiHighlighter {
 				for (const words of Object.values(config.vocabByStage ?? {})) {
 					for (const word of words) if (word) this.activeWordSet.add(word);
 				}
+			} else if (config.colorBy === 'jlpt' || config.colorBy === 'joyo') {
+				// only the words with a level / grade (the others: their kanji, in mixed mode)
+				for (const word of this.wordGradeMap.keys()) this.activeWordSet.add(word);
 			} else {
 				if (config.highlightLearned) {
 					for (const word of config.learnedWords) if (word) this.activeWordSet.add(word);
@@ -182,6 +255,10 @@ export class KanjiHighlighter {
 				if (word.length > this.maxWordLength) this.maxWordLength = word.length;
 			}
 		}
+		this.conjugations = new ConjugationMatcher(
+			wantsVocab ? config.wordInflections : undefined,
+			word => this.activeWordSet.has(word),
+		);
 	}
 
 	isActive(): boolean {
@@ -215,6 +292,15 @@ export class KanjiHighlighter {
 		const element = root.nodeType === Node.ELEMENT_NODE ? (root as Element) : root.parentElement;
 		if (element && this.isSkippable(element)) return;
 
+		// words over furigana: the text around <ruby> read as one (painted highlights only, which
+		// can span nodes); a ruby on its own (observed by itself): its whole block instead
+		if (this.renderer?.renderRun && this.config.target !== 'kanji' && this.activeWordSet.size) {
+			const ruby = element?.closest('ruby');
+			const block = ruby ? ruby.parentElement?.closest(BLOCK_SELECTOR) ?? ruby : root;
+			for (const run of this.textRuns(block)) this.highlightRun(run);
+			return;
+		}
+
 		const walker = document.createTreeWalker(
 			root,
 			NodeFilter.SHOW_TEXT,
@@ -229,6 +315,49 @@ export class KanjiHighlighter {
 		}
 
 		for (const node of targets) this.wrapTextNode(node);
+	}
+
+	/**
+	 * The text nodes under `root`, in runs: a node joins the one before it when either is in a
+	 * <ruby> (its base; the furigana is skipped) and they're in the same block, with nothing
+	 * else between them. 奈良県<ruby>話<rt>はな</rt></ruby>していました: 話 + していました.
+	 */
+	private textRuns(root: Node): Text[][] {
+		const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+			acceptNode: node => {
+				const parent = node.parentElement;
+				if (!parent || this.isSkippable(parent) || !node.nodeValue) return NodeFilter.FILTER_REJECT;
+				return NodeFilter.FILTER_ACCEPT;
+			},
+		});
+		const runs: Text[][] = [];
+		let run: Text[] = [];
+		let previous: Text | null = null;
+		for (let node = walker.nextNode() as Text | null; node; node = walker.nextNode() as Text | null) {
+			const joins = previous
+				&& (previous.parentElement?.closest('ruby') || node.parentElement?.closest('ruby'))
+				&& previous.parentElement?.closest(BLOCK_SELECTOR) === node.parentElement?.closest(BLOCK_SELECTOR);
+			if (!joins && run.length) {
+				runs.push(run);
+				run = [];
+			}
+			run.push(node);
+			previous = node;
+		}
+		if (run.length) runs.push(run);
+		return runs;
+	}
+
+	/** A run of text nodes: matched as one text (a single node: as before). */
+	private highlightRun(nodes: Text[]): void {
+		if (nodes.length === 1) {
+			if (this.hasMatch(nodes[0].nodeValue ?? '')) this.wrapTextNode(nodes[0]);
+			return;
+		}
+		const text = nodes.map(node => node.nodeValue ?? '').join('');
+		const matches = this.hasMatch(text) ? this.findMatches(text) : [];
+		for (const match of matches) this.recordItem(match);
+		this.renderer!.renderRun!(nodes, matches);
 	}
 
 	private acceptTextNode(node: Text): number {
@@ -247,7 +376,9 @@ export class KanjiHighlighter {
 		if (element.classList.contains(HIGHLIGHT_MARK_CLASS)) return true;
 		if (element.classList.contains('sd-focusPopup_kanji')) return true;
 		if (element.closest('.sd-focusPopup_kanji, .sd-compactPopup_body')) return true;
-		if (element.closest('.sd-detailsPopup_sectionContainer .tiles-list')) return true;
+		if (element.closest('.sd-detailsPopup_sectionContainer .tiles-list, .sd-relatedGrid')) return true;
+		// the handwriting sheet is SVG (tagName is lowercase there, so UNWANTED_TAGS misses it)
+		if (element.closest('.sd-hw-sheet')) return true;
 		return false;
 	}
 
@@ -255,18 +386,25 @@ export class KanjiHighlighter {
 		const text = node.nodeValue;
 		if (!text) return;
 
-		if (this.config.target === 'kanji') {
-			this.wrapKanji(node, text);
-		} else if (this.config.target === 'vocabulary') {
-			this.wrapSegmented(node, text, false);
-		} else if (this.activeWordSet.size > 0) {
-			this.wrapSegmented(node, text, true);
-		} else {
-			this.wrapKanji(node, text);
+		const matches = this.findMatches(text);
+		for (const match of matches) this.recordItem(match);
+		if (this.renderer) {
+			// even without matches: the text may have changed, and its old highlights must go
+			this.renderer.render(node, matches);
+			return;
 		}
+		if (matches.length) this.wrapWithSpans(node, text, matches);
 	}
 
-	private kanjiMeta(char: string): SpanMeta | null {
+	/** The kanji / words to highlight in a piece of text. */
+	findMatches(text: string): HighlightMatch[] {
+		if (this.config.target === 'kanji') return this.kanjiMatches(text, 0);
+		if (this.config.target === 'vocabulary') return this.wordMatches(text, false);
+		if (this.activeWordSet.size > 0) return this.wordMatches(text, true);
+		return this.kanjiMatches(text, 0);
+	}
+
+	private kanjiMeta(char: string): MatchMeta | null {
 		if (this.config.colorBy === 'srs_stage') {
 			return { mode: 'srs_stage', stageKey: this.charStageMap.get(char) ?? 'locked' };
 		}
@@ -283,134 +421,111 @@ export class KanjiHighlighter {
 		return { mode: 'learned', learned: this.learnedCharSet.has(char) };
 	}
 
-	private vocabMeta(word: string): SpanMeta {
+	private vocabMeta(word: string): MatchMeta {
 		if (this.config.colorBy === 'srs_stage') {
 			return { mode: 'srs_stage', stageKey: this.wordStageMap.get(word) ?? 'locked' };
+		}
+		if (this.config.colorBy === 'jlpt') {
+			return { mode: 'jlpt', gradeKey: this.wordGradeMap.get(word) as JlptGradeKey };
+		}
+		if (this.config.colorBy === 'joyo') {
+			return { mode: 'joyo', gradeKey: this.wordGradeMap.get(word) as JoyoGradeKey };
 		}
 		return { mode: 'learned', learned: this.learnedWordSet.has(word) };
 	}
 
-	private makeSpan(value: string, type: 'kanji' | 'vocabulary', meta: SpanMeta): HTMLSpanElement {
+	/** Remember what's highlighted on the page (the popup's list, the badge). */
+	private recordItem({ value, type, meta }: HighlightMatch): void {
+		let item: HighlightedItem;
+		if (meta.mode === 'srs_stage') {
+			item = { value, type, srsStage: stageKeyToSrsStage(meta.stageKey) };
+		} else if (meta.mode === 'jlpt' || meta.mode === 'joyo') {
+			item = { value, type, schoolGrade: meta.gradeKey };
+		} else {
+			item = { value, type, learned: meta.learned };
+		}
+		this.highlightedItems.set(`${type}:${value}`, item);
+	}
+
+	/** `surface`: the text highlighted (a conjugated form: its word in an attribute) */
+	private makeSpan({ value, type, meta }: HighlightMatch, surface: string): HTMLSpanElement {
 		const span = document.createElement('span');
 		span.setAttribute('data-wkh-type', type);
-		span.textContent = value;
-
-		let item: HighlightedItem;
+		span.textContent = surface;
+		if (surface !== value) span.setAttribute(HIGHLIGHT_VALUE_ATTRIBUTE, value);
 
 		if (meta.mode === 'srs_stage') {
 			span.className = `${HIGHLIGHT_MARK_CLASS} ${this.config.srsStyleClass}`;
 			span.setAttribute('data-wkh-srs', meta.stageKey);
 			span.setAttribute('data-wkh', meta.stageKey === 'locked' ? 'locked' : `srs-${meta.stageKey}`);
-			item = {
-				value,
-				type,
-				srsStage: stageKeyToSrsStage(meta.stageKey),
-			};
 		} else if (meta.mode === 'jlpt' || meta.mode === 'joyo') {
 			span.className = `${HIGHLIGHT_MARK_CLASS} ${this.config.srsStyleClass}`;
 			span.setAttribute('data-wkh-grade', meta.gradeKey);
 			span.setAttribute('data-wkh', `${meta.mode}-${meta.gradeKey}`);
-			item = {
-				value,
-				type,
-				schoolGrade: meta.gradeKey,
-			};
 		} else {
 			const cssClass = meta.learned ? this.config.learnedClass : this.config.notLearnedClass;
 			span.className = `${HIGHLIGHT_MARK_CLASS} ${cssClass}`;
 			span.setAttribute('data-wkh', meta.learned ? 'learned' : 'not-learned');
-			item = { value, type, learned: meta.learned };
 		}
-
-		this.highlightedItems.set(`${type}:${value}`, item);
 		return span;
 	}
 
-	private wrapKanji(node: Text, text: string): void {
-		if (!this.splitRegex) return;
+	private wrapWithSpans(node: Text, text: string, matches: HighlightMatch[]): void {
 		const fragment = document.createDocumentFragment();
-		if (this.appendKanji(fragment, text)) node.parentNode?.replaceChild(fragment, node);
+		let lastIndex = 0;
+		for (const match of matches) {
+			if (match.start > lastIndex) fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.start)));
+			fragment.appendChild(this.makeSpan(match, text.slice(match.start, match.end)));
+			lastIndex = match.end;
+		}
+		if (lastIndex < text.length) fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+		node.parentNode?.replaceChild(fragment, node);
 	}
 
-	private appendKanji(fragment: DocumentFragment, text: string): boolean {
-		if (!this.splitRegex) {
-			fragment.appendChild(document.createTextNode(text));
-			return false;
-		}
-
+	/** Kanji in `text`; `offset`: where `text` starts in the text node. */
+	private kanjiMatches(text: string, offset: number): HighlightMatch[] {
+		if (!this.splitRegex) return [];
+		const matches: HighlightMatch[] = [];
 		this.splitRegex.lastIndex = 0;
-		let lastIndex = 0;
-		let matched = false;
 		let match: RegExpExecArray | null;
-
 		while ((match = this.splitRegex.exec(text)) !== null) {
-			matched = true;
 			const char = match[0];
-			if (match.index > lastIndex) {
-				fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
-			}
 			const meta = this.kanjiMeta(char);
 			if (meta) {
-				fragment.appendChild(this.makeSpan(char, 'kanji', meta));
-			} else {
-				fragment.appendChild(document.createTextNode(char));
+				const start = offset + match.index;
+				matches.push({ start, end: start + char.length, value: char, type: 'kanji', meta });
 			}
-			lastIndex = match.index + char.length;
 		}
-
-		if (lastIndex < text.length) {
-			fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
-		}
-		return matched;
+		return matches;
 	}
 
-	private wrapSegmented(node: Text, text: string, kanjiFallback: boolean): void {
-		if (!JAPANESE_REGEX.test(text)) return;
+	/**
+	 * Words (wordScan.ts: the longest runs of TinySegmenter tokens that are words, as written or
+	 * conjugated); `kanjiFallback`: the kanji in between.
+	 */
+	private wordMatches(text: string, kanjiFallback: boolean): HighlightMatch[] {
+		if (!JAPANESE_REGEX.test(text)) return [];
 
-		const tokens = getSegmenter().segment(text);
-		const fragment = document.createDocumentFragment();
-		let buffer = '';
-		let matched = false;
+		const words = scanWords(text, getSegmenter().segment(text), {
+			lookup: (run, couldConjugate) => (this.activeWordSet.has(run)
+				? run
+				: couldConjugate ? this.conjugations.match(run)?.word ?? '' : ''),
+			couldConjugate: rest => this.conjugations.active && this.conjugations.couldStart(rest),
+			limit: couldConjugate => this.maxWordLength + (couldConjugate ? MAX_CONJUGATION : 0),
+		});
 
-		const flushBuffer = () => {
-			if (!buffer) return;
-			if (kanjiFallback) {
-				if (this.appendKanji(fragment, buffer)) matched = true;
-			} else {
-				fragment.appendChild(document.createTextNode(buffer));
-			}
-			buffer = '';
+		const matches: HighlightMatch[] = [];
+		let last = 0;
+		const gap = (end: number) => {
+			if (kanjiFallback && end > last) matches.push(...this.kanjiMatches(text.slice(last, end), last));
 		};
-
-		let i = 0;
-		while (i < tokens.length) {
-			let bestLength = 0;
-			let bestWord = '';
-			let combined = '';
-			for (let j = i; j < tokens.length; j++) {
-				combined += tokens[j];
-				if (combined.length > this.maxWordLength) break;
-				if (this.activeWordSet.has(combined)) {
-					bestLength = j - i + 1;
-					bestWord = combined;
-				}
-			}
-
-			if (bestLength > 0) {
-				flushBuffer();
-				fragment.appendChild(this.makeSpan(bestWord, 'vocabulary', this.vocabMeta(bestWord)));
-				matched = true;
-				i += bestLength;
-			} else {
-				buffer += tokens[i];
-				i += 1;
-			}
+		for (const { start, end, word } of words) {
+			gap(start);
+			matches.push({ start, end, value: word, type: 'vocabulary', meta: this.vocabMeta(word) });
+			last = end;
 		}
-
-		flushBuffer();
-
-		if (!matched) return;
-		node.parentNode?.replaceChild(fragment, node);
+		gap(text.length);
+		return matches;
 	}
 }
 

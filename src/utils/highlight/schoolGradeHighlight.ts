@@ -39,6 +39,23 @@ export function createEmptyKanjiByJoyo(): Record<JoyoGradeKey, string> {
 	return Object.fromEntries(JOYO_GRADE_KEYS.map(key => [key, ''])) as Record<JoyoGradeKey, string>;
 }
 
+/**
+ * The kanji Japanese uses (Jōyō + Jinmeiyō), for the pages' reading level: other characters
+ * (simplified Chinese, …) aren't counted. Empty without the Jinmeiyō list: then nothing is left out.
+ */
+export function buildJapaneseKanji(maps: SchoolKanjiMaps): string {
+	if (!maps.jinmeiyo?.length) return '';
+	return Array.from(new Set([...Object.values(maps.joyo).flat(), ...maps.jinmeiyo])).join('');
+}
+
+export function createEmptyVocabByJlpt(): Record<JlptGradeKey, string[]> {
+	return Object.fromEntries(JLPT_GRADE_KEYS.map(key => [key, []])) as unknown as Record<JlptGradeKey, string[]>;
+}
+
+export function createEmptyVocabByJoyo(): Record<JoyoGradeKey, string[]> {
+	return Object.fromEntries(JOYO_GRADE_KEYS.map(key => [key, []])) as unknown as Record<JoyoGradeKey, string[]>;
+}
+
 export function buildKanjiByJlpt(maps: SchoolKanjiMaps): Record<JlptGradeKey, string> {
 	const byGrade = createEmptyKanjiByJlpt();
 	for (const grade of JLPT_GRADE_KEYS) {
@@ -93,7 +110,7 @@ export function buildSchoolGradeCss(
 		} else if (styleClass.endsWith('_bold')) {
 			rules.push(`${selector} { color: ${color} !important; font-weight: bold !important; background: transparent !important; }`);
 		} else if (styleClass.endsWith('_nostyle')) {
-			rules.push(`${selector} { cursor: pointer; }`);
+			// nothing shown (the page's cursor too: a highlight isn't a link)
 		} else {
 			rules.push(`${selector} { background-color: ${color} !important; }`);
 		}

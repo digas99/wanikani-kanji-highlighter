@@ -9,21 +9,31 @@
  * Highlight data (which kanji are learned / not learned) is produced by the
  * WaniKani store and mirrored into extension storage, so the content script
  * stays a lightweight reader.
+ *
+ * Where the browser supports it, matches are painted (CSS Custom Highlight API, see
+ * rangeHighlights.ts) and the page's text is left alone; otherwise they're wrapped in spans.
  */
 
 import { storage } from '#imports';
-import { KanjiHighlighter, clearHighlights, HIGHLIGHT_MARK_CLASS } from './highlighter';
+import { KanjiHighlighter, clearHighlights, HIGHLIGHT_MARK_CLASS, type HighlightConfig } from './highlighter';
 import { buildHighlightConfig } from './highlightConfig';
-import { buildSrsStageCss } from './srsStageHighlight';
+import { buildSrsStageCss, getSrsStageColor, SRS_STAGE_SECTIONS } from './srsStageHighlight';
 import {
 	buildSchoolGradeCss,
 	JLPT_GRADE_SECTIONS,
 	JOYO_GRADE_SECTIONS,
 } from './schoolGradeHighlight';
+import { HOVER_HIGHLIGHT, RangeHighlights, supportsRangeHighlights } from './rangeHighlights';
+import { highlightAt, setRangeHitTest } from './highlightHits';
 import { isPageHighlightBlocked,
 	type PageListMode,
 } from '@/utils/scripts/pageList';
 import { isKanjiCounterEnabled } from '@/utils/scripts/extensionBadge';
+import {
+	clearSubjectBundleCache,
+	prefetchHighlightedSubjects,
+	warmupSubjectLookup,
+} from './detailsPopupSubject';
 
 type HighlightData = {
 	kanji: {
@@ -32,8 +42,17 @@ type HighlightData = {
 		byStage?: Record<string, string>;
 		byJlpt?: Record<string, string>;
 		byJoyo?: Record<string, string>;
+		japanese?: string;
 	};
-	vocabulary: { learned: string[]; notLearned: string[]; byStage?: Record<string, string[]> };
+	vocabulary: {
+		learned: string[];
+		notLearned: string[];
+		/** word → how it conjugates (deinflect.ts) */
+		inflections?: Record<string, number>;
+		byStage?: Record<string, string[]>;
+		byJlpt?: Record<string, string[]>;
+		byJoyo?: Record<string, string[]>;
+	};
 	updatedAt: number;
 };
 
@@ -47,10 +66,14 @@ const UNWANTED_TAGS = new Set([
 ]);
 
 let highlighter: KanjiHighlighter | null = null;
+/** painted highlights (null: spans, the fallback) */
+let ranges: RangeHighlights | null = null;
+let pruneTimer: number | null = null;
 let mutationObserver: MutationObserver | null = null;
 let intersectionObserver: IntersectionObserver | null = null;
 let mode: 'full' | 'viewport' = 'viewport';
 let kanjiCounterEnabled = true;
+let detailsPopupEnabled = true;
 let observed = new WeakSet<Element>();
 let flushTimer: number | null = null;
 let badgeTimer: number | null = null;
@@ -66,14 +89,46 @@ export async function runHighlighter(): Promise<void> {
 		if (message?.type === 'wkh:getKanji') {
 			sendResponse({ items: getHighlightedItems() });
 		}
+		// the badge's choice changed (background): the count again
+		if (message?.type === 'wkh:badgeResend' && highlighter) sendBadge(highlighter.getCount());
 	});
 
 	await init();
 
-	storage.watch('local:settings', scheduleReinit);
-	storage.watch('local:highlightData', scheduleReinit);
+	// Re-highlighting tears the page's highlights down and rebuilds them (a visible
+	// flash), so only do it when something that affects highlighting changed:
+	// unrelated settings (e.g. the search list layout) and identical data rewrites are ignored.
+	storage.watch<any>('local:settings', settings => {
+		if (highlightSettingsKey(settings) !== lastSettingsKey) scheduleReinit();
+	});
+	storage.watch<HighlightData>('local:highlightData', data => {
+		if (highlightDataKey(data) !== lastDataKey) scheduleReinit();
+	});
 	storage.watch('local:blacklist', scheduleReinit);
 	storage.watch('local:whitelist', scheduleReinit);
+}
+
+let lastSettingsKey: string | null = null;
+let lastDataKey: string | null = null;
+
+/** Only the settings the page highlighter / badge / popup prefetch depend on. */
+function highlightSettingsKey(settings: any): string {
+	if (!settings) return '';
+	return JSON.stringify([
+		settings.highlighter,
+		settings.highlight_style,
+		settings.appearance,
+		settings.extension_icon?.kanji_counter,
+		settings.extension_icon?.badge,
+		settings.kanji_details_popup?.activated,
+	]);
+}
+
+/** Highlight data minus its timestamp: the store rewrites unchanged data with a new `updatedAt`. */
+function highlightDataKey(data: HighlightData | null | undefined): string {
+	if (!data) return '';
+	const { updatedAt: _ignored, ...rest } = data;
+	return JSON.stringify(rest);
 }
 
 /** Snapshot of the items highlighted on the current page (for the popup). */
@@ -99,6 +154,12 @@ async function init(): Promise<void> {
 		storage.getItem<string[]>('local:whitelist'),
 	]);
 
+	const dataKey = highlightDataKey(data);
+	lastSettingsKey = highlightSettingsKey(settings);
+	// SRS data changed since the last pass: drop popup previews built from the old data.
+	if (lastDataKey !== null && dataKey !== lastDataKey) clearSubjectBundleCache();
+	lastDataKey = dataKey;
+
 	if (!settings) return;
 
 	const config = buildHighlightConfig(settings, data);
@@ -109,16 +170,26 @@ async function init(): Promise<void> {
 		: 'blacklist';
 	if (isPageHighlightBlocked(location.hostname, pageListMode, blacklist, whitelist)) return;
 
-	highlighter = new KanjiHighlighter(config);
+	ranges = supportsRangeHighlights() ? new RangeHighlights() : null;
+	highlighter = new KanjiHighlighter(config, ranges);
 	if (!highlighter.isActive()) {
 		highlighter = null;
+		ranges = null;
 		return;
 	}
 
 	const highlighterSettings = settings.highlighter ?? {};
 	const style = settings.highlight_style ?? {};
 	injectStyles(settings.appearance ?? {}, config.colorBy, style.learned || 'wkhighlighter_highlighted');
+	if (ranges) {
+		injectRangeStyles(settings.appearance ?? {}, config);
+		const painted = ranges;
+		setRangeHitTest((x, y) => painted.hitTest(x, y));
+		document.addEventListener('mousemove', onHoverMove, true);
+	}
 	kanjiCounterEnabled = isKanjiCounterEnabled(settings);
+	detailsPopupEnabled = settings.kanji_details_popup?.activated !== false;
+	if (detailsPopupEnabled) warmupSubjectLookup();
 	mode = highlighterSettings.mode === 'full' ? 'full' : 'viewport';
 	observed = new WeakSet<Element>();
 
@@ -131,11 +202,20 @@ function teardown(): void {
 	if (intersectionObserver) { intersectionObserver.disconnect(); intersectionObserver = null; }
 	if (flushTimer !== null) { clearTimeout(flushTimer); flushTimer = null; }
 	if (badgeTimer !== null) { clearTimeout(badgeTimer); badgeTimer = null; }
+	if (pruneTimer !== null) { clearTimeout(pruneTimer); pruneTimer = null; }
 	pendingRoots = [];
-	if (highlighter) clearHighlights();
+	if (ranges) {
+		ranges.clear();
+		setRangeHitTest(null);
+		document.removeEventListener('mousemove', onHoverMove, true);
+	} else if (highlighter) {
+		clearHighlights();
+	}
+	ranges = null;
 	highlighter = null;
 	removeStyles();
-	if (kanjiCounterEnabled) sendBadge(0);
+	// not running here: no number at all (-1), not a 0 (which would look like it ran)
+	if (kanjiCounterEnabled) sendBadge(-1);
 }
 
 /* ------------------------------------------------------------------ */
@@ -149,10 +229,30 @@ function startFullMode(): void {
 	mutationObserver = new MutationObserver(mutations => {
 		for (const mutation of mutations) {
 			mutation.addedNodes.forEach(node => pendingRoots.push(node));
+			// painted: text edited in place (sites update their own text) is highlighted again
+			if (mutation.type === 'characterData') pendingRoots.push(mutation.target);
+			if (mutation.removedNodes.length) schedulePrune();
 		}
 		scheduleFullFlush();
 	});
-	mutationObserver.observe(document.body, { childList: true, subtree: true });
+	mutationObserver.observe(document.body, observerOptions());
+}
+
+/** Spans change the page's text themselves, so only painted highlights follow text edits. */
+function observerOptions(): MutationObserverInit {
+	return ranges
+		? { childList: true, subtree: true, characterData: true }
+		: { childList: true, subtree: true };
+}
+
+/** Painted highlights of text that left the page (or changed) are dropped, on idle. */
+function schedulePrune(): void {
+	if (!ranges || pruneTimer !== null) return;
+	pruneTimer = window.setTimeout(() => {
+		pruneTimer = null;
+		if (!ranges || !highlighter) return;
+		for (const node of ranges.prune()) highlighter.highlightRoot(node);
+	}, 1000);
 }
 
 function scheduleFullFlush(): void {
@@ -187,6 +287,16 @@ function startViewportMode(): void {
 
 	mutationObserver = new MutationObserver(mutations => {
 		for (const mutation of mutations) {
+			// painted: text edited in place (sites update their own text) is highlighted again
+			if (mutation.type === 'characterData') {
+				const node = mutation.target;
+				if (node.parentElement && !isUnwanted(node.parentElement)) {
+					highlighter?.highlightRoot(node);
+					reportBadge();
+				}
+				continue;
+			}
+			if (mutation.removedNodes.length) schedulePrune();
 			mutation.addedNodes.forEach(node => {
 				if (node.nodeType === Node.ELEMENT_NODE) {
 					observeCandidates(node as Element);
@@ -198,7 +308,7 @@ function startViewportMode(): void {
 			});
 		}
 	});
-	mutationObserver.observe(document.body, { childList: true, subtree: true });
+	mutationObserver.observe(document.body, observerOptions());
 }
 
 function onIntersect(entries: IntersectionObserverEntry[]): void {
@@ -268,7 +378,10 @@ function reportBadge(): void {
 	if (badgeTimer !== null) return;
 	badgeTimer = window.setTimeout(() => {
 		badgeTimer = null;
-		if (highlighter) sendBadge(highlighter.getCount());
+		if (!highlighter) return;
+		sendBadge(highlighter.getCount());
+		// Already-requested items are skipped, so this only sends what's new.
+		if (detailsPopupEnabled) void prefetchHighlightedSubjects(highlighter.getHighlighted());
 	}, 300);
 }
 
@@ -314,7 +427,7 @@ function injectStyles(
 }`;
 
 	const shared = `
-.wkhighlighter_clickable { transition: opacity 0.2s ease; cursor: pointer; }
+.wkhighlighter_clickable { transition: opacity 0.2s ease; }
 .wkhighlighter_clickable:not(.wkhighlighter_hoverable):hover { opacity: 0.6 !important; }
 ${markLayout}
 .wkhighlighter_highlighted,
@@ -323,8 +436,6 @@ ${markLayout}
 	border-radius: 3px;
 	padding: 0 1px;
 }
-.wkhighlighter_highlighted_nostyle,
-.wkhighlighter_highlightedNotLearned_nostyle { cursor: pointer; }
 .wkhighlighter_highlighted_underlined,
 .wkhighlighter_highlightedNotLearned_underlined {
 	color: inherit !important;
@@ -372,4 +483,70 @@ ${markLayout}
 
 function removeStyles(): void {
 	document.getElementById(STYLE_ID)?.remove();
+	document.getElementById(RANGE_STYLE_ID)?.remove();
+}
+
+/* ------------------------------------------------------------------ */
+/* Painted highlights: styles + hover                                 */
+/* ------------------------------------------------------------------ */
+
+const RANGE_STYLE_ID = 'wkhighlighter-range-styles';
+
+type HighlightVariant = 'background' | 'underlined' | 'bold' | 'nostyle';
+
+function variantOf(styleClass: string): HighlightVariant {
+	const match = styleClass.match(/_(underlined|bold|nostyle)$/);
+	return (match?.[1] as HighlightVariant | undefined) ?? 'background';
+}
+
+/**
+ * The span styles, as ::highlight rules. Painted text can't change weight, padding or
+ * corners: bold becomes a thin shadow in the same color, the background loses its rounding.
+ */
+function highlightRule(name: string, variant: HighlightVariant, color: string): string {
+	if (variant === 'underlined') return `::highlight(${name}) { text-decoration: underline solid ${color} 2px; }`;
+	if (variant === 'bold') return `::highlight(${name}) { color: ${color}; text-shadow: 0.03em 0 0 ${color}; }`;
+	if (variant === 'nostyle') return '';
+	return `::highlight(${name}) { background-color: ${color}; color: #fff; }`;
+}
+
+function injectRangeStyles(appearance: Record<string, string>, config: HighlightConfig): void {
+	const rules: string[] = [];
+	if (config.colorBy === 'srs_stage') {
+		const variant = variantOf(config.srsStyleClass);
+		for (const section of SRS_STAGE_SECTIONS) {
+			rules.push(highlightRule(`wkh-srs-${section.key}`, variant, getSrsStageColor(section.key, appearance)));
+		}
+	} else if (config.colorBy === 'jlpt' || config.colorBy === 'joyo') {
+		const variant = variantOf(config.srsStyleClass);
+		const sections = config.colorBy === 'jlpt' ? JLPT_GRADE_SECTIONS : JOYO_GRADE_SECTIONS;
+		for (const section of sections) {
+			rules.push(highlightRule(`wkh-${config.colorBy}-${section.key}`, variant, section.fallbackColor));
+		}
+	} else {
+		rules.push(highlightRule('wkh-learned', variantOf(config.learnedClass), appearance.highlight_learned || '#00aaff'));
+		rules.push(highlightRule('wkh-not-learned', variantOf(config.notLearnedClass), appearance.highlight_not_learned || '#f100a1'));
+	}
+	// hovered: a light tint over the color (spans used to fade)
+	rules.push(`::highlight(${HOVER_HIGHLIGHT}) { background-color: rgba(128, 128, 128, 0.35); }`);
+
+	const style = document.createElement('style');
+	style.id = RANGE_STYLE_ID;
+	style.textContent = rules.filter(Boolean).join('\n');
+	(document.head || document.documentElement).appendChild(style);
+}
+
+let pendingHover: MouseEvent | null = null;
+function onHoverMove(event: MouseEvent): void {
+	if (!pendingHover) {
+		requestAnimationFrame(() => {
+			const move = pendingHover;
+			pendingHover = null;
+			if (!move || !ranges) return;
+			const hit = highlightAt(move);
+			// the cursor stays the page's: a highlight isn't a link
+			ranges.setHovered(hit && 'range' in hit ? hit as any : null);
+		});
+	}
+	pendingHover = event;
 }

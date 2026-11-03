@@ -1,7 +1,12 @@
 export type PageListMode = 'blacklist' | 'whitelist';
 
 /** Sites blocked from highlighting on fresh installs (YouTube layout breaks with DOM highlights). */
-export const DEFAULT_BLACKLIST = ['youtube.com'] as const;
+/**
+ * Sites that used to be blacklisted by default: highlighting broke them when it split the
+ * page's text into spans. Painted highlights don't, so they're unblocked once (see the
+ * settings store) on installs that got them automatically.
+ */
+export const FORMER_DEFAULT_BLACKLIST = ['youtube.com'] as const;
 
 /** Common multi-part public suffixes (e.g. bbc.co.uk → registrable domain, not co.uk). */
 const MULTI_PART_SUFFIXES = new Set([
@@ -89,11 +94,11 @@ export function isPageHighlightBlocked(
 
 export const pageListModeOptions = [
 	{
-		label: 'Highlight by default (blacklist sites)',
+		label: 'Everywhere',
 		value: 'blacklist' as PageListMode,
 	},
 	{
-		label: 'Block by default (whitelist sites)',
+		label: 'Only listed sites',
 		value: 'whitelist' as PageListMode,
 	},
 ];

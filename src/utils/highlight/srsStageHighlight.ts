@@ -90,7 +90,7 @@ export function buildSrsStageCss(styleClass: string, appearance: Record<string, 
 		} else if (styleClass.endsWith('_bold')) {
 			rules.push(`${selector} { color: ${color} !important; font-weight: bold !important; background: transparent !important; }`);
 		} else if (styleClass.endsWith('_nostyle')) {
-			rules.push(`${selector} { cursor: pointer; }`);
+			// nothing shown (the page's cursor too: a highlight isn't a link)
 		} else {
 			rules.push(`${selector} { background-color: ${color} !important; }`);
 		}

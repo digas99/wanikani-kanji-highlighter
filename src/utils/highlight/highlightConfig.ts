@@ -13,6 +13,8 @@ import {
 	buildSchoolGradeColorMap,
 	createEmptyKanjiByJlpt,
 	createEmptyKanjiByJoyo,
+	createEmptyVocabByJlpt,
+	createEmptyVocabByJoyo,
 	JLPT_GRADE_SECTIONS,
 	JOYO_GRADE_SECTIONS,
 	type JlptGradeKey,
@@ -26,20 +28,24 @@ export type HighlightData = {
 		byStage?: Partial<Record<SrsStageKey, string>>;
 		byJlpt?: Partial<Record<JlptGradeKey, string>>;
 		byJoyo?: Partial<Record<JoyoGradeKey, string>>;
+		/** Jōyō + Jinmeiyō: the kanji Japanese uses (the pages' reading level leaves the others out) */
+		japanese?: string;
 	};
 	vocabulary: {
 		learned: string[];
 		notLearned: string[];
+		/** word → how it conjugates (deinflect.ts kinds), for the verbs and adjectives */
+		inflections?: Record<string, number>;
 		byStage?: Partial<Record<SrsStageKey, string[]>>;
+		/** words by JLPT level (Waller's lists) / Jōyō grade (of their hardest kanji) */
+		byJlpt?: Partial<Record<JlptGradeKey, string[]>>;
+		byJoyo?: Partial<Record<JoyoGradeKey, string[]>>;
 	};
 	updatedAt?: number;
 };
 
-function resolveColorBy(config: any, target: string): HighlightColorBy {
+function resolveColorBy(config: any): HighlightColorBy {
 	const raw = config.color_by;
-	if ((raw === 'jlpt' || raw === 'joyo') && target !== 'kanji') {
-		return 'learned';
-	}
 	if (raw === 'srs_stage' || raw === 'jlpt' || raw === 'joyo') return raw;
 	return 'learned';
 }
@@ -57,7 +63,7 @@ export function buildHighlightConfig(
 		? config.target
 		: 'kanji';
 	const style = settings.highlight_style ?? {};
-	const colorBy = resolveColorBy(config, target);
+	const colorBy = resolveColorBy(config);
 	const appearance = settings.appearance ?? {};
 
 	const kanjiByStage = { ...createEmptyKanjiByStage(), ...(data.kanji?.byStage ?? {}) };
@@ -72,10 +78,13 @@ export function buildHighlightConfig(
 		notLearnedChars: data.kanji?.notLearned || '',
 		learnedWords: data.vocabulary?.learned || [],
 		notLearnedWords: data.vocabulary?.notLearned || [],
+		wordInflections: data.vocabulary?.inflections ?? {},
 		kanjiByStage,
 		vocabByStage,
 		kanjiByJlpt,
 		kanjiByJoyo,
+		vocabByJlpt: { ...createEmptyVocabByJlpt(), ...(data.vocabulary?.byJlpt ?? {}) },
+		vocabByJoyo: { ...createEmptyVocabByJoyo(), ...(data.vocabulary?.byJoyo ?? {}) },
 		stageColors: buildStageColorMap(appearance),
 		gradeColors: {
 			...buildSchoolGradeColorMap(JLPT_GRADE_SECTIONS),
