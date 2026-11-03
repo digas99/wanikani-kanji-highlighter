@@ -138,7 +138,7 @@ const STYLE = `
 .wkh-rs-level-track span:last-child { border-radius: 0 999px 999px 0; }
 .wkh-rs-level-track .kept { left: 0; background: linear-gradient(90deg, #f100a1, #a100f1); }
 .wkh-rs-level-track .gain { background: #30a46c; }
-/* lost in the session (a kanji not passed yet dropping): what it was, see-through, dotted */
+/* lost in the session (a subject not passed yet dropping): what it was, see-through, dotted */
 .wkh-rs-level-track .loss { background: rgba(229, 72, 77, .08); border: 1.5px dotted #e5484d; }
 .wkh-rs-level-value { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .wkh-rs-level-value .up { color: #2f9e5f; font-weight: 700; }
@@ -166,7 +166,7 @@ const typeColor = (type: string) => (type === 'radical'
 		: appearance.vocab_color || '#a100f1');
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
-/** the level's progress a chip's kanji moved (its card says so) */
+/** the level's progress a chip's subject moved (its card says so) */
 const levelNotes = new Map<number, NonNullable<HoverCardSession['notes']>[number]>();
 
 function close() {
@@ -267,30 +267,30 @@ function section(title: string, color: string, results: SessionResult[], note = 
 }
 
 /**
- * The current level's progress (its kanji's SRS stages toward passing, as the popup's level bar),
- * before and after the session: the level's kanji from the cache, with the session's changes.
+ * The current level's progress (its subjects' SRS stages toward passing, as the popup's level bar),
+ * before and after the session: the level's radicals and kanji from the cache, with the session's changes.
  */
 async function levelRow(results: SessionResult[]): Promise<{ nodes: HTMLElement[]; movers: Array<{ id: number; up: boolean; text: string }>; level: number } | null> {
-	let data: { level: number; kanji: any[] } | null = null;
+	let data: { level: number; subjects: any[] } | null = null;
 	try {
-		data = await browser.runtime.sendMessage({ type: 'wkh:getLevelKanji' });
+		data = await browser.runtime.sendMessage({ type: 'wkh:getLevelSubjects' });
 	} catch {
 		return null;
 	}
-	if (!data?.kanji?.length) return null;
+	if (!data?.subjects?.length) return null;
 	const byId = new Map(results.map(result => [result.id, result]));
-	const percentage = (after: boolean) => levelUpInfo(data!.kanji.map(kanji => {
-		const result = byId.get(kanji.id);
-		if (!result) return kanji;
+	const percentage = (after: boolean) => levelUpInfo(data!.subjects.map(subject => {
+		const result = byId.get(subject.id);
+		if (!result) return subject;
 		// passed in this session: not before it (the cache may already have the new date), yes after
-		const passedAt = result.passed === 'now' ? (after ? 'session' : null) : kanji.assignment.passed_at;
-		return { ...kanji, assignment: { ...kanji.assignment, srs_stage: after ? result.to : result.from, passed_at: passedAt } };
+		const passedAt = result.passed === 'now' ? (after ? 'session' : null) : subject.assignment.passed_at;
+		return { ...subject, assignment: { ...subject.assignment, srs_stage: after ? result.to : result.from, passed_at: passedAt } };
 	})).progress.percentage;
 	const before = percentage(false);
 	const after = percentage(true);
 
 	const row = el('div', 'wkh-rs-level');
-	row.title = 'Level progress: the SRS stages of the kanji needed to level up (90% of the level\'s kanji at Guru)';
+	row.title = 'Level progress: the SRS stages of the level\'s radicals and the kanji needed to level up (90% of its kanji at Guru)';
 	const track = el('div', 'wkh-rs-level-track');
 	const part = (className: string, from: number, to: number) => {
 		const span = el('span', className);
@@ -320,27 +320,28 @@ async function levelRow(results: SessionResult[]): Promise<{ nodes: HTMLElement[
 	if (after > before) key('background: #30a46c', `+${(after - before).toFixed(1)}% this session`);
 	if (after < before) key('background: rgba(229, 72, 77, .08); border: 1px dotted #e5484d; box-sizing: border-box', `${(after - before).toFixed(1)}% this session`);
 
-	// the subjects that moved it: this level's kanji whose stage changed
-	// (a kanji's share: 5 once passed, else its stage up to 5, as levelUpInfo counts it)
-	const passedBefore = new Map(data.kanji.map(kanji => [kanji.id, Boolean(kanji.assignment.passed_at)]));
+	// the subjects that moved it: this level's radicals and kanji whose stage changed
+	// (a subject's share: 5 once passed, else its stage up to 5, as levelUpInfo counts it)
+	const passedBefore = new Map(data.subjects.map(subject => [subject.id, Boolean(subject.assignment.passed_at)]));
+	const typeOf = new Map(data.subjects.map(subject => [subject.id, subject.type]));
 	const share = (result: SessionResult, after: boolean) => {
 		const passed = result.passed === 'now' ? after : result.passed === 'before' || (result.passed == null && passedBefore.get(result.id));
 		return passed ? 5 : Math.min(after ? result.to : result.from, 5);
 	};
 	const movers = results
 		.filter(result => passedBefore.has(result.id) && share(result, true) !== share(result, false))
-		.map(result => ({ id: result.id, up: share(result, true) > share(result, false), text: `Level ${data!.level} kanji: ${stage(result.from)?.name} → ${stage(result.to)?.name}, ${result.to > result.from ? 'moved' : 'set back'} the level's progress` }));
+		.map(result => ({ id: result.id, up: share(result, true) > share(result, false), text: `Level ${data!.level} ${typeOf.get(result.id)}: ${stage(result.from)?.name} → ${stage(result.to)?.name}, ${result.to > result.from ? 'moved' : 'set back'} the level's progress` }));
 	if (movers.length) {
 		const count = movers.length;
 		const tagged = el('span', '');
-		tagged.append(`${count} kanji of this level moved it (outlined)`);
+		tagged.append(`${plural(count, 'subject')} of this level moved it (outlined)`);
 		legend.append(tagged);
 	}
 
 	return { nodes: [row, legend], movers, level: data.level };
 }
 
-/** Outlines the chips of the level's kanji that moved its progress. */
+/** Outlines the chips of the level's subjects that moved its progress. */
 function outlineMovers(card: HTMLElement, movers: Array<{ id: number; up: boolean; text: string }>) {
 	for (const mover of movers) {
 		const chip = card.querySelector<HTMLElement>(`.wkh-rs-chip[data-id="${mover.id}"]`);

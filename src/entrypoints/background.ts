@@ -313,9 +313,9 @@ export default defineBackground(() => {
       return;
     }
 
-    // the review summary: the current level's kanji (their stages), for its level progress
-    if (message?.type === 'wkh:getLevelKanji') {
-      handleGetLevelKanji()
+    // the review summary: the current level's radicals and kanji (their stages), for its level progress
+    if (message?.type === 'wkh:getLevelSubjects') {
+      handleGetLevelSubjects()
         .then(sendResponse)
         .catch(() => sendResponse(null));
       return true;
@@ -595,7 +595,7 @@ async function takeChosenAvatar(url: string, username: string): Promise<{ ok: bo
  * The current level's kanji, with their SRS stage and passed date, from the cache (no request):
  * the review summary works out the level's progress before and after the session from them.
  */
-async function handleGetLevelKanji(): Promise<{ level: number; kanji: any[] } | null> {
+async function handleGetLevelSubjects(): Promise<{ level: number; subjects: any[] } | null> {
   const manager = await getBgManager();
   if (!manager) return null;
   // cached (a callback: no waiting on the API); the cache may be empty in a restarted service
@@ -604,19 +604,19 @@ async function handleGetLevelKanji(): Promise<{ level: number; kanji: any[] } | 
   const level = Number(userInfo?.level);
   if (!Number.isFinite(level) || level < 1) return null;
   const ids = await manager.storage.getIdsByLevel([level]);
-  const subjects = ids?.length ? await manager.readSubjectsById(ids) : [];
-  const kanji = (subjects ?? [])
-    .filter((subject: any) => subject?.type === 'kanji' && !subject.assignment?.hidden)
+  const all = ids?.length ? await manager.readSubjectsById(ids) : [];
+  const subjects = (all ?? [])
+    .filter((subject: any) => (subject?.type === 'kanji' || subject?.type === 'radical') && !subject.assignment?.hidden)
     .map((subject: any) => ({
       id: subject.id,
-      type: 'kanji',
+      type: subject.type,
       assignment: {
         srs_stage: subject.assignment?.srs_stage ?? 0,
         passed_at: subject.assignment?.passed_at ?? null,
         hidden: false,
       },
     }));
-  return kanji.length ? { level, kanji } : null;
+  return subjects.length ? { level, subjects } : null;
 }
 
 async function handleGetSubjectPreviews(message: any): Promise<any | null> {

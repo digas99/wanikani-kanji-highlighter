@@ -24,7 +24,7 @@
 - Works with Double-Check (answers changed or retyped are counted as WaniKani counts them)
 
 ## Popup
-- New **Home**: today's reviews, accuracy, lessons and SRS moves, a recap of yesterday, and a customizable layout. Hover or click today's SRS moves to see them on the Progress overview tiles
+- New **Home**: today's reviews, accuracy, lessons and SRS moves, a recap of yesterday, and a customizable layout. Hover or click today's SRS moves to see them on the Progress overview tiles, and the level bar counts radicals too
 - **Activity calendar and heatmap**, looking ahead to future reviews and level-up projections
 - **Reviewed** page: the subjects reviewed each day, as tiles or with their SRS changes, in order of result or time
 - **Reviews**: future reviews chart (pick a day, "Now" to reset) and a workload forecast for the coming days

@@ -61,6 +61,7 @@ export const SRS_STAGE_INTERVALS: Record<number, number> = {
 
 export const levelUpInfo = (subjects: Array<any>) => {
 	const kanji = subjects.filter(subject => subject.type == "kanji" && !subject.assignment?.hidden);
+	const radicals = subjects.filter(subject => subject.type == "radical" && !subject.assignment?.hidden);
 	const stageOf = (subject: any) => subject.assignment?.srs_stage ?? 0;
 
 	// 90% of the level's kanji are needed to level up.
@@ -73,14 +74,15 @@ export const levelUpInfo = (subjects: Array<any>) => {
 	const remainingNeededKanji = neededKanji.filter(subject => !subject.assignment?.passed_at && stageOf(subject) > 0);
 	const initiatedKanji = [...passedKanji, ...remainingNeededKanji];
 
-	// all size: 5 srs stages per kanji (with 5th being passed)
-	const size = neededKanji.length * 5;
+	// all size: 5 srs stages per subject (with 5th being passed). Radicals aren't in the level-up
+	// rule, but they unlock its kanji: all of them count, so the bar moves from the level's start.
+	const size = (neededKanji.length + radicals.length) * 5;
 	let progress = 0;
-	initiatedKanji.forEach(kanji => {
-		if (kanji.assignment?.passed_at)
+	[...radicals, ...initiatedKanji].forEach(subject => {
+		if (subject.assignment?.passed_at)
 			progress += 5;
 		else
-			progress += Math.min(stageOf(kanji), 5);
+			progress += Math.min(stageOf(subject), 5);
 	});
 	const percentage = size ? progress / size * 100 : 0;
 	return {
@@ -89,7 +91,7 @@ export const levelUpInfo = (subjects: Array<any>) => {
 			size: size,
 			percentage: percentage
 		},
-		subjects: kanji,
+		subjects: [...radicals, ...kanji],
 		initiated: initiatedKanji,
 	};
 }

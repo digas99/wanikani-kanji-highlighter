@@ -24,7 +24,7 @@
 				<div class="hero-progress-row">
 					<RouterLink :to="{ name: 'Profile' }" class="hero-progress-label clickable" title="Open your profile" tabindex="-1">
 						<template v-if="levelProgressKnown">
-							{{ levelPercent.toFixed(0) }}% of level {{ level ?? '' }} kanji stages done
+							{{ levelPercent.toFixed(0) }}% of level {{ level ?? '' }} stages done
 						</template>
 						<template v-else>Level progress: –</template>
 					</RouterLink>
@@ -236,7 +236,7 @@ export default {
 		levelProgressTitle() {
 			const progress = this.levelProgress;
 			if (!progress?.size) return 'Level progress';
-			return `Passed SRS stages: ${progress.passed} / ${progress.size} (${this.levelPercent.toFixed(1)}%)`;
+			return `Passed SRS stages of the level's radicals and the kanji needed to level up: ${progress.passed} / ${progress.size} (${this.levelPercent.toFixed(1)}%)`;
 		},
 		/** Countdown is computed live: the cached summary's "time" string goes stale. */
 		nextInfo() {

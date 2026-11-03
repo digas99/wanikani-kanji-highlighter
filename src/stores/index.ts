@@ -462,13 +462,9 @@ export const useWKStore = defineStore('wk', {
 
 			const currentLevel = this.userInfo?.level;
 			if (currentLevel) {
-				const kanjiAtLevel = subjects.filter(
-					(subject: any) => subject.type === 'kanji'
-						&& subject.level === currentLevel
-						&& !subject.assignment?.hidden,
-				);
-				if (kanjiAtLevel.length) {
-					this.setLevelProgressionInfo(levelUpInfo(kanjiAtLevel), currentLevel);
+				const atLevel = subjects.filter((subject: any) => subject.level === currentLevel);
+				if (atLevel.length) {
+					this.setLevelProgressionInfo(levelUpInfo(atLevel), currentLevel);
 				}
 			}
 
@@ -642,9 +638,7 @@ export const useWKStore = defineStore('wk', {
 
 				const currentLevel = this.userInfo?.level;
 				if (context.levels.length === 1 && context.levels[0] === currentLevel) {
-					this.setLevelProgressionInfo(levelUpInfo(
-						data.filter(subject => subject.type === 'kanji' && !subject.assignment?.hidden)
-					), currentLevel);
+					this.setLevelProgressionInfo(levelUpInfo(data), currentLevel);
 				}
 			});
 
