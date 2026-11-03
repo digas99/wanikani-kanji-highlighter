@@ -2,64 +2,94 @@
 	<div class="container">
 		<div class="searchArea">
 			<div class="searchMenu">
-				<div class="textInputWrapper">
-					<img class="textInputIcon" :src="searchIcon" alt="Search">
-					<input type="text" v-model="searchQuery" :placeholder="!searchTypeKana ? 'Gold / 金 / 5' : 'きん'"
-						@keydown="handleKeyDown" id="kanjiSearchInput" ref="kanjiSearchInput" @input="search"
-						@focus="searchInputHasFocus = true" @blur="searchInputHasFocus = false" />
-					<div class="kanjiSearchTypeWrapper" title="Kana"
-						:id="!searchTypeKana ? 'kanjiSearchTypeKana' : 'kanjiSearchTypeRomaji'"
-						@click="handleSearchTypeChange">
-						<span id="kanjiSearchType">{{ !searchTypeKana ? 'あ' :
-							'A' }}</span>
-					</div>
-				</div>
+				<!-- the same field as Pages read / Sentences: A / あ (romaji typed as hiragana) inside -->
+				<KanaSearchInput
+					id="kanjiSearchInput"
+					ref="kanjiSearchInput"
+					class="search-field"
+					:model-value="searchQuery"
+					:kana="searchTypeKana"
+					placeholder="Gold / 金 / 5"
+					kana-placeholder="きん"
+					aria-label="Search subjects"
+					@update:model-value="onQuery"
+					@update:kana="onKanaChange"
+					@focus="searchInputHasFocus = true"
+					@blur="searchInputHasFocus = false"
+				/>
 				<div id="searchResultNavbar">
 					<div class="searchResultNavbarOptionsWrapper" style="display: flex;">
 						<div id="nmrKanjiFound"><span>{{ nResults }}<span></span></span></div>
 						<div class="searchOptionSeparator"></div>
-						<ul style="display: flex;">
-							<li class="searchResultNavbarOption clickable icon" title="List" id="searchResultOptionlist"
-								@click="toggleResultDisplay"><img
-									:src="searchResultGrid ? '/icons/search/list.png' : '/icons/search/small-grid.png'"
-									alt="List"></li>
-						</ul>
-						<div class="searchOptionSeparator"></div>
-						<div id="searchMenuButton" class="clickable icon" title="Options"
-							@click="showSearchMenu = !showSearchMenu"><img
-								:src="showSearchMenu ? '/icons/search/close-medium.png' : '/icons/search/menu.png'"
-								alt="Menu"></div>
-						<SearchMenu
-							:class="{ 'search-menu-slide-in': showSearchMenu }"
-							style="right: -250px"
-							@filter-change="onSearchFiltersChanged"
-						/>
+						<div class="search-display-modes" role="radiogroup" aria-label="Results layout">
+							<button
+								v-for="mode in displayModes"
+								:key="mode.key"
+								type="button"
+								role="radio"
+								class="search-display-mode"
+								:class="{ active: resultDisplay === mode.key }"
+								:aria-checked="resultDisplay === mode.key"
+								:title="mode.label"
+								@click="setResultDisplay(mode.key)"
+							>
+								<svg viewBox="0 0 24 24" aria-hidden="true">
+									<template v-if="mode.key === 'list'">
+										<rect x="3" y="4" width="18" height="7" rx="2" />
+										<rect x="3" y="13" width="18" height="7" rx="2" />
+									</template>
+									<template v-else-if="mode.key === 'compact'">
+										<rect x="3" y="3.5" width="18" height="3" rx="1" />
+										<rect x="3" y="8.5" width="18" height="3" rx="1" />
+										<rect x="3" y="13.5" width="18" height="3" rx="1" />
+										<rect x="3" y="18.5" width="18" height="3" rx="1" />
+									</template>
+									<template v-else>
+										<rect x="3" y="3" width="5" height="5" rx="1" />
+										<rect x="9.5" y="3" width="5" height="5" rx="1" />
+										<rect x="16" y="3" width="5" height="5" rx="1" />
+										<rect x="3" y="9.5" width="5" height="5" rx="1" />
+										<rect x="9.5" y="9.5" width="5" height="5" rx="1" />
+										<rect x="16" y="9.5" width="5" height="5" rx="1" />
+										<rect x="3" y="16" width="5" height="5" rx="1" />
+										<rect x="9.5" y="16" width="5" height="5" rx="1" />
+										<rect x="16" y="16" width="5" height="5" rx="1" />
+									</template>
+								</svg>
+							</button>
+						</div>
 					</div>
 				</div>
+				<!-- the filters, always in view (no menu to open) -->
+				<SearchMenu class="search-filters-row" @filter-change="onSearchFiltersChanged" />
 			</div>
 			<div class="searchResults">
 				<div v-if="nResults > 0">
 					<!-- Tiles View -->
 					<SubjectsList
-						v-if="searchResultGrid"
+						v-if="resultDisplay === 'grid'"
 						:values="results"
 						type="srs"
 						:colors="colors"
 						:show-title="false"
-						:height="445"
+						:height="415"
 						menu-key="search"
 					/>
 
 					<!-- Detailed View -->
 					<ul v-else class="searchResultItemWrapper">
-						<SearchResultItem v-for="item in results" :key="item.id" :item="item" @search="search" />
+						<SearchResultItem v-for="item in results" :key="item.id" :item="item" :compact="resultDisplay === 'compact'" @search="search" />
 					</ul>
 				</div>
 				<div v-else-if="!searchQuery.trim() && historySubjects.length" class="search-history">
 					<div class="search-history-header">
 						<span class="search-history-title">Recently viewed</span>
 						<div class="search-history-actions">
-							<span class="search-history-count">{{ historySubjects.length }}</span>
+							<!-- the filters hide some: how many of them are shown -->
+							<span
+								class="search-history-count"
+								:title="shownHistory.length < historySubjects.length ? 'Some are hidden by the filters above' : null"
+							>{{ shownHistory.length < historySubjects.length ? `${shownHistory.length} / ${historySubjects.length}` : historySubjects.length }}</span>
 							<button
 								type="button"
 								class="search-history-clear clickable"
@@ -70,21 +100,23 @@
 							</button>
 						</div>
 					</div>
+					<p v-if="!shownHistory.length" class="search-history-hidden">All hidden by the filters above.</p>
 					<SubjectsList
-						v-if="searchResultGrid"
-						:values="historySubjects"
+						v-else-if="resultDisplay === 'grid'"
+						:values="shownHistory"
 						type="srs"
 						:colors="colors"
 						:show-title="false"
 						:show-progression-bar="false"
-						:height="445"
+						:height="415"
 						menu-key="search"
 					/>
 					<ul v-else class="searchResultItemWrapper">
 						<SearchResultItem
-							v-for="item in historySubjects"
+							v-for="item in shownHistory"
 							:key="item.id"
 							:item="item"
+							:compact="resultDisplay === 'compact'"
 							@search="search"
 						/>
 					</ul>
@@ -102,11 +134,11 @@
 <script>
 import { useWKStore } from '@/stores';
 import { useMagicKeys, whenever } from '@vueuse/core'
-import { useRouter } from 'vue-router';
 
-import { isHiragana, isKatakana, toHiragana, toRomaji, bind, unbind } from 'wanakana';
+import { isHiragana, isKatakana, toHiragana } from 'wanakana';
 
 import SearchMenu from '@/components/Search/SearchMenu.vue';
+import KanaSearchInput from '@/components/KanaSearchInput.vue';
 import SubjectsList from '@/components/Subjects/SubjectsList.vue';
 import SearchResultItem from '@/components/Search/SearchResultItem.vue';
 
@@ -114,22 +146,51 @@ import { useSettingsStore } from '@/stores/settings';
 import { typeColors } from '@/utils/scripts/wanikani';
 import { filterSearchResults } from '@/utils/scripts/searchFilters';
 import { clearSearchHistory, getSearchHistoryIds } from '@/utils/scripts/searchHistory';
+import { enrichWithSchoolGrades as enrichSubjectsWithSchoolGrades } from '@/utils/scripts/vocabSchoolGrades';
 
-import searchIcon from '@/assets/icons/search/search.png';
+
+/** Layout → saved setting value (the older values are kept, so saved choices still apply). */
+const RESULT_DISPLAY_SETTINGS = {
+	list: 'searchResultOptionlist',
+	compact: 'searchResultOptioncompact',
+	grid: 'searchResultOptionbig-grid',
+};
+
+/**
+ * The word itself first, then subjects read exactly like the query, then the rest (each
+ * group keeping its order): "もう" lists もう, then 毛, 申… (read もう), then 申す, 羊毛…
+ */
+function rankExactMatchesFirst(subjects, query) {
+	const target = toHiragana(query);
+	const tiers = [[], [], []];
+	for (const subject of subjects) {
+		if (toHiragana(subject.characters ?? '') === target) tiers[0].push(subject);
+		else if ((subject.readings ?? []).some(reading => toHiragana(reading.reading ?? '') === target)) tiers[1].push(subject);
+		else tiers[2].push(subject);
+	}
+	return tiers.flat();
+}
+
+const DISPLAY_MODES = [
+	{ key: 'list', label: 'Detailed list' },
+	{ key: 'compact', label: 'Compact list (more results at once)' },
+	{ key: 'grid', label: 'Tiles' },
+];
 
 export default {
 	name: 'Search',
 	components: {
 		SearchMenu,
 		SubjectsList,
-		SearchResultItem
+		SearchResultItem,
+		KanaSearchInput,
 	},
 	data() {
 		return {
 			wkManager: null,
-			fetchId: null,
-			showSearchMenu: false,
-			searchResultGrid: false,
+			searchSeq: 0,
+			/** 'list' (detailed cards, default) · 'compact' (slim rows) · 'grid' (tiles) */
+			resultDisplay: 'list',
 			rawResults: [],
 			searchInput: null,
 			searchInputHasFocus: false,
@@ -139,24 +200,14 @@ export default {
 			nResults: 0,
 			historySubjects: [],
 			colors: {},
-
-			searchIcon,
 		};
 	},
 
 	setup() {
-		const { backspace, current } = useMagicKeys()
+		const { current } = useMagicKeys()
 		const searchQuery = ref('');
 		const searchInput = ref(null);
 		const searchInputHasFocus = ref(false);
-		const router = useRouter();
-
-		// return to home page if backspace pressed on empty search
-		whenever(backspace, () => {
-			if (searchQuery.value === '') {
-				router.push({ name: 'Home' });
-			}
-		});
 
 		// trigger search when a a-z key is pressed
 		whenever(current, (keys) => {
@@ -178,6 +229,9 @@ export default {
 		wk() {
 			return useWKStore();
 		},
+		displayModes() {
+			return DISPLAY_MODES;
+		},
 		settingsStore() {
 			return useSettingsStore();
 		},
@@ -195,25 +249,19 @@ export default {
 		},
 		typeColors() {
 			return typeColors;
-		}
+		},
+		/** Recently viewed, through the same filters as the results. */
+		shownHistory() {
+			return filterSearchResults(this.historySubjects, this.searchFilterOptions);
+		},
 	},
 
 	created() {
 		this.wkManager = this.wk.manager;
 		this.colors = this.typeColors;
-		this.searchResultGrid = this.settingsStore.settings.search.results_display === 'searchResultOptionbig-grid';
-
-		if (!this.wkManager) return;
-
-		this.wkManager.events.on('get:subjects', ({ state, data, context }) => {
-			if (!context) return;
-
-			const fetchKey = context.levels ? String(context.levels[0]) : context.caller;
-			if (!fetchKey || (state === 'updated' && this.fetchId !== fetchKey)) return;
-
-			this.rawResults = data;
-			this.applySearchFilters();
-		});
+		const savedDisplay = Object.entries(RESULT_DISPLAY_SETTINGS)
+			.find(([, value]) => value === this.settingsStore.settings.search.results_display);
+		this.resultDisplay = savedDisplay?.[0] ?? 'list';
 	},
 
 	mounted() {
@@ -223,10 +271,8 @@ export default {
 			this.search();
 		}
 
-		const searchType = this.$route.query.type;
-		if (searchType === 'kana') {
-			this.handleSearchTypeChange();
-		}
+		// opened in hiragana mode (the link it came from, or going back to it)
+		if (this.$route.query.type === 'kana') this.searchTypeKana = true;
 
 		this.searchInput = this.$refs.kanjiSearchInput;
 		this.$refs.kanjiSearchInput.focus();
@@ -237,13 +283,13 @@ export default {
 		void this.loadSearchHistory();
 	},
 
-	beforeUnmount() {
-		this.wkManager?.events.removeListener('get:subjects');
-	},
-
 	methods: {
 		applySearchFilters() {
-			this.results = filterSearchResults(this.rawResults, this.searchFilterOptions);
+			// "legacy" asks for the retired subjects: the "Disabled subjects" filter doesn't hide them then
+			const options = this.isLegacyQuery(this.searchQuery)
+				? { ...this.searchFilterOptions, disabled_subjects: true }
+				: this.searchFilterOptions;
+			this.results = filterSearchResults(this.rawResults, options);
 			this.nResults = this.results.length;
 		},
 		onSearchFiltersChanged(key) {
@@ -253,35 +299,45 @@ export default {
 			}
 			this.applySearchFilters();
 		},
-		async toggleResultDisplay() {
-			this.searchResultGrid = !this.searchResultGrid;
-			const display = this.searchResultGrid
-				? 'searchResultOptionbig-grid'
-				: 'searchResultOptionlist';
-			await this.settingsStore.setSetting('search', 'results_display', display);
+		async setResultDisplay(mode) {
+			if (this.resultDisplay === mode) return;
+			this.resultDisplay = mode;
+			await this.settingsStore.setSetting('search', 'results_display', RESULT_DISPLAY_SETTINGS[mode]);
 		},
 		async loadSearchHistory() {
 			const ids = await getSearchHistoryIds();
-			if (!ids.length) {
+			if (!ids.length || !this.wkManager) {
 				this.historySubjects = [];
 				return;
 			}
 
-			const subjects = await Promise.all(
-				ids.map(id => this.wk.getSubjectById(id)),
+			// One cache read for the whole list (no per-item review-stats requests).
+			const subjects = await this.wkManager.readSubjectsById(ids);
+			const byId = new Map((subjects ?? []).map(subject => [subject.id, subject]));
+			this.historySubjects = enrichSubjectsWithSchoolGrades(
+				ids.map(id => byId.get(id)).filter(Boolean),
 			);
-			this.historySubjects = subjects.filter(Boolean);
 		},
 		async clearHistory() {
 			await clearSearchHistory();
 			this.historySubjects = [];
 		},
-		search(query) {
-			// sanitize input
-			query = typeof query === 'string' ? query.trim() : this.searchQuery.trim();
+		/** Typed (in hiragana mode, already converted by the field, IME-style). */
+		onQuery(value) {
+			this.searchQuery = value;
+			this.search();
+		},
+		async search(input) {
+			// Only programmatic searches (history, related items, route) rewrite the input box.
+			// While typing, the box keeps what the user typed (e.g. a trailing "n").
+			const fromCaller = typeof input === 'string';
+			let query = (fromCaller ? input : this.searchQuery).trim();
+			// The search term itself is fully converted, so "かn" searches for "かん".
 			query = this.hasKana(query) ? toHiragana(query) : query;
 			if (this.searchTypeKana && !this.hasKana(query))
 				query = toHiragana(query);
+
+			const seq = ++this.searchSeq;
 
 			if (!query) {
 				this.rawResults = [];
@@ -291,24 +347,60 @@ export default {
 				return;
 			}
 
-			if (this.searchQuery !== query)
+			if (fromCaller && this.searchQuery !== query)
 				this.searchQuery = query;
 
 			// add search query to history
 			this.$router.push({ name: 'Search', query: { q: query, type: this.searchTypeKana ? 'kana' : 'romaji' } });
 
-			this.fetchId = query;
+			if (!this.wkManager) return;
+
+			let subjects = [];
+			try {
+				subjects = await this.runQuery(query);
+			} catch (error) {
+				console.error('[Search] query failed:', error);
+			}
+
+			// a newer keystroke already started another search
+			if (seq !== this.searchSeq) return;
+
+			this.rawResults = rankExactMatchesFirst(subjects ?? [], query);
+			this.applySearchFilters();
+		},
+		/**
+		 * Search the local cache only (like v1.x): no API requests per keystroke.
+		 * Assignment data in the cache is kept fresh by the dashboard refresh.
+		 */
+		async runQuery(query) {
 			const searchOptions = {
 				precise: this.settingsStore.settings.search.targeted_search,
+				cacheOnly: true,
 			};
-			if (!isNaN(query))
-				this.wkManager.getSubjectsByLevel(parseInt(query));
-			else if (this.hasKanji(query))
-				this.wkManager.querySubjectsByCharacters(query, null, searchOptions);
-			else if (isHiragana(query) || isKatakana(query))
-				this.wkManager.querySubjectsByReading(toHiragana(query), null, searchOptions);
-			else
-				this.wkManager.querySubjectsByMeaning(query, null, searchOptions);
+
+			// "legacy": the subjects WaniKani retired (no longer in lessons or reviews), from the
+			// whole cache (the ones in memory can still be loading)
+			if (this.isLegacyQuery(query)) {
+				const ids = (await this.wkManager.storage.getMaterials())
+					.filter(subject => subject.hidden_at)
+					.map(subject => subject.id);
+				return ids.length ? this.wkManager.readSubjectsById(ids) : [];
+			}
+			if (!isNaN(query)) {
+				const level = parseInt(query, 10);
+				const ids = await this.wkManager.storage.getIdsByLevel([level]);
+				if (ids.length) return this.wkManager.readSubjectsById(ids);
+				// level not synced yet: fetch it once from the API
+				return this.wkManager.getSubjectsByLevel(level, null);
+			}
+			if (this.hasKanji(query))
+				return this.wkManager.querySubjectsByCharacters(query, null, searchOptions);
+			if (isHiragana(query) || isKatakana(query))
+				return this.wkManager.querySubjectsByReading(toHiragana(query), null, searchOptions);
+			return this.wkManager.querySubjectsByMeaning(query, null, searchOptions);
+		},
+		isLegacyQuery(query) {
+			return String(query ?? '').trim().toLowerCase() === 'legacy';
 		},
 		hasKanji(text) {
 			const kanjiRegex = /[\u4E00-\u9FAF]/;
@@ -318,26 +410,11 @@ export default {
 			const kanaRegex = /[\u3040-\u309F\u30A0-\u30FF]/;
 			return kanaRegex.test(text);
 		},
-		handleSearchTypeChange() {
-			this.searchTypeKana = !this.searchTypeKana;
-
-			this.$router.push({ name: 'Search', query: { q: this.searchQuery, type: this.searchTypeKana ? 'kana' : 'romaji' } });
-
-			if (this.searchTypeKana) {
-				this.searchQuery = toHiragana(this.searchQuery);
-				bind(this.$refs.kanjiSearchInput);
-			}
-			else {
-				this.searchQuery = toRomaji(this.searchQuery);
-				try {
-					unbind(this.$refs.kanjiSearchInput);
-				} catch (error) {
-					console.error('Error unbinding input:', error);
-				}
-			}
-
-			this.$refs.kanjiSearchInput.focus();
-			this.search();
+		/** A / あ switched (the field converts what's typed, then sends it: searched then). */
+		onKanaChange(kana) {
+			this.searchTypeKana = kana;
+			this.$router.push({ name: 'Search', query: { q: this.searchQuery, type: kana ? 'kana' : 'romaji' } });
+			this.$nextTick(() => this.search());
 		}
 	}
 };
@@ -352,91 +429,29 @@ export default {
 	width: 100%;
 }
 
+/* the field, the count and the layouts on a line; the filters on the next */
 .searchMenu {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
-	gap: 15px;
-	padding: 15px;
-	padding-right: unset;
+	gap: 8px 12px;
+	padding: 12px 12px 10px;
 	justify-content: space-between;
 	background-color: var(--default-color);
 }
 
-.textInputWrapper {
-	display: flex;
-	border-radius: 17px;
-	padding: 4px 6px;
-	position: relative;
-	height: 20px;
-	align-items: center;
-	background-color: var(--fill-color);
-	border: 2px solid white;
+.search-filters-row {
+	flex: 0 0 100%;
 }
 
-.textInputWrapper input {
-	width: 100%;
-	margin-right: 8px;
+/* the shared field (KanaSearchInput), a bit taller here: the page's main control */
+.search-field {
+	height: 34px;
 }
 
-#kanjiSearchInput {
-	width: 100%;
-	border: 0;
-	font-size: 15px;
-}
-
-#kanjiSearchInput:focus {
-	outline: none;
-}
-
-#kanjiSearchInput::placeholder {
-	color: gray;
-}
-
-.textInputIcon {
-	margin-right: 5px;
-	border-right: 1px solid var(--surface-border-color);
-	width: 14px;
-	height: 14px;
-	opacity: 0.7;
-	background-color: var(--fill-color);
-	padding: 8px;
-	border-top-left-radius: 50%;
-	border-bottom-left-radius: 50%;
-	margin-left: -6px;
-}
-
-.kanjiSearchTypeWrapper {
-	color: white;
-	padding: 0px;
-	position: absolute;
-	right: 0px;
-	bottom: 0px;
-	border-top-right-radius: 16px;
-	border-bottom-right-radius: 16px;
-	cursor: pointer;
-	width: 26px;
-	text-align: center;
-	height: 100%;
-}
-
-#kanjiSearchTypeRomaji {
-	font-size: 20px;
-	background-color: var(--wanikani);
-}
-
-#kanjiSearchTypeKana {
-	font-size: 15px;
-	background-color: var(--wanikani-sec);
-}
-
-#kanjiSearchType {
-	top: -3px;
-	bottom: 0;
-	position: absolute;
-	left: 0;
-	right: 2px;
-	margin: auto;
-	height: fit-content;
+.search-field :deep(.kana-search-input),
+.search-field :deep(.kana-search-input:focus) {
+	font-size: 14px;
 }
 
 .search-loading {
@@ -445,7 +460,8 @@ export default {
 
 .searchResults {
 	background-color: var(--fill-color);
-	min-height: 480px;
+	/* down to the bottom of the window, whatever its height (not past it: no stray scroll) */
+	min-height: calc(100vh - 153px);
 	border-top-left-radius: 10px;
 	border-top-right-radius: 10px;
 	overflow: hidden;
@@ -458,12 +474,53 @@ export default {
 
 .searchResultNavbarOptionsWrapper {
 	position: relative;
+	/* count, layout switch, separators and menu share one center line */
+	align-items: center;
 }
 
 .searchResultNavbarOptionsWrapper img {
 	width: 22px;
 	pointer-events: none;
 	filter: invert(1);
+}
+
+/* Detailed / Compact / Tiles switch (on the dark header in both themes) */
+.search-display-modes {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	padding: 2px;
+	border-radius: 8px;
+	background: rgba(255, 255, 255, 0.08);
+}
+
+.search-display-mode {
+	display: flex;
+	padding: 4px;
+	border: none;
+	border-radius: 6px;
+	background: transparent;
+	cursor: pointer;
+	transition: background-color 0.15s;
+}
+
+.search-display-mode svg {
+	width: 17px;
+	height: 17px;
+	fill: rgba(255, 255, 255, 0.55);
+	transition: fill 0.15s;
+}
+
+.search-display-mode:hover svg {
+	fill: #fff;
+}
+
+.search-display-mode.active {
+	background: var(--pill-color, #e36f94);
+}
+
+.search-display-mode.active svg {
+	fill: #fff;
 }
 
 .searchResultNavbarOption {
@@ -489,7 +546,9 @@ export default {
 }
 
 .searchOptionSeparator {
-	margin: 5px 9px;
+	align-self: center;
+	height: 20px;
+	margin: 0 9px;
 	width: 2px;
 	background-color: silver;
 }
@@ -512,6 +571,8 @@ export default {
 }
 
 #searchMenuButton {
+	display: flex;
+	align-items: center;
 	padding: 0px 4px;
 	padding-right: 10px;
 }
@@ -536,12 +597,20 @@ export default {
 .search-history-title {
 	font-size: 13px;
 	font-weight: 700;
-	color: var(--default-color);
+	color: var(--heading-color, #2a2d48);
 }
 
 .search-history-count {
 	font-size: 12px;
 	color: var(--muted-color);
+	font-variant-numeric: tabular-nums;
+}
+
+.search-history-hidden {
+	padding: 24px 14px;
+	font-size: 12.5px;
+	color: var(--font-sec-color);
+	text-align: center;
 }
 
 .search-history-clear {
@@ -581,9 +650,10 @@ export default {
 .searchResultItemWrapper {
 	font-size: 15px;
 	text-align: center;
-	max-height: 475px;
+	/* fits the 600px popup (406px, under the filters); taller windows (popped out, mobile) use their height */
+	max-height: max(406px, calc(100vh - 194px));
 	overflow: auto;
-	padding-top: 2px;
+	padding-top: 6px;
 }
 
 .searchResultItemWrapper::-webkit-scrollbar {
