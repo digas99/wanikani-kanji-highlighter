@@ -1,0 +1,7 @@
+Pitch accent data from Kanjium (https://github.com/mifunetoshiro/kanjium),
+by Uros O., licensed under Creative Commons Attribution-ShareAlike 4.0 International
+(https://creativecommons.org/licenses/by-sa/4.0/).
+
+Converted from data/source_files/raw/accents.txt into lookup files (split by the
+first character of each word) by scripts/build-pitch-accents.mjs. These files are
+shared under the same license.

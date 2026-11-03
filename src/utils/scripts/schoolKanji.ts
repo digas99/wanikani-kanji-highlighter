@@ -7,6 +7,8 @@ export type SchoolProgressColumn = 'burned' | 'passed' | 'progress' | 'locked';
 export type SchoolKanjiMaps = {
 	jlpt: Record<string, string[]>;
 	joyo: Record<string, string[]>;
+	/** the name kanji (Jinmeiyō): with the Jōyō ones, the kanji Japanese uses (missing in older caches) */
+	jinmeiyo?: string[];
 };
 
 export type SchoolGradeStats = {
@@ -22,6 +24,9 @@ export type SchoolGradeStats = {
 		textColor: string;
 	}>;
 };
+
+/** Locked share in progress bars: light gray (white vanished against white cards). */
+export const LOCKED_SEGMENT_COLOR = '#e2e2ea';
 
 const KANJIAPI_BASE = 'https://kanjiapi.dev/v1/kanji';
 const CACHE_KEY = 'local:schoolKanjiMaps';
@@ -111,7 +116,7 @@ async function fetchKanjiList(path: string): Promise<string[]> {
 }
 
 async function fetchMapsFromKanjiApi(): Promise<SchoolKanjiMaps> {
-	const [jlptEntries, joyoEntries] = await Promise.all([
+	const [jlptEntries, joyoEntries, jinmeiyo] = await Promise.all([
 		Promise.all(Object.entries(JLPT_ENDPOINTS).map(async ([grade, path]) => [
 			grade,
 			await fetchKanjiList(path),
@@ -120,11 +125,13 @@ async function fetchMapsFromKanjiApi(): Promise<SchoolKanjiMaps> {
 			grade,
 			await fetchKanjiList(path),
 		] as const)),
+		fetchKanjiList('jinmeiyo'),
 	]);
 
 	return {
 		jlpt: Object.fromEntries(jlptEntries),
 		joyo: Object.fromEntries(joyoEntries),
+		jinmeiyo,
 	};
 }
 
@@ -137,7 +144,8 @@ export async function loadSchoolKanjiMaps(): Promise<SchoolKanjiMaps> {
 
 	loadPromise = (async () => {
 		const cached = await readCachedMaps();
-		const cacheIsFresh = cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS;
+		// caches from before the Jinmeiyō list (pages' reading level) are fetched again once
+		const cacheIsFresh = cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS && Array.isArray(cached.maps.jinmeiyo);
 
 		if (cacheIsFresh) {
 			maps = cached.maps;
@@ -214,9 +222,16 @@ export function enrichSubjectWithSchoolGrades(
 	return subject;
 }
 
-export function getSchoolKanjiSubjects(subjects: Array<any>, school: SchoolKey): Array<any> {
+/** What a JLPT / Jōyō list is of: kanji, or WaniKani's words (vocabSchoolGrades.ts gives them grades). */
+export type SchoolKind = 'kanji' | 'vocabulary';
+
+const isKind = (subject: any, kind: SchoolKind) => (kind === 'kanji'
+	? subject.type === 'kanji'
+	: subject.type === 'vocabulary' || subject.type === 'kana_vocabulary');
+
+export function getSchoolKanjiSubjects(subjects: Array<any>, school: SchoolKey, kind: SchoolKind = 'kanji'): Array<any> {
 	return subjects.filter(subject =>
-		subject.type === 'kanji'
+		isKind(subject, kind)
 		&& !subject.assignment?.hidden
 		&& Boolean(subject[school]),
 	);
@@ -282,7 +297,7 @@ export function buildSubjectProgressSegments(
 			label: 'Locked',
 			count: filterSchoolColumn(subjects, 'locked').length,
 			width: 0,
-			background: '#ffffff',
+			background: LOCKED_SEGMENT_COLOR,
 			textColor: '#000',
 		},
 	].map(segment => ({
@@ -293,13 +308,57 @@ export function buildSubjectProgressSegments(
 	return segments;
 }
 
+/* ------------------------------------------------------------------ */
+/* Snapshot: last computed JLPT / Jōyō bars, shown instantly while the  */
+/* full subject list (~9000 subjects) is still loading from IndexedDB.  */
+/* ------------------------------------------------------------------ */
+
+const SNAPSHOT_KEY_PREFIX = 'schoolProgressSnapshot:';
+
+/** kanji keep the key they always had; words get their own */
+const snapshotKey = (school: SchoolKey, kind: SchoolKind) => SNAPSHOT_KEY_PREFIX + school + (kind === 'vocabulary' ? ':vocabulary' : '');
+
+export function readSchoolProgressSnapshot(school: SchoolKey, kind: SchoolKind = 'kanji'): SchoolGradeStats[] | null {
+	try {
+		const raw = localStorage.getItem(snapshotKey(school, kind));
+		const rows = raw ? JSON.parse(raw) : null;
+		return Array.isArray(rows) && rows.length ? rows : null;
+	} catch {
+		return null;
+	}
+}
+
+export function writeSchoolProgressSnapshot(school: SchoolKey, rows: SchoolGradeStats[], kind: SchoolKind = 'kanji'): void {
+	try {
+		localStorage.setItem(snapshotKey(school, kind), JSON.stringify(rows));
+	} catch {
+		// the snapshot is only a speed-up
+	}
+}
+
+export function hasSchoolProgressSnapshot(): boolean {
+	return (['jlpt', 'joyo'] as SchoolKey[]).some(school => readSchoolProgressSnapshot(school) !== null);
+}
+
+/** Logout / clearing subject data: don't show the previous numbers. */
+export function clearSchoolProgressSnapshots(): void {
+	try {
+		for (const school of ['jlpt', 'joyo'] as SchoolKey[]) {
+			for (const kind of ['kanji', 'vocabulary'] as SchoolKind[]) localStorage.removeItem(snapshotKey(school, kind));
+		}
+	} catch {
+		// ignore
+	}
+}
+
 export function buildSchoolGradeStats(
 	subjects: Array<any>,
 	school: SchoolKey,
 	grade: string,
+	kind: SchoolKind = 'kanji',
 ): SchoolGradeStats {
 	const config = SCHOOL_CONFIG[school];
-	const gradeSubjects = getSchoolKanjiSubjects(subjects, school)
+	const gradeSubjects = getSchoolKanjiSubjects(subjects, school, kind)
 		.filter(subject => subjectMatchesSchoolGrade(subject, school, grade));
 	const total = gradeSubjects.length;
 	const segments = buildSubjectProgressSegments(gradeSubjects);
@@ -312,19 +371,96 @@ export function buildSchoolGradeStats(
 	};
 }
 
+/* ------------------------------------------------------------------ */
+/* JLPT readiness: an estimate from the kanji and words passed          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Passed (burned too) of every level up to this one: the JLPT is cumulative (N3 covers N5–N3).
+ * Words lower: WaniKani teaches many of the easy levels' words late (they lag behind by design).
+ */
+export const JLPT_READY_SHARE = { kanji: 0.8, words: 0.7 };
+
+export type JlptReadinessLevel = {
+	grade: string;
+	/** "N3" */
+	label: string;
+	/** 0–1, of this level and the easier ones */
+	kanji: number;
+	words: number;
+	ready: boolean;
+};
+
+export type JlptReadiness = {
+	levels: JlptReadinessLevel[];
+	/** the highest level ready for ("N4"), null: not N5 yet */
+	ready: string | null;
+	/** the next one to work on (null: all of them ready) */
+	next: JlptReadinessLevel | null;
+};
+
+const passedOf = (row: SchoolGradeStats) => row.segments
+	.filter(segment => segment.column === 'burned' || segment.column === 'passed')
+	.reduce((sum, segment) => sum + segment.count, 0);
+
+/**
+ * From the JLPT rows (kanji and words, N5 first): for each level, the share of its kanji and
+ * words passed, with the easier levels'. Ready for a level when both reach their
+ * JLPT_READY_SHARE (and all the easier ones are). Only kanji and vocabulary (WaniKani's words):
+ * not grammar, reading or listening.
+ */
+export function jlptReadiness(kanjiRows: SchoolGradeStats[], wordRows: SchoolGradeStats[]): JlptReadiness {
+	return schoolReadiness('jlpt', kanjiRows, wordRows);
+}
+
+/** As jlptReadiness, for either list (Jōyō: the school grades, also taught cumulatively). */
+export function schoolReadiness(school: SchoolKey, kanjiRows: SchoolGradeStats[], wordRows: SchoolGradeStats[]): JlptReadiness {
+	const levels: JlptReadinessLevel[] = [];
+	const totals = { kanji: [0, 0], words: [0, 0] };
+	let stillReady = true;
+	for (const grade of SCHOOL_CONFIG[school].grades) {
+		const kanjiRow = kanjiRows.find(row => row.grade === grade);
+		const wordRow = wordRows.find(row => row.grade === grade);
+		if (kanjiRow) { totals.kanji[0] += passedOf(kanjiRow); totals.kanji[1] += kanjiRow.total; }
+		if (wordRow) { totals.words[0] += passedOf(wordRow); totals.words[1] += wordRow.total; }
+		const kanji = totals.kanji[1] ? totals.kanji[0] / totals.kanji[1] : 0;
+		const words = totals.words[1] ? totals.words[0] / totals.words[1] : 0;
+		stillReady = stillReady && kanji >= JLPT_READY_SHARE.kanji && words >= JLPT_READY_SHARE.words;
+		levels.push({ grade, label: SCHOOL_CONFIG[school].gradeLabel(grade), kanji, words, ready: stillReady });
+	}
+	const readyLevels = levels.filter(level => level.ready);
+	return {
+		levels,
+		ready: readyLevels.at(-1)?.label ?? null,
+		next: levels.find(level => !level.ready) ?? null,
+	};
+}
+
+/** The rows to estimate from: the live ones when every subject is in memory, else the saved ones. */
+export function jlptRows(subjects: Array<any>, kind: SchoolKind, complete: boolean): SchoolGradeStats[] {
+	return schoolRows(subjects, 'jlpt', kind, complete);
+}
+
+export function schoolRows(subjects: Array<any>, school: SchoolKey, kind: SchoolKind, complete: boolean): SchoolGradeStats[] {
+	const saved = readSchoolProgressSnapshot(school, kind);
+	if ((!complete && saved) || !subjects.length) return saved ?? [];
+	return SCHOOL_CONFIG[school].grades.map(grade => buildSchoolGradeStats(subjects, school, grade, kind));
+}
+
 export function buildSchoolSections(
 	subjects: Array<any>,
 	school: SchoolKey,
 	grade: string,
+	kind: SchoolKind = 'kanji',
 ) {
-	const gradeSubjects = getSchoolKanjiSubjects(subjects, school)
+	const gradeSubjects = getSchoolKanjiSubjects(subjects, school, kind)
 		.filter(subject => subjectMatchesSchoolGrade(subject, school, grade));
 
 	return ([
 		{ column: 'burned' as SchoolProgressColumn, label: 'Burned', color: 'var(--brn-color)', srs: 9 },
 		{ column: 'passed' as SchoolProgressColumn, label: 'Passed', color: '#000000', srs: 5 },
 		{ column: 'progress' as SchoolProgressColumn, label: 'Progress', color: 'var(--ap4-color)', srs: 4 },
-		{ column: 'locked' as SchoolProgressColumn, label: 'Locked', color: '#ffffff', srs: -1 },
+		{ column: 'locked' as SchoolProgressColumn, label: 'Locked', color: LOCKED_SEGMENT_COLOR, srs: -1 },
 	]).map(({ column, label, color, srs }) => ({
 		sectionId: `${school}-${grade}-${column}`,
 		label,
