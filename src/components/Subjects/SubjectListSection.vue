@@ -14,21 +14,41 @@
 			@click="onHeaderClick"
 		>
 			<div class="section-header-left">
-				<span v-if="headerVariant === 'compact' && accentColor" class="section-accent-marker">
-					<b></b>
+				<!-- what the group is: an SRS stage's egg, or a subject type's kanji (sectionIcons.ts) -->
+				<span v-if="icon?.kind === 'svg'" class="section-icon srs" aria-hidden="true">
+					<svg :viewBox="icon.viewBox" :style="icon.color ? { fill: icon.color } : null"><path :d="icon.d" :fill-rule="icon.evenodd ? 'evenodd' : null" /></svg>
 				</span>
+				<span
+					v-else-if="icon?.kind === 'char'"
+					class="section-icon type"
+					:class="{ wide: icon.char.length > 1 }"
+					:style="icon.color ? { background: icon.color } : null"
+					lang="ja"
+					aria-hidden="true"
+				>{{ icon.char }}</span>
 				<span class="section-label">{{ label }}</span>
 				<span v-if="countLabel" class="section-count">{{ countLabel }}</span>
-				<span v-if="headerVariant === 'compact' && accentColor" class="section-accent-arrow">
-					<i class="up" :style="{ borderColor: accentColor }"></i>
-				</span>
 			</div>
 
 			<div
-				v-if="showControls"
+				v-if="showControls || canPractice"
 				class="section-controls"
 				@click.stop
 			>
+				<button
+					v-if="canPractice"
+					type="button"
+					class="section-control-btn clickable"
+					title="Practice these subjects as flashcards"
+					@click="startPractice"
+				>
+					<!-- a card with a "play" mark: start a practice round (not two sheets, which reads as copy) -->
+					<svg class="section-practice-icon" viewBox="0 0 24 24" aria-hidden="true">
+						<rect x="3" y="4" width="18" height="16" rx="3" />
+						<path class="play" d="M10 8.5v7l5.5-3.5z" />
+					</svg>
+				</button>
+				<template v-if="showControls">
 				<button
 					type="button"
 					class="section-control-btn clickable"
@@ -53,6 +73,7 @@
 				>
 					<img :src="menuIcon" alt="Menu">
 				</button>
+				</template>
 				<button
 					v-if="collapsible && headerVariant === 'profile'"
 					type="button"
@@ -60,7 +81,9 @@
 					:title="opened ? 'Collapse' : 'Expand'"
 					@click="$emit('toggle-collapse')"
 				>
-					<i class="arrow" :class="opened ? 'up' : 'down'"></i>
+					<svg class="section-collapse-icon" :class="{ collapsed: !opened }" viewBox="0 0 24 24" aria-hidden="true">
+						<path d="M6 15l6-6 6 6" />
+					</svg>
 				</button>
 			</div>
 
@@ -100,6 +123,8 @@
 				:colors="tilesListColors"
 				:tile-styles="tilesListTileStyles"
 				:show-reviews-info="resolvedShowReviewsInfo"
+				:show-meaning="Boolean(menuSettings.menu.show_meaning)"
+				:show-trouble="menuSettings.menu.show_trouble !== false"
 			/>
 			<p v-if="!processedSubjects.length" class="empty-message">
 				No subjects match the current filters.
@@ -113,6 +138,12 @@ import ProfileSectionMenu from '@/components/Profile/ProfileSectionMenu.vue';
 import TilesList from '@/components/Subjects/TilesList.vue';
 import SchoolProgressBar from '@/components/Home/SchoolProgressBar.vue';
 import { useSettingsStore } from '@/stores/settings';
+import { useWKStore } from '@/stores';
+import { sectionIconFor } from '@/utils/scripts/sectionIcons';
+
+function hasDisplayData(subject) {
+	return Boolean(subject?.characters || subject?.character_images?.length);
+}
 import {
 	buildTileStyles,
 	createDefaultProfileMenuEntry,
@@ -223,8 +254,18 @@ export default {
 
 	emits: ['toggle-collapse'],
 
+	watch: {
+		subjects: {
+			handler() {
+				this.resolveMissingSubjects();
+			},
+			immediate: true,
+		},
+	},
+
 	data() {
 		return {
+			resolved: {},
 			settingsStore: useSettingsStore(),
 			sortIcon: '/icons/profile/sort.png',
 			filterIcon: '/icons/profile/filter.png',
@@ -250,7 +291,21 @@ export default {
 		},
 
 		normalizedSubjects() {
-			return normalizeProfileSubjects(this.subjects);
+			// fill in subjects that arrived without their data (see resolveMissingSubjects)
+			const subjects = this.subjects.map(subject => {
+				const resolved = this.resolved[subject.id];
+				if (!resolved || hasDisplayData(subject)) return subject;
+				return {
+					...subject,
+					type: subject.type || resolved.type,
+					level: subject.level ?? resolved.level,
+					characters: resolved.characters,
+					character_images: resolved.character_images,
+					meaning: resolved.meaning,
+					reading: resolved.reading,
+				};
+			});
+			return normalizeProfileSubjects(subjects);
 		},
 
 		processedSubjects() {
@@ -304,6 +359,16 @@ export default {
 			return { '--section-accent': this.accentColor };
 		},
 
+		/** By the title: an SRS stage's egg, or a subject type's kanji (none for other groups). */
+		icon() {
+			return sectionIconFor(this.label);
+		},
+
+		/** Practice goes through what the section shows (its sort and filters applied). */
+		canPractice() {
+			return !this.controlsOnly && this.processedSubjects.length > 0;
+		},
+
 		resolvedShowReviewsInfo() {
 			if (this.showReviewsInfo !== null) return this.showReviewsInfo;
 			return this.menuSettings.menu.reviews_info;
@@ -311,6 +376,38 @@ export default {
 	},
 
 	methods: {
+		/** Tiles without characters or images (subject data not cached): fetch them once. */
+		async resolveMissingSubjects() {
+			if (!this._requested) this._requested = new Set();
+			const ids = this.subjects
+				.filter(subject => !hasDisplayData(subject)
+					&& !this.resolved[subject.id]
+					&& !this._requested.has(subject.id))
+				.map(subject => subject.id);
+			if (!ids.length) return;
+
+			ids.forEach(id => this._requested.add(id));
+			const subjects = await useWKStore().resolveSubjects(ids);
+			if (!subjects?.length) return;
+
+			const next = { ...this.resolved };
+			for (const subject of subjects) next[subject.id] = subject;
+			this.resolved = next;
+		},
+
+		startPractice() {
+			this.clearActiveListMenu?.();
+			this.$router.push({
+				name: 'Practice',
+				query: {
+					title: this.label,
+					// where "Back to the list" returns to
+					from: this.$route.fullPath,
+					ids: this.processedSubjects.map(subject => subject.id).join(','),
+				},
+			});
+		},
+
 		onHeaderClick() {
 			if (!this.collapsible || this.headerVariant === 'profile') return;
 			this.$emit('toggle-collapse');
@@ -377,7 +474,10 @@ export default {
 	font-size: 18px;
 	border-left: 4px solid var(--section-accent, var(--default-color));
 	background: var(--default-color);
+	/* the group as a small card: its title on top, the tiles in its body */
+	border-radius: 10px 10px 0 0;
 }
+
 
 .section-header-left {
 	display: flex;
@@ -402,14 +502,48 @@ export default {
 	font-weight: 400;
 }
 
-.section-accent-marker > b {
-	display: inline-block;
-	width: 0;
+/* the group's icon, by its title */
+.section-icon {
+	flex-shrink: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	margin-right: -2px;
 }
 
-.section-accent-arrow .up {
-	padding: 4px;
-	margin-bottom: -7px;
+/* an SRS stage: WaniKani's egg in the stage's colour, on a white tile (as the type marks) */
+.section-icon.srs {
+	width: 1.3em;
+	height: 1.3em;
+	border-radius: 5px;
+	background: #fff;
+	box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.12);
+}
+
+.section-icon.srs svg {
+	height: 0.95em;
+	width: auto;
+	fill: var(--section-accent, #2a2d48);
+}
+
+/* a subject type: its kanji on its colour, as WaniKani's type marks */
+.section-icon.type {
+	width: 1.3em;
+	height: 1.3em;
+	border-radius: 5px;
+	/* no colour of its own: the section's accent */
+	background: var(--section-accent, #8a8fa3);
+	color: #fff;
+	font-size: 0.8em;
+	font-weight: 700;
+	line-height: 1;
+	box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* two marks ("!!"): a little tighter */
+.section-icon.type.wide {
+	font-size: 0.68em;
+	letter-spacing: -0.08em;
 }
 
 .section-controls {
@@ -436,14 +570,41 @@ export default {
 	opacity: 0.85;
 }
 
-.section-collapse-btn {
-	padding: 0 10px;
+.section-practice-icon {
+	width: 17px;
+	height: 17px;
+	fill: none;
+	stroke: #fff;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	opacity: 0.85;
 }
 
-.section-collapse-btn .arrow {
-	border-color: white;
-	padding: 4px !important;
-	margin-bottom: -4px;
+.section-practice-icon .play {
+	fill: #fff;
+	stroke-width: 1.5;
+}
+
+.section-collapse-btn {
+	padding: 6px 8px;
+}
+
+/* same size and centering as the other header icons; points down when collapsed */
+.section-collapse-icon {
+	width: 18px;
+	height: 18px;
+	fill: none;
+	stroke: #fff;
+	stroke-width: 2.5;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	opacity: 0.85;
+	transition: transform 0.2s ease;
+}
+
+.section-collapse-icon.collapsed {
+	transform: rotate(180deg);
 }
 
 .section-progress {
@@ -462,6 +623,15 @@ export default {
 
 .section-body {
 	background: var(--fill-color);
+}
+
+/* the tiles inside a bounded, slightly tinted panel under the title (they don't float loose) */
+.header-compact .section-body {
+	padding: 4px;
+	border: 1px solid var(--surface-border-color);
+	border-top: none;
+	border-radius: 0 0 10px 10px;
+	background: color-mix(in srgb, var(--default-color) 5%, var(--fill-color));
 }
 
 .empty-message {

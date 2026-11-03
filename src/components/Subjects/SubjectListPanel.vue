@@ -4,7 +4,11 @@
 		:style="panelStyle"
 		@click="onPanelClick"
 	>
-		<div v-if="headerTitle" class="panel-header" v-html="headerTitle"></div>
+		<div v-if="headerTitle" class="panel-header">
+			<span v-html="headerTitle"></span>
+			<!-- something on the header's right (e.g. a link), when given -->
+			<span v-if="$slots['header-end']" class="panel-header-end"><slot name="header-end"></slot></span>
+		</div>
 
 		<div class="panel-content">
 			<div v-if="showBar" class="panel-bar">
@@ -16,7 +20,16 @@
 				class="panel-sections subjects-list"
 				@scrollend="onScroll"
 			>
-				<p v-if="!sections.length" class="panel-empty">{{ emptyMessage }}</p>
+				<!-- still loading: placeholder sections, not "nothing here" -->
+				<div v-if="loading && !sections.length" class="panel-skeleton" aria-busy="true" aria-label="Loading">
+					<div v-for="block in [14, 8]" :key="block" class="panel-skeleton-section">
+						<span class="panel-skeleton-head"></span>
+						<span class="panel-skeleton-tiles">
+							<span v-for="tile in block" :key="tile" class="panel-skeleton-tile"></span>
+						</span>
+					</div>
+				</div>
+				<p v-else-if="!sections.length" class="panel-empty">{{ emptyMessage }}</p>
 				<SubjectListSection
 					v-for="section in sections"
 					:key="section.sectionId"
@@ -28,6 +41,7 @@
 </template>
 
 <script>
+import { pauseTileLoading } from '@/utils/scripts/tileLoading';
 import SubjectListSection from '@/components/Subjects/SubjectListSection.vue';
 
 export default {
@@ -81,6 +95,11 @@ export default {
 			type: Boolean,
 			default: true,
 		},
+		/** the data is still coming: placeholders instead of the empty message */
+		loading: {
+			type: Boolean,
+			default: false,
+		},
 		emptyMessage: {
 			type: String,
 			default: 'Nothing here.',
@@ -107,6 +126,7 @@ export default {
 
 	beforeUnmount() {
 		document.removeEventListener('click', this.onDocumentClick);
+		clearTimeout(this.realignTimer);
 	},
 
 	methods: {
@@ -148,23 +168,35 @@ export default {
 			}
 		},
 
+		/** @returns {boolean} whether the section exists (and was scrolled to) */
 		scrollToSection(sectionId) {
 			const container = this.$refs.scrollContainer;
-			if (!container) return;
+			if (!container) return false;
 
 			const section = container.querySelector(
 				`[data-section-id="${CSS.escape(String(sectionId))}"]`,
 			);
-			if (!section) return;
+			if (!section) return false;
 
-			const top = section.getBoundingClientRect().top
+			const topOf = () => section.getBoundingClientRect().top
 				- container.getBoundingClientRect().top
 				+ container.scrollTop;
 
+			// long lists draw more tiles as they're scrolled: not on the way there (the sections
+			// passed would grow, pushing this one down)
+			pauseTileLoading(900);
 			container.scrollTo({
-				top,
+				top: topOf(),
 				behavior: 'smooth',
 			});
+			// there: exactly on it, whatever moved meanwhile
+			clearTimeout(this.realignTimer);
+			this.realignTimer = setTimeout(() => {
+				if (Math.abs(section.getBoundingClientRect().top - container.getBoundingClientRect().top) > 2) {
+					container.scrollTo({ top: topOf() });
+				}
+			}, 850);
+			return true;
 		},
 	},
 };
@@ -178,25 +210,54 @@ export default {
 }
 
 .panel-header {
-	text-align: center;
+	/* a heading for the list under it: on its left edge, close to it */
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 4px 7px;
 	background-color: var(--default-color);
-	color: white;
-	padding: 15px 5px;
-	font-size: 15px;
+	color: rgba(255, 255, 255, 0.72);
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.3;
+	text-align: left;
+}
+
+.panel-header > span:first-child {
+	flex: 1;
+	min-width: 0;
+}
+
+/* the count (the titles' <b>): a pill */
+.panel-header > span:first-child :deep(b) {
+	display: inline-block;
+	min-width: 22px;
+	margin-right: 5px;
+	padding: 1px 8px;
+	box-sizing: border-box;
+	border-radius: 999px;
+	background-color: rgba(255, 255, 255, 0.16);
+	color: #fff;
+	font-size: 13px;
+	font-weight: 800;
+	text-align: center;
+	font-variant-numeric: tabular-nums;
+}
+
+/* on the right */
+.panel-header-end {
+	flex-shrink: 0;
+	font-size: 11.5px;
+	font-weight: 700;
 }
 
 .panel-content {
 	overflow: hidden;
-	border-top-left-radius: 10px;
-	border-top-right-radius: 10px;
+	border-radius: 10px;
 	padding: 5px;
 	background-color: var(--fill-color);
 	display: flex;
 	flex-direction: column;
-}
-
-.panel-bar {
-	padding: 0 0 5px;
 }
 
 .panel-sections {
@@ -205,8 +266,13 @@ export default {
 	flex: 1;
 }
 
+/* the gap between the groups, as the profile's */
 .panel-sections :deep(.subject-list-section) {
-	padding: 5px;
+	margin-bottom: 8px;
+}
+
+.panel-sections :deep(.subject-list-section:last-child) {
+	margin-bottom: 0;
 }
 
 .panel-sections :deep(.section-header) {
@@ -219,6 +285,49 @@ export default {
 	margin-bottom: -7px;
 }
 
+.panel-skeleton {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 2px;
+}
+
+.panel-skeleton-section {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.panel-skeleton-head {
+	height: 34px;
+	border-radius: 8px;
+	background: var(--default-color);
+	opacity: 0.85;
+}
+
+.panel-skeleton-tiles {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px;
+	padding: 0 2px;
+}
+
+.panel-skeleton-tile {
+	flex: 1 0 44px;
+	max-width: 70px;
+	height: 44px;
+	border-radius: 6px;
+	background-color: var(--surface-muted-color, #ececf2);
+	background-image: linear-gradient(90deg, transparent 20%, rgba(255, 255, 255, 0.55) 50%, transparent 80%);
+	background-size: 300% 100%;
+	animation: panel-skeleton-shimmer 1.3s ease-in-out infinite;
+}
+
+@keyframes panel-skeleton-shimmer {
+	from { background-position: 100% 0; }
+	to { background-position: 0 0; }
+}
+
 .panel-empty {
 	text-align: center;
 	color: var(--font-sec-color);
@@ -227,7 +336,11 @@ export default {
 </style>
 
 <style>
+/* a page's list: always its full height (a short list doesn't make the page end early);
+   lists without one (e.g. Home's) fit their content */
 .subject-list-panel .panel-sections {
-	max-height: var(--subject-list-height, none);
+	/* the basis, not just height: flex's 0% basis would win over it */
+	flex-basis: var(--subject-list-height, 0%);
+	height: var(--subject-list-height, auto);
 }
 </style>

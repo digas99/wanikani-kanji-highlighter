@@ -8,27 +8,30 @@
 		]"
 		:data-item-id="item.id"
 		:style="tileStyle"
-		:title="title"
+		:title="tooltip"
 		@click="onClick"
+		@contextmenu="onContextMenu"
 	>
-		<SubjectCharacters :item="item" :height="height" :width="width" />
+		<SubjectCharacters v-if="hasDisplayData" :item="item" :height="height" :width="width" />
+		<!-- subject data still loading: a placeholder the size of a character -->
+		<span v-else class="tile-loading"></span>
+		<span v-if="showMeaning && meaningLabel" class="tile-meaning">{{ meaningLabel }}</span>
+		<!-- you keep getting it wrong (troubleSubjects.ts): a circle on the top right, in every list -->
+		<span v-if="trouble" class="tile-trouble" :class="{ serious: trouble.serious }" aria-hidden="true">!</span>
 
 		<div v-if="showReviewsInfo" class="reviews-info">
-			<img
-				v-if="item.assignment?.passed_at"
-				class="passed-subject-check"
-				src="/icons/sidebar/check.png"
-				alt=""
-			>
+			<!-- the next review, top left inside the tile: "now" (green) or when ("10h").
+			     Passed ones: their full bar says it (no time either, as before). -->
 			<div
-				v-else-if="reviewLabel"
+				v-if="!passed && reviewLabel"
 				class="subject-next-review"
-				:class="{ locked: item.isLocked }"
+				:class="{ locked: item.isLocked, now: reviewLabel === 'now' }"
 			>
 				<div>{{ reviewLabel }}</div>
 			</div>
 
-			<div class="subject-passed-progress" :class="{ compact: srsKey >= 5 }">
+			<!-- to Guru: a segment per Apprentice stage; passed (ever): full and solid, even back in Apprentice -->
+			<div class="subject-passed-progress" :class="{ compact: passed }">
 				<div
 					v-for="index in 5"
 					:key="index"
@@ -42,6 +45,9 @@
 <script>
 import SubjectCharacters from '@/components/Subjects/SubjectCharacters.vue';
 import { formatShortDuration } from '@/utils/scripts/profileSubjects';
+import { primaryMeaning, subjectSummary } from '@/utils/scripts/wanikani';
+import { showSubjectInPage } from '@/utils/scripts/showSubjectInPage';
+import { troubleText, useTroubleSubjects } from '@/utils/scripts/troubleSubjects';
 
 export default {
 	name: 'SubjectTile',
@@ -80,6 +86,15 @@ export default {
 			type: Boolean,
 			default: false,
 		},
+		showMeaning: {
+			type: Boolean,
+			default: false,
+		},
+		/** the trouble circle (off: a list's menu → Trouble info) */
+		showTrouble: {
+			type: Boolean,
+			default: true,
+		},
 		title: {
 			type: String,
 			default: '',
@@ -87,10 +102,35 @@ export default {
 	},
 
 	computed: {
+		/** Hover text: what the subject means, since the tile only shows characters. */
+		tooltip() {
+			const lines = [this.title || subjectSummary(this.item)];
+			// the tile shows a dot / "2h": the words, on hover
+			if (this.showReviewsInfo && !this.passed && this.reviewLabel) {
+				lines.push(this.reviewLabel === 'now' ? 'Review available now' : `Next review in ${this.reviewLabel}`);
+			}
+			if (this.trouble) lines.push(troubleText(this.trouble));
+			return lines.join('\n');
+		},
+		/** the popup's trouble subjects (empty when their marks are off in the settings) */
+		trouble() {
+			if (!this.showTrouble || this.item?.id == null) return null;
+			return useTroubleSubjects().byId.get(Number(this.item.id)) ?? null;
+		},
+		hasDisplayData() {
+			return Boolean(this.item.characters || this.item.character_images?.length);
+		},
+		meaningLabel() {
+			return primaryMeaning(this.item);
+		},
 		srsKey() {
 			if (typeof this.item.srsKey === 'number') return this.item.srsKey;
 			const stage = this.item.assignment?.srs_stage;
 			return stage == null ? -1 : Number(stage);
+		},
+		/** reached Guru at some point (now, or before falling back to Apprentice) */
+		passed() {
+			return Boolean(this.item.assignment?.passed_at) || this.srsKey >= 5;
 		},
 		reviewLabel() {
 			const availableAt = this.item.assignment?.available_at;
@@ -114,8 +154,15 @@ export default {
 
 			this.$emit('click', this.item);
 		},
+		/** Right-click: show the subject in the web page's details popup (else open it here). */
+		async onContextMenu(event) {
+			if (!this.useRouter || this.item?.id == null) return;
+			event.preventDefault();
+			if (await showSubjectInPage(this.item.id)) return;
+			void this.$router?.push({ name: 'Subject', params: { id: this.item.id } });
+		},
 		progressFilled(index) {
-			if (this.item.assignment?.passed_at) return true;
+			if (this.passed) return true;
 			return this.srsKey > index;
 		},
 	},
@@ -129,8 +176,65 @@ export default {
 	text-decoration: none;
 }
 
+.tile-loading {
+	display: inline-block;
+	width: 22px;
+	height: 22px;
+	vertical-align: middle;
+	border-radius: 4px;
+	background: linear-gradient(90deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.55) 50%, rgba(255, 255, 255, 0.25) 100%);
+	background-size: 200% 100%;
+	animation: tile-loading 1.2s linear infinite;
+}
+
+@keyframes tile-loading {
+	from { background-position: 100% 0; }
+	to { background-position: -100% 0; }
+}
+
+.tile-meaning {
+	display: block;
+	max-width: 90px;
+	margin: 2px auto 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 10px;
+	line-height: 1.2;
+	text-shadow: none;
+	opacity: 0.9;
+}
+
 img {
 	filter: invert(1);
+}
+
+/* trouble: a circle on the top right (where the passed tick was), amber; red for the worst.
+   Above the next review time when both are there. */
+.tile-trouble {
+	position: absolute;
+	top: -4px;
+	right: -5px;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: #f5a524;
+	color: #2a1a00;
+	font-size: 10px;
+	font-weight: 900;
+	line-height: 1;
+	text-shadow: none;
+	box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.35);
+	pointer-events: none;
+}
+
+.tile-trouble.serious {
+	background: #ff4d4d;
+	color: #fff;
 }
 
 .reviews-info {
@@ -139,33 +243,34 @@ img {
 	pointer-events: none;
 }
 
-.passed-subject-check {
-	width: 14px;
-	position: absolute;
-	top: -3px;
-	right: -5px;
-	filter: invert(72%) sepia(73%) saturate(3496%) hue-rotate(87deg) brightness(106%) contrast(109%) drop-shadow(0 0 2px black);
-	z-index: 1;
-}
-
+/* the next review: top left, inside the tile (the top right is the trouble circle's) */
+/* a tab in the corner: flush with the tile's edges, its outer corner rounded like the tile's */
 .subject-next-review {
 	position: absolute;
-	top: -4px;
-	right: -8px;
+	top: 0;
+	left: 0;
 	z-index: 1;
 }
 
 .subject-next-review div {
-	font-size: 10px;
-	background-color: #42f541;
-	padding: 2px 3px;
-	border-radius: 5px;
-	color: #000;
+	padding: 1px 4px 2px 3px;
+	border-radius: 5px 0 5px 0;
+	background-color: rgba(0, 0, 0, 0.35);
+	color: #fff;
+	font-size: 8.5px;
 	font-weight: 700;
+	line-height: 1.2;
+	text-shadow: none;
+}
+
+/* waiting right now: the same pill, green text */
+.subject-next-review.now div {
+	color: #5cff6e;
 }
 
 .subject-next-review.locked div {
-	background-color: #e1e1e1;
+	background-color: rgba(225, 225, 225, 0.85);
+	color: #333;
 }
 
 .subject-passed-progress {

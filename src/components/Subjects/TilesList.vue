@@ -1,62 +1,37 @@
 <template>
-	<!-- Large lists: render directly without dummy-list measurement. -->
-	<ul v-if="useSimpleLayout" class="tiles-list justify-list">
+	<!--
+		Rows are justified (tiles stretch to fill the width); the last row keeps the tiles'
+		natural width. That's done in CSS (a filler at the end, see .justify-list::after), so
+		it's right at any width and needs no measuring.
+	-->
+	<ul class="tiles-list justify-list">
 		<SubjectTile
-			v-for="item in values"
+			v-for="item in shownValues"
 			:key="item.id"
 			:item="item"
 			:use-router="useRouter"
 			:tile-style="tileStyle(item)"
 			:invert-characters="tileInvert(item)"
 			:show-reviews-info="showReviewsInfo"
+			:show-meaning="showMeaning"
+			:show-trouble="showTrouble"
 			@click="onTileClick"
 		/>
+		<!-- more to draw: they come as this nears the screen -->
+		<li v-if="shown < values.length" ref="more" class="tiles-more" aria-hidden="true"></li>
 	</ul>
-	<!-- Small lists: hidden dummy list + last-row split (v1.5-style). -->
-	<template v-else>
-		<ul class="tiles-list justify-list dummy-list" ref="dummyList" aria-hidden="true">
-			<SubjectTile
-				v-for="item in values"
-				:key="item.id"
-				:item="item"
-				:use-router="useRouter"
-				:tile-style="tileStyle(item)"
-				:invert-characters="tileInvert(item)"
-				:show-reviews-info="showReviewsInfo"
-			/>
-		</ul>
-		<ul class="tiles-list justify-list">
-			<SubjectTile
-				v-for="item in tiles"
-				:key="item.id"
-				:item="item"
-				:use-router="useRouter"
-				:tile-style="tileStyle(item)"
-				:invert-characters="tileInvert(item)"
-				:show-reviews-info="showReviewsInfo"
-				@click="onTileClick"
-			/>
-			<li v-if="lastRowTiles.length" class="last-row">
-				<SubjectTile
-					v-for="item in lastRowTiles"
-					:key="item.id"
-					:item="item"
-					:use-router="useRouter"
-					:tile-style="tileStyle(item)"
-					:invert-characters="tileInvert(item)"
-					:show-reviews-info="showReviewsInfo"
-					@click="onTileClick"
-				/>
-			</li>
-		</ul>
-	</template>
 </template>
 
 <script>
 import SubjectTile from '@/components/Subjects/SubjectTile.vue';
+import { tileLoadingPausedFor } from '@/utils/scripts/tileLoading';
 
-/** Above this count, skip the hidden dummy-list layout pass. */
-const SIMPLE_LAYOUT_THRESHOLD = 120;
+/**
+ * Long lists (thousands of tiles: all the locked subjects) are drawn as they're scrolled to:
+ * the first ones right away, the next batch when the end of what's drawn nears the screen.
+ */
+const FIRST_TILES = 240;
+const TILES_PER_BATCH = 240;
 
 export default {
 	name: 'TilesList',
@@ -82,6 +57,15 @@ export default {
 			type: Boolean,
 			default: false,
 		},
+		showMeaning: {
+			type: Boolean,
+			default: false,
+		},
+		/** the trouble subjects' circle (a list's menu → Trouble info) */
+		showTrouble: {
+			type: Boolean,
+			default: true,
+		},
 		useRouter: {
 			type: Boolean,
 			default: true,
@@ -91,104 +75,57 @@ export default {
 	emits: ['tile-click'],
 
 	data() {
-		return {
-			tiles: [],
-			lastRowTiles: [],
-			resizeObserver: null,
-			formatRetryTimer: null,
-		};
+		return { shown: FIRST_TILES };
 	},
 
 	computed: {
-		useSimpleLayout() {
-			return this.values.length > SIMPLE_LAYOUT_THRESHOLD;
+		shownValues() {
+			return this.values.length <= this.shown ? this.values : this.values.slice(0, this.shown);
 		},
 	},
 
 	watch: {
 		values: {
-			handler() {
-				if (this.useSimpleLayout) return;
-				this.resetVisibleTiles();
-				this.scheduleFormatList();
+			immediate: true,
+			handler(values, previous) {
+				// another list (not the same one updated): from the start again
+				if (!previous || values.length < this.shown) this.shown = FIRST_TILES;
+				this.$nextTick(this.watchMore);
 			},
-			deep: true,
 		},
-		useSimpleLayout(isSimple) {
-			if (isSimple) {
-				this.disconnectObserver();
-				return;
-			}
-			this.resetVisibleTiles();
-			this.scheduleFormatList();
-		},
-	},
-
-	mounted() {
-		if (this.useSimpleLayout) return;
-		this.resetVisibleTiles();
-		this.scheduleFormatList();
-		this.connectObserver();
 	},
 
 	beforeUnmount() {
-		this.disconnectObserver();
-		if (this.formatRetryTimer) clearTimeout(this.formatRetryTimer);
+		this.moreObserver?.disconnect();
+		clearTimeout(this.moreTimer);
 	},
 
 	methods: {
-		resetVisibleTiles() {
-			this.tiles = [...this.values];
-			this.lastRowTiles = [];
-		},
-
-		connectObserver() {
-			if (typeof ResizeObserver === 'undefined') return;
-
-			this.resizeObserver = new ResizeObserver(() => {
-				this.scheduleFormatList();
-			});
-
-			this.$nextTick(() => {
-				if (this.$refs.dummyList) {
-					this.resizeObserver?.observe(this.$refs.dummyList);
+		/**
+		 * The end marker on the screen, or just below it: the next batch. Never ahead above the
+		 * screen: tiles added there would push what's being looked at down (a section jumped to,
+		 * from the list's bar, kept moving away).
+		 */
+		watchMore() {
+			this.moreObserver?.disconnect();
+			clearTimeout(this.moreTimer);
+			const marker = this.$refs.more;
+			if (!marker) return;
+			this.moreObserver = new IntersectionObserver(entries => {
+				if (!entries.some(entry => entry.isIntersecting)) return;
+				// the list is jumping to a section: once it's there, look again
+				const paused = tileLoadingPausedFor();
+				if (paused) {
+					this.moreObserver?.disconnect();
+					this.moreTimer = setTimeout(() => this.watchMore(), paused + 20);
+					return;
 				}
-			});
+				this.shown += TILES_PER_BATCH;
+				// still in view (a tall window): again, once drawn
+				this.$nextTick(this.watchMore);
+			}, { rootMargin: '0px 0px 600px 0px' });
+			this.moreObserver.observe(marker);
 		},
-
-		disconnectObserver() {
-			this.resizeObserver?.disconnect();
-			this.resizeObserver = null;
-		},
-
-		scheduleFormatList() {
-			if (this.useSimpleLayout) return;
-
-			this.$nextTick(() => {
-				requestAnimationFrame(() => {
-					this.runFormatList();
-				});
-			});
-		},
-
-		scheduleFormatRetry() {
-			if (this.formatRetryTimer) clearTimeout(this.formatRetryTimer);
-			this.formatRetryTimer = setTimeout(() => {
-				this.formatRetryTimer = null;
-				this.runFormatList();
-			}, 50);
-		},
-
-		runFormatList() {
-			const list = this.$refs.dummyList;
-			if (!list || !this.values.length) {
-				this.resetVisibleTiles();
-				return;
-			}
-
-			this.formatList(list);
-		},
-
 		tileStyle(item) {
 			const options = this.tileStyles?.[item.id];
 			if (options) {
@@ -212,47 +149,18 @@ export default {
 		onTileClick(item) {
 			this.$emit('tile-click', item);
 		},
-
-		formatList(list) {
-			const parentElem = list.closest('.subjects-list');
-			if (parentElem) {
-				const parentIsOverflowing = parentElem.scrollHeight > parentElem.clientHeight;
-				const bodyIsOverflowing = document.body.scrollHeight > document.body.clientHeight
-					|| document.documentElement.scrollHeight > document.documentElement.clientHeight;
-				list.style.marginRight = parentIsOverflowing ? '65px' : bodyIsOverflowing ? '55px' : '45px';
-			} else {
-				list.style.marginRight = '45px';
-			}
-
-			if (list.offsetHeight <= 0 || list.offsetWidth <= 0) {
-				this.resetVisibleTiles();
-				this.scheduleFormatRetry();
-				return;
-			}
-
-			const lastRow = Array.from(list.querySelectorAll('a')).filter(tile => this.isLastRow(list, tile));
-			const valuesWithoutLastRow = this.values.filter(
-				item => !lastRow.find(tile => parseInt(tile.getAttribute('data-item-id'), 10) === item.id),
-			);
-			const valuesLastRow = lastRow.map(tile => {
-				const id = parseInt(tile.getAttribute('data-item-id'), 10);
-				return this.values.find(item => item.id === id);
-			}).filter(Boolean);
-
-			this.lastRowTiles = valuesLastRow;
-			this.tiles = valuesWithoutLastRow;
-		},
-
-		isLastRow(list, tile) {
-			const distanceToTop = tile.offsetTop + tile.offsetHeight
-				+ Number(getComputedStyle(tile).marginBottom.replace('px', '') || 0);
-			return distanceToTop + tile.offsetHeight > list.offsetHeight;
-		},
 	},
 };
 </script>
 
 <style scoped>
+/* the marker for more tiles: its own (invisible) row at the end */
+.tiles-more {
+	flex: 0 0 100%;
+	height: 1px;
+	list-style: none;
+}
+
 .tiles-list :deep(a) {
 	padding: 8px 7px;
 	display: inline-block;
@@ -278,8 +186,6 @@ export default {
 .justify-list {
 	display: flex;
 	flex-wrap: wrap;
-	justify-content: space-between;
-	padding: 8px 2px;
 	list-style-type: none;
 	margin: 0;
 	position: relative;
@@ -291,26 +197,10 @@ export default {
 	justify-content: center;
 }
 
-.dummy-list {
-	position: absolute;
-	left: 0;
-	width: 100%;
-	margin-right: 45px;
-	top: -9999px;
-	visibility: hidden;
-	pointer-events: none;
-}
-
-.last-row {
-	display: flex;
-	flex-wrap: wrap;
-	width: 100%;
-	list-style: none;
-	padding: 0;
-	margin: 0;
-}
-
-.last-row :deep(a) {
-	flex-grow: 0;
+/* Last-row filler: it only shares a line with the last row, and grows 1000x faster
+   than the tiles there, so it takes the leftover space instead of stretching them. */
+.justify-list::after {
+	content: '';
+	flex-grow: 1000;
 }
 </style>

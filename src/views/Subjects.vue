@@ -2,6 +2,7 @@
 	<div class="container subjects">
 		<SubjectsList
 			:values="values"
+			:loading="loading"
 			:colors="colors"
 			:sorting="sorting"
 			:id="id"
@@ -20,7 +21,8 @@ import SubjectsList from '@/components/Subjects/SubjectsList.vue';
 import { typeColors, srsStages, formatSubjectsData } from '@/utils/scripts/wanikani';
 import { wrapSubjectsToStage5 } from '@/utils/scripts/common';
 
-const LEVEL_SRS_SORTING = { '5': 0, '4': 1, '3': 2, '2': 3, '1': 4, '0': 5, '-1': 6 };
+// lowest stage first, passed (Guru and above) after Apprentice IV, locked last
+const LEVEL_SRS_SORTING = { '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '-1': 6 };
 
 export default {
 	name: 'Subjects',
@@ -39,6 +41,8 @@ export default {
 			fetchId: null,
 
 			values: [],
+			/** asked the library, no answer yet (from the start: before the first request too) */
+			fetching: ['srs', 'level'].includes(this.$route.query.type),
 			colors: [],
 			sorting: {
 				radical: 0,
@@ -54,6 +58,14 @@ export default {
 		},
 		typeColors() {
 			return typeColors;
+		},
+		/**
+		 * Placeholders while the list is still coming: the locked list until every level is in
+		 * memory (a few seconds after opening the popup), others until the library answers.
+		 */
+		loading() {
+			if (this.type === 'locked') return !this.wk.allSubjectsInMemory;
+			return this.fetching && !this.values.length;
 		},
 	},
 
@@ -81,6 +93,7 @@ export default {
 				nextValues = wrapSubjectsToStage5(nextValues);
 			}
 			this.values = nextValues;
+			if (state === 'updated' || nextValues.length) this.fetching = false;
 		};
 
 		this.wkManager.events.on('get:subjects', this._onSubjects);
@@ -92,6 +105,7 @@ export default {
 			this.wkManager?.events.off('get:subjects', this._onSubjects);
 		}
 		clearInterval(this.fetchInterval);
+		clearTimeout(this.fetchingTimer);
 	},
 
 	watch: {
@@ -101,6 +115,10 @@ export default {
 				await this.applyRoute();
 			},
 			deep: true,
+		},
+		// the Legacy list comes from the subjects in memory, which may still be loading
+		'wk.allSubjects'() {
+			if (this.type === 'legacy' || this.type === 'locked') this.values = this.fetchLocalCache();
 		},
 	},
 
@@ -118,7 +136,12 @@ export default {
 			this.colors = await this.getColors();
 			this.sorting = this.getSorting();
 
+			this.fetching = false;
 			if (this.functionName && this.values.length === 0) {
+				this.fetching = true;
+				// its answer comes as an event (_onSubjects); never waiting forever on it
+				clearTimeout(this.fetchingTimer);
+				this.fetchingTimer = setTimeout(() => { this.fetching = false; }, 15_000);
 				this.wkManager[this.functionName](this.fetchId);
 			}
 		},
@@ -135,6 +158,18 @@ export default {
 					);
 				}
 				return wrapSubjectsToStage5(subjects);
+			}
+
+			// subjects WaniKani removed from lessons and reviews (shown as "Legacy")
+			if (this.type === 'legacy') {
+				return this.wk.allSubjects.filter(item => item.hidden_at);
+			}
+
+			// not unlocked yet (no lesson so far), nor retired: Home's overview bar, its grey part
+			if (this.type === 'locked') {
+				// an assignment: unlocked (as Home's count, countLockedSubjects)
+				const unlocked = new Set(this.wk.assignments.map(a => a.subject_id));
+				return this.wk.allSubjects.filter(item => !item.hidden_at && !unlocked.has(item.id));
 			}
 
 			if (this.type !== 'srs') return [];
@@ -185,6 +220,8 @@ export default {
 		async getColors() {
 			switch (this.type) {
 				case 'srs':
+				case 'legacy':
+				case 'locked':
 					return this.typeColors;
 				case 'level': {
 					const colors = Object.fromEntries(

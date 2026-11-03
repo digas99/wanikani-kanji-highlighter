@@ -65,36 +65,43 @@ export default {
 		jump() {
 			return this.$route.query.jump ? String(this.$route.query.jump) : null;
 		},
+		/** ?kind=vocabulary: WaniKani's words in that level / grade; else its kanji */
+		kind() {
+			return this.$route.query.kind === 'vocabulary' ? 'vocabulary' : 'kanji';
+		},
 		config() {
 			return SCHOOL_CONFIG[this.school] ?? null;
 		},
+		stats() {
+			if (!this.config || !this.grade) return null;
+			return buildSchoolGradeStats(this.wk.allSubjects, this.school, this.grade, this.kind);
+		},
 		headerTitle() {
-			if (!this.config || !this.grade) return '';
-			const stats = buildSchoolGradeStats(this.wk.allSubjects, this.school, this.grade);
-			return `<b>${stats.total}</b> Kanji from <b>${this.config.title.replace(' Progress', '')} ${this.config.gradeLabel(this.grade)}</b>`;
+			if (!this.stats) return '';
+			const what = this.kind === 'vocabulary' ? 'Words' : 'Kanji';
+			return `<b>${this.stats.total}</b> ${what} from <b>${this.config.title.replace(' Kanji Progress', '').replace(' Progress', '')} ${this.config.gradeLabel(this.grade)}</b>`;
 		},
 		sections() {
 			if (!this.config || !this.grade) return [];
-			return buildSchoolSections(this.wk.allSubjects, this.school, this.grade);
+			return buildSchoolSections(this.wk.allSubjects, this.school, this.grade, this.kind);
 		},
 		barValues() {
-			if (!this.config || !this.grade) return [];
-			const stats = buildSchoolGradeStats(this.wk.allSubjects, this.school, this.grade);
-			return stats.segments.map(segment => ({
+			if (!this.stats) return [];
+			return this.stats.segments.map(segment => ({
 				id: segment.column,
 				items: Array.from({ length: segment.count }),
 			}));
 		},
 		barColors() {
-			if (!this.config || !this.grade) return {};
-			const stats = buildSchoolGradeStats(this.wk.allSubjects, this.school, this.grade);
-			return Object.fromEntries(stats.segments.map(segment => [segment.column, segment.background]));
+			if (!this.stats) return {};
+			return Object.fromEntries(this.stats.segments.map(segment => [segment.column, segment.background]));
 		},
 		panelHeightStyle() {
-			return { '--subject-list-height': '455px' };
+			// 455px in the 600px popup; taller windows (popped out, mobile) use their height
+			return { '--subject-list-height': 'max(455px, calc(100vh - 145px))' };
 		},
 		emptyMessage() {
-			return 'No kanji found for this grade.';
+			return this.kind === 'vocabulary' ? 'No WaniKani words for this grade.' : 'No kanji found for this grade.';
 		},
 	},
 

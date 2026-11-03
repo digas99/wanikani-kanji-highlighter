@@ -195,10 +195,10 @@ export function getRandomSubjectBadge(
 			backgroundColor = appearance.vocab_color || typeColors.vocabulary;
 			break;
 		case 'Learned':
-			backgroundColor = appearance.highlight_learned;
+			backgroundColor = appearance.highlight_learned || '#00aaff';
 			break;
 		case 'Not Learned':
-			backgroundColor = appearance.highlight_not_learned;
+			backgroundColor = appearance.highlight_not_learned || '#f100a1';
 			break;
 		case 'Lessons':
 			backgroundColor = '#f100a1';

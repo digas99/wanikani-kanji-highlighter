@@ -6,6 +6,7 @@
 		:sections="panelSections"
 		:show-bar="showProgressionBar && groupedValues.length > 0"
 		:menu-key="menuKey"
+		:loading="loading || (valueCount > 0 && !groupedValues.length)"
 		:style="panelHeightStyle"
 		@scroll="saveScroll"
 	>
@@ -25,6 +26,7 @@
 import ProgressionBar from '@/components/Home/ProgressionBar.vue';
 import SubjectListPanel from '@/components/Subjects/SubjectListPanel.vue';
 import { useWKStore } from '@/stores/index';
+import { srsStages } from '@/utils/scripts/wanikani';
 
 const LEVEL_TYPE_LABELS = {
 	radical: 'Radicals',
@@ -57,6 +59,11 @@ export default {
 			type: Number,
 			default: null,
 		},
+		/** still loading: placeholders, not "nothing here" */
+		loading: {
+			type: Boolean,
+			default: false,
+		},
 		type: {
 			type: String,
 			default: '',
@@ -87,12 +94,18 @@ export default {
 		return {
 			groupedValues: [],
 			titleId: null,
+			// stage to scroll to (from a clicked bar segment), kept until its section exists
+			pendingJump: this.jumpSection,
 		};
 	},
 
 	computed: {
 		wk() {
 			return useWKStore();
+		},
+		/** subjects given, not grouped yet (grouping is async): still loading, not "nothing" */
+		valueCount() {
+			return Array.isArray(this.values) ? this.values.length : Object.keys(this.values ?? {}).length;
 		},
 		panelSections() {
 			return this.groupedValues.map(({ id, items }) => ({
@@ -105,12 +118,14 @@ export default {
 			}));
 		},
 		headerTitle() {
-			const count = Array.isArray(this.values) ? this.values.length : 0;
+			// still loading: the count isn't known yet
+			const count = this.loading ? '…' : (Array.isArray(this.values) ? this.values.length : 0);
 			return `<b>${count}</b> Subjects on <b>${this.titleId ?? ''}</b>`;
 		},
+		/** `height` is sized for the 600px popup; taller windows (popped out, mobile) grow it. */
 		panelHeightStyle() {
 			return {
-				'--subject-list-height': `${this.height}px`,
+				'--subject-list-height': `max(${this.height}px, calc(100vh - ${600 - this.height}px))`,
 			};
 		},
 	},
@@ -120,12 +135,13 @@ export default {
 		if (this.showTitle) {
 			this.titleId = await this.getTitleId();
 		}
+		this.tryPendingJump();
 	},
 
 	mounted() {
 		this.$nextTick(() => {
-			if (this.jumpSection) {
-				this.scrollToSection(this.jumpSection);
+			if (this.pendingJump) {
+				this.tryPendingJump();
 				return;
 			}
 			this.$refs.panel?.setScrollTop(this.wk.subjectsListScroll);
@@ -136,12 +152,16 @@ export default {
 		values: {
 			async handler() {
 				this.groupedValues = await this.groupValues();
+				// the same view is reused across levels / stages: keep the header in sync
+				if (this.showTitle) this.titleId = await this.getTitleId();
+				this.tryPendingJump();
 			},
 			deep: true,
 		},
 		jumpSection(sectionId) {
 			if (!sectionId) return;
-			this.$nextTick(() => this.scrollToSection(sectionId));
+			this.pendingJump = sectionId;
+			this.tryPendingJump();
 		},
 	},
 
@@ -150,9 +170,10 @@ export default {
 			if (this.type !== 'level') {
 				return `${String(id).charAt(0).toUpperCase()}${String(id).slice(1)}`;
 			}
+			// level lists fold Guru and above into stage 5
 			if (String(id) === '5') return 'Passed';
 			if (String(id) === '-1') return 'Locked';
-			return `Stage ${id}`;
+			return srsStages[id]?.name ?? `Stage ${id}`;
 		},
 		async getTitleId() {
 			switch (this.type) {
@@ -160,6 +181,10 @@ export default {
 					const { srsStages } = await import('@/utils/scripts/wanikani');
 					return srsStages[this.id]?.name ?? null;
 				}
+				case 'legacy':
+					return 'Legacy';
+				case 'locked':
+					return 'Locked';
 				case 'level': {
 					const level = this.$route.query.level;
 					const subjectType = this.$route.query.subjectType;
@@ -171,7 +196,9 @@ export default {
 		},
 		async groupValues() {
 			switch (this.type) {
-				case 'srs': {
+				case 'srs':
+				case 'legacy':
+				case 'locked': {
 					const { groupByType } = await import('@/utils/scripts/common');
 					return groupByType(this.values.map(item => ({
 						...item,
@@ -199,7 +226,19 @@ export default {
 		},
 
 		scrollToSection(sectionId) {
-			this.$refs.panel?.scrollToSection(String(sectionId));
+			return this.$refs.panel?.scrollToSection(String(sectionId)) ?? false;
+		},
+		/**
+		 * Sections are built asynchronously (and the list's data may still be loading),
+		 * so retry the requested jump whenever the sections change, until it lands.
+		 */
+		tryPendingJump() {
+			if (!this.pendingJump) return;
+			this.$nextTick(() => requestAnimationFrame(() => {
+				if (this.pendingJump && this.scrollToSection(this.pendingJump)) {
+					this.pendingJump = null;
+				}
+			}));
 		},
 	},
 };
