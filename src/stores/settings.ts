@@ -11,11 +11,18 @@ import {
 import {
 	createDefaultProfileMenus,
 	createDefaultListMenus,
+	createDefaultProfileMenuEntry,
 	type ListMenuKey,
 	type ProfileMenuEntry,
 	type ProfileSectionKey,
 } from '@/utils/scripts/profileSubjects';
-import { normalizeSiteEntry, DEFAULT_BLACKLIST, type PageListMode } from '@/utils/scripts/pageList';
+import { normalizeSiteEntry, FORMER_DEFAULT_BLACKLIST, type PageListMode } from '@/utils/scripts/pageList';
+import {
+	createLookupLinkId,
+	resolveLookupLinks,
+	sanitizeLookupLinks,
+	type LookupLink,
+} from '@/utils/scripts/lookupLinks';
 import {
 	mergeSettings,
 	mergeStoredSettings,
@@ -40,7 +47,7 @@ export const useSettingsStore = defineStore('settings', {
 	state: () => ({
 		loaded: false,
 		settings: structuredClone(defaultSettings) as SettingsState,
-		blacklist: [...DEFAULT_BLACKLIST] as string[],
+		blacklist: [] as string[],
 		whitelist: [] as string[],
 		blacklistExpanded: false,
 		whitelistExpanded: false,
@@ -66,6 +73,7 @@ export const useSettingsStore = defineStore('settings', {
 				'local:blacklist',
 				'local:whitelist',
 				'local:defaultBlacklistApplied',
+				'local:defaultBlacklistRemoved',
 			]);
 			const storedSettings = items.find(item => item.key === 'local:settings')?.value;
 			const storedBlacklist = items.find(item => item.key === 'local:blacklist')?.value;
@@ -73,25 +81,33 @@ export const useSettingsStore = defineStore('settings', {
 			const defaultBlacklistApplied = items.find(
 				item => item.key === 'local:defaultBlacklistApplied',
 			)?.value;
+			const defaultBlacklistRemoved = items.find(
+				item => item.key === 'local:defaultBlacklistRemoved',
+			)?.value;
 
 			if (storedSettings) {
 				const override = storedSettings as Partial<SettingsState>;
 				this.settings = mergeSettings(defaultSettings, override);
 				migrateExtensionIconSettings(this.settings);
+				// lists saved before WaniKani was a default lookup link get it once
+				if (!override.lookup?.wanikani_added) {
+					this.settings.lookup = {
+						links: resolveLookupLinks(override.lookup, defaultSettings.lookup.links),
+						wanikani_added: true,
+					};
+					await this.persistSettings();
+				}
 			}
 
 			if (Array.isArray(storedBlacklist)) {
 				this.blacklist = normalizeStoredSiteList(storedBlacklist);
 			} else {
 				await this.migrateLegacyBlacklist();
-				if (!this.blacklist.length) {
-					this.blacklist = [...DEFAULT_BLACKLIST];
-					await this.persistSiteLists();
-				}
 			}
 
-			if (!defaultBlacklistApplied) {
-				await this.applyDefaultBlacklist();
+			// installs that got the former default blacklist automatically: unblock it once
+			if (defaultBlacklistApplied && !defaultBlacklistRemoved) {
+				await this.removeFormerDefaultBlacklist();
 			}
 
 			if (Array.isArray(storedWhitelist)) {
@@ -101,16 +117,14 @@ export const useSettingsStore = defineStore('settings', {
 			this.loaded = true;
 		},
 
-		async applyDefaultBlacklist() {
-			let changed = false;
-			for (const site of DEFAULT_BLACKLIST) {
-				if (!this.blacklist.includes(site)) {
-					this.blacklist.push(site);
-					changed = true;
-				}
+		async removeFormerDefaultBlacklist() {
+			const former = new Set<string>(FORMER_DEFAULT_BLACKLIST);
+			const kept = this.blacklist.filter(site => !former.has(site));
+			if (kept.length !== this.blacklist.length) {
+				this.blacklist = kept;
+				await this.persistSiteLists();
 			}
-			if (changed) await this.persistSiteLists();
-			await storage.setItem('local:defaultBlacklistApplied', true);
+			await storage.setItem('local:defaultBlacklistRemoved', true);
 		},
 
 		async migrateLegacyBlacklist() {
@@ -221,12 +235,44 @@ export const useSettingsStore = defineStore('settings', {
 			key: string,
 			value: unknown,
 		) {
-			const entry = this.settings.list_menus[menuKey];
+			// a list without saved settings yet starts from the defaults
+			const entry = this.settings.list_menus[menuKey] ??= createDefaultProfileMenuEntry();
 			if (group === 'opened') {
 				entry.opened = Boolean(value);
 			} else {
 				(entry[group] as Record<string, unknown>)[key] = value;
 			}
+			await this.persistSettings();
+		},
+
+		/** Subject lookup buttons (Settings → Details → Lookup links). */
+		async addLookupLink(link: Omit<LookupLink, 'id'>) {
+			const links = sanitizeLookupLinks(this.settings.lookup?.links);
+			links.push({ ...link, id: createLookupLinkId() });
+			this.settings.lookup = { ...(this.settings.lookup ?? {}), links };
+			await this.persistSettings();
+		},
+
+		async updateLookupLink(id: string, patch: Partial<Omit<LookupLink, 'id'>>) {
+			const links = sanitizeLookupLinks(this.settings.lookup?.links)
+				.map(link => (link.id === id ? { ...link, ...patch } : link));
+			this.settings.lookup = { ...(this.settings.lookup ?? {}), links };
+			await this.persistSettings();
+		},
+
+		async removeLookupLink(id: string) {
+			const links = sanitizeLookupLinks(this.settings.lookup?.links).filter(link => link.id !== id);
+			this.settings.lookup = { ...(this.settings.lookup ?? {}), links };
+			await this.persistSettings();
+		},
+
+		async moveLookupLink(id: string, direction: -1 | 1) {
+			const links = sanitizeLookupLinks(this.settings.lookup?.links);
+			const index = links.findIndex(link => link.id === id);
+			const target = index + direction;
+			if (index < 0 || target < 0 || target >= links.length) return;
+			[links[index], links[target]] = [links[target], links[index]];
+			this.settings.lookup = { ...(this.settings.lookup ?? {}), links };
 			await this.persistSettings();
 		},
 

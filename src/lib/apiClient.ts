@@ -1,6 +1,8 @@
 import WanikaniAPIManager from 'wanikani-api-manager'
+import { DEFAULT_PROXY } from './proxy'
+import { fetchWaniKaniPage, isBackgroundContext } from '@/utils/scripts/wanikaniPages'
 
-export const DEFAULT_PROXY = 'https://proxy.wkhighlighter.com'
+export { DEFAULT_PROXY }
 export const ID_BATCH_SIZE = 100
 
 /** Minimum time between dashboard network refreshes (matches v1.5-style polling). */
@@ -26,6 +28,11 @@ export function createWKManager({
 		proxy: proxyServer,
 		idBatchSize,
 		debug,
+		// the profile page (avatar) is read by the background script (see wanikaniPages.ts)
+		fetchPage: isBackgroundContext() ? undefined : fetchWaniKaniPage,
+		// The extension never listens to per-row Dexie events; skipping them keeps
+		// reads and bulk writes fast.
+		hooks: { reading: false, updating: false, deleting: false },
 		cacheIntervals: {
 			user: 60 * 60 * 1000,
 			materials: 24 * 60 * 60 * 1000,

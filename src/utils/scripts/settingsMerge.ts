@@ -53,10 +53,11 @@ export function mergeSettings(
 			continue;
 		}
 
-		merged[group] = {
+		// groups have different shapes; TS can't relate merged[group] to groupValue per key
+		(merged as Record<SettingsGroup, unknown>)[group] = {
 			...merged[group],
 			...groupValue,
-		} as SettingsState[typeof group];
+		};
 	}
 
 	return merged;

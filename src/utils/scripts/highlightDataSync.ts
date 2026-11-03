@@ -1,6 +1,7 @@
 import { storage } from '#imports';
 import { createWKManager } from '@/lib/apiClient';
 import {
+	buildJapaneseKanji,
 	buildKanjiByJlpt,
 	buildKanjiByJoyo,
 } from '@/utils/highlight/schoolGradeHighlight';
@@ -10,9 +11,28 @@ import {
 	srsStageKeyFromSubject,
 } from '@/utils/highlight/srsStageHighlight';
 import { getSchoolKanjiMapsSync } from '@/utils/scripts/schoolKanji';
+import { buildVocabByJlpt, buildVocabByJoyo } from '@/utils/scripts/vocabSchoolGrades';
 import { getAllCacheLevels } from '@/utils/scripts/subjectCache';
+import { inflectionOf } from '@/utils/highlight/deinflect';
 
 type WKManager = ReturnType<typeof createWKManager>;
+
+function withoutTimestamp(data: any): string {
+	if (!data) return '';
+	const { updatedAt: _ignored, ...rest } = data;
+	return JSON.stringify(rest);
+}
+
+/**
+ * Store highlight data only when it actually changed. Every write notifies all
+ * open tabs, so rewriting identical data (just a new `updatedAt`) made pages re-highlight.
+ */
+export async function writeHighlightDataIfChanged(data: Record<string, unknown>): Promise<boolean> {
+	const current = await storage.getItem<any>('local:highlightData');
+	if (current && withoutTimestamp(current) === withoutTimestamp(data)) return false;
+	await storage.setItem('local:highlightData', data);
+	return true;
+}
 type Assignment = { subject_id: number; srs_stage?: number | null };
 
 async function readSubjectsByTypes(
@@ -28,6 +48,18 @@ async function readSubjectsByTypes(
 	} catch {
 		return [];
 	}
+}
+
+/** word → its kinds (godan, ichidan, い adjective, する…), for the words that conjugate */
+export function inflectionsOf(subjects: Array<any>): Record<string, number> {
+	const inflections: Record<string, number> = {};
+	for (const subject of subjects) {
+		const word = subject.characters;
+		if (!word) continue;
+		const kind = inflectionOf(word, subject.parts_of_speech ?? subject.data?.parts_of_speech);
+		if (kind) inflections[word] = (inflections[word] ?? 0) | kind;
+	}
+	return inflections;
 }
 
 /** Build and persist highlight sets used by the content-script highlighter. */
@@ -91,18 +123,23 @@ export async function persistHighlightDataFromCache(
 	const vocab = splitByLearned(vocabSubjects);
 	const schoolMaps = getSchoolKanjiMapsSync();
 
-	await storage.setItem('local:highlightData', {
+	await writeHighlightDataIfChanged({
 		kanji: {
 			learned: Array.from(kanji.learned).join(''),
 			notLearned: Array.from(kanji.notLearned).join(''),
 			byStage: splitBySrsStageKanji(kanjiSubjects),
 			byJlpt: buildKanjiByJlpt(schoolMaps),
 			byJoyo: buildKanjiByJoyo(schoolMaps),
+			japanese: buildJapaneseKanji(schoolMaps),
 		},
 		vocabulary: {
 			learned: Array.from(vocab.learned),
 			notLearned: Array.from(vocab.notLearned),
+			// how the verbs and adjectives conjugate (deinflect.ts): 話していました finds 話す
+			inflections: inflectionsOf(vocabSubjects),
 			byStage: splitBySrsStageVocab(vocabSubjects),
+			byJlpt: buildVocabByJlpt(vocabSubjects),
+			byJoyo: buildVocabByJoyo(vocabSubjects, schoolMaps),
 		},
 		updatedAt: Date.now(),
 	});

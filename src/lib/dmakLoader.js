@@ -56,11 +56,19 @@
 		xhr.open("GET", uri + code + ".svg", true);
 		xhr.onreadystatechange = function () {
 			if (xhr.readyState === 4) {
+				var parsed = null;
 				if (xhr.status === 200) {
-					callbacks.done(index, parseResponse(xhr.response, code));
+					try {
+						parsed = parseResponse(xhr.response, code);
+					} catch (error) {
+						callbacks.error(error);
+					}
 				} else {
-					callbacks.error(xhr.statusText);
+					callbacks.error(xhr.statusText || ("HTTP " + xhr.status));
 				}
+				// A missing/broken character (symbols KanjiVG lacks, network errors) is
+				// drawn as empty instead of leaving the whole word stuck on "loading".
+				callbacks.done(index, parsed || []);
 			}
 		};
 		xhr.send();

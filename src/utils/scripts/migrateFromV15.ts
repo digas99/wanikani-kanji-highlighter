@@ -6,7 +6,6 @@ import {
 	type SettingsGroup,
 	type SettingsState,
 } from '@/utils/scripts/defaultSettings';
-import { CONTEXT_MENU_SEARCH_STORAGE_KEY } from '@/utils/scripts/contextMenuSearch';
 import { normalizeSiteEntry } from '@/utils/scripts/pageList';
 
 export const V15_MIGRATION_FLAG = 'local:v15MigrationComplete';
@@ -23,12 +22,26 @@ const LEGACY_SETTINGS_GROUPS: SettingsGroup[] = [
 	'profile_menus',
 ];
 
-const LEGACY_KEYS_TO_REMOVE = [
-	'apiKey',
-	'settings',
-	'initialFetch',
-	'contextMenuSelectedText',
-] as const;
+/**
+ * Every storage.local key v2 uses (WXT `local:<key>` → storage.local "<key>"). Everything else
+ * found there is v1.5 data (subjects, assignments, progress lists, ~MBs): deleted when migrating,
+ * and again by Settings → Data → Reset subject data (leftovers of a migration that didn't finish).
+ * `settings` / `blacklist` are shared with v1.5 and rewritten by this migration.
+ *
+ * A NEW `local:` KEY MUST BE ADDED HERE, or a reset deletes it. (`contextMenuSelectedText` is left
+ * out on purpose: v1.5 used it too, and a stale one would open an old search.)
+ */
+export const V2_LOCAL_KEYS = new Set([
+	'settings', 'blacklist', 'whitelist', 'defaultBlacklistApplied', 'defaultBlacklistRemoved',
+	'highlightData', 'initialSyncComplete', 'initialSyncStarted', 'initialSyncLock',
+	'initialSyncProgress', 'firstLoadDone', 'searchHistory', 'schoolKanjiMaps',
+	'schoolKanjiMapsFetchedAt', 'v15MigrationComplete', 'v20UpgradeNoticeShown', 'accountUsername',
+	'pendingApiKey', 'avatarFromWanikani', 'webAvatars', 'avatarSync', 'dailyActivity',
+	'notifications', 'milestones', 'friends', 'reviewAlerts', 'featureNotices', 'mnemonicImages',
+	'pageHistory', 'sentenceArchive', 'pageStatsSections', 'pageStatsHiddenSites',
+	'pageStatsFocusSites', 'pageSentencesExcludedSites', 'driveBackup', 'driveAvatarSent',
+	'backupParts', 'backupDevice', 'backupAvatar', 'badgeSummary',
+]);
 
 export type V15MigrationResult = {
 	migrated: boolean;
@@ -57,7 +70,7 @@ function normalizeLegacyBlacklist(list: unknown): string[] {
 	)];
 }
 
-async function deleteLegacyIndexedDb(): Promise<void> {
+export async function deleteLegacyIndexedDb(): Promise<void> {
 	await new Promise<void>(resolve => {
 		try {
 			const request = indexedDB.deleteDatabase('wanikani');
@@ -83,26 +96,37 @@ function hasLegacyInstall(legacy: Record<string, unknown>): boolean {
 	);
 }
 
+/**
+ * Carry v1.5 settings over and mark the first-time setup as done, so upgraders go
+ * straight to their dashboard (v1.5 always highlighted kanji by learned status,
+ * which is v2's default setup). Runs for every upgrader, even without a v1.5
+ * `settings` object.
+ */
 async function migrateLegacySettings(
 	legacy: Record<string, unknown>,
 ): Promise<boolean> {
-	const legacySettings = legacy.settings;
-	if (!legacySettings || typeof legacySettings !== 'object') return false;
+	const legacySettings = legacy.settings && typeof legacy.settings === 'object'
+		? legacy.settings as Record<string, unknown>
+		: {};
 
+	// Note: "settings" is the same storage key in v1.5 and v2, so this read may
+	// return the v1.5 object itself — only known groups are kept below.
 	const stored = await storage.getItem<Partial<SettingsState>>('local:settings');
-	const legacyPartial = pickLegacySettings(legacySettings as Record<string, unknown>);
+	const storedV2 = stored && typeof stored === 'object' && 'highlighter' in stored ? stored : null;
+	const legacyPartial = pickLegacySettings(legacySettings);
+
 	const merged = mergeStoredSettings(defaultSettings, {
-		...(stored ?? {}),
+		...(storedV2 ?? {}),
 		...legacyPartial,
 		highlighter: {
 			...defaultSettings.highlighter,
-			...(stored?.highlighter ?? {}),
+			...(storedV2?.highlighter ?? {}),
 			initial_choice_made: true,
 		},
 	});
 
 	await storage.setItem('local:settings', merged);
-	return true;
+	return Object.keys(legacyPartial).length > 0;
 }
 
 async function migrateLegacyApiKey(legacy: Record<string, unknown>): Promise<boolean> {
@@ -122,34 +146,86 @@ async function ensureProxyServer(): Promise<void> {
 	await storage.setItem('sync:proxyServer', DEFAULT_PROXY);
 }
 
+/**
+ * v1.5 kept its blacklist under the same "blacklist" key v2 uses: normalize it in
+ * place (v1.5 entries could include protocols / paths / "www.").
+ */
 async function migrateLegacyBlacklist(legacy: Record<string, unknown>): Promise<void> {
-	const existing = await storage.getItem<string[]>('local:blacklist');
-	if (Array.isArray(existing) && existing.length) return;
-
 	const normalized = normalizeLegacyBlacklist(legacy.blacklist);
 	if (!normalized.length) return;
 
-	await storage.setItem('local:blacklist', normalized);
+	const existing = await storage.getItem<string[]>('local:blacklist');
+	const merged = [...new Set([
+		...normalizeLegacyBlacklist(existing),
+		...normalized,
+	])];
+	await storage.setItem('local:blacklist', merged);
 }
 
-async function migrateLegacyContextMenuText(legacy: Record<string, unknown>): Promise<void> {
-	const existing = await storage.getItem<string>(CONTEXT_MENU_SEARCH_STORAGE_KEY);
-	if (existing?.trim()) return;
-
-	const legacyText = typeof legacy.contextMenuSelectedText === 'string'
-		? legacy.contextMenuSelectedText.trim()
-		: '';
-	if (!legacyText) return;
-
-	await storage.setItem(CONTEXT_MENU_SEARCH_STORAGE_KEY, legacyText);
-}
-
-async function removeLegacyKeys(): Promise<void> {
+/**
+ * Delete v1.5's data from storage.local (everything v2 doesn't use, incl. the old
+ * local `apiKey` copy, which now lives in storage.sync, and the transient
+ * `contextMenuSelectedText`, which would otherwise auto-open a stale search).
+ */
+export async function removeLegacyKeys(): Promise<void> {
 	try {
-		await browser.storage.local.remove([...LEGACY_KEYS_TO_REMOVE]);
+		const all = await browser.storage.local.get(null);
+		const stale = Object.keys(all).filter(key => {
+			// WXT keeps per-key metadata under "<key>$"
+			const base = key.endsWith('$') ? key.slice(0, -1) : key;
+			return !V2_LOCAL_KEYS.has(base);
+		});
+		if (stale.length) await browser.storage.local.remove(stale);
 	} catch {
 		// Ignore cleanup failures.
 	}
+}
+
+/** a kanji (and 々 / 〆 / ヶ, which v1.5's lists could hold) */
+const KANJI_CHAR = /^[\p{Script=Han}々〆ヶ]$/u;
+
+/**
+ * v1.5's kanji lists, as single kanji. Its entries aren't always one: e.g. "昌-2285" (a kanji
+ * WaniKani has twice, with its id), which joined into a highlight's character class made an
+ * invalid range ("昌-2") and stopped all highlighting until the first sync.
+ */
+function legacyCharacters(value: unknown): string[] {
+	const entries = Array.isArray(value) ? value : typeof value === 'string' ? [value] : [];
+	return entries
+		.filter((entry): entry is string => typeof entry === 'string')
+		.flatMap(entry => Array.from(entry))
+		.filter(char => KANJI_CHAR.test(char));
+}
+
+/**
+ * Highlight right away after the update: build v2's highlight data from v1.5's
+ * kanji lists until the background sync replaces it with the full data.
+ */
+async function seedHighlightDataFromLegacy(legacy: Record<string, unknown>): Promise<void> {
+	const existing = await storage.getItem('local:highlightData');
+	if (existing) return;
+
+	const setup = (legacy.highlight_setup && typeof legacy.highlight_setup === 'object')
+		? legacy.highlight_setup as Record<string, unknown>
+		: {};
+	const learned = new Set(legacyCharacters(legacy.learnedKanji ?? setup.learned));
+	const learnable = legacyCharacters(legacy.learnable_kanji);
+	const notLearned = new Set(
+		learnable.length
+			? learnable.filter(char => !learned.has(char))
+			: legacyCharacters(setup.notLearned),
+	);
+	if (!learned.size && !notLearned.size) return;
+
+	await storage.setItem('local:highlightData', {
+		kanji: {
+			learned: Array.from(learned).join(''),
+			notLearned: Array.from(notLearned).join(''),
+		},
+		vocabulary: { learned: [], notLearned: [] },
+		// old timestamp: any real sync result replaces it
+		updatedAt: 0,
+	});
 }
 
 /**
@@ -179,7 +255,7 @@ export async function migrateFromV15IfNeeded(): Promise<V15MigrationResult> {
 		migratedApiKey = await migrateLegacyApiKey(legacy);
 		migratedSettings = await migrateLegacySettings(legacy);
 		await migrateLegacyBlacklist(legacy);
-		await migrateLegacyContextMenuText(legacy);
+		await seedHighlightDataFromLegacy(legacy);
 		await removeLegacyKeys();
 		await deleteLegacyIndexedDb();
 	} else {

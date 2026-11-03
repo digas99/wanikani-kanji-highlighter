@@ -1,14 +1,25 @@
+import { deleteLegacyIndexedDb, removeLegacyKeys } from '@/utils/scripts/migrateFromV15';
 import { defineStore } from 'pinia';
-import { getWKManager, resetWKManager, DASHBOARD_REFRESH_MS } from '@/lib/apiClient';
+import { toRaw } from 'vue';
+import { getWKManager, resetWKManager, DASHBOARD_REFRESH_MS, DEFAULT_PROXY } from '@/lib/apiClient';
 import { storage } from '#imports';
-import { levelUpInfo, formatSubjectsData } from '@/utils/scripts/wanikani';
+import { levelUpInfo, formatSubjectsData, getLevelUpPrediction } from '@/utils/scripts/wanikani';
+
+const FASTEST_LEVEL_UP_REFRESH_MS = 5 * 60 * 1000;
 import {
-	enrichSubjectWithSchoolGrades,
-	enrichSubjectsWithSchoolGrades,
 	loadSchoolKanjiMaps,
 	getSchoolKanjiMapsSync,
+	clearSchoolProgressSnapshots,
 } from '@/utils/scripts/schoolKanji';
+// kanji and words (JLPT / Jōyō labels)
 import {
+	buildVocabByJlpt,
+	buildVocabByJoyo,
+	enrichOneWithSchoolGrades as enrichSubjectWithSchoolGrades,
+	enrichWithSchoolGrades as enrichSubjectsWithSchoolGrades,
+} from '@/utils/scripts/vocabSchoolGrades';
+import {
+	buildJapaneseKanji,
 	buildKanjiByJlpt,
 	buildKanjiByJoyo,
 } from '@/utils/highlight/schoolGradeHighlight';
@@ -25,7 +36,14 @@ import {
 } from '@/utils/highlight/srsStageHighlight';
 import { normalizeLevelsStats, type LevelsStats } from '@/utils/scripts/levelStats';
 import { getRelatedSubjectIds, ensureSubjectReviewStats } from '@/utils/scripts/subjectDetailsPopup';
-import { isInitialSyncLocked } from '@/utils/scripts/initialDataSync';
+import { isInitialSyncLocked, SYNC_PROGRESS_KEY } from '@/utils/scripts/initialDataSync';
+import { inflectionsOf, writeHighlightDataIfChanged } from '@/utils/scripts/highlightDataSync';
+import { clearAccoladeSnapshots } from '@/utils/scripts/accolades';
+import { clearDailyActivity } from '@/utils/scripts/dailyActivity';
+import { clearFriends } from '@/utils/scripts/friends';
+import { clearNotifications } from '@/utils/scripts/notifications';
+import { clearMilestones } from '@/utils/scripts/milestones';
+import { clearFeatureNotices } from '@/utils/scripts/featureNotices';
 
 type SummaryState = {
 	lessons: Array<{ subject_id: number }>;
@@ -34,6 +52,12 @@ type SummaryState = {
 };
 
 const BACKGROUND_SYNC_OPTIONS = { includeAssignments: false, includeReviews: false };
+const LEVEL_PROGRESS_SNAPSHOT_KEY = 'levelProgressSnapshot';
+/** a picture chosen on WaniKani's settings page, waiting to be used (see applyAvatarFromWanikani) */
+const AVATAR_FROM_WANIKANI_KEY = 'local:avatarFromWanikani';
+let stopAvatarWatch: (() => void) | null = null;
+/** following the background's first sync (followBackgroundSync) */
+let stopFollowingSync: (() => void) | null = null;
 
 export type LevelCacheOverviewEntry = {
 	level: number;
@@ -43,6 +67,23 @@ export type LevelCacheOverviewEntry = {
 	cacheExpires: string | null;
 };
 
+/** a dashboard cache read in progress: calls at the same time share it (loadDashboardFromCache) */
+let dashboardCacheLoad: Promise<void> | null = null;
+let lastDashboardCacheRead = 0;
+/** a cache read this recent is what's in memory still: not read again */
+const DASHBOARD_CACHE_FRESH_MS = 60 * 1000;
+
+/** Same assignments? Their count and latest change (any change makes that one the latest). */
+function assignmentsKey(assignments: Array<any> | null | undefined): string {
+	if (!assignments?.length) return '';
+	let latest = '';
+	for (const assignment of assignments) {
+		const updated = assignment?.data_updated_at ?? '';
+		if (updated > latest) latest = updated;
+	}
+	return `${assignments.length}:${latest}`;
+}
+
 export const useWKStore = defineStore('wk', {
 	state: () => ({
 		loading: false,
@@ -50,6 +91,15 @@ export const useWKStore = defineStore('wk', {
 		subjectsListScroll: 0,
 		allSubjectsLoaded: false,
 		allSubjects: [] as Array<any>,
+		/**
+		 * allSubjects holds every cached level (read from the cache in one go). allSubjectsLoaded
+		 * only says the cache is complete: subjects merged in before (the dashboard, a level)
+		 * make a partial list until then.
+		 */
+		allSubjectsInMemory: false,
+		/** current level's fastest possible level up (calendars mark the day) */
+		fastestLevelUp: null as null | { level: number; at: number; lockedKanji: number },
+		_fastestLevelUpAt: 0,
 		assignments: [] as Array<any>,
 		userAvatar: '',
 		userInfo: {} as any,
@@ -82,10 +132,19 @@ export const useWKStore = defineStore('wk', {
 		levelsStats: null as LevelsStats | null,
 		bootstrapping: true,
 		_needsStartupSync: false,
+		/** The routine "fetch the latest assignments" refresh is running. */
+		dashboardRefreshing: false,
+		/** When that refresh last finished in this popup session (0 = not yet). */
+		dashboardRefreshedAt: 0,
 	}),
 
 	getters: {
-		manager: () => getWKManager(),
+		// getWKManager() isn't reactive, so a plain getter would be cached forever and keep
+		// handing out the manager of a previous login. Depend on the active key instead.
+		manager(state) {
+			void state.activeApiKey;
+			return getWKManager();
+		},
 		activeApiKeySuffix(): string | null {
 			if (!this.activeApiKey) return null;
 			return this.activeApiKey.slice(-8);
@@ -135,6 +194,7 @@ export const useWKStore = defineStore('wk', {
 				this.activeApiKey = storedKey;
 				this.isLoggedIn = true;
 				this.allSubjectsLoaded = false;
+			this.allSubjectsInMemory = false;
 
 				// Deterministic gate for the first-boot highlight setup screen. Set before
 				// the sync-scope decision so highlighting is always chosen first.
@@ -153,11 +213,19 @@ export const useWKStore = defineStore('wk', {
 					this.userInfo = cachedUser;
 					if (cachedUser.avatar) this.userAvatar = cachedUser.avatar;
 				}
+				// a picture chosen on WaniKani's settings page meanwhile (or while this is open)
+				await this.applyAvatarFromWanikani();
+				if (!stopAvatarWatch) {
+					stopAvatarWatch = storage.watch<any>(AVATAR_FROM_WANIKANI_KEY, chosen => {
+						if (chosen) void this.applyAvatarFromWanikani(chosen);
+					});
+				}
 
 				await this.loadDashboardFromCache();
 
 				const cachedLevels = localStorage.getItem('levelsInProgress');
 				if (cachedLevels) this.levelsInProgress = JSON.parse(cachedLevels);
+				this.loadLevelProgressSnapshot(cachedUser?.level);
 
 				let userInfo = cachedUser;
 				if (userInfo) {
@@ -253,6 +321,7 @@ export const useWKStore = defineStore('wk', {
 					this.loading = false;
 					this.syncInProgress = true;
 					await this.loadDashboardFromCache();
+					this.followBackgroundSync(userLevel);
 					return;
 				}
 
@@ -262,6 +331,7 @@ export const useWKStore = defineStore('wk', {
 				await wkManager.getAssignments(null);
 				await this.loadDashboardFromCache();
 				this._lastDashboardRefresh = Date.now();
+				this.dashboardRefreshedAt = Date.now();
 				this.syncProgress = { loaded: 2, total: 2, label: 'dashboard' };
 
 				await storage.setItem('local:initialSyncStarted', true);
@@ -298,15 +368,18 @@ export const useWKStore = defineStore('wk', {
 			if (await isInitialSyncLocked()) {
 				this.syncInProgress = true;
 				this.loading = false;
+				this.followBackgroundSync(userLevel);
 				return;
 			}
 
 			this.syncInProgress = true;
 			try {
+				// subjects kept from before (logged out, or another account): only what's missing
 				const missing = await this.getMissingLevels(wkManager);
-				const levels = missing.length ? missing : getAllCacheLevels();
-				if (levels.length) {
-					await this.syncSubjectLevels(wkManager, levels, userLevel);
+				if (missing.length) {
+					await this.syncSubjectLevels(wkManager, missing, userLevel);
+				} else {
+					await this.rebuildLevelsInProgress();
 				}
 				await this.finishInitialSync(wkManager, userLevel);
 			} catch {
@@ -314,6 +387,51 @@ export const useWKStore = defineStore('wk', {
 			} finally {
 				this.syncInProgress = false;
 			}
+		},
+
+		/**
+		 * The first sync runs in the background (the popup was closed during it): its toast follows
+		 * the background's progress, and once it's done the popup finishes as after its own sync.
+		 */
+		followBackgroundSync(userLevel?: number) {
+			stopFollowingSync?.();
+			const show = (progress: { loaded: number; total: number } | null) => {
+				if (progress?.total) this.syncProgress = { loaded: progress.loaded, total: progress.total, label: 'subjects' };
+			};
+			void storage.getItem<{ loaded: number; total: number }>(SYNC_PROGRESS_KEY).then(show);
+			const stopProgress = storage.watch<{ loaded: number; total: number }>(SYNC_PROGRESS_KEY, show);
+			const stopComplete = storage.watch<boolean>('local:initialSyncComplete', async complete => {
+				if (!complete) return;
+				stopFollowingSync?.();
+				this.initialSyncComplete = true;
+				this.allSubjectsLoaded = true;
+				this.loading = false;
+				this.syncInProgress = false;
+				this.syncProgress = { loaded: 0, total: 0, label: '' };
+				await this.hydrateAllSubjectsFromCache(getMemoryHydrateLevels(userLevel ?? this.userInfo?.level));
+				await this.rebuildLevelsInProgress();
+				this.refreshDashboard(true);
+			});
+			// the background stopped without finishing (an error, or cut off: its lock went stale):
+			// this popup carries on from there
+			const takeOver = async () => {
+				if (await isInitialSyncLocked() || await storage.getItem<boolean>('local:initialSyncComplete')) return;
+				stopFollowingSync?.();
+				const wkManager = getWKManager();
+				if (!wkManager) return;
+				await this.runInitialSubjectSync(wkManager, userLevel);
+				// the progress too (the background's run may not have got to it)
+				this.refreshDashboard(true);
+			};
+			const stopLock = storage.watch<number>('local:initialSyncLock', () => void takeOver());
+			const staleCheck = setInterval(() => void takeOver(), 15_000);
+			stopFollowingSync = () => {
+				stopProgress();
+				stopComplete();
+				stopLock();
+				clearInterval(staleCheck);
+				stopFollowingSync = null;
+			};
 		},
 
 		async finishInitialSync(
@@ -339,6 +457,8 @@ export const useWKStore = defineStore('wk', {
 			const subjects = await wkManager.readSubjectsById(ids);
 			this.allSubjects = enrichSubjectsWithSchoolGrades(formatSubjectsData(subjects));
 			this._subjectsHydratedLevel = this.userInfo?.level ?? null;
+			// every level asked for (all of them) is in memory now
+			this.allSubjectsInMemory = levels.length >= getAllCacheLevels().length;
 
 			const currentLevel = this.userInfo?.level;
 			if (currentLevel) {
@@ -348,11 +468,35 @@ export const useWKStore = defineStore('wk', {
 						&& !subject.assignment?.hidden,
 				);
 				if (kanjiAtLevel.length) {
-					this.levelProgressionInfo = levelUpInfo(kanjiAtLevel);
+					this.setLevelProgressionInfo(levelUpInfo(kanjiAtLevel), currentLevel);
 				}
 			}
 
 			await this.rebuildLevelsInProgress();
+		},
+
+		/** Current-level progress, saved so Home's hero shows it before all subjects load. */
+		setLevelProgressionInfo(info: any, level?: number | null) {
+			this.levelProgressionInfo = info;
+			if (!info?.progress || !level) return;
+			try {
+				localStorage.setItem(LEVEL_PROGRESS_SNAPSHOT_KEY, JSON.stringify({ level, progress: info.progress }));
+			} catch {
+				// the snapshot is only a speed-up
+			}
+		},
+
+		loadLevelProgressSnapshot(level?: number | null) {
+			if (this.levelProgressionInfo?.progress || !level) return;
+			try {
+				const snapshot = JSON.parse(localStorage.getItem(LEVEL_PROGRESS_SNAPSHOT_KEY) || 'null');
+				// a snapshot from a previous level would be wrong after leveling up
+				if (snapshot?.level === level && snapshot.progress) {
+					this.levelProgressionInfo = { progress: snapshot.progress };
+				}
+			} catch {
+				// ignore a corrupt snapshot
+			}
 		},
 
 		async getRandomSubjectContext() {
@@ -498,9 +642,9 @@ export const useWKStore = defineStore('wk', {
 
 				const currentLevel = this.userInfo?.level;
 				if (context.levels.length === 1 && context.levels[0] === currentLevel) {
-					this.levelProgressionInfo = levelUpInfo(
+					this.setLevelProgressionInfo(levelUpInfo(
 						data.filter(subject => subject.type === 'kanji' && !subject.assignment?.hidden)
-					);
+					), currentLevel);
 				}
 			});
 
@@ -512,6 +656,26 @@ export const useWKStore = defineStore('wk', {
 			wkManager.events.on('get:levelProgressions', ({ data }: { data: LevelsStats | null }) => {
 				if (data) this.levelsStats = normalizeLevelsStats(data);
 			});
+		},
+
+		/**
+		 * The picture chosen on WaniKani's settings page (utils/highlight/avatarHandoff.ts), when it's
+		 * this account's: shown now, and kept as the API manager's own (no need to read the profile
+		 * page for it). Used once.
+		 */
+		async applyAvatarFromWanikani(chosen?: any) {
+			const data = chosen ?? await storage.getItem<any>(AVATAR_FROM_WANIKANI_KEY);
+			const username = String(this.userInfo?.username ?? '');
+			if (!data?.image || !username || String(data.username ?? '').toLowerCase() !== username.toLowerCase()) return;
+			this.userAvatar = data.image;
+			try {
+				// the API manager's cache (its StorageManager's keys): read back as the user's avatar
+				localStorage.setItem('wanikani_api_manager_user_avatar', data.image);
+				localStorage.setItem('wanikani_api_manager_user_avatar_fetched_at', String(Date.now()));
+			} catch {
+				// shown anyway; read again from the profile page later
+			}
+			await storage.removeItem(AVATAR_FROM_WANIKANI_KEY);
 		},
 
 		showRateLimitNotice(endpoint: string, retryInSeconds: number) {
@@ -531,22 +695,51 @@ export const useWKStore = defineStore('wk', {
 		},
 
 		/** Read dashboard state from IndexedDB without network calls. */
-		async loadDashboardFromCache() {
+		/**
+		 * The dashboard's data from the cache. Only what changed is replaced: a new copy of the same
+		 * assignments would recompute everything built on them (Home's calendar, tiles, JLPT /
+		 * Jōyō…), which made coming back to Home lag. Calls at the same time share one read.
+		 */
+		loadDashboardFromCache(): Promise<void> {
+			// read moments ago: what's in memory is it (refreshes update it directly)
+			if (this.assignments.length && Date.now() - lastDashboardCacheRead < DASHBOARD_CACHE_FRESH_MS) {
+				return Promise.resolve();
+			}
+			dashboardCacheLoad ??= this.readDashboardCache().finally(() => {
+				lastDashboardCacheRead = Date.now();
+				dashboardCacheLoad = null;
+			});
+			return dashboardCacheLoad;
+		},
+
+		async readDashboardCache() {
 			const wkManager = getWKManager();
 			if (!wkManager) return;
 
 			const summary = wkManager.storage.getSummary();
-			if (summary) {
-				this.summary = summary;
+			if (summary && JSON.stringify(summary) !== JSON.stringify(this.summary)) this.summary = summary;
+
+			let changed = false;
+			const assignments = await wkManager.storage.getAssignments();
+			if (assignments?.length) {
+				const key = assignmentsKey(assignments);
+				if (key !== assignmentsKey(this.assignments)) {
+					this.assignments = assignments;
+					changed = true;
+				}
 			}
 
-			const assignments = await wkManager.storage.getAssignments();
-			if (assignments?.length) this.assignments = assignments;
-
 			const levelsStats = wkManager.storage.getLevelProgressions();
-			if (levelsStats) this.levelsStats = normalizeLevelsStats(levelsStats);
+			if (levelsStats) {
+				const normalized = normalizeLevelsStats(levelsStats);
+				if (JSON.stringify(normalized) !== JSON.stringify(this.levelsStats)) {
+					this.levelsStats = normalized;
+					changed = true;
+				}
+			}
 
-			await this.rebuildLevelsInProgress();
+			// built from the two above: only when one changed (or never built)
+			if (changed || !this.levelsInProgress.length) await this.rebuildLevelsInProgress();
 		},
 
 		/**
@@ -568,8 +761,14 @@ export const useWKStore = defineStore('wk', {
 			wkManager.getSummary(({ data }: { data: SummaryState }) => {
 				if (data) this.summary = data;
 			});
-			wkManager.getAssignments(null, ({ data }: { data: Array<any> }) => {
-				if (data?.length) this.assignments = data;
+			this.dashboardRefreshing = true;
+			wkManager.getAssignments(null, ({ state, data }: { state: string; data: Array<any> }) => {
+				if (state !== 'error' && data?.length) this.assignments = data;
+				// first call is the cached copy; 'updated' / 'error' means the refresh is over
+				if (state !== 'cached') {
+					this.dashboardRefreshing = false;
+					this.dashboardRefreshedAt = Date.now();
+				}
 			});
 			this.refreshLevelProgressions();
 		},
@@ -581,6 +780,36 @@ export const useWKStore = defineStore('wk', {
 			wkManager.getLevelProgressions(({ data }: { data: LevelsStats | null }) => {
 				if (data) this.levelsStats = normalizeLevelsStats(data);
 			});
+		},
+
+		/**
+		 * Fastest possible level up of the current level (see getLevelUpPrediction), for the
+		 * calendars to mark. Recomputed at most every few minutes.
+		 */
+		async refreshFastestLevelUp(force = false) {
+			const level = this.userInfo?.level;
+			if (!level) return;
+			const fresh = this.fastestLevelUp?.level === level
+				&& Date.now() - this._fastestLevelUpAt < FASTEST_LEVEL_UP_REFRESH_MS;
+			if (!force && fresh) return;
+			this._fastestLevelUpAt = Date.now();
+
+			const subjects = await this.fetchSubjectsForLevel(level);
+			if (!subjects.length) return;
+			// the latest assignments (the cached subjects' copies can be older)
+			const assignmentById = new Map(this.assignments.map((assignment: any) => [assignment.subject_id, assignment]));
+			const levelSubjects = subjects.map((subject: any) => ({
+				...subject,
+				assignment: assignmentById.get(subject.id) ?? subject.assignment ?? {},
+			}));
+			const levelById = new Map(this.allSubjects.map((subject: any) => [subject.id, subject.level]));
+			const prediction = getLevelUpPrediction(levelSubjects, {
+				assignmentOf: (id: number) => assignmentById.get(id),
+				levelOf: (id: number) => levelById.get(id),
+			});
+			this.fastestLevelUp = prediction
+				? { level, at: prediction.levelUpAt.getTime(), lockedKanji: prediction.lockedKanji }
+				: null;
 		},
 
 		/** Cache-first level fetch for profile/search; refreshes stale levels on access. */
@@ -642,6 +871,61 @@ export const useWKStore = defineStore('wk', {
 			return { subject, related };
 		},
 
+		/**
+		 * Subjects a list needs but that aren't cached (e.g. added by WaniKani to a level
+		 * that was already synced): read from cache, fetch the rest, and keep them.
+		 */
+		async resolveSubjects(ids: number[]) {
+			const wkManager = getWKManager();
+			const unique = [...new Set(ids.filter(id => Number.isFinite(id)))];
+			if (!wkManager || !unique.length) return [];
+
+			let subjects: Array<any> = (await wkManager.readSubjectsById(unique)) ?? [];
+			const found = new Set(subjects.map((subject: any) => subject.id));
+			const missing = unique.filter(id => !found.has(id));			if (missing.length) {
+				try {
+					const fetched = await wkManager.getSubjectsById(missing, null);
+					if (fetched?.length) subjects = [...subjects, ...fetched];
+				} catch {
+					// show what we have
+				}
+			}
+
+			if (subjects.length) this.mergeSubjects(subjects);
+			return enrichSubjectsWithSchoolGrades(formatSubjectsData(subjects));
+		},
+
+		/**
+		 * Cached subjects without an assignment (locked), from the lightweight level index,
+		 * so it's cheap even before all subjects are hydrated.
+		 */
+		/** Every subject WaniKani has (from the cached level index; the same for every user). */
+		async countAllSubjects(): Promise<number> {
+			const wkManager = getWKManager();
+			if (!wkManager) return 0;
+			try {
+				return (await wkManager.storage.getSubjectIdLevelMap()).size;
+			} catch {
+				return 0;
+			}
+		},
+
+		async countLockedSubjects(): Promise<number> {
+			const wkManager = getWKManager();
+			if (!wkManager) return 0;
+			try {
+				const levelBySubjectId = await wkManager.storage.getSubjectIdLevelMap();
+				const assigned = new Set(this.assignments.map((assignment: any) => assignment.subject_id));
+				let locked = 0;
+				for (const id of levelBySubjectId.keys()) {
+					if (!assigned.has(id)) locked += 1;
+				}
+				return locked;
+			} catch {
+				return 0;
+			}
+		},
+
 		/** Resolve highlighted characters/words (from a page) into full subjects. */
 		async getHighlightedSubjects(items: Array<{ value: string; type?: string }>) {
 			const wkManager = getWKManager();
@@ -652,7 +936,7 @@ export const useWKStore = defineStore('wk', {
 
 			let materials: Array<any> = [];
 			try {
-				materials = await wkManager.storage._getMaterialsByAnyOf('characters', values);
+				materials = await wkManager.storage.getMaterialsByCharacterValues(values);
 			} catch {
 				materials = [];
 			}
@@ -692,9 +976,16 @@ export const useWKStore = defineStore('wk', {
 		},
 
 		mergeSubjects(data: Array<any>) {
-			const formatted = formatSubjectsData(data);
+			const formatted = enrichSubjectsWithSchoolGrades(formatSubjectsData(data));
 			const byId = new Map(this.allSubjects.map(item => [item.id, item]));
-			formatted.forEach(item => byId.set(item.id, item));
+			// The same data again is common (cache reads, the get:subjects event after a fetch):
+			// replacing allSubjects then would recompute everything that depends on it for nothing.
+			const changed = formatted.filter(item => {
+				const current = byId.get(item.id);
+				return !current || JSON.stringify(toRaw(current)) !== JSON.stringify(item);
+			});
+			if (!changed.length) return;
+			changed.forEach(item => byId.set(item.id, item));
 			this.allSubjects = enrichSubjectsWithSchoolGrades(Array.from(byId.values()));
 			this.scheduleRebuildLevelsInProgress();
 		},
@@ -746,8 +1037,38 @@ export const useWKStore = defineStore('wk', {
 				});
 			}
 
-			this.levelsInProgress = [...byLevel.entries()]
-				.filter(([, items]) => items.some(item => item.assignment?.passed_at == null))
+			const inProgress = [...byLevel.entries()]
+				.filter(([, items]) => items.some(item => item.assignment?.passed_at == null));
+
+			// Locked subjects have no assignment yet, but they are part of the level:
+			// add them (from cached materials) so the bars show the whole level.
+			const inProgressLevels = inProgress.map(([level]) => level);
+			if (inProgressLevels.length) {
+				try {
+					const assigned = new Set(assignments.map((assignment: any) => assignment.subject_id));
+					// every subject in memory (the usual, after startup): no database read (it took
+					// most of a second, each time Home opened)
+					const levelSet = new Set(inProgressLevels);
+					const materials = this.allSubjectsInMemory
+						? this.allSubjects.filter((subject: any) => levelSet.has(subject.level))
+						: await wkManager.storage.getMaterialsByLevel(inProgressLevels);
+					for (const material of materials ?? []) {
+						if (assigned.has(material.id) || material.hidden_at) continue;
+						byLevel.get(material.level)?.push({
+							id: material.id,
+							type: material.type,
+							level: material.level,
+							subject_type: material.type,
+							srs_stage: null,
+							assignment: { srs_stage: null, passed_at: null, hidden: false },
+						});
+					}
+				} catch {
+					// keep the assignment-only bars
+				}
+			}
+
+			this.levelsInProgress = inProgress
 				.map(([level, items]) => ({
 					level,
 					items: groupByType(items),
@@ -855,18 +1176,23 @@ export const useWKStore = defineStore('wk', {
 				const kanjiByJlpt = buildKanjiByJlpt(schoolMaps);
 				const kanjiByJoyo = buildKanjiByJoyo(schoolMaps);
 
-				await storage.setItem('local:highlightData', {
+				await writeHighlightDataIfChanged({
 					kanji: {
 						learned: Array.from(kanji.learned).join(''),
 						notLearned: Array.from(kanji.notLearned).join(''),
 						byStage: kanjiByStage,
 						byJlpt: kanjiByJlpt,
 						byJoyo: kanjiByJoyo,
+						japanese: buildJapaneseKanji(schoolMaps),
 					},
 					vocabulary: {
 						learned: Array.from(vocab.learned),
 						notLearned: Array.from(vocab.notLearned),
+						// how the verbs and adjectives conjugate (deinflect.ts): 話していました finds 話す
+						inflections: inflectionsOf(vocabSubjects),
 						byStage: vocabByStage,
+						byJlpt: buildVocabByJlpt(vocabSubjects),
+						byJoyo: buildVocabByJoyo(vocabSubjects, schoolMaps),
 					},
 					updatedAt: now,
 				});
@@ -882,17 +1208,46 @@ export const useWKStore = defineStore('wk', {
 			return this.syncSubjectLevels(wkManager, missing, this.userInfo?.level);
 		},
 
+		/**
+		 * The account's data goes (its progress, info, the extension's per-account data); the
+		 * subjects stay (WaniKani's content, the same for everyone): logging in again, as anyone,
+		 * only fetches that account's progress.
+		 */
 		async logout() {
 			const wkManager = getWKManager();
 			if (wkManager) {
-				await wkManager.clearDatabase();
+				await wkManager.clearUserData();
 				wkManager.clearUserInfo();
 			}
 			resetWKManager();
 			this.reset();
+			// pages would otherwise keep highlighting with the previous account's progress
+			await storage.removeItem('local:highlightData');
 		},
 
+		/**
+		 * Another account (a Drive backup holding its key): logged out of this one (its data goes,
+		 * the subjects stay), logged in with that key. The popup reloads into it, at `route`.
+		 */
+		async switchAccount(apiKey: string, route = '#/') {
+			const proxy = (await storage.getItem<string>('sync:proxyServer')) || DEFAULT_PROXY;
+			await this.logout();
+			await storage.setItems([
+				{ key: 'sync:apiKey', value: apiKey.trim() },
+				{ key: 'sync:proxyServer', value: proxy },
+			]);
+			location.hash = route;
+			location.reload();
+		},
+
+		/**
+		 * Settings → Data → Reset subject data: back to a clean state, as right after installing.
+		 * Anything left from v1.5 (a migration that didn't finish) goes, and the subjects are
+		 * downloaded again; settings, the API key and the saved history stay.
+		 */
 		async clearSubjectsData() {
+			await removeLegacyKeys();
+			await deleteLegacyIndexedDb();
 			const wkManager = getWKManager();
 			if (wkManager) {
 				await wkManager.clearDatabase();
@@ -905,6 +1260,7 @@ export const useWKStore = defineStore('wk', {
 			this.allSubjects = [];
 			this.assignments = [];
 			this.allSubjectsLoaded = false;
+			this.allSubjectsInMemory = false;
 			this.initialSyncComplete = false;
 			this.initialSyncStarted = false;
 			this.syncInProgress = false;
@@ -916,8 +1272,13 @@ export const useWKStore = defineStore('wk', {
 			this.syncProgress = { loaded: 0, total: 0, label: '' };
 			localStorage.removeItem('levelsInProgress');
 			localStorage.removeItem('allSubjectsLoaded');
+			clearSchoolProgressSnapshots();
+			clearAccoladeSnapshots();
 			this.loading = true;
 			await this.init();
+			// init only marks the first sync as needed: the popup starts it when it opens, and it's
+			// already open here (without this, the loading screen waited until the popup reopened)
+			void this.continueStartupIfNeeded();
 		},
 
 		reset() {
@@ -926,6 +1287,7 @@ export const useWKStore = defineStore('wk', {
 			this.allSubjects = [];
 			this.assignments = [];
 			this.allSubjectsLoaded = false;
+			this.allSubjectsInMemory = false;
 			this.levelsInProgress = [];
 			this._subjectsHydratedLevel = null;
 			this.awaitingHighlightChoice = false;
@@ -938,17 +1300,33 @@ export const useWKStore = defineStore('wk', {
 			this.syncProgress = { loaded: 0, total: 0, label: '' };
 			this.activeApiKey = null;
 			this._lastDashboardRefresh = 0;
+			this.dashboardRefreshing = false;
+			this.dashboardRefreshedAt = 0;
+			localStorage.removeItem('progressSnapshot');
 			if (this._rebuildLevelsTimer) clearTimeout(this._rebuildLevelsTimer);
 			this._rebuildLevelsTimer = null;
 			this._eventsRegistered = false;
 			this.userInfo = {};
 			this.userAvatar = '';
+			// whose account the extension is (WaniKani's settings page checks it): nobody's now
+			void storage.removeItem('local:accountUsername');
 			this.levelProgressionInfo = {};
+			this.fastestLevelUp = null;
+			this._fastestLevelUpAt = 0;
 			this.levelsStats = null;
 			localStorage.removeItem('levelsInProgress');
+			localStorage.removeItem(LEVEL_PROGRESS_SNAPSHOT_KEY);
 			localStorage.removeItem('allSubjectsLoaded');
+			clearSchoolProgressSnapshots();
+			clearAccoladeSnapshots();
 			storage.removeItem('sync:apiKey');
 			storage.removeItem('sync:proxyServer');
+			void clearDailyActivity();
+			void clearFriends();
+			void clearNotifications();
+			void clearMilestones();
+			// new features are announced again after the next login
+			void clearFeatureNotices();
 			storage.removeItem('local:initialSyncComplete');
 			storage.removeItem('local:initialSyncStarted');
 			storage.removeItem('local:firstLoadDone');
