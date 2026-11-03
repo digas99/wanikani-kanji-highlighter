@@ -81,7 +81,9 @@ export default {
 
 <style scoped>
 .sd-popupDetails_navbar-selected {
-	background-color: #d73267 !important;
+	background-color: var(--popup-details-title-bkcolor, #e36f94) !important;
+	opacity: 1 !important;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
 .sd-popupDetails_navbar-selected img {

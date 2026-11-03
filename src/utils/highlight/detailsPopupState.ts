@@ -24,7 +24,23 @@ export const popupState = reactive({
 	autoplayAudio: false,
 	highlightStyleVars: { ...DEFAULT_HIGHLIGHT_STYLE_VARS } as HighlightStyleVars,
 	srsAppearanceVars: {} as Record<string, string>,
+	/** A subject is being looked up and isn't cached yet: show a skeleton. */
+	loading: false,
+	/** Characters already known while loading (the hovered text). */
+	pendingCharacters: '',
+	/** Expanded panel: related subjects / review stats still on their way. */
+	relatedLoading: false,
+	statsLoading: false,
+	/** Settings → Lookup links */
+	lookupLinks: [] as Array<{ id: string; name: string; url: string; query: string }>,
 });
+
+export function clearLoadingState(): void {
+	popupState.loading = false;
+	popupState.pendingCharacters = '';
+	popupState.relatedLoading = false;
+	popupState.statsLoading = false;
+}
 
 export function showSubjectBundle(
 	subject: any,
@@ -49,6 +65,8 @@ export function showSubjectBundle(
 
 	popupState.item = subject;
 	popupState.relatedSubjects = related;
+	popupState.loading = false;
+	popupState.pendingCharacters = '';
 	popupState.visible = true;
 }
 
@@ -65,6 +83,7 @@ export function hidePopup(): void {
 	popupState.locked = false;
 	popupState.history = [];
 	popupState.relatedSubjects = {};
+	clearLoadingState();
 }
 
 function onPopupExpanded(): void {

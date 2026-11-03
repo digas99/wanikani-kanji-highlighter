@@ -15,23 +15,27 @@ import type { ContentScriptContext } from 'wxt/utils/content-script-context';
 import HighlightDetailsPopup from '@/components/highlight/HighlightDetailsPopup.vue';
 import { popupState, hidePopup } from './detailsPopupState';
 import { highlightStyleVarsFromSettings, srsAppearanceVarsFromSettings } from './highlightStyleVars';
-import { openHighlightedSubject } from './detailsPopupSubject';
+import { openHighlightedSubject, openHighlightedSubjectById } from './detailsPopupSubject';
 import {
 	handleDetailsPopupKeydown,
 	handleDetailsPopupKeyup,
 } from './detailsPopupKeybindings';
-import { HIGHLIGHT_MARK_CLASS } from './highlighter';
+import { highlightAt, isPaintingHighlights } from './highlightHits';
+import { resolveLookupLinks } from '@/utils/scripts/lookupLinks';
+import { defaultSettings } from '@/utils/scripts/defaultSettings';
 import {
 	isPageHighlightBlocked,
 	type PageListMode,
 } from '@/utils/scripts/pageList';
 
-const SELECTOR = `.${HIGHLIGHT_MARK_CLASS}`;
-
 let enabled = true;
 let pageBlocked = false;
 let popupHost: Element | null = null;
-let lastHoverSpan: HTMLElement | null = null;
+/** the highlighted text the popup was last opened for (a span, or a painted match) */
+let lastHoverKey: object | null = null;
+/** Settings → Details: show details in the page, or in the browser side panel. */
+let detailsLocation: 'page' | 'sidepanel' = 'page';
+let lastSidePanelKey = '';
 
 function isInsidePopupHost(event: Event): boolean {
 	if (!popupHost) return false;
@@ -43,7 +47,9 @@ export async function mountDetailsPopup(ctx: ContentScriptContext): Promise<void
 	await applyPageAccess(await storage.getItem<any>('local:settings'));
 	await refreshPageAccess();
 
+	// spans get mouseover; painted highlights aren't elements, so the pointer is followed
 	document.addEventListener('mouseover', onMouseOver, true);
+	document.addEventListener('mousemove', onMouseMove, true);
 	document.addEventListener('click', onDocumentClick, true);
 	document.addEventListener('keydown', handleDetailsPopupKeydown, true);
 	document.addEventListener('keyup', handleDetailsPopupKeyup, true);
@@ -53,6 +59,22 @@ export async function mountDetailsPopup(ctx: ContentScriptContext): Promise<void
 	});
 	storage.watch('local:blacklist', refreshPageAccess);
 	storage.watch('local:whitelist', refreshPageAccess);
+
+	// Right-click on a subject in the extension popup: show it here.
+	browser.runtime.onMessage.addListener((message: any, _sender, sendResponse) => {
+		if (message?.type !== 'wkh:showSubject') return;
+		const subjectId = Number(message.subjectId);
+		if (!enabled || pageBlocked || !Number.isFinite(subjectId)) {
+			sendResponse({ shown: false });
+			return;
+		}
+		// the side panel's "show on page" switches back to the in-page popup
+		if (message.switchToPage) detailsLocation = 'page';
+		// an explicit request beats a locked popup
+		popupState.locked = false;
+		void openHighlightedSubjectById(subjectId);
+		sendResponse({ shown: true });
+	});
 
 	const ui = await createShadowRootUi<App>(ctx, {
 		name: 'wkh-details-popup',
@@ -98,8 +120,43 @@ function applySettings(settings: any): void {
 	popupState.keyBindings = cfg.key_bindings !== false;
 	popupState.highlightStyleVars = highlightStyleVarsFromSettings(settings);
 	popupState.srsAppearanceVars = srsAppearanceVarsFromSettings(settings);
+	// settings saved before lookup links existed get the defaults; older lists get WaniKani once
+	popupState.lookupLinks = resolveLookupLinks(settings?.lookup, defaultSettings.lookup.links);
+	detailsLocation = cfg.location === 'sidepanel' ? 'sidepanel' : 'page';
 
 	if (!enabled) hidePopup();
+	// side panel mode: the in-page popup isn't used
+	if (detailsLocation === 'sidepanel') forceHidePopup();
+}
+
+function forceHidePopup(): void {
+	popupState.fixed = false;
+	popupState.locked = false;
+	hidePopup();
+}
+
+function sendToBackground(message: Record<string, unknown>): void {
+	try {
+		void browser.runtime.sendMessage(message).catch(() => {});
+	} catch {
+		/* extension context may be gone (reloaded extension) */
+	}
+}
+
+/**
+ * Popup → side panel button: open the panel on the shown subject and switch modes.
+ * Runs inside the click, so the browser lets the background open the panel.
+ */
+export function moveDetailsToSidePanel(): void {
+	const item = popupState.item;
+	sendToBackground({
+		type: 'wkh:sidepanel:open',
+		switchMode: true,
+		...(item?.id != null ? { subjectId: item.id } : {}),
+		...(item?.characters ? { characters: item.characters } : {}),
+	});
+	detailsLocation = 'sidepanel';
+	forceHidePopup();
 }
 
 async function applyPageAccess(settings: any): Promise<void> {
@@ -108,26 +165,63 @@ async function applyPageAccess(settings: any): Promise<void> {
 }
 
 function onMouseOver(event: MouseEvent): void {
+	onPointerAt(event);
+}
+
+/** Painted highlights: checked at most once per frame. */
+let pendingMove: MouseEvent | null = null;
+function onMouseMove(event: MouseEvent): void {
+	if (!isPaintingHighlights()) return;
+	if (!pendingMove) {
+		requestAnimationFrame(() => {
+			const move = pendingMove;
+			pendingMove = null;
+			if (move) onPointerAt(move);
+		});
+	}
+	pendingMove = event;
+}
+
+function onPointerAt(event: MouseEvent): void {
 	if (!enabled || pageBlocked || popupState.locked || isInsidePopupHost(event)) return;
-	const target = event.target as Element | null;
-	const span = target?.closest?.(SELECTOR) as HTMLElement | null;
-	if (!span) return;
+	const hit = highlightAt(event);
+	if (!hit) return;
+	const { value, type } = hit;
 
-	const value = span.textContent?.trim();
-	if (!value) return;
+	// Side panel mode: hovering updates the panel (if it's open); nothing shows in the page.
+	if (detailsLocation === 'sidepanel') {
+		const key = `${type ?? ''}:${value}`;
+		if (key === lastSidePanelKey) return;
+		lastSidePanelKey = key;
+		sendToBackground({ type: 'wkh:sidepanel:show', characters: value, subjectType: type });
+		return;
+	}
 
-	if (span === lastHoverSpan && popupState.visible) return;
+	if (hit.key === lastHoverKey && popupState.visible) return;
 
-	lastHoverSpan = span;
-	const type = span.getAttribute('data-wkh-type') ?? undefined;
+	lastHoverKey = hit.key;
 	void openHighlightedSubject(value, type);
 }
 
 /** Dismiss the popup when the user clicks anywhere outside of it. */
 function onDocumentClick(event: MouseEvent): void {
+	// Side panel mode: clicking a highlighted word opens the panel on it.
+	if (detailsLocation === 'sidepanel' && enabled && !pageBlocked && !isInsidePopupHost(event)) {
+		const hit = highlightAt(event);
+		if (hit) {
+			lastSidePanelKey = `${hit.type ?? ''}:${hit.value}`;
+			sendToBackground({
+				type: 'wkh:sidepanel:open',
+				characters: hit.value,
+				subjectType: hit.type,
+			});
+		}
+		return;
+	}
+
 	if (!popupState.visible) return;
 	const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
 	if (popupHost && path.includes(popupHost)) return;
-	lastHoverSpan = null;
+	lastHoverKey = null;
 	hidePopup();
 }

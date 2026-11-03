@@ -57,6 +57,15 @@ export async function applySubjectDetailsHighlights(
 	}
 }
 
+/** Highlight one element on its own (e.g. content opened after the panel was highlighted). */
+export async function highlightElement(element: Element | null | undefined): Promise<void> {
+	if (!element) return;
+	const highlighter = await getSubjectHighlighter();
+	if (!highlighter) return;
+	clearHighlights(element);
+	highlighter.highlightRoot(element);
+}
+
 export function invalidateSubjectHighlightCache(): void {
 	cachedConfigKey = '';
 	cachedHighlighter = null;

@@ -2,20 +2,17 @@
 	<div v-if="entries.length" class="sd-detailsPopup_sectionContainer">
 		<div id="sd-popupDetails_TimestampsSection" class="sd-popupDetails_anchor"></div>
 		<strong class="sd-popupDetails_title">Timestamps</strong>
-		<div style="margin-top: 10px;">
-			<div
-				v-for="entry in entries"
-				:key="entry.key"
-				style="padding: 5px 0; margin-bottom: 5px;"
-			>
-				<div class="sd-detailsPopup_img-label">
-					<img :src="entry.icon" style="width: 22px;" alt="">
-					<strong style="font-size: 22px;">{{ entry.label }}</strong>
+
+		<ol class="sd-timeline">
+			<li v-for="entry in entries" :key="entry.key" class="sd-timeline_item">
+				<span class="sd-timeline_icon"><img :src="entry.icon" alt=""></span>
+				<div class="sd-timeline_text">
+					<strong>{{ entry.label }}</strong>
+					<span class="sd-muted">{{ entry.value }}</span>
 				</div>
-				<p style="padding: 5px 0 2px 8px; color: #c5c5c4;">{{ entry.value }}</p>
-				<p style="padding: 2px 0 2px 8px; font-weight: bold;">{{ entry.relative }}</p>
-			</div>
-		</div>
+				<span class="sd-timeline_relative">{{ entry.relative }}</span>
+			</li>
+		</ol>
 	</div>
 </template>
 
@@ -27,16 +24,26 @@ import {
 	formatTimestampValue,
 	popupIconUrl,
 } from '@/utils/scripts/subjectDetailsPopup';
+import { prettyTime } from '@/utils/scripts/time';
 
-const TIMESTAMP_ICONS = [
-	'/icons/kanjiDraw/up-arrow-thick.png',
-	'/icons/search/time.png',
-	'/icons/subjectDetails/check.png',
-	'/icons/search/check.png',
-	'/icons/subjectDetails/checkmark.png',
-	'/icons/subjectDetails/eye.png',
-	'/icons/search/no-stopping.png',
-	'/icons/subjectDetails/language.png',
+/** "in 3h 20m" for a future timestamp, "available now" for a past one. */
+function formatTimeUntil(value) {
+	const delta = new Date(value).getTime() - Date.now();
+	if (!Number.isFinite(delta)) return '';
+	if (delta <= 0) return 'available now';
+	return `in ${prettyTime(delta, { short: true, seconds: false })}`;
+}
+
+/** Life-cycle order (unlocked → … → burned), then what's next / last activity. */
+const TIMESTAMP_ORDER = [
+	{ key: 'created_at', icon: '/icons/subjectDetails/language.png' },
+	{ key: 'unlocked_at', icon: '/icons/subjectDetails/language.png' },
+	{ key: 'started_at', icon: '/icons/search/no-stopping.png' },
+	{ key: 'passed_at', icon: '/icons/subjectDetails/checkmark.png' },
+	{ key: 'burned_at', icon: '/icons/subjectDetails/check.png' },
+	{ key: 'resurrected_at', icon: '/icons/subjectDetails/eye.png' },
+	{ key: 'available_at', icon: '/icons/search/time.png' },
+	{ key: 'data_updated_at', icon: '/icons/kanjiDraw/up-arrow-thick.png' },
 ];
 
 export default {
@@ -54,13 +61,18 @@ export default {
 			const timestamps = buildAssignmentTimestamps(this.item.assignment);
 			if (!timestamps) return [];
 
-			return Object.keys(timestamps).map((key, index) => ({
-				key,
-				label: formatTimestampLabel(key),
-				value: formatTimestampValue(timestamps[key]),
-				relative: formatDaysPassed(timestamps[key]),
-				icon: popupIconUrl(TIMESTAMP_ICONS[index] ?? TIMESTAMP_ICONS[0]),
-			}));
+			return TIMESTAMP_ORDER
+				// only what actually happened: empty fields were shown as "No Data"
+				.filter(({ key }) => timestamps[key])
+				.map(({ key, icon }) => ({
+					key,
+					label: key === 'available_at' ? 'Next Review' : formatTimestampLabel(key),
+					value: formatTimestampValue(timestamps[key]),
+					relative: key === 'available_at'
+						? formatTimeUntil(timestamps[key])
+						: formatDaysPassed(timestamps[key]),
+					icon: popupIconUrl(icon),
+				}));
 		},
 	},
 };

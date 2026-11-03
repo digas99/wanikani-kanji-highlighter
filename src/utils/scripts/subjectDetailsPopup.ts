@@ -177,11 +177,15 @@ export function formatDaysPassed(value: string | null | undefined): string {
 	const diff = Date.now() - new Date(value).getTime();
 	if (!Number.isFinite(diff) || diff < 0) return '';
 
-	const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+	const totalDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+	// a year here is 365 days: close enough for "how long ago", and stays two units like the rest
+	const years = Math.floor(totalDays / 365);
+	const days = totalDays % 365;
 	const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 	const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 	const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
+	if (years > 0) return `${years}y ${days}d ago`;
 	if (days > 0) return `${days}d ${hours}h ago`;
 	if (hours > 0) return `${hours}h ${minutes}m ago`;
 	if (minutes > 0) return `${minutes}m ${seconds}s ago`;
@@ -258,21 +262,45 @@ export function getCardTextRows(subject: any): string[] {
 export const POPUP_KANJI_BASE_FONT_PX = 60;
 export const POPUP_COMPACT_DEFAULT_WIDTH_PX = 150;
 
-/** v1.5 kanji header scaling for long vocabulary/kana strings. */
-export function getPopupKanjiFontSizePx(characters?: string | null): number {
+/** Compact preview: characters shrink per extra character so words stay a reasonable size. */
+const COMPACT_FONT_BY_LENGTH = [60, 60, 52, 42, 36, 32, 28, 26];
+
+/**
+ * Header character size. The expanded panel keeps the v1.5 scale (60px up to 4 characters);
+ * the compact preview uses a smaller scale so 3–4 character words don't fill a huge box.
+ */
+export function getPopupKanjiFontSizePx(
+	characters?: string | null,
+	options: { compact?: boolean } = {},
+): number {
 	const length = characters?.length ?? 0;
+	if (options.compact) {
+		return COMPACT_FONT_BY_LENGTH[length] ?? Math.max(18, 26 - 2 * (length - 7));
+	}
 	if (length <= 4) return POPUP_KANJI_BASE_FONT_PX;
 	return Math.max(18, 48 - 6 * (length - 5));
 }
 
-/** v1.5 compact popup width: widen when the subject has 3+ characters. */
+/**
+ * Compact preview width: fit the content (characters, meaning title, reading line)
+ * between 150px and the configured popup width, instead of jumping straight to the
+ * full width at 3 characters.
+ */
 export function getCompactPopupWidthPx(
 	characters?: string | null,
 	configuredWidth = 300,
+	text: { meaning?: string; reading?: string } = {},
 ): number {
 	const length = characters?.length ?? 0;
-	if (length >= 3) return configuredWidth;
-	return POPUP_COMPACT_DEFAULT_WIDTH_PX;
+	const maxWidth = Math.max(POPUP_COMPACT_DEFAULT_WIDTH_PX, configuredWidth);
+
+	const charactersWidth = length * getPopupKanjiFontSizePx(characters, { compact: true }) + 32;
+	// rough glyph widths: 16px semibold latin title, 14px kana readings
+	const meaningWidth = (text.meaning?.length ?? 0) * 8.6 + 28;
+	const readingWidth = (text.reading?.length ?? 0) * 14 + 60;
+
+	const needed = Math.max(charactersWidth, meaningWidth, readingWidth);
+	return Math.round(Math.min(maxWidth, Math.max(POPUP_COMPACT_DEFAULT_WIDTH_PX, needed)));
 }
 
 /** v1.5 dmak sizing, capped so all character SVGs fit on one row. */

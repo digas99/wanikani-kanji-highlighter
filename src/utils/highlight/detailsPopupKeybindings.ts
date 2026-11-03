@@ -12,11 +12,13 @@ import { navigatePopupHistoryBack } from './detailsPopupSubject';
 function isTypingTarget(target: EventTarget | null): boolean {
 	if (!(target instanceof HTMLElement)) return false;
 	const tag = target.tagName;
-	return tag === 'INPUT' || tag === 'TEXTAREA' || target.isContentEditable;
+	return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
 }
 
 export function handleDetailsPopupKeydown(event: KeyboardEvent): void {
 	if (!popupState.visible || !popupState.keyBindings || isTypingTarget(event.target)) return;
+	// Leave browser / page shortcuts alone (Ctrl+C, Ctrl+F, Alt+←, ...).
+	if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
 
 	const key = event.key;
 

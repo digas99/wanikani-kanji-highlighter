@@ -42,20 +42,21 @@
 				<img :src="iconsSource + 'up-arrow-thick.png'" alt="Next Stroke" style="rotate: 90deg;">
 			</div>
 			<div @click="this.reload" title="Reload Strokes" class="sd-detailsPopup_clickable" data-action="reload"
-				style="margin-left: 20px;">
+				style="margin-left: 12px;">
 				<img :src="iconsSource + 'reload.png'" alt="Reload">
 			</div>
 			<div @click="this.clear" title="Clear All Strokes" class="sd-detailsPopup_clickable" data-action="clear">
 				<img :src="iconsSource + 'close-thick.png'" alt="Clear">
 			</div>
-			<a href="https://mbilbille.github.io/dmak/" target="_blank" class="sd-detailsPopup_clickable"
-				style="margin-left: 20px; filter: unset;" title="https://mbilbille.github.io/dmak/">
-				<img :src="iconsSource + 'dmak-logo.png'" alt="dmak" style="width: 25px;">
+		</div>
+
+		<!-- attribution, not controls: small and out of the way -->
+		<div class="sd-strokesCredits">
+			<a href="https://mbilbille.github.io/dmak/" target="_blank" rel="noopener" title="Stroke animation: dmak">
+				<img :src="iconsSource + 'dmak-logo.png'" alt="">dmak
 			</a>
-			<a href="https://kanjivg.tagaini.net/" target="_blank" class="sd-detailsPopup_clickable"
-				style="filter: unset; color: white;" title="https://kanjivg.tagaini.net/">
-				<div>KanjiVG</div>
-			</a>
+			<span aria-hidden="true">·</span>
+			<a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" title="Stroke data: KanjiVG">KanjiVG</a>
 		</div>
 	</div>
 </template>
