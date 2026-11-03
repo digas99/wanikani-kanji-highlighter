@@ -1,18 +1,46 @@
 # [Changelog v2.0.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v2.0.0)
 
 ## Technicalities
-- Complete rewrite using Vue 3, Pinia, WXT, and TypeScript
-- New **wanikani-api-manager** SDK with IndexedDB caching, event-driven sync, and conservative API batching
-- Progressive level sync with a dedicated loading screen
-
-## Popup
-- Home dashboard with SRS tiles, level progression bars, and burned subjects
-- Lessons and Reviews pages with queue lists and a future reviews chart
-- Profile, Search, Subjects, and About pages ported from v1.5
-- Dev API key rotation during local development
+- Complete rewrite using Vue 3, Pinia, WXT and TypeScript
+- New **wanikani-api-manager** library: subjects kept on your computer (IndexedDB), updated in the background, with fewer calls to WaniKani
+- Settings, API key and site lists carried over from v1.5 automatically
+- A What's new page, opened once after installing or updating (also in About)
+- **Reset subject data** (Settings → Data) removes anything left over from v1.5 and downloads the subjects again, keeping settings, API key and history
 
 ## Content
-- Subject details popup structure preserved for a future content-script port
+- **Words are highlighted too**, not only kanji: Kanji, Words or Mixed modes, with conjugated forms found as their word (話していました → 話す) and pages with furigana supported
+- Highlights colored by learned / not learned, SRS stage, JLPT level or Jōyō grade
+- **Dynamic pages** like YouTube are highlighted as they change, and highlighted text no longer breaks the browser's translate tool
+- **Page reading level**: a small bar with a page's JLPT level and how much of it you know, with Learned, SRS, JLPT and Jōyō breakdowns, rating only chosen parts of a site, and a Focus mode
+- Optional **history of the pages you read**, recorded for as long as you use a page (content that loads as you scroll included), with near-identical pages kept once
+- **Example sentences** from the pages you read, shown on each subject, with private on-device translation, a Sentences library, Anki export and per-site exclusions
+- Subject details open from a small preview in the corner, or in the browser's side panel
+- New details popup options: lock the subject, keep it open, key bindings
+
+## WaniKani
+- **Review session summary** after your reviews: what went up, down or stayed, meaning and reading accuracy per subject, what you passed, trouble subjects, and your level's progress before and after the session
+- Hover a subject in the summary, or the last subject reviewed, for its card: meanings, readings, level, SRS stage, JLPT and Jōyō, accuracy, what the session changed, and the kanji or words it's part of or made of
+- Optional info during reviews: the subject's SRS stage, level, JLPT and Jōyō, your accuracy, the last answer's SRS change, a context sentence or example words, and a session timer
+- Works with Double-Check (answers changed or retyped are counted as WaniKani counts them)
+
+## Popup
+- New **Home**: today's reviews, accuracy, lessons and SRS moves, a recap of yesterday, and a customizable layout. Hover or click today's SRS moves to see them on the Progress overview tiles
+- **Activity calendar and heatmap**, looking ahead to future reviews and level-up projections
+- **Reviewed** page: the subjects reviewed each day, as tiles or with their SRS changes, in order of result or time
+- **Reviews**: future reviews chart (pick a day, "Now" to reset) and a workload forecast for the coming days
+- **Levels**: level-up projections to level 60, JLPT and Jōyō, at your pace or a custom one
+- **Profile**: the level-up path (what to review, and when you can level up)
+- **Trouble subjects**: the ones you keep getting wrong, marked on tiles, with their own list and practice
+- **Practice** any list as flashcards
+- **Friends**: follow up to 15 WaniKani friends' levels and progress
+- **Accolades** with more badges, and a celebration on level-up
+- **JLPT & Jōyō** progress pages for kanji and words
+- **Notifications**: a bell for level-ups, accolades, friends' news and daily summaries; browser notifications for new reviews and an optional daily reminder
+- **Search** with kana typing (CAPITALS for katakana), quick filters, legacy subjects, and filtered recently viewed
+- **Backups** of settings and history to a file or Google Drive, each part optional
+- Settings reorganised in tabs, with links that open the right section
+- Pages opened in a wide window (a tab or popped out) stay popup-wide, centred
+- What's new page in About
 
 # [Changelog v1.5.0](https://github.com/digas99/wanikani-kanji-highlighter/releases/tag/v1.5.0)
 

@@ -28,7 +28,7 @@
 		</div>
 
 		<div class="hl-choice-section">
-			<span class="hl-choice-section-title">Color by</span>
+			<span class="hl-choice-section-title">Highlight by</span>
 			<div class="hl-choice-cards">
 				<button
 					v-for="option in colorByOptions"
@@ -103,6 +103,24 @@
 			</div>
 		</div>
 
+		<div class="hl-choice-section">
+			<span class="hl-choice-section-title">Subject details</span>
+			<div class="hl-choice-cards">
+				<button
+					v-for="option in locationOptions"
+					:key="option.value"
+					type="button"
+					class="hl-choice-card compact clickable"
+					:class="{ picked: detailsLocation === option.value, recommended: option.recommended }"
+					@click="detailsLocation = option.value"
+				>
+					<span v-if="option.recommended" class="hl-choice-recommended">Default</span>
+					<span class="hl-choice-card-title">{{ option.title }}</span>
+					<span class="hl-choice-card-desc">{{ option.description }}</span>
+				</button>
+			</div>
+		</div>
+
 		<button type="button" class="hl-choice-confirm clickable" :disabled="submitting" @click="confirm">
 			{{ submitting ? 'Saving…' : 'Start highlighting' }}
 		</button>
@@ -116,7 +134,6 @@ import {
 	highlightStyleOptions,
 	highlightModeOptions,
 	highlightColorByOptions,
-	highlightColorByKanjiOptions,
 } from '@/utils/scripts/defaultSettings';
 import {
 	JLPT_GRADE_SECTIONS,
@@ -138,6 +155,23 @@ export default {
 			mode: settings.highlighter.mode || 'viewport',
 			styleLearned: settings.highlight_style.learned,
 			styleNotLearned: settings.highlight_style.not_learned,
+			// the in-page popup stays the default; the side panel is opt-in
+			detailsLocation: settings.kanji_details_popup?.location === 'sidepanel' ? 'sidepanel' : 'page',
+			locationOptions: [
+				{
+					value: 'page',
+					title: 'Popup on the page',
+					recommended: true,
+					description: 'Hovering a highlighted word shows a small popup in the corner of the page.',
+				},
+				{
+					value: 'sidepanel',
+					title: 'Browser side panel',
+					description: import.meta.env.BROWSER === 'firefox'
+						? 'Details open in the Firefox sidebar next to the page. Open it from the sidebar button, then hover words.'
+						: 'Details open in the browser\'s side panel. Click a highlighted word to open it, then hover to update it.',
+				},
+			],
 			targetOptions: [
 				{
 					value: 'kanji',
@@ -185,17 +219,11 @@ export default {
 			return this.settings.settings.appearance;
 		},
 		colorByOptions() {
-			const base = highlightColorByOptions.map(option => ({
+			return highlightColorByOptions.map(option => ({
 				...option,
 				title: option.label,
 				description: this.colorByDescription(option.value),
 			}));
-			if (this.target !== 'kanji') return base;
-			return base.concat(highlightColorByKanjiOptions.map(option => ({
-				...option,
-				title: option.label,
-				description: this.colorByDescription(option.value),
-			})));
 		},
 		previewColorA() {
 			if (this.colorBy === 'srs_stage') return this.appearance.ap1_color;
@@ -276,9 +304,9 @@ export default {
 				case 'srs_stage':
 					return 'Each item uses the color of its WaniKani SRS stage (Apprentice, Guru, etc.).';
 				case 'jlpt':
-					return 'Each kanji is colored by its JLPT level (N5 through N1). Kanji-only mode.';
+					return 'Each kanji or word is colored by its JLPT level (N5 through N1).';
 				case 'joyo':
-					return 'Each kanji is colored by its Jōyō school grade. Kanji-only mode.';
+					return 'Each kanji is colored by its Jōyō school grade; words by their hardest kanji\'s.';
 				default:
 					return 'Two colors — one for content you\'ve started, one for what you haven\'t.';
 			}
@@ -303,11 +331,9 @@ export default {
 				await this.settings.setSetting('highlight_style', 'learned', this.styleLearned);
 				await this.settings.setSetting('highlight_style', 'not_learned', this.styleNotLearned);
 				await this.settings.setSetting('highlighter', 'target', this.target);
-				const colorBy = this.target !== 'kanji' && (this.colorBy === 'jlpt' || this.colorBy === 'joyo')
-					? 'learned'
-					: this.colorBy;
-				await this.settings.setSetting('highlighter', 'color_by', colorBy);
+				await this.settings.setSetting('highlighter', 'color_by', this.colorBy);
 				await this.settings.setSetting('highlighter', 'mode', this.mode);
+				await this.settings.setSetting('kanji_details_popup', 'location', this.detailsLocation);
 				await this.settings.setSetting('highlighter', 'enabled', true);
 				await this.settings.setSetting('highlighter', 'initial_choice_made', true);
 				this.wk.awaitingHighlightChoice = false;
@@ -341,7 +367,7 @@ export default {
 
 .hl-choice-hero h1 {
 	font-size: 20px;
-	color: var(--default-color);
+	color: var(--heading-color, #2a2d48);
 	margin-bottom: 8px;
 }
 
@@ -430,7 +456,7 @@ export default {
 .hl-choice-card-title {
 	font-size: 14px;
 	font-weight: 700;
-	color: var(--default-color);
+	color: var(--heading-color, #2a2d48);
 }
 
 .hl-choice-card-desc {
@@ -451,7 +477,7 @@ export default {
 .hl-preview-text {
 	font-size: 18px;
 	line-height: 1.9;
-	color: var(--default-color);
+	color: var(--heading-color, #2a2d48);
 }
 
 .hl-preview-legend {

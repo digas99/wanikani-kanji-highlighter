@@ -2,68 +2,87 @@
 	<main class="upgrade-page">
 		<header class="upgrade-hero">
 			<img :src="logo" alt="WaniKani Kanji Highlighter" class="upgrade-logo">
-			<div class="upgrade-badge">Version 2.0</div>
-			<h1>Welcome to WKHighlighter 2.0</h1>
-			<p>
-				Your settings and API key were carried over automatically. The extension is
-				rebuilding its cache in the background.
-			</p>
+			<div class="upgrade-badge">Version {{ version }}</div>
+			<template v-if="fresh">
+				<h1>Welcome to WaniKani Kanji Highlighter</h1>
+				<p>
+					It highlights the kanji and words you study on WaniKani on the pages you read, and
+					follows your progress. To start, open the extension and log in with your WaniKani
+					API key. Here's what's new in version 2.0:
+				</p>
+			</template>
+			<template v-else>
+				<h1>Welcome to WaniKani Kanji Highlighter 2.0</h1>
+				<p>
+					The extension was rebuilt from the ground up. Your settings and API key came along,
+					and your subjects are being downloaded again in the background: highlighting picks up
+					on its own in a minute or two.
+				</p>
+			</template>
 		</header>
 
-		<section class="upgrade-card">
-			<h2>What&apos;s new</h2>
-			<ul>
-				<li>Rewritten popup with a faster dashboard, lessons, reviews, profile, and search.</li>
-				<li>New caching system with progressive level sync and fewer API issues.</li>
-				<li>Improved subject details popup, highlighting options, and settings layout.</li>
-				<li>JLPT / Jōyō progress views and school-grade highlighting.</li>
-			</ul>
-		</section>
-
-		<section class="upgrade-card upgrade-warning">
-			<strong>Highlighting stopped working after the update?</strong>
-			<p>
-				This was a major rewrite, including how login and cached subject data are stored.
-				Your API key should already be migrated, but if page highlighting does not work:
-			</p>
-			<ol>
-				<li>Open the WKHighlighter extension popup.</li>
-				<li>If prompted, log in again with your WaniKani API key.</li>
-				<li>Wait for the background sync to finish, then reload the page you want to highlight.</li>
-			</ol>
-			<p>
-				In most cases you will not need to do anything — the cache rebuilds itself after the update.
-			</p>
-		</section>
+		<WhatsNewList :links="loggedIn" :link-base="popupUrl" :fresh="fresh">
+			<template #fix-action>
+				<a class="upgrade-fix-link" :href="settingsUrl" target="_blank" rel="noopener">Open Settings → Data ›</a>
+			</template>
+		</WhatsNewList>
 
 		<div class="upgrade-actions">
-			<button type="button" class="upgrade-primary" @click="closePage">
-				Got it
-			</button>
-			<a class="upgrade-secondary" :href="popupUrl" target="_blank" rel="noopener">
-				Open extension
-			</a>
+			<template v-if="fresh">
+				<a class="upgrade-primary" :href="popupUrl" target="_blank" rel="noopener">Open the extension to log in</a>
+				<button type="button" class="upgrade-secondary" @click="closePage">Close</button>
+			</template>
+			<template v-else>
+				<button type="button" class="upgrade-primary" @click="closePage">Got it</button>
+				<a class="upgrade-secondary" :href="popupUrl" target="_blank" rel="noopener">Open the extension</a>
+			</template>
 		</div>
 
 		<p class="upgrade-footnote">
-			This notice is shown once after upgrading from v1.5.
+			You can read this again any time in the extension: About → What's new in 2.0.
 		</p>
 	</main>
 </template>
 
 <script>
+import { storage } from '#imports';
 import logo from '@/assets/logo.png';
+import WhatsNewList from '@/components/WhatsNewList.vue';
+import { WHATS_NEW_VERSION } from '@/utils/scripts/whatsNew';
 
 export default {
 	name: 'UpgradeNotice',
 
+	components: { WhatsNewList },
+
 	data() {
-		return { logo };
+		return {
+			logo,
+			version: WHATS_NEW_VERSION,
+			/** opened for a first install (upgrade.html?fresh=1), not an update */
+			fresh: new URLSearchParams(location.search).get('fresh') === '1',
+			/** the cards link to their page in the extension only when it's logged in (else they'd
+			 *  land on the login screen); a login in the meantime turns them on */
+			loggedIn: false,
+		};
+	},
+
+	async mounted() {
+		const update = key => { this.loggedIn = typeof key === 'string' && key.trim().length > 0; };
+		update(await storage.getItem('sync:apiKey'));
+		this.unwatchKey = storage.watch('sync:apiKey', update);
+	},
+
+	beforeUnmount() {
+		this.unwatchKey?.();
 	},
 
 	computed: {
 		popupUrl() {
 			return browser.runtime.getURL('/popup.html');
+		},
+		settingsUrl() {
+			return browser.runtime.getURL('/popup.html#/settings?tab=data&section=storage');
 		},
 	},
 

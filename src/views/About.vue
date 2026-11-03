@@ -2,30 +2,31 @@
 	<div class="container about-page">
 		<div class="about-stack">
 			<section class="about-card hero-card">
-				<h2>Wanikani Kanji Highlighter</h2>
-				<p class="muted">Unofficial kanji highlighter, matching kanji learned with Wanikani.</p>
-				<div class="version-wrapper">
-					<span class="version-tag">v{{ version }}</span>
-					<div v-if="versionStatus" class="check-version">
-						<div
-							v-if="versionStatus === 'latest'"
-							title="You are on the latest release"
-						>
-							<img src="@/assets/icons/about/check.png" alt="">
-						</div>
-						<div
-							v-else-if="versionStatus === 'outdated'"
-							title="A newer version is available"
-						>
-							<img src="@/assets/icons/about/remove.png" alt="">
-						</div>
-						<div
-							v-else-if="versionStatus === 'dev'"
-							title="You are running a newer or development build"
-						>
-							<img src="@/assets/icons/about/code.png" alt="">
+				<div class="hero-top">
+					<img :src="logo" alt="" class="hero-logo">
+					<div class="hero-text">
+						<h2>WaniKani Kanji Highlighter</h2>
+						<p class="muted">Unofficial kanji highlighter, matching what you learn on WaniKani.</p>
+						<div class="version-wrapper">
+							<span class="version-tag">v{{ version }}</span>
+							<span v-if="versionStatus" class="version-status" :class="versionStatus" :title="versionTitle">
+								<img v-if="versionStatus === 'latest'" src="@/assets/icons/about/check.png" alt="">
+								<img v-else-if="versionStatus === 'outdated'" src="@/assets/icons/about/remove.png" alt="">
+								<img v-else src="@/assets/icons/about/code.png" alt="">
+								{{ versionLabel }}
+							</span>
 						</div>
 					</div>
+				</div>
+				<div class="hero-links">
+					<RouterLink class="hero-link whats-new" :to="{ name: 'WhatsNew' }">
+						<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8zM18.5 15l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z" /></svg>
+						<span><b>What's new in 2.0</b><small>The main changes since v1.5</small></span>
+					</RouterLink>
+					<RouterLink class="hero-link" :to="{ name: 'Features' }">
+						<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7v6H4zM13 5h7v6h-7zM4 13h7v6H4zM13 13h7v6h-7z" /></svg>
+						<span><b>What it can do</b><small>Every feature, with tips</small></span>
+					</RouterLink>
 				</div>
 			</section>
 
@@ -33,8 +34,21 @@
 				<div class="about-card-title">API Key</div>
 				<div class="about-card-body">
 					<div class="api-key">
-						<code class="api-key-value">{{ displayedApiKey }}</code>
+						<code class="api-key-value" :class="{ masked: !showApiKey && wk.activeApiKey }">{{ shownApiKey }}</code>
 						<div class="api-key-actions">
+							<button
+								v-if="wk.activeApiKey"
+								type="button"
+								class="clickable icon-btn"
+								:title="showApiKey ? 'Hide API key' : 'Show API key'"
+								@click="showApiKey = !showApiKey"
+							>
+								<svg viewBox="0 0 24 24" aria-hidden="true">
+									<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
+									<circle cx="12" cy="12" r="3" />
+									<path v-if="showApiKey" d="M4 4l16 16" />
+								</svg>
+							</button>
 							<button
 								type="button"
 								class="clickable icon-btn"
@@ -66,17 +80,6 @@
 			</section>
 
 			<section class="about-card">
-				<div class="about-card-title">Features Information</div>
-				<div class="about-card-body">
-					<RouterLink class="features-info clickable" :to="{ name: 'Features' }">
-						<img src="@/assets/icons/features/features.png" alt="features">
-						<p>Click here to see usage recommendations and tips.</p>
-						<i class="arrow right"></i>
-					</RouterLink>
-				</div>
-			</section>
-
-			<section class="about-card">
 				<div class="about-card-title">Used libraries</div>
 				<div class="about-card-body libraries-body">
 					<ul class="libraries">
@@ -94,6 +97,13 @@
 							<ul v-if="library.dependencies?.length" class="library-deps">
 								<li v-for="dep in library.dependencies" :key="dep.name">
 									<a :href="dep.url" :title="dep.url" target="_blank" rel="noopener">
+										<img
+											v-if="dep.icon"
+											:src="dep.icon"
+											:alt="dep.name"
+											class="library-dep-icon"
+											:class="{ 'library-dark-tile': dep.darkTile }"
+										>
 										<b>{{ dep.name }}</b>
 									</a>
 									<p class="muted">{{ dep.description }}</p>
@@ -114,7 +124,6 @@
 			<section class="about-card footer-card">
 				<div class="about-card-body footer-body">
 					<div class="footer-text">
-						Hi, my name is Diogo. I'm from Portugal and I'm a student at Universidade de Aveiro.
 						Building this project, I took huge inspiration from
 						<a href="https://www.wanikani.com" target="_blank" rel="noopener">WaniKani</a>
 						(obviously) and from
@@ -143,6 +152,7 @@
 
 <script>
 import { useWKStore } from '@/stores';
+import logo from '@/assets/logo.png';
 import ExtensionRate from '@/components/About/ExtensionRate.vue';
 import ChangelogPanel from '@/components/About/ChangelogPanel.vue';
 import {
@@ -153,6 +163,11 @@ import {
 import chartJsIcon from '@/assets/icons/about/chart_js.svg';
 import dmakIcon from '@/assets/icons/about/dmak-logo.png';
 import codeIcon from '@/assets/icons/about/code.png';
+import vueIcon from '@/assets/icons/about/vue.svg';
+import piniaIcon from '@/assets/icons/about/pinia.svg';
+import wxtIcon from '@/assets/icons/about/wxt.svg';
+import dexieIcon from '@/assets/icons/about/dexie.png';
+import sortableIcon from '@/assets/icons/about/sortablejs.png';
 
 export default {
 	name: 'About',
@@ -166,6 +181,9 @@ export default {
 		return {
 			version: browser.runtime.getManifest().version,
 			versionStatus: null,
+			logo,
+			/** hidden until asked: the page may be on screen while sharing it */
+			showApiKey: false,
 			copied: false,
 			copyTimeout: null,
 			libraries: [
@@ -176,17 +194,21 @@ export default {
 					description: 'Stacked bar chart for future reviews per day on the Reviews page',
 				},
 				{
+					name: 'WXT',
+					url: 'https://wxt.dev/',
+					icon: wxtIcon,
+					description: 'Web extension framework: builds the popup, side panel, content and background scripts for each browser',
+				},
+				{
 					name: 'Vue 3',
 					url: 'https://vuejs.org/',
-					icon: codeIcon,
-					defaultIcon: true,
+					icon: vueIcon,
 					description: 'Popup UI framework',
 				},
 				{
 					name: 'Pinia',
 					url: 'https://pinia.vuejs.org/',
-					icon: codeIcon,
-					defaultIcon: true,
+					icon: piniaIcon,
 					description: 'Centralized extension state and WaniKani sync orchestration',
 				},
 				{
@@ -199,6 +221,9 @@ export default {
 						{
 							name: 'Dexie.js',
 							url: 'https://dexie.org/',
+							// white logo: shown on a dark tile so it works in light mode too
+							icon: dexieIcon,
+							darkTile: true,
 							description: 'IndexedDB wrapper for the offline subject cache',
 						},
 						{
@@ -222,6 +247,20 @@ export default {
 					description: 'Source of the SVG kanji files used in dmak',
 				},
 				{
+					name: 'Kanjium',
+					url: 'https://github.com/mifunetoshiro/kanjium',
+					icon: codeIcon,
+					defaultIcon: true,
+					description: 'Pitch accents of vocabulary, by Uros O. (CC BY-SA 4.0)',
+				},
+				{
+					name: 'JLPT vocabulary lists',
+					url: 'http://www.tanos.co.uk/jlpt/',
+					icon: codeIcon,
+					defaultIcon: true,
+					description: 'JLPT levels of words, by Jonathan Waller (CC BY); parsed by Bluskyo/JLPT_Vocabulary (MIT)',
+				},
+				{
 					name: 'wanakana',
 					url: 'https://wanakana.com/',
 					icon: codeIcon,
@@ -235,6 +274,12 @@ export default {
 					defaultIcon: true,
 					description: 'Japanese word segmentation for kanji and vocabulary highlighting',
 				},
+				{
+					name: 'SortableJS',
+					url: 'https://sortablejs.github.io/Sortable/',
+					icon: sortableIcon,
+					description: 'Drag-and-drop reordering of the Home page sections',
+				},
 			],
 		};
 	},
@@ -243,8 +288,21 @@ export default {
 		wk() {
 			return useWKStore();
 		},
-		displayedApiKey() {
-			return this.wk.activeApiKey || 'Not available';
+		shownApiKey() {
+			const key = this.wk.activeApiKey;
+			if (!key) return 'Not available';
+			// its end only (enough to tell keys apart)
+			return this.showApiKey ? key : `••••••••-••••-••••-••••-••••••${key.slice(-6)}`;
+		},
+		versionLabel() {
+			return { latest: 'Up to date', outdated: 'Update available', dev: 'Development build' }[this.versionStatus] ?? '';
+		},
+		versionTitle() {
+			return {
+				latest: 'You are on the latest release',
+				outdated: 'A newer version is available',
+				dev: 'You are running a newer or development build',
+			}[this.versionStatus] ?? '';
 		},
 	},
 
@@ -292,7 +350,7 @@ export default {
 .about-stack {
 	display: flex;
 	flex-direction: column;
-	gap: 14px;
+	gap: 5px;
 }
 
 .about-card {
@@ -304,22 +362,114 @@ export default {
 }
 
 .hero-card {
-	padding: 18px 16px;
-	text-align: center;
+	padding: 16px;
+}
+
+.hero-top {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.hero-logo {
+	width: 64px;
+	height: 64px;
+	flex-shrink: 0;
+	object-fit: contain;
+}
+
+.hero-text {
+	min-width: 0;
 }
 
 .hero-card h2 {
-	margin: 0 0 6px;
+	margin: 0 0 3px;
 	font-size: 18px;
-	color: var(--default-color);
+	color: var(--heading-color, #2a2d48);
+}
+
+.hero-links {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+	margin-top: 14px;
+}
+
+.hero-link {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 12px;
+	border: 1px solid var(--surface-border-color);
+	border-radius: 10px;
+	background: var(--surface-muted-color);
+	color: inherit;
+	text-decoration: none;
+	transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.hero-link:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 3px 10px var(--shadow-soft-color);
+}
+
+.hero-link svg {
+	width: 22px;
+	height: 22px;
+	flex-shrink: 0;
+	fill: none;
+	stroke: var(--font-sec-color, #747474);
+	stroke-width: 1.8;
+	stroke-linejoin: round;
+}
+
+.hero-link span {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	line-height: 1.3;
+}
+
+.hero-link b {
+	font-size: 13px;
+	color: var(--heading-color, #2a2d48);
+}
+
+.hero-link small {
+	font-size: 11px;
+	color: var(--font-sec-color, #747474);
+}
+
+/* the update's page: WaniKani's pink to purple */
+.hero-link.whats-new {
+	border-color: transparent;
+	background: linear-gradient(135deg, #f100a1, #a100f1);
+}
+
+.hero-link.whats-new svg {
+	fill: #fff;
+	stroke: none;
+}
+
+.hero-link.whats-new b,
+.hero-link.whats-new small {
+	color: #fff;
 }
 
 .about-card-title {
-	padding: 9px 14px;
-	background: var(--default-color);
-	color: white;
-	font-weight: bold;
-	font-size: 13px;
+	/* pink pill label, as in the subject details popup */
+	display: block;
+	width: fit-content;
+	margin: 12px 12px 2px;
+	padding: 3px 10px;
+	border-radius: 999px;
+	background: var(--pill-color, #e36f94);
+	color: #fff;
+	font-weight: 700;
+	font-size: 11.5px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	line-height: 1.4;
 }
 
 .about-card-body {
@@ -337,42 +487,64 @@ export default {
 }
 
 .version-wrapper {
-	display: inline-flex;
+	display: flex;
 	align-items: center;
+	flex-wrap: wrap;
 	gap: 8px;
-	margin-top: 12px;
+	margin-top: 8px;
 }
 
 .version-tag {
 	display: inline-block;
-	padding: 4px 10px;
+	padding: 3px 10px;
 	border-radius: 999px;
-	background: var(--surface-muted-color);
-	color: var(--default-color);
-	font-size: 13px;
+	background: var(--default-color, #2a2d48);
+	color: #fff;
+	font-size: 12px;
 	font-weight: 700;
 }
 
-.check-version img {
-	width: 14px;
+.version-status {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 11.5px;
+	font-weight: 700;
+	color: var(--font-sec-color, #747474);
 }
 
-.check-version img[src*='check'] {
+.version-status img {
+	width: 13px;
+}
+
+.version-status.latest {
+	color: #2f9e5f;
+}
+
+.version-status.outdated {
+	color: #e5484d;
+}
+
+.version-status.dev {
+	color: #c9a227;
+}
+
+.version-status.latest img {
 	filter: invert(80%) sepia(30%) saturate(5196%) hue-rotate(76deg) brightness(89%) contrast(74%);
 }
 
-.check-version img[src*='remove'] {
+.version-status.outdated img {
 	filter: invert(28%) sepia(65%) saturate(1633%) hue-rotate(317deg) brightness(88%) contrast(97%);
 }
 
-.check-version img[src*='code'] {
+.version-status.dev img {
 	filter: invert(92%) sepia(100%) saturate(7229%) hue-rotate(337deg) brightness(91%) contrast(93%);
-	width: 19px;
+	width: 16px;
 }
 
 .api-key {
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 	gap: 10px;
 }
 
@@ -397,6 +569,19 @@ export default {
 
 .api-key-actions img {
 	width: 15px;
+}
+
+.api-key-actions svg {
+	width: 15px;
+	height: 15px;
+	fill: none;
+	stroke: var(--font-color, #343434);
+	stroke-width: 2;
+	stroke-linecap: round;
+}
+
+.api-key-value.masked {
+	color: var(--font-sec-color, #747474);
 }
 
 .icon-btn {
@@ -476,7 +661,10 @@ export default {
 
 .libraries > li > a > img {
 	width: 22px;
+	height: 22px;
+	object-fit: contain;
 	margin-right: 8px;
+	border-radius: 4px;
 }
 
 .libraries > li > a > b {
@@ -511,8 +699,24 @@ export default {
 }
 
 .library-deps > li > a {
-	display: block;
+	display: flex;
+	align-items: center;
+	gap: 6px;
 	color: inherit;
+}
+
+.library-dep-icon {
+	width: 16px;
+	height: 16px;
+	object-fit: contain;
+	border-radius: 3px;
+}
+
+/* light logos (white on transparent) */
+.library-dark-tile {
+	padding: 2px;
+	box-sizing: content-box;
+	background: #2a2d48;
 }
 
 .library-deps > li > a > b {

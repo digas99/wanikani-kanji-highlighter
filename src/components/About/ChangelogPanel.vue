@@ -95,7 +95,7 @@ export default {
 .readme :deep(h2) {
 	margin: 10px 0 5px;
 	font-size: 14px;
-	color: var(--default-color);
+	color: var(--heading-color, #2a2d48);
 }
 
 .readme :deep(ul) {

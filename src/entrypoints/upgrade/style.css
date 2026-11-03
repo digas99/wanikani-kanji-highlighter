@@ -141,3 +141,19 @@ button {
   font-size: 0.92rem;
   color: var(--font-sec-color, #747474);
 }
+
+.upgrade-fix-link {
+  display: inline-block;
+  margin-top: 10px;
+  font-weight: 700;
+  color: #e5484d;
+  text-decoration: none;
+}
+
+.upgrade-fix-link:hover {
+  text-decoration: underline;
+}
+
+.upgrade-page .whats-new {
+  margin-bottom: 8px;
+}

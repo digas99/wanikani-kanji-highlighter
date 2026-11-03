@@ -1,4 +1,6 @@
 import { createDefaultProfileMenus, createDefaultListMenus } from '@/utils/scripts/profileSubjects';
+import type { LookupLink } from '@/utils/scripts/lookupLinks';
+import { DEFAULT_HOME_ORDER } from '@/utils/scripts/homeLayout';
 
 export const WANIKANI_COLOR = '#f100a1';
 export const WANIKANI_SEC_COLOR = '#00aaff';
@@ -12,15 +14,72 @@ export const defaultSettings = {
 		popup_width: 300,
 		subject_drawing: true,
 		audio_autoplay: false,
+		/** Where subject details open: the in-page popup, or the browser's side panel. */
+		location: 'page' as 'page' | 'sidepanel',
 	},
 	extension_icon: {
 		kanji_counter: true,
+		/**
+		 * What the badge shows (utils/scripts/extensionBadge.ts, BadgeMode). Unset until chosen:
+		 * then the counter's on / off decides (highlighted subjects, or nothing).
+		 */
+		badge: undefined as string | undefined,
 	},
+	/** Browser notifications (utils/scripts/reviewAlerts.ts). */
 	notifications: {
-		new_reviews: false,
-		practice_reminder: false,
-		practice_reminder_timestamp: '21:30',
+		/** "20 more reviews" when the next batch is available */
+		review_alerts: true,
+		/** a reminder at daily_reminder_time ("HH:MM") when lessons / reviews are waiting */
+		daily_reminder: false,
+		daily_reminder_time: '19:00',
 		searching_a_webpage_word: true,
+	},
+	/** How much of a page's kanji you know (utils/scripts/pageStats.ts): a bar on the page, and a history. */
+	page_stats: {
+		/** the bar in the page's corner */
+		show_bar: false,
+		/** keep a list of the pages read (only on this device) */
+		history: false,
+		/** with the history: a few sentences from each page, to study with (pageSentences.ts) */
+		sentences: false,
+		/** pages kept in the history (the oldest go; their sentences stay, archived) */
+		history_size: 300,
+		/** sentences kept from each page */
+		sentences_per_page: 10,
+		/** the classification shown (the bar while closed, the history): 'auto' follows the highlight's colors */
+		view: 'auto' as 'auto' | 'learned' | 'srs' | 'jlpt' | 'joyo',
+		/** focus (dimming all but the chosen parts) is for the page, or kept for the whole site */
+		focus_memory: 'page' as 'page' | 'site',
+	},
+	/**
+	 * WaniKani's reviews page: a panel with the subject's SRS stage, its review stats, JLPT /
+	 * Jōyō, a context sentence and the last subject's SRS change; never anything that gives the
+	 * answer away (utils/highlight/reviewInfo.ts).
+	 */
+	review_info: {
+		enabled: false,
+		/**
+		 * under the characters: words, one of their context sentences (Japanese only, the word
+		 * marked); kanji, a few words using it; radicals, a few kanji using them
+		 */
+		examples: true,
+		/** words: the sentence instead of the word on its own (shown in the word's place) */
+		sentence_replace: false,
+	},
+	/**
+	 * WaniKani's reviews page: a countdown with its stats (utils/highlight/reviewTimer.ts). Pauses
+	 * when the window loses focus or on a click, resumes on typing; at 0 it clicks Wrap Up.
+	 */
+	review_timer: {
+		enabled: false,
+		minutes: 25,
+	},
+	/**
+	 * After WaniKani's reviews: a summary of the session on the next page (subjects, all right,
+	 * which went up / down) (utils/highlight/reviewSummary.ts).
+	 */
+	review_summary: {
+		enabled: false,
 	},
 	highlight_style: {
 		learned: 'wkhighlighter_highlighted',
@@ -46,6 +105,8 @@ export const defaultSettings = {
 		passed: true,
 		locked: true,
 		in_progress: true,
+		/** How many "Recently viewed" subjects the search page remembers. */
+		history_size: 100,
 	},
 	appearance: {
 		highlight_learned: WANIKANI_SEC_COLOR,
@@ -81,9 +142,26 @@ export const defaultSettings = {
 		levels_in_progress: true,
 		jlpt_kanji_progress: true,
 		joyo_kanji_progress: true,
+		/** a mark on the subjects you keep getting wrong, and their list (troubleSubjects.ts) */
+		trouble_marks: true,
 	},
 	levels: {
 		dataSize: 10,
+	},
+	/** Popup Home page: section order and hidden sections (see utils/scripts/homeLayout.ts). */
+	home: {
+		order: [...DEFAULT_HOME_ORDER] as string[],
+		hidden: [] as string[],
+	},
+	/** Custom "look this subject up on…" buttons in the subject details. */
+	lookup: {
+		// WaniKani and Jisho by default; removing them is saved (a stored list replaces this default)
+		links: [
+			{ id: 'wanikani', name: 'WaniKani', url: 'https://www.wanikani.com/search?query=%s', query: 'characters' },
+			{ id: 'jisho', name: 'Jisho', url: 'https://jisho.org/search/%s', query: 'characters' },
+		] as LookupLink[],
+		/** WaniKani was added to lists saved before it was a default (see resolveLookupLinks) */
+		wanikani_added: true,
 	},
 	profile_menus: createDefaultProfileMenus(),
 	list_menus: createDefaultListMenus(),
@@ -156,13 +234,10 @@ export const highlightTargetOptions = [
 	{ label: 'Mixed', value: 'mixed' },
 ];
 
+/** Kanji and words alike (words: JLPT from Waller's lists, Jōyō from their hardest kanji). */
 export const highlightColorByOptions = [
 	{ label: 'Learned / Not learned', value: 'learned' },
 	{ label: 'SRS stage', value: 'srs_stage' },
-];
-
-/** Kanji-only color modes (JLPT / Jōyō grade lists). */
-export const highlightColorByKanjiOptions = [
 	{ label: 'JLPT level', value: 'jlpt' },
 	{ label: 'Jōyō grade', value: 'joyo' },
 ];
@@ -176,6 +251,11 @@ export const randomSubjectOptions = [
 	'Not Learned',
 	'Lessons',
 	'Reviews',
+];
+
+export const detailsLocationOptions = [
+	{ label: 'On the page', value: 'page' },
+	{ label: 'Browser side panel', value: 'sidepanel' },
 ];
 
 export const popupWidthOptions = [
@@ -192,17 +272,13 @@ export function getHighlightTargetLabel(
 
 export function getHighlightColorByLabel(
 	colorBy: 'learned' | 'srs_stage' | 'jlpt' | 'joyo' | string = 'learned',
-	target: 'kanji' | 'vocabulary' | 'mixed' | string = 'kanji',
 ): string {
-	const options = target === 'kanji'
-		? [...highlightColorByOptions, ...highlightColorByKanjiOptions]
-		: highlightColorByOptions;
-	return options.find(option => option.value === colorBy)?.label ?? 'Learned / Not learned';
+	return highlightColorByOptions.find(option => option.value === colorBy)?.label ?? 'Learned / Not learned';
 }
 
 export function getHighlightModeLabel(
 	target: 'kanji' | 'vocabulary' | 'mixed' | string = 'kanji',
 	colorBy: 'learned' | 'srs_stage' | 'jlpt' | 'joyo' | string = 'learned',
 ): string {
-	return `${getHighlightTargetLabel(target)} · ${getHighlightColorByLabel(colorBy, target)}`;
+	return `${getHighlightTargetLabel(target)} · ${getHighlightColorByLabel(colorBy)}`;
 }
