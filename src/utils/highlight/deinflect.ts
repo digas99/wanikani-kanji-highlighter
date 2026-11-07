@@ -17,6 +17,8 @@ export const VS = 8;      // する (and する verbs: 勉強する)
 export const ADJ = 16;    // い adjective (細い)
 const TE = 32;            // a て / で form (話して)
 const MASU = 64;          // a polite ます form (話します)
+/** the text as written (in ANY, not in what a rule makes) */
+const SURFACE = 128;
 /** a word as found in the text: any kind */
 const ANY = 0xff;
 
@@ -80,9 +82,11 @@ function buildRules(): Rule[] {
 	add('でください', 'で', ANY, TE);
 	add('ておく', 'て', V5, TE);
 
-	// たら / だら (if… / when…) → the past form
+	// たら / だら (if… / when…), たり / だり (doing things like…) → the past form
 	add('たら', 'た', ANY, ANY);
 	add('だら', 'だ', ANY, ANY);
+	add('たり', 'た', ANY, ANY);
+	add('だり', 'だ', ANY, ANY);
 	// て / た forms → dictionary form
 	const teTa = (suffixTe: string, suffixTa: string, to: string, type: number) => {
 		add(suffixTe, to, TE | ANY, type);
@@ -105,11 +109,12 @@ function buildRules(): Rule[] {
 	add('来ない', '来る', ANY, VK);
 	for (const [u, a] of GODAN_ROWS) add(`${a}ない`, u, ANY, V5);
 
-	// い adjectives: 細くて, 細かった, 細く, 細くない, 細ければ
-	add('くて', 'い', ANY, ADJ);
-	add('かった', 'い', ANY, ADJ);
-	add('く', 'い', ANY, ADJ);
-	add('ければ', 'い', ANY, ADJ);
+	// い adjectives: 細くて, 細かった, 細く, 細くない, 細ければ. On the text as written or an
+	// adjective only: a verb found on the way doesn't conjugate as one (ないため: not 泣く → ない)
+	add('くて', 'い', SURFACE | ADJ, ADJ);
+	add('かった', 'い', SURFACE | ADJ, ADJ);
+	add('く', 'い', SURFACE | ADJ, ADJ);
+	add('ければ', 'い', SURFACE | ADJ, ADJ);
 
 	// passive / potential / causative: themselves ichidan verbs (書かれます → 書かれる → 書く)
 	add('られる', 'る', V1, V1);
