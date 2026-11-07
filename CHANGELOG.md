@@ -36,7 +36,7 @@
 - **Accolades** with more badges, and a celebration on level-up
 - **JLPT & Jōyō** progress pages for kanji and words
 - **Notifications**: a bell for level-ups, accolades, friends' news and daily summaries; browser notifications for new reviews and an optional daily reminder
-- **Search** with kana typing (CAPITALS for katakana), quick filters, legacy subjects, and filtered recently viewed
+- **Search** with kana typing (CAPITALS for katakana), quick filters, legacy subjects, and filtered recently viewed. Legacy subjects in tile lists get a yellow line along the bottom (they're left out of practice)
 - **Backups** of settings and history to a file or Google Drive, each part optional
 - Settings reorganised in tabs, with links that open the right section
 - Pages opened in a wide window (a tab or popped out) stay popup-wide, centred

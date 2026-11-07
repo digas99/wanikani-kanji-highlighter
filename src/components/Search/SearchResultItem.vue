@@ -84,13 +84,10 @@
 </template>
 
 <script>
-import { srsStages, typeColors, subjectDisplay } from '@/utils/scripts/wanikani';
+import { LEGACY_COLOR, srsStages, typeColors, subjectDisplay } from '@/utils/scripts/wanikani';
 
 import SubjectCharacters from '@/components/Subjects/SubjectCharacters.vue';
 import { showSubjectInPage } from '@/utils/scripts/showSubjectInPage';
-
-/** legacy subjects' edge (the details' "Legacy" chip is yellow too) */
-const LEGACY_COLOR = '#f5d000';
 
 export default {
 	name: 'SearchResultItem',

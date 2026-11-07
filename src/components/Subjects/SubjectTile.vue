@@ -5,7 +5,7 @@
 		:class="[
 			{ 'invert-characters': invertCharacters },
 			{ 'sd-detailsPopup_clickable': !useRouter },
-			{ known },
+			{ known, legacy },
 		]"
 		:data-item-id="item.id"
 		:style="style"
@@ -49,6 +49,7 @@ import { formatShortDuration } from '@/utils/scripts/profileSubjects';
 import { primaryMeaning, subjectSummary } from '@/utils/scripts/wanikani';
 import { showSubjectInPage } from '@/utils/scripts/showSubjectInPage';
 import { troubleText, useTroubleSubjects } from '@/utils/scripts/troubleSubjects';
+import { LEGACY_COLOR, isLegacySubject } from '@/utils/scripts/wanikani';
 import { KNOWN_LABEL, isKnownSubject, useKnownSubjects } from '@/utils/scripts/knownSubjects';
 
 export default {
@@ -110,10 +111,31 @@ export default {
 	computed: {
 		/** locked, marked as known (knownSubjects.ts): still a locked tile, with a line in its color */
 		known() {
-			return isKnownSubject(this.item, this.knownState.ids);
+			return !this.legacy && isKnownSubject(this.item, this.knownState.ids);
 		},
-		/** The list's style, plus the known line's color. */
+		/** retired by WaniKani: faded (as the list styles it), with a yellow line along the bottom */
+		legacy() {
+			return isLegacySubject(this.item);
+		},
+		/**
+		 * The list's style, plus the line's color. A legacy tile is faded part by part (its color
+		 * toward transparent, its contents' opacity), not as a whole: that would fade the line too.
+		 */
 		style() {
+			if (this.legacy) {
+				const { opacity, ...style } = this.tileStyle ?? {};
+				const fade = Number(opacity) < 1 ? Number(opacity) : 0.35;
+				// a gradient can't be mixed: the whole tile, then (its line faded with it)
+				if (style.background) return { ...style, opacity: fade, '--mark-color': LEGACY_COLOR };
+				const percent = `${Math.round(fade * 100)}%`;
+				return {
+					...style,
+					...(style.backgroundColor ? { backgroundColor: `color-mix(in srgb, ${style.backgroundColor} ${percent}, transparent)` } : {}),
+					'--legacy-fade': String(fade),
+					'--legacy-percent': percent,
+					'--mark-color': LEGACY_COLOR,
+				};
+			}
 			if (this.known) return { ...this.tileStyle, '--mark-color': this.knownState.color };
 			return this.tileStyle;
 		},
@@ -126,6 +148,7 @@ export default {
 			}
 			if (this.trouble) lines.push(troubleText(this.trouble));
 			if (this.known) lines.push(`${KNOWN_LABEL}: you already know it (still locked)`);
+			if (this.legacy) lines.push('Legacy: no longer in lessons or reviews');
 			return lines.join('\n');
 		},
 		/** the popup's trouble subjects (empty when their marks are off in the settings) */
@@ -192,8 +215,8 @@ export default {
 	text-decoration: none;
 }
 
-/* locked, marked as known: a line in the known color along the bottom */
-.subject-tile.known::after {
+/* marked: a line along the bottom (known: its color; legacy: yellow) */
+.subject-tile:is(.known, .legacy)::after {
 	content: '';
 	position: absolute;
 	z-index: 2;
@@ -205,6 +228,15 @@ export default {
 	border-bottom-left-radius: inherit;
 	border-bottom-right-radius: inherit;
 	pointer-events: none;
+}
+
+/* legacy: faded part by part (the color in its style), so the line keeps its own */
+.subject-tile.legacy {
+	box-shadow: -1px 2px 0px 1px color-mix(in srgb, var(--default-color) var(--legacy-percent, 35%), transparent);
+}
+
+.subject-tile.legacy > * {
+	opacity: var(--legacy-fade, 1);
 }
 
 .tile-loading {

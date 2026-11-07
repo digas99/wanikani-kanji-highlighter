@@ -1,3 +1,11 @@
+/** legacy subjects (retired by WaniKani: no longer in lessons or reviews): their marks' yellow */
+export const LEGACY_COLOR = '#f5d000';
+
+/** Retired by WaniKani (shown as "Legacy"), for raw and Profile-normalized subjects alike. */
+export function isLegacySubject(subject: any): boolean {
+	return Boolean(subject?.hidden_at || subject?.isHidden || subject?.assignment?.hidden);
+}
+
 export const srsStages = {
 	0: { name: "Initiate", short: "Int", color: "#c1c0c1" },
 	1: { name: "Apprentice I", short: "Ap1", color: "#cf72b0" },

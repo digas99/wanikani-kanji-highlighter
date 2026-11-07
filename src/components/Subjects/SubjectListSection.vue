@@ -140,6 +140,7 @@ import SchoolProgressBar from '@/components/Home/SchoolProgressBar.vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useWKStore } from '@/stores';
 import { sectionIconFor } from '@/utils/scripts/sectionIcons';
+import { isLegacySubject } from '@/utils/scripts/wanikani';
 
 function hasDisplayData(subject) {
 	return Boolean(subject?.characters || subject?.character_images?.length);
@@ -364,9 +365,14 @@ export default {
 			return sectionIconFor(this.label);
 		},
 
-		/** Practice goes through what the section shows (its sort and filters applied). */
+		/** Practice goes through what the section shows (its sort and filters applied), legacy ones left out. */
+		practiceIds() {
+			return this.processedSubjects
+				.filter(subject => !isLegacySubject(subject) && !isLegacySubject(this.resolved?.[subject.id]))
+				.map(subject => subject.id);
+		},
 		canPractice() {
-			return !this.controlsOnly && this.processedSubjects.length > 0;
+			return !this.controlsOnly && this.practiceIds.length > 0;
 		},
 
 		resolvedShowReviewsInfo() {
@@ -403,7 +409,7 @@ export default {
 					title: this.label,
 					// where "Back to the list" returns to
 					from: this.$route.fullPath,
-					ids: this.processedSubjects.map(subject => subject.id).join(','),
+					ids: this.practiceIds.join(','),
 				},
 			});
 		},

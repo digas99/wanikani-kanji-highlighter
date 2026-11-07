@@ -7,7 +7,7 @@
 					<span class="practice-section" :title="title">{{ title }}</span>
 				</div>
 				<span class="practice-head-end">
-					<span class="practice-counter">{{ finished ? ids.length : index + 1 }} / {{ ids.length }}</span>
+					<span class="practice-counter">{{ finished || !ids.length ? ids.length : index + 1 }} / {{ ids.length }}</span>
 					<InfoTip v-if="ids.length" label="About practice">
 						<p>Just for practice: nothing here changes your reviews or progress on WaniKani.</p>
 						<p v-if="knownCount">The {{ knownCount === 1 ? 'subject' : `${knownCount} subjects` }} you marked as known {{ knownCount === 1 ? 'goes' : 'go' }} first, already done: practice starts after {{ knownCount === 1 ? 'it' : 'them' }}. Go back to see {{ knownCount === 1 ? 'it' : 'them' }}.</p>
@@ -179,7 +179,7 @@ import SubjectCharacters from '@/components/Subjects/SubjectCharacters.vue';
 import InfoTip from '@/components/InfoTip.vue';
 import KnownToggle from '@/components/Subjects/KnownToggle.vue';
 import { isKnownSubject, isNotStartedSubject, readKnownSubjectIds, useKnownSubjects } from '@/utils/scripts/knownSubjects';
-import { srsStages, typeColors } from '@/utils/scripts/wanikani';
+import { isLegacySubject, srsStages, typeColors } from '@/utils/scripts/wanikani';
 import { correctnessColor } from '@/utils/scripts/common';
 import { formatSubjectSchoolGrades, getReviewStats, reviewPercentage, getSubjectType } from '@/utils/scripts/subjectDetailsPopup';
 
@@ -356,12 +356,13 @@ export default {
 	},
 
 	async created() {
-		// a deck just opened (not one come back to): its known subjects first, skipped
+		// a deck just opened (not one come back to): without legacy subjects, its known ones first, skipped
 		const query = this.$route.query;
 		if (this.ids.length && query.i == null && query.order == null) {
 			await this.loadStrip();
+			const dropped = this.dropLegacy();
 			this.planKnown(await readKnownSubjectIds().catch(() => new Set()), false);
-			if (this.knownCount) this.syncRoute();
+			if (this.knownCount || dropped) this.syncRoute();
 		} else {
 			void this.loadStrip();
 		}
@@ -387,6 +388,18 @@ export default {
 			this.stripSubjects = byId;
 			// the tiles have their widths now: onto this card (coming back to a deck: mid-way)
 			this.revealCurrentTile(false);
+		},
+		/**
+		 * Legacy subjects (retired by WaniKani: no longer in lessons or reviews) aren't practiced,
+		 * whatever list the deck came from. True if some were left out.
+		 */
+		dropLegacy() {
+			const kept = this.originalIds.filter(id => !isLegacySubject(this.stripSubjects[id]));
+			if (kept.length === this.originalIds.length) return false;
+			this.originalIds = kept;
+			this.ids = [...kept];
+			this.index = 0;
+			return true;
 		},
 		/**
 		 * The known subjects (knownSubjects.ts) first, already done, and the deck starting after
@@ -484,7 +497,7 @@ export default {
 		},
 		/** Remember the position, so coming back from a subject's page resumes here. */
 		syncRoute() {
-			const query = { ...this.$route.query, i: String(this.index) };
+			const query = { ...this.$route.query, ids: this.originalIds.join(','), i: String(this.index) };
 			if (this.shuffled || this.knownCount) query.order = this.ids.join(',');
 			else delete query.order;
 			if (this.knownCount) query.known = String(this.knownCount);
