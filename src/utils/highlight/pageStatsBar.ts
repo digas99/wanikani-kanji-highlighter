@@ -36,7 +36,7 @@ import {
 	sentenceKept,
 	textByLanguage,
 	type LanguageRules,
-} from '@/lib/cjk-highlighter';
+} from 'cjk-highlighter';
 import { languageRules, UNCLEAR_TEXT_SITES_KEY } from '@/utils/scripts/textLanguageSettings';
 import TinySegmenter from 'tiny-segmenter';
 

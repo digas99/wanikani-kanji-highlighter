@@ -17,6 +17,7 @@
   "dependencies": {
     "@vueuse/core": "^13.8.0",
     "chart.js": "^4.5.1",
+    "cjk-highlighter": "file:../../cjk-highlighter",
     "pinia": "^3.0.3",
     "raphael": "^2.3.0",
     "sortablejs": "^1.15.6",

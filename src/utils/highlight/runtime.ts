@@ -30,7 +30,7 @@ import {
 	mountLanguageDebug,
 	supportsRangeHighlights,
 	unmountLanguageDebug,
-} from '@/lib/cjk-highlighter';
+} from 'cjk-highlighter';
 import { highlightAt, setRangeHitTest } from './highlightHits';
 import { isPageHighlightBlocked,
 	type PageListMode,

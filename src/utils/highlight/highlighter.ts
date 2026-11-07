@@ -26,7 +26,7 @@ import {
 	type Match,
 	type Matcher,
 	type Renderer,
-} from '@/lib/cjk-highlighter';
+} from 'cjk-highlighter';
 import {
 	createEmptyKanjiByStage,
 	createEmptyVocabByStage,

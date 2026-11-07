@@ -4,7 +4,7 @@
  */
 
 import { matchesSiteList } from '@/utils/scripts/pageList';
-import { LanguageGate, type LanguageChoice, type LanguageRules } from '@/lib/cjk-highlighter';
+import { LanguageGate, type LanguageChoice, type LanguageRules } from 'cjk-highlighter';
 
 /** The sites where text that could be either goes the other way from the setting. */
 export const UNCLEAR_TEXT_SITES_KEY = 'local:unclearTextSites';

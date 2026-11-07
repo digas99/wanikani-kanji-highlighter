@@ -5,7 +5,7 @@
  */
 
 import { HIGHLIGHT_MARK_CLASS, highlightValueOf } from './highlighter';
-import type { RangeHit } from '@/lib/cjk-highlighter';
+import type { RangeHit } from 'cjk-highlighter';
 
 export type HighlightHit = {
 	value: string;

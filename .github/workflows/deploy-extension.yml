@@ -26,6 +26,10 @@ on:
         description: Branch or tag of wanikani-api-manager to build with
         type: string
         default: main
+      highlighter-ref:
+        description: Branch or tag of cjk-highlighter to build with
+        type: string
+        default: main
 
 permissions:
   contents: read
@@ -42,18 +46,27 @@ jobs:
     name: Build the packages
     runs-on: ubuntu-latest
     steps:
+      # the folders as on a developer's machine: the extension installs its libraries from
+      # ../wanikani-api-manager and ../../cjk-highlighter (they aren't on npm)
       - name: Check out the extension
         uses: actions/checkout@v7
         with:
-          path: wanikani-kanji-highlighter
+          path: wanikani/wanikani-kanji-highlighter
 
-      # the extension installs it from ../wanikani-api-manager (it isn't on npm)
       - name: Check out the library
         uses: actions/checkout@v7
         with:
           repository: digas99/wanikani-api-manager
           ref: ${{ inputs.library-ref || 'main' }}
-          path: wanikani-api-manager
+          path: wanikani/wanikani-api-manager
+
+      # the page highlighting, shared with the HanziHero Companion
+      - name: Check out the highlighter
+        uses: actions/checkout@v7
+        with:
+          repository: digas99/cjk-highlighter
+          ref: ${{ inputs.highlighter-ref || 'main' }}
+          path: cjk-highlighter
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -62,7 +75,7 @@ jobs:
 
       - name: Check the release tag matches the version
         if: github.event_name == 'release'
-        working-directory: wanikani-kanji-highlighter
+        working-directory: wanikani/wanikani-kanji-highlighter
         env:
           TAG: ${{ github.event.release.tag_name }}
         run: |
@@ -73,31 +86,39 @@ jobs:
           fi
 
       - name: Build the library
-        working-directory: wanikani-api-manager
+        working-directory: wanikani/wanikani-api-manager
         run: |
           npm ci
           npm run build:lib
 
+      # TypeScript source, compiled with the extension: nothing to build
+      - name: Test the highlighter
+        working-directory: cjk-highlighter
+        run: |
+          npm ci
+          npm test
+
       - name: Build and zip the extension
-        working-directory: wanikani-kanji-highlighter
+        working-directory: wanikani/wanikani-kanji-highlighter
         run: |
           npm ci
           npm run zip
           npm run zip:firefox
 
       - name: Lint the Firefox build
-        working-directory: wanikani-kanji-highlighter
+        working-directory: wanikani/wanikani-kanji-highlighter
         run: npx --yes "$WEB_EXT" lint --source-dir .output/firefox-mv2
 
-      # Firefox's reviewers rebuild the extension from source, which takes the library too
+      # Firefox's reviewers rebuild the extension from source, which takes the libraries too (same folders)
       - name: Collect the packages and the source package
         run: |
           mkdir packages sources
-          cp wanikani-kanji-highlighter/.output/*.zip packages/
-          git -C wanikani-kanji-highlighter archive --prefix=wanikani-kanji-highlighter/ HEAD | tar -x -C sources
-          git -C wanikani-api-manager archive --prefix=wanikani-api-manager/ HEAD -- . ':!docs' ':!demo' | tar -x -C sources
-          cp wanikani-kanji-highlighter/.github/SOURCE_PACKAGE.md sources/README.md
-          version=$(node -p "require('./wanikani-kanji-highlighter/package.json').version")
+          cp wanikani/wanikani-kanji-highlighter/.output/*.zip packages/
+          git -C wanikani/wanikani-kanji-highlighter archive --prefix=wanikani/wanikani-kanji-highlighter/ HEAD | tar -x -C sources
+          git -C wanikani/wanikani-api-manager archive --prefix=wanikani/wanikani-api-manager/ HEAD -- . ':!docs' ':!demo' | tar -x -C sources
+          git -C cjk-highlighter archive --prefix=cjk-highlighter/ HEAD | tar -x -C sources
+          cp wanikani/wanikani-kanji-highlighter/.github/SOURCE_PACKAGE.md sources/README.md
+          version=$(node -p "require('./wanikani/wanikani-kanji-highlighter/package.json').version")
           (cd sources && zip -qr "../packages/wanikani-kanji-highlighter-$version-sources.zip" .)
 
       - name: Upload the packages
