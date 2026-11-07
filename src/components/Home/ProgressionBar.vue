@@ -9,25 +9,25 @@
 			:style="{ left: `${marker.position}%` }"
 			aria-hidden="true"
 		></li>
-		<li v-for="(entry, index) in sorted(values)" :key="entry.id"
+		<li v-for="(entry, index) in segments" :key="entry.id"
 			:class="{ 'round-right': shouldRoundRight(index) }"
 			:title="segmentTitle(entry)"
-			:style="{ width: getStagePercentage(entry.items) + '%', backgroundColor: colors ? colors[entry.id] : '' }">
+			:style="{ width: getStagePercentage(entry.items) + '%', backgroundColor: colorOf(entry) }">
 			<a
 				v-if="scrollToSections"
 				href="#"
 				class="progression-bar-action"
-				:style="{ backgroundColor: colors ? colors[entry.id] : '' }"
-				@click.prevent="onSectionSelect(entry.id)"
+				:style="{ backgroundColor: colorOf(entry) }"
+				@click.prevent="onSectionSelect(entry.source?.id ?? entry.id)"
 			>
-				<span v-if="showPercentage(entry.items, entry.id)" :style="{ color: textColor(entry.id) }">{{ getStagePercentage(entry.items) }}%</span>
+				<span v-if="showPercentage(entry.items, entry.id)" :style="{ color: textColor(entry) }">{{ getStagePercentage(entry.items) }}%</span>
 			</a>
 			<RouterLink
 				v-else
-				:to="getLink(entry)"
-				:style="{ backgroundColor: colors ? colors[entry.id] : '' }"
+				:to="getLink(entry.source ?? entry)"
+				:style="{ backgroundColor: colorOf(entry) }"
 			>
-				<span v-if="showPercentage(entry.items, entry.id)" :style="{ color: textColor(entry.id) }">{{ getStagePercentage(entry.items) }}%</span>
+				<span v-if="showPercentage(entry.items, entry.id)" :style="{ color: textColor(entry) }">{{ getStagePercentage(entry.items) }}%</span>
 			</RouterLink>
 		</li>
 	</ul>
@@ -37,17 +37,44 @@
 import { RouterLink } from 'vue-router';
 import { fontColorFromBackground } from '@/utils/scripts/profileSubjects';
 import { srsStages } from '@/utils/scripts/wanikani';
+import { KNOWN_LABEL, countKnownSubjects, useKnownSubjects } from '@/utils/scripts/knownSubjects';
+
+/** the locked segment's id (level bars and Home's use SRS ids: -1 = locked) */
+const LOCKED_ID = '-1';
+const KNOWN_ID = 'known';
 
 export default {
 	name: 'ProgressionBar',
 
 	emits: ['section-select'],
 
+	data() {
+		return { known: useKnownSubjects() };
+	},
+
 	computed: {
 		totalAssignments() {
 			// console.log(this.values);
 			return this.values.map(entry => entry.items.length).reduce((a, b) => a + b, 0);
-		}
+		},
+		/**
+		 * The segments as drawn: the locked one's subjects marked as known (knownSubjects.ts) get
+		 * their own part in the known color, just before it. Clicking it goes where locked goes.
+		 */
+		segments() {
+			const out = [];
+			for (const entry of this.sorted(this.values)) {
+				const knownCount = String(entry.id) === LOCKED_ID ? this.knownIn(entry) : 0;
+				if (!knownCount) {
+					out.push(entry);
+					continue;
+				}
+				out.push({ id: KNOWN_ID, items: { length: knownCount }, source: entry });
+				const rest = entry.items.length - knownCount;
+				if (rest > 0) out.push({ ...entry, items: { length: rest } });
+			}
+			return out;
+		},
 	},
 
 	props: {
@@ -76,6 +103,11 @@ export default {
 			type: Object,
 			default: null,
 		},
+		/** the locked subjects marked as known, when the locked segment is only a count (Home's) */
+		knownCount: {
+			type: Number,
+			default: null,
+		},
 	},
 
 	methods: {
@@ -83,6 +115,7 @@ export default {
 		segmentLabel(id) {
 			const key = String(id);
 			if (key === '-1') return 'Locked: ';
+			if (key === KNOWN_ID) return `${KNOWN_LABEL} (locked): `;
 			if (this.type === 'level' && key === '5') return 'Passed: ';
 			if (this.type === 'srs' || this.type === 'level') {
 				const stage = srsStages[key];
@@ -95,10 +128,19 @@ export default {
 			const base = `${this.segmentLabel(entry.id)}${this.getStagePercentage(entry.items)}% (${entry.items.length})`;
 			return this.marker?.title ? `${base}\n${this.marker.title}` : base;
 		},
+		colorOf(entry) {
+			if (entry.id === KNOWN_ID && entry.source) return this.known.color;
+			return this.colors ? this.colors[entry.id] : '';
+		},
 		/** Readable label on light segments (locked / initiate grays). */
-		textColor(id) {
-			const color = this.colors?.[id];
-			return typeof color === 'string' ? fontColorFromBackground(color) : undefined;
+		textColor(entry) {
+			const color = this.colorOf(entry);
+			return typeof color === 'string' && color.startsWith('#') ? fontColorFromBackground(color) : undefined;
+		},
+		/** The locked segment's known subjects: counted in its list, or given (Home's count). */
+		knownIn(entry) {
+			const count = this.knownCount ?? countKnownSubjects(entry.items, this.known.ids);
+			return Math.min(Math.max(count, 0), entry.items.length);
 		},
 		getLink(entry) {
 			if (this.linkQuery) {
@@ -141,7 +183,7 @@ export default {
 			return bgColor === 'rgb(255, 255, 255)' || bgColor === 'rgba(255, 255, 255, 1)' || bgColor === 'white';
 		},
 		shouldRoundRight(index) {
-			const sortedValues = this.sorted(this.values);
+			const sortedValues = this.segments;
 			const isLast = index === sortedValues.length - 1;
 			const isSecondToLast = index === sortedValues.length - 2;
 			

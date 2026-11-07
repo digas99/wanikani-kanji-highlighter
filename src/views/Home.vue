@@ -93,6 +93,7 @@
 						:colors="progressBarColors"
 						type="srs"
 						:sorting="progressBarSorting"
+						:known-count="knownLockedCount"
 					/>
 				</div>
 			</section>
@@ -241,6 +242,7 @@ import SchoolProgressLegend from '@/components/Home/SchoolProgressLegend.vue';
 import { levelProgressBeforeDay, srsStages } from '@/utils/scripts/wanikani';
 import { groupAssignmentsBySRSStage } from '@/utils/scripts/common';
 import { hasSchoolProgressSnapshot, LOCKED_SEGMENT_COLOR } from '@/utils/scripts/schoolKanji';
+import { useKnownSubjects } from '@/utils/scripts/knownSubjects';
 import { computeSinceLastVisit, getSinceLastVisit } from '@/utils/scripts/progressSnapshot';
 import { getWKManager } from '@/lib/apiClient';
 import { isInitialSyncLocked } from '@/utils/scripts/initialDataSync';
@@ -326,6 +328,7 @@ export default {
 			hasSchoolSnapshot: hasSchoolProgressSnapshot(),
 			// the last count, until it's counted again (the bar is whole from the start)
 			lockedCount: savedLockedCount(),
+			known: useKnownSubjects(),
 			/** Home is the page shown (it's kept alive while on other pages) */
 			isActive: false,
 			// computed once per popup session, after the data is fresh
@@ -370,6 +373,15 @@ export default {
 				&& !this.isUpdating
 				&& !this.wk.showLoadingScreen
 				&& this.wk.assignments.length > 0;
+		},
+		/** The subjects marked as known (knownSubjects.ts), still without an assignment: part of the locked ones */
+		knownLockedCount() {
+			const ids = this.known.ids;
+			if (!ids.size || !this.lockedCount) return 0;
+			const assigned = new Set(this.wk.assignments.map(assignment => assignment.subject_id));
+			let count = 0;
+			for (const id of ids) if (!assigned.has(id)) count += 1;
+			return count;
 		},
 		/** The bar also shows locked subjects (the tiles don't). */
 		progressBarValues() {

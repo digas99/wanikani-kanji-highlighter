@@ -31,7 +31,7 @@
 - **Levels**: level-up projections to level 60, JLPT and Jōyō, at your pace or a custom one
 - **Profile**: the level-up path (what to review, and when you can level up)
 - **Trouble subjects**: the ones you keep getting wrong, marked on tiles, with their own list and practice
-- **Practice** any list as flashcards
+- **Practice** any list as flashcards. Mark a locked subject you already know as **Known** (in its details): practice puts them first, already done, and starts after them. Progress bars show them as a part of the locked share, in their own color, and their tiles (still under Locked) get a line in it
 - **Friends**: follow up to 15 WaniKani friends' levels and progress
 - **Accolades** with more badges, and a celebration on level-up
 - **JLPT & Jōyō** progress pages for kanji and words

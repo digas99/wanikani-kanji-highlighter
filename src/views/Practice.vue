@@ -8,10 +8,15 @@
 				</div>
 				<span class="practice-head-end">
 					<span class="practice-counter">{{ finished ? ids.length : index + 1 }} / {{ ids.length }}</span>
-					<InfoTip v-if="ids.length" label="About practice">Just for practice: nothing here changes your reviews or progress on WaniKani.</InfoTip>
+					<InfoTip v-if="ids.length" label="About practice">
+						<p>Just for practice: nothing here changes your reviews or progress on WaniKani.</p>
+						<p v-if="knownCount">The {{ knownCount === 1 ? 'subject' : `${knownCount} subjects` }} you marked as known {{ knownCount === 1 ? 'goes' : 'go' }} first, already done: practice starts after {{ knownCount === 1 ? 'it' : 'them' }}. Go back to see {{ knownCount === 1 ? 'it' : 'them' }}.</p>
+					</InfoTip>
 				</span>
 			</header>
-			<div class="practice-progress">
+			<div class="practice-progress" :title="knownCount ? `${knownCount} known (skipped), ${doneCount} of ${ids.length - knownCount} gone through` : null">
+				<!-- the subjects marked as known: done before starting (knownSubjects.ts) -->
+				<div v-if="knownCount" class="practice-progress-known" :style="{ width: `${knownPercent}%`, background: known.color }"></div>
 				<div :style="{ width: `${progressPercent}%` }"></div>
 			</div>
 
@@ -34,9 +39,9 @@
 					type="button"
 					role="listitem"
 					class="practice-upcoming-tile"
-					:class="{ loading: !entry.subject, current: entry.current, seen: entry.seen }"
-					:style="{ '--tile-color': entry.color }"
-					:title="entry.current ? `Card ${entry.at + 1}: this one` : `Card ${entry.at + 1}: go to it`"
+					:class="{ loading: !entry.subject, current: entry.current, seen: entry.seen, known: entry.known }"
+					:style="{ '--tile-color': entry.color, '--known-color': known.color }"
+					:title="`Card ${entry.at + 1}${entry.known ? ' (known)' : ''}: ${entry.current ? 'this one' : 'go to it'}`"
 					:aria-current="entry.current ? 'true' : null"
 					tabindex="-1"
 					@mousedown.prevent
@@ -69,6 +74,7 @@
 						Level {{ subject.level }} · {{ typeLabel }}
 					</span>
 					<span class="practice-chip" :style="{ '--chip-color': srs.color }">{{ srs.name }}</span>
+					<KnownToggle :subject="subject" variant="practice" />
 					<!-- JLPT level, Jōyō grade (as the subject details show them) -->
 					<span v-if="schoolGrades" class="practice-chip plain" :title="schoolGradesTitle">{{ schoolGrades }}</span>
 				</div>
@@ -171,6 +177,8 @@ import { RouterLink } from 'vue-router';
 import { useWKStore } from '@/stores';
 import SubjectCharacters from '@/components/Subjects/SubjectCharacters.vue';
 import InfoTip from '@/components/InfoTip.vue';
+import KnownToggle from '@/components/Subjects/KnownToggle.vue';
+import { isKnownSubject, isNotStartedSubject, readKnownSubjectIds, useKnownSubjects } from '@/utils/scripts/knownSubjects';
 import { srsStages, typeColors } from '@/utils/scripts/wanikani';
 import { correctnessColor } from '@/utils/scripts/common';
 import { formatSubjectSchoolGrades, getReviewStats, reviewPercentage, getSubjectType } from '@/utils/scripts/subjectDetailsPopup';
@@ -204,17 +212,24 @@ export default {
 
 	components: {
 		InfoTip,
+		KnownToggle,
 		RouterLink,
 		SubjectCharacters,
 	},
 
 	data() {
-		const ids = parseIds(this.$route.query.ids);
-		const index = Math.min(Math.max(parseInt(this.$route.query.i, 10) || 0, 0), ids.length);
+		const query = this.$route.query;
+		const ids = parseIds(query.ids);
+		const index = Math.min(Math.max(parseInt(query.i, 10) || 0, 0), ids.length);
+		const knownCount = Math.min(Math.max(parseInt(query.known, 10) || 0, 0), ids.length);
 		return {
 			originalIds: ids,
-			ids: this.$route.query.order ? parseIds(this.$route.query.order) : ids,
-			shuffled: Boolean(this.$route.query.order),
+			ids: query.order ? parseIds(query.order) : ids,
+			// (an order without a known prefix: from before there were known subjects, shuffled)
+			shuffled: query.shuffled === '1' || (Boolean(query.order) && !query.known),
+			/** the subjects marked as known, at the deck's start (done before starting) */
+			knownCount,
+			known: useKnownSubjects(),
 			index,
 			finished: ids.length > 0 && index >= ids.length,
 			subject: null,
@@ -262,12 +277,20 @@ export default {
 					color: typeColors[getSubjectType(subject)] ?? 'var(--fade)',
 					current: !this.finished && at === this.index,
 					seen: this.finished || at < this.index,
+					known: isKnownSubject(subject, this.known.ids),
 				};
 			});
 		},
+		/** gone through, after the known ones */
+		doneCount() {
+			return Math.max(0, (this.finished ? this.ids.length : this.index) - this.knownCount);
+		},
+		knownPercent() {
+			return this.ids.length ? (this.knownCount / this.ids.length) * 100 : 0;
+		},
 		progressPercent() {
 			if (!this.ids.length) return 0;
-			return ((this.finished ? this.ids.length : this.index) / this.ids.length) * 100;
+			return (this.doneCount / this.ids.length) * 100;
 		},
 		type() {
 			return getSubjectType(this.subject);
@@ -332,9 +355,17 @@ export default {
 		},
 	},
 
-	created() {
+	async created() {
+		// a deck just opened (not one come back to): its known subjects first, skipped
+		const query = this.$route.query;
+		if (this.ids.length && query.i == null && query.order == null) {
+			await this.loadStrip();
+			this.planKnown(await readKnownSubjectIds().catch(() => new Set()), false);
+			if (this.knownCount) this.syncRoute();
+		} else {
+			void this.loadStrip();
+		}
 		this.load();
-		void this.loadStrip();
 	},
 
 	mounted() {
@@ -356,6 +387,30 @@ export default {
 			this.stripSubjects = byId;
 			// the tiles have their widths now: onto this card (coming back to a deck: mid-way)
 			this.revealCurrentTile(false);
+		},
+		/**
+		 * The known subjects (knownSubjects.ts) first, already done, and the deck starting after
+		 * them. Only in a deck of subjects not started yet (locked, or waiting for their lesson):
+		 * with one already in reviews, it's practiced whole, as listed.
+		 */
+		planKnown(knownIds, shuffleRest) {
+			const subjects = this.originalIds.map(id => this.stripSubjects[id]);
+			const usable = subjects.every(Boolean) && subjects.every(isNotStartedSubject);
+			const known = usable ? this.originalIds.filter((id, at) => isKnownSubject(subjects[at], knownIds)) : [];
+			const prefix = new Set(known);
+			const rest = this.originalIds.filter(id => !prefix.has(id));
+			this.knownCount = known.length;
+			this.ids = [...known, ...(shuffleRest ? shuffle(rest) : rest)];
+			this.shuffled = shuffleRest;
+			// all of them known: from the start anyway
+			this.index = known.length < this.ids.length ? known.length : 0;
+			this.finished = false;
+		},
+		/** The list's order, the known subjects (if any) first. */
+		listOrder() {
+			const prefix = this.ids.slice(0, this.knownCount);
+			const inPrefix = new Set(prefix);
+			return [...prefix, ...this.originalIds.filter(id => !inPrefix.has(id))];
 		},
 		/** this card's tile in the middle of the strip (as far as its ends allow) */
 		revealCurrentTile(smooth) {
@@ -430,8 +485,12 @@ export default {
 		/** Remember the position, so coming back from a subject's page resumes here. */
 		syncRoute() {
 			const query = { ...this.$route.query, i: String(this.index) };
-			if (this.shuffled) query.order = this.ids.join(',');
+			if (this.shuffled || this.knownCount) query.order = this.ids.join(',');
 			else delete query.order;
+			if (this.knownCount) query.known = String(this.knownCount);
+			else delete query.known;
+			if (this.shuffled) query.shuffled = '1';
+			else delete query.shuffled;
 			this.$router.replace({ query });
 		},
 		go(index) {
@@ -453,16 +512,17 @@ export default {
 			this.revealed = { meaning: true, reading: true };
 		},
 		toggleShuffle() {
-			const done = this.ids.slice(0, this.index + 1);
+			// the known ones stay first
+			const done = this.ids.slice(0, Math.max(this.index + 1, this.knownCount));
 			if (this.shuffled) {
 				// back to the list order, staying on the current subject
 				const current = this.ids[this.index];
-				this.ids = [...this.originalIds];
+				this.ids = this.listOrder();
 				this.index = Math.max(0, this.ids.indexOf(current));
 				this.shuffled = false;
 			} else {
 				// shuffle only what's still ahead
-				this.ids = [...done, ...shuffle(this.ids.slice(this.index + 1))];
+				this.ids = [...done, ...shuffle(this.ids.slice(done.length))];
 				this.shuffled = true;
 			}
 			this.syncRoute();
@@ -494,12 +554,11 @@ export default {
 				}, 0);
 			}, { once: true });
 		},
-		restart(shuffleAll) {
-			// a fresh round: everything hidden again
+		async restart(shuffleAll) {
+			// a fresh round: everything hidden again, the known ones (as marked now) first
 			this.revealStore().clear();
-			this.ids = shuffleAll ? shuffle(this.originalIds) : [...this.originalIds];
-			this.shuffled = shuffleAll;
-			this.go(0);
+			this.planKnown(await readKnownSubjectIds().catch(() => new Set()), shuffleAll);
+			this.go(this.index);
 		},
 		onKeydown(event) {
 			if (event.target instanceof HTMLElement && event.target.closest('input, textarea, select')) return;
@@ -607,6 +666,7 @@ export default {
 }
 
 .practice-progress {
+	display: flex;
 	height: 5px;
 	border-radius: 999px;
 	/* a visible track, empty as it is (the page's own grey vanished into the page) */
@@ -619,6 +679,15 @@ export default {
 	background: var(--wanikani-sec);
 	border-radius: inherit;
 	transition: width 0.25s ease;
+}
+
+/* the known ones, then what's gone through: one bar */
+.practice-progress > .practice-progress-known {
+	border-radius: 999px 0 0 999px;
+}
+
+.practice-progress > .practice-progress-known + div {
+	border-radius: 0 999px 999px 0;
 }
 
 /* what's next: one row, scrolled sideways (no scrollbar: the fades say there's more) */
@@ -692,9 +761,18 @@ export default {
 	opacity: 0.8;
 }
 
+/* marked as known (knownSubjects.ts): a line in its color under it */
+.practice-upcoming-tile.known {
+	box-shadow: inset 0 -3px 0 var(--known-color);
+}
+
 /* this card: a ring around it */
 .practice-upcoming-tile.current {
 	box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18), 0 0 0 2px var(--body-color), 0 0 0 4px var(--tile-color);
+}
+
+.practice-upcoming-tile.current.known {
+	box-shadow: inset 0 -3px 0 var(--known-color), 0 0 0 2px var(--body-color), 0 0 0 4px var(--tile-color);
 }
 
 .practice-card {

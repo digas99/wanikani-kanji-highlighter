@@ -9,20 +9,26 @@
 
 <script>
 import { LOCKED_SEGMENT_COLOR } from '@/utils/scripts/schoolKanji';
+import { KNOWN_LABEL, useKnownSubjects } from '@/utils/scripts/knownSubjects';
 
 export default {
 	name: 'SchoolProgressLegend',
 
 	data() {
-		return {
-			// as the bars read, left to right
-			items: [
+		return { known: useKnownSubjects() };
+	},
+
+	computed: {
+		// as the bars read, left to right (known: only once something is marked)
+		items() {
+			return [
 				{ column: 'burned', label: 'Burned', color: 'var(--brn-color)' },
 				{ column: 'passed', label: 'Passed', color: '#000000' },
 				{ column: 'progress', label: 'In progress', color: 'var(--ap4-color)' },
+				...(this.known.ids.size ? [{ column: 'known', label: KNOWN_LABEL, color: this.known.color }] : []),
 				{ column: 'locked', label: 'Locked', color: LOCKED_SEGMENT_COLOR },
-			],
-		};
+			];
+		},
 	},
 };
 </script>

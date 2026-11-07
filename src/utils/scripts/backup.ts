@@ -11,6 +11,7 @@ import {
 import { describeActivityBackup, importActivityBackup, readActivityBackup } from './dailyActivity';
 import { FOCUS_SITES_KEY, HIDDEN_SITES_KEY, SECTIONS_KEY } from './pageStats';
 import { DEFAULT_SEARCH_HISTORY_SIZE } from './searchHistory';
+import { KNOWN_SUBJECTS_KEY } from './knownSubjects';
 import { verifyApiKeyWithRequest } from './apiKeyValidation';
 
 /**
@@ -25,7 +26,7 @@ import { verifyApiKeyWithRequest } from './apiKeyValidation';
 const FILE_APP = 'wanikani-kanji-highlighter';
 const FILE_VERSION = 1;
 
-export type BackupPartId = 'settings' | 'siteChoices' | 'friends' | 'pageHistory' | 'pageSentences' | 'activity' | 'searchHistory' | 'apiKey';
+export type BackupPartId = 'settings' | 'siteChoices' | 'friends' | 'pageHistory' | 'pageSentences' | 'activity' | 'searchHistory' | 'knownSubjects' | 'apiKey';
 
 export type BackupTarget = 'file' | 'drive';
 
@@ -222,6 +223,24 @@ export const BACKUP_PARTS: BackupPart[] = [
 			const ids = current ?? [];
 			const merged = [...new Set([...ids, ...imported])].slice(0, limit);
 			await storage.setItem('local:searchHistory', merged);
+			return `${plural(merged.length - ids.length, 'subject')} added`;
+		},
+	},
+	{
+		id: 'knownSubjects',
+		label: 'Known subjects',
+		description: 'The locked subjects you marked as already known',
+		async read() {
+			const ids = await storage.getItem<number[]>(KNOWN_SUBJECTS_KEY);
+			return ids?.length ? ids : null;
+		},
+		describe: data => plural(Array.isArray(data) ? data.length : 0, 'subject'),
+		async write(data) {
+			const imported = Array.isArray(data) ? data.filter(id => Number.isInteger(id) && id > 0) : [];
+			const ids = await storage.getItem<number[]>(KNOWN_SUBJECTS_KEY) ?? [];
+			const merged = [...new Set([...ids, ...imported])];
+			// the ones unlocked since: dropped on the next sync (knownSubjects.ts)
+			await storage.setItem(KNOWN_SUBJECTS_KEY, merged);
 			return `${plural(merged.length - ids.length, 'subject')} added`;
 		},
 	},

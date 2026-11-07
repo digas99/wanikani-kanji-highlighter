@@ -876,6 +876,8 @@ export default {
 						{ label: 'Guru', fields: [{ key: 'gr1_color', label: 'I' }, { key: 'gr2_color', label: 'II' }] },
 						{ label: 'Master & Enlightened', fields: [{ key: 'mst_color', label: 'Master' }, { key: 'enl_color', label: 'Enl.' }] },
 						{ label: 'Initiate & Burned', fields: [{ key: 'int_color', label: 'Initiate' }, { key: 'brn_color', label: 'Burned' }] },
+						// locked subjects you marked as known (practice skips them)
+						{ label: 'Known (locked)', fields: [{ key: 'known_color', label: 'Known' }] },
 					],
 				},
 			],

@@ -1,8 +1,9 @@
 import { storage } from '#imports';
 import bundledMaps from '@/utils/scripts/schoolKanjiMaps.json';
+import { KNOWN_LABEL, isKnownSubject, knownColor, useKnownSubjects } from '@/utils/scripts/knownSubjects';
 
 export type SchoolKey = 'jlpt' | 'joyo';
-export type SchoolProgressColumn = 'burned' | 'passed' | 'progress' | 'locked';
+export type SchoolProgressColumn = 'burned' | 'passed' | 'progress' | 'known' | 'locked';
 
 export type SchoolKanjiMaps = {
 	jlpt: Record<string, string[]>;
@@ -22,6 +23,8 @@ export type SchoolGradeStats = {
 		width: number;
 		background: string;
 		textColor: string;
+		/** the section its click goes to, when not its own (known: under Locked) */
+		jump?: SchoolProgressColumn;
 	}>;
 };
 
@@ -257,6 +260,9 @@ export function filterSchoolColumn(
 				const stage = subject.assignment?.srs_stage;
 				return stage == null || stage === -1;
 			});
+		// locked, marked as known (knownSubjects.ts): a part of the bars; listed under Locked
+		case 'known':
+			return subjects.filter(subject => isKnownSubject(subject));
 		default:
 			return subjects;
 	}
@@ -266,8 +272,11 @@ export function buildSubjectProgressSegments(
 	subjects: Array<any>,
 ): SchoolGradeStats['segments'] {
 	const total = subjects.length;
+	// the marks (read in a computed: the bars follow them)
+	useKnownSubjects();
+	const known = filterSchoolColumn(subjects, 'known').length;
 
-	const segments: SchoolGradeStats['segments'] = [
+	const segments: SchoolGradeStats['segments'] = ([
 		{
 			column: 'burned',
 			label: 'Burned',
@@ -293,14 +302,23 @@ export function buildSubjectProgressSegments(
 			textColor: '#fff',
 		},
 		{
+			column: 'known',
+			label: `${KNOWN_LABEL} (locked)`,
+			count: known,
+			width: 0,
+			background: knownColor(),
+			textColor: '#fff',
+			jump: 'locked',
+		},
+		{
 			column: 'locked',
 			label: 'Locked',
-			count: filterSchoolColumn(subjects, 'locked').length,
+			count: filterSchoolColumn(subjects, 'locked').length - known,
 			width: 0,
 			background: LOCKED_SEGMENT_COLOR,
 			textColor: '#000',
 		},
-	].map(segment => ({
+	] as SchoolGradeStats['segments']).filter(segment => segment.column !== 'known' || segment.count > 0).map(segment => ({
 		...segment,
 		width: total ? (segment.count / total) * 100 : 0,
 	}));

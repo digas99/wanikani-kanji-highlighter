@@ -658,6 +658,14 @@
 	margin: 0 !important;
 }
 
+/* audio, then marking as known: a column at the card's right */
+.sd-infoCard_actions {
+	display: flex !important;
+	flex-direction: column;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
 .sd-chipRow {
 	display: flex !important;
 	flex-wrap: wrap;

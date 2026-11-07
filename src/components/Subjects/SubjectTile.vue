@@ -5,9 +5,10 @@
 		:class="[
 			{ 'invert-characters': invertCharacters },
 			{ 'sd-detailsPopup_clickable': !useRouter },
+			{ known },
 		]"
 		:data-item-id="item.id"
-		:style="tileStyle"
+		:style="style"
 		:title="tooltip"
 		@click="onClick"
 		@contextmenu="onContextMenu"
@@ -48,6 +49,7 @@ import { formatShortDuration } from '@/utils/scripts/profileSubjects';
 import { primaryMeaning, subjectSummary } from '@/utils/scripts/wanikani';
 import { showSubjectInPage } from '@/utils/scripts/showSubjectInPage';
 import { troubleText, useTroubleSubjects } from '@/utils/scripts/troubleSubjects';
+import { KNOWN_LABEL, isKnownSubject, useKnownSubjects } from '@/utils/scripts/knownSubjects';
 
 export default {
 	name: 'SubjectTile',
@@ -101,7 +103,20 @@ export default {
 		},
 	},
 
+	data() {
+		return { knownState: useKnownSubjects() };
+	},
+
 	computed: {
+		/** locked, marked as known (knownSubjects.ts): still a locked tile, with a line in its color */
+		known() {
+			return isKnownSubject(this.item, this.knownState.ids);
+		},
+		/** The list's style, plus the known line's color. */
+		style() {
+			if (this.known) return { ...this.tileStyle, '--mark-color': this.knownState.color };
+			return this.tileStyle;
+		},
 		/** Hover text: what the subject means, since the tile only shows characters. */
 		tooltip() {
 			const lines = [this.title || subjectSummary(this.item)];
@@ -110,6 +125,7 @@ export default {
 				lines.push(this.reviewLabel === 'now' ? 'Review available now' : `Next review in ${this.reviewLabel}`);
 			}
 			if (this.trouble) lines.push(troubleText(this.trouble));
+			if (this.known) lines.push(`${KNOWN_LABEL}: you already know it (still locked)`);
 			return lines.join('\n');
 		},
 		/** the popup's trouble subjects (empty when their marks are off in the settings) */
@@ -174,6 +190,21 @@ export default {
 	position: relative;
 	color: inherit;
 	text-decoration: none;
+}
+
+/* locked, marked as known: a line in the known color along the bottom */
+.subject-tile.known::after {
+	content: '';
+	position: absolute;
+	z-index: 2;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 3px;
+	background: var(--mark-color);
+	border-bottom-left-radius: inherit;
+	border-bottom-right-radius: inherit;
+	pointer-events: none;
 }
 
 .tile-loading {

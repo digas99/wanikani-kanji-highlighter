@@ -4,6 +4,7 @@ import { toRaw } from 'vue';
 import { getWKManager, resetWKManager, DASHBOARD_REFRESH_MS, DEFAULT_PROXY } from '@/lib/apiClient';
 import { storage } from '#imports';
 import { levelUpInfo, formatSubjectsData, getLevelUpPrediction } from '@/utils/scripts/wanikani';
+import { pruneKnownSubjects } from '@/utils/scripts/knownSubjects';
 
 const FASTEST_LEVEL_UP_REFRESH_MS = 5 * 60 * 1000;
 import {
@@ -628,6 +629,7 @@ export const useWKStore = defineStore('wk', {
 				if (context?.srsStages?.length || context?.type) return;
 				if (data?.length) {
 					this.assignments = data;
+					void pruneKnownSubjects(data);
 					this.scheduleRebuildLevelsInProgress();
 				}
 			});
@@ -719,6 +721,7 @@ export const useWKStore = defineStore('wk', {
 				const key = assignmentsKey(assignments);
 				if (key !== assignmentsKey(this.assignments)) {
 					this.assignments = assignments;
+					void pruneKnownSubjects(assignments);
 					changed = true;
 				}
 			}
@@ -757,7 +760,11 @@ export const useWKStore = defineStore('wk', {
 			});
 			this.dashboardRefreshing = true;
 			wkManager.getAssignments(null, ({ state, data }: { state: string; data: Array<any> }) => {
-				if (state !== 'error' && data?.length) this.assignments = data;
+				if (state !== 'error' && data?.length) {
+					this.assignments = data;
+					// subjects unlocked since they were marked known: unmarked (knownSubjects.ts)
+					void pruneKnownSubjects(data);
+				}
 				// first call is the cached copy; 'updated' / 'error' means the refresh is over
 				if (state !== 'cached') {
 					this.dashboardRefreshing = false;

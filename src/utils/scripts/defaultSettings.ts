@@ -125,6 +125,8 @@ export const defaultSettings = {
 		mst_color: '#294ddb',
 		enl_color: '#0093dd',
 		brn_color: '#e20000',
+		// a locked subject you already know (knownSubjects.ts)
+		known_color: '#14a39a',
 	},
 	miscellaneous: {
 		time_in_12h_format: true,

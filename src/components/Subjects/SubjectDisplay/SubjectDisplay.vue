@@ -83,15 +83,19 @@
 									{{ subjectDisplay.partsOfSpeech(item) }}
 								</div>
 							</div>
-							<button
-								v-if="item.pronunciation_audios?.length"
-								type="button"
-								class="sd-iconButton sd-detailsPopup_clickable sd-detailsPopup_subjectAudio"
-								title="Subject Audio"
-								@click="playAudio(item.pronunciation_audios[0].url)"
-							>
-								<img :src="SoundIcon" alt="Play audio">
-							</button>
+							<!-- the card's buttons: audio, and (locked subjects) marking it as known -->
+							<div class="sd-infoCard_actions">
+								<button
+									v-if="item.pronunciation_audios?.length"
+									type="button"
+									class="sd-iconButton sd-detailsPopup_clickable sd-detailsPopup_subjectAudio"
+									title="Subject Audio"
+									@click="playAudio(item.pronunciation_audios[0].url)"
+								>
+									<img :src="SoundIcon" alt="Play audio">
+								</button>
+								<KnownToggle :subject="item" variant="icon" />
+							</div>
 						</div>
 						<div class="sd-chipRow">
 							<!-- extension popup only (chipLinks): each chip opens its subjects list -->
@@ -115,6 +119,7 @@
 							>
 								{{ srsSection.text }}
 							</span>
+							<!-- locked: already known? (practice skips it until it unlocks) -->
 							<!-- you keep getting it wrong (troubleSubjects.ts); popup: opens the list of them -->
 							<span
 								v-if="trouble"
@@ -275,6 +280,7 @@ import SubjectDisplayAssignmentTimestamps from '@/components/Subjects/SubjectDis
 import SubjectDisplaySeenOnPages from '@/components/Subjects/SubjectDisplay/SubjectDisplaySeenOnPages.vue';
 import SubjectDisplayReadingSentences from '@/components/Subjects/SubjectDisplay/SubjectDisplayReadingSentences.vue';
 import SentenceWriteIcon from '@/components/Subjects/SubjectDisplay/SentenceWriteIcon.vue';
+import KnownToggle from '@/components/Subjects/KnownToggle.vue';
 
 import { srsStages, subjectDisplay, typeColors } from '@/utils/scripts/wanikani';
 import { buildLookupUrl, lookupQueryText, sanitizeLookupLinks } from '@/utils/scripts/lookupLinks';
@@ -324,6 +330,7 @@ export default {
 		SubjectDisplaySeenOnPages,
 		SubjectDisplayReadingSentences,
 		SentenceWriteIcon,
+		KnownToggle,
 	},
 
 	props: {

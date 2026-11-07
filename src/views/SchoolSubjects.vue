@@ -47,7 +47,8 @@ export default {
 				burned: 0,
 				passed: 1,
 				progress: 2,
-				locked: 3,
+				known: 3,
+				locked: 4,
 			},
 		};
 	},
@@ -123,7 +124,9 @@ export default {
 			this.wk.subjectsListScroll = scrollTop;
 		},
 		scrollToSection(sectionId) {
-			this.$refs.panel?.scrollToSection(`${this.school}-${this.grade}-${sectionId}`);
+			// the known ones are listed under Locked
+			const column = this.stats?.segments.find(segment => segment.column === sectionId)?.jump ?? sectionId;
+			this.$refs.panel?.scrollToSection(`${this.school}-${this.grade}-${column}`);
 		},
 		scrollToJump() {
 			if (!this.jump) return;
