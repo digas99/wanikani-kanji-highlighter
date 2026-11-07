@@ -15,7 +15,7 @@
  */
 
 import { storage } from '#imports';
-import { KanjiHighlighter, clearHighlights, HIGHLIGHT_MARK_CLASS, type HighlightConfig } from './highlighter';
+import { KanjiHighlighter, clearHighlights, HOVER_HIGHLIGHT, type HighlightConfig } from './highlighter';
 import { buildHighlightConfig } from './highlightConfig';
 import { buildSrsStageCss, getSrsStageColor, SRS_STAGE_SECTIONS } from './srsStageHighlight';
 import {
@@ -23,14 +23,19 @@ import {
 	JLPT_GRADE_SECTIONS,
 	JOYO_GRADE_SECTIONS,
 } from './schoolGradeHighlight';
-import { HOVER_HIGHLIGHT, RangeHighlights, supportsRangeHighlights } from './rangeHighlights';
+import {
+	HighlightSession,
+	LanguageGate,
+	RangeHighlights,
+	mountLanguageDebug,
+	supportsRangeHighlights,
+	unmountLanguageDebug,
+} from '@/lib/cjk-highlighter';
 import { highlightAt, setRangeHitTest } from './highlightHits';
 import { isPageHighlightBlocked,
 	type PageListMode,
 } from '@/utils/scripts/pageList';
-import { LanguageGate, languageRules } from './textLanguage';
-import { isDevInstall, mountLanguageDebug, unmountLanguageDebug } from './languageDebug';
-import { UNCLEAR_TEXT_SITES_KEY } from '@/utils/scripts/textLanguageSettings';
+import { languageRules, UNCLEAR_TEXT_SITES_KEY } from '@/utils/scripts/textLanguageSettings';
 import { isKanjiCounterEnabled } from '@/utils/scripts/extensionBadge';
 import {
 	clearSubjectBundleCache,
@@ -60,29 +65,17 @@ type HighlightData = {
 };
 
 const STYLE_ID = 'wkhighlighter-styles';
-const IDLE_DELAY = 200;
-
-const UNWANTED_TAGS = new Set([
-	'SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'INPUT', 'SELECT', 'OPTION',
-	'CODE', 'PRE', 'KBD', 'SAMP', 'TITLE', 'HEAD', 'SVG', 'IMG', 'CANVAS',
-	'VIDEO', 'AUDIO', 'IFRAME', 'OBJECT', 'MATH',
-]);
 
 let highlighter: KanjiHighlighter | null = null;
+/** the page followed as it's used (cjk-highlighter: whole page, or as it scrolls into view) */
+let session: HighlightSession | null = null;
 /** what each paragraph's language lets through (null: everything, the default) */
 let gate: LanguageGate | null = null;
 /** painted highlights (null: spans, the fallback) */
 let ranges: RangeHighlights | null = null;
-let pruneTimer: number | null = null;
-let mutationObserver: MutationObserver | null = null;
-let intersectionObserver: IntersectionObserver | null = null;
-let mode: 'full' | 'viewport' = 'viewport';
 let kanjiCounterEnabled = true;
 let detailsPopupEnabled = true;
-let observed = new WeakSet<Element>();
-let flushTimer: number | null = null;
 let badgeTimer: number | null = null;
-let pendingRoots: Node[] = [];
 let reinitTimer: number | null = null;
 
 /** Entry point invoked by the content script. */
@@ -177,7 +170,7 @@ async function init(): Promise<void> {
 		: 'blacklist';
 	if (isPageHighlightBlocked(location.hostname, pageListMode, blacklist, whitelist)) return;
 
-	ranges = supportsRangeHighlights() ? new RangeHighlights() : null;
+	ranges = supportsRangeHighlights() ? new RangeHighlights({ hoverName: HOVER_HIGHLIGHT }) : null;
 	// loaded unpacked: always classified, and shown (languageDebug.ts)
 	const dev = await isDevInstall();
 	gate = createLanguageGate(settings, data, unclearTextSites, dev);
@@ -190,7 +183,7 @@ async function init(): Promise<void> {
 	}
 	// the page's language, from its first paragraphs: unclear ones then follow it from the start
 	gate?.seed(document.body);
-	if (dev && gate) mountLanguageDebug(gate);
+	if (dev && gate) mountLanguageDebug(gate, { namespace: 'wkh' });
 
 	const highlighterSettings = settings.highlighter ?? {};
 	const style = settings.highlight_style ?? {};
@@ -204,20 +197,20 @@ async function init(): Promise<void> {
 	kanjiCounterEnabled = isKanjiCounterEnabled(settings);
 	detailsPopupEnabled = settings.kanji_details_popup?.activated !== false;
 	if (detailsPopupEnabled) warmupSubjectLookup();
-	mode = highlighterSettings.mode === 'full' ? 'full' : 'viewport';
-	observed = new WeakSet<Element>();
-
-	if (mode === 'full') startFullMode();
-	else startViewportMode();
+	session = new HighlightSession({
+		highlighter: highlighter.page,
+		ranges,
+		gate,
+		mode: highlighterSettings.mode === 'full' ? 'full' : 'viewport',
+		onChange: reportBadge,
+	});
+	session.start();
 }
 
 function teardown(): void {
-	if (mutationObserver) { mutationObserver.disconnect(); mutationObserver = null; }
-	if (intersectionObserver) { intersectionObserver.disconnect(); intersectionObserver = null; }
-	if (flushTimer !== null) { clearTimeout(flushTimer); flushTimer = null; }
+	session?.stop();
+	session = null;
 	if (badgeTimer !== null) { clearTimeout(badgeTimer); badgeTimer = null; }
-	if (pruneTimer !== null) { clearTimeout(pruneTimer); pruneTimer = null; }
-	pendingRoots = [];
 	if (ranges) {
 		ranges.clear();
 		setRangeHitTest(null);
@@ -235,8 +228,18 @@ function teardown(): void {
 	if (kanjiCounterEnabled) sendBadge(-1);
 }
 
+let devInstall: Promise<boolean> | null = null;
+
+/** Loaded unpacked (asked once: the background knows how the extension was installed). */
+function isDevInstall(): Promise<boolean> {
+	devInstall ??= browser.runtime.sendMessage({ type: 'wkh:isDevInstall' })
+		.then(answer => answer === true)
+		.catch(() => false);
+	return devInstall;
+}
+
 /* ------------------------------------------------------------------ */
-/* Japanese or Chinese (textLanguage.ts)                              */
+/* Japanese or Chinese (cjk-highlighter/textLanguage.ts)              */
 /* ------------------------------------------------------------------ */
 
 /**
@@ -257,160 +260,6 @@ function createLanguageGate(settings: any, data: HighlightData | null, unclearTe
 			reportBadge();
 		},
 	});
-}
-
-/* ------------------------------------------------------------------ */
-/* Full-page mode                                                     */
-/* ------------------------------------------------------------------ */
-
-function startFullMode(): void {
-	highlighter!.highlightRoot(document.body);
-	reportBadge();
-
-	mutationObserver = new MutationObserver(mutations => {
-		for (const mutation of mutations) {
-			gate?.forget(mutation.target);
-			mutation.addedNodes.forEach(node => pendingRoots.push(node));
-			// painted: text edited in place (sites update their own text) is highlighted again
-			if (mutation.type === 'characterData') pendingRoots.push(mutation.target);
-			if (mutation.removedNodes.length) schedulePrune();
-		}
-		scheduleFullFlush();
-	});
-	mutationObserver.observe(document.body, observerOptions());
-}
-
-/** Spans change the page's text themselves, so only painted highlights follow text edits. */
-function observerOptions(): MutationObserverInit {
-	return ranges
-		? { childList: true, subtree: true, characterData: true }
-		: { childList: true, subtree: true };
-}
-
-/** Painted highlights of text that left the page (or changed) are dropped, on idle. */
-function schedulePrune(): void {
-	if (!ranges || pruneTimer !== null) return;
-	pruneTimer = window.setTimeout(() => {
-		pruneTimer = null;
-		if (!ranges || !highlighter) return;
-		for (const node of ranges.prune()) highlighter.highlightRoot(node);
-	}, 1000);
-}
-
-function scheduleFullFlush(): void {
-	if (flushTimer !== null) return;
-	flushTimer = window.setTimeout(() => {
-		flushTimer = null;
-		const roots = pendingRoots;
-		pendingRoots = [];
-		if (!highlighter) return;
-		for (const node of roots) {
-			if (!node.isConnected) continue;
-			if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
-				highlighter.highlightRoot(node);
-			}
-		}
-		reportBadge();
-	}, IDLE_DELAY);
-}
-
-/* ------------------------------------------------------------------ */
-/* Viewport mode                                                      */
-/* ------------------------------------------------------------------ */
-
-function startViewportMode(): void {
-	intersectionObserver = new IntersectionObserver(onIntersect, {
-		rootMargin: '150px 0px',
-		threshold: 0,
-	});
-
-	observeCandidates(document.body);
-	reportBadge();
-
-	mutationObserver = new MutationObserver(mutations => {
-		for (const mutation of mutations) {
-			gate?.forget(mutation.target);
-			// painted: text edited in place (sites update their own text) is highlighted again
-			if (mutation.type === 'characterData') {
-				const node = mutation.target;
-				if (node.parentElement && !isUnwanted(node.parentElement)) {
-					highlighter?.highlightRoot(node);
-					reportBadge();
-				}
-				continue;
-			}
-			if (mutation.removedNodes.length) schedulePrune();
-			mutation.addedNodes.forEach(node => {
-				if (node.nodeType === Node.ELEMENT_NODE) {
-					observeCandidates(node as Element);
-				} else if (node.nodeType === Node.TEXT_NODE && node.parentElement && !isUnwanted(node.parentElement)) {
-					// Text appended to an already-processed element: highlight it directly.
-					highlighter?.highlightRoot(node);
-					reportBadge();
-				}
-			});
-		}
-	});
-	mutationObserver.observe(document.body, observerOptions());
-}
-
-function onIntersect(entries: IntersectionObserverEntry[]): void {
-	if (!highlighter) return;
-	let changed = false;
-	for (const entry of entries) {
-		if (!entry.isIntersecting) continue;
-		const target = entry.target;
-		intersectionObserver?.unobserve(target);
-		highlighter.highlightRoot(target);
-		changed = true;
-	}
-	if (changed) reportBadge();
-}
-
-/** Find text-bearing elements in a subtree and observe them for visibility. */
-function observeCandidates(root: Element): void {
-	if (!highlighter || !intersectionObserver) return;
-	if (isUnwanted(root)) return;
-
-	if (isCandidate(root)) observeElement(root);
-
-	const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
-		acceptNode: element => {
-			if (isUnwanted(element as Element)) return NodeFilter.FILTER_REJECT;
-			return isCandidate(element as Element)
-				? NodeFilter.FILTER_ACCEPT
-				: NodeFilter.FILTER_SKIP;
-		},
-	});
-
-	let current = walker.nextNode();
-	while (current) {
-		observeElement(current as Element);
-		current = walker.nextNode();
-	}
-}
-
-function observeElement(element: Element): void {
-	if (!intersectionObserver || observed.has(element)) return;
-	observed.add(element);
-	intersectionObserver.observe(element);
-}
-
-/** An element is a candidate when it directly holds text with a kanji match. */
-function isCandidate(element: Element): boolean {
-	if (!highlighter) return false;
-	for (const node of Array.from(element.childNodes)) {
-		if (node.nodeType === Node.TEXT_NODE && node.nodeValue && highlighter.hasMatch(node.nodeValue)) {
-			return true;
-		}
-	}
-	return false;
-}
-
-function isUnwanted(element: Element): boolean {
-	return UNWANTED_TAGS.has(element.tagName)
-		|| (element as HTMLElement).isContentEditable
-		|| element.classList.contains(HIGHLIGHT_MARK_CLASS);
 }
 
 /* ------------------------------------------------------------------ */

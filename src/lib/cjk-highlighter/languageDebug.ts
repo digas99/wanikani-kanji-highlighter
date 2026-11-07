@@ -1,15 +1,23 @@
 /**
- * Development only (the extension loaded unpacked): a panel at the bottom of pages with how
- * their text was classified (textLanguage.ts): the page's language and why, its paragraphs by
- * class, the rules in effect. "Outline" marks each paragraph in its class's color.
+ * For development (the extension decides when: e.g. loaded unpacked): a panel at the bottom of
+ * pages with how their text was classified (textLanguage.ts): the page's language and why, its
+ * paragraphs by class, the rules in effect. "Outline" marks each paragraph in its class's color.
  */
 
 import type { LanguageGate, LanguageSummary, TextLanguage } from './textLanguage';
 
-const HOST_ID = 'wkh-language-debug';
-const OUTLINE_STYLE_ID = 'wkh-language-debug-outlines';
-const OUTLINE_ATTRIBUTE = 'data-wkh-lang';
 const REFRESH_MS = 1000;
+
+/** the panel's element, the outlines' style and attribute: by the extension's namespace */
+let ids = names('cjkh');
+
+function names(namespace: string) {
+	return {
+		host: `${namespace}-language-debug`,
+		outlineStyle: `${namespace}-language-debug-outlines`,
+		outlineAttribute: `data-${namespace}-lang`,
+	};
+}
 
 const COLORS: Record<TextLanguage, string> = {
 	japanese: '#2fbf5b',
@@ -18,25 +26,17 @@ const COLORS: Record<TextLanguage, string> = {
 	unclear: '#8a8fa3',
 };
 
-let devInstall: Promise<boolean> | null = null;
-
-/** Loaded unpacked (asked once: the background knows how the extension was installed). */
-export function isDevInstall(): Promise<boolean> {
-	devInstall ??= browser.runtime.sendMessage({ type: 'wkh:isDevInstall' })
-		.then(answer => answer === true)
-		.catch(() => false);
-	return devInstall;
-}
-
 let timer: number | null = null;
 let outlined = false;
 let closed = false;
 
-export function mountLanguageDebug(gate: LanguageGate): void {
+/** `namespace`: the extension's prefix (two extensions on a page each have their own panel). */
+export function mountLanguageDebug(gate: LanguageGate, options: { namespace?: string } = {}): void {
 	unmountLanguageDebug();
+	ids = names(options.namespace ?? 'cjkh');
 	if (closed) return;
 	const host = document.createElement('div');
-	host.id = HOST_ID;
+	host.id = ids.host;
 	const root = host.attachShadow({ mode: 'open' });
 	root.innerHTML = `
 <style>
@@ -92,7 +92,7 @@ export function mountLanguageDebug(gate: LanguageGate): void {
 export function unmountLanguageDebug(): void {
 	if (timer !== null) clearInterval(timer);
 	timer = null;
-	document.getElementById(HOST_ID)?.remove();
+	document.getElementById(ids.host)?.remove();
 	clearOutlines();
 }
 
@@ -135,20 +135,20 @@ function render(root: ShadowRoot, gate: LanguageGate): void {
 
 /** Each classified paragraph outlined in its class's color (an attribute and a stylesheet: dev only). */
 function outline(gate: LanguageGate): void {
-	if (!document.getElementById(OUTLINE_STYLE_ID)) {
+	if (!document.getElementById(ids.outlineStyle)) {
 		const style = document.createElement('style');
-		style.id = OUTLINE_STYLE_ID;
+		style.id = ids.outlineStyle;
 		style.textContent = (Object.keys(COLORS) as TextLanguage[])
-			.map(language => `[${OUTLINE_ATTRIBUTE}="${language}"] { outline: 2px dashed ${COLORS[language]} !important; outline-offset: 1px; }`)
+			.map(language => `[${ids.outlineAttribute}="${language}"] { outline: 2px dashed ${COLORS[language]} !important; outline-offset: 1px; }`)
 			.join('\n');
 		(document.head || document.documentElement).appendChild(style);
 	}
 	for (const [paragraph, language] of gate.trackedParagraphs()) {
-		if (language && paragraph.getAttribute(OUTLINE_ATTRIBUTE) !== language) paragraph.setAttribute(OUTLINE_ATTRIBUTE, language);
+		if (language && paragraph.getAttribute(ids.outlineAttribute) !== language) paragraph.setAttribute(ids.outlineAttribute, language);
 	}
 }
 
 function clearOutlines(): void {
-	document.getElementById(OUTLINE_STYLE_ID)?.remove();
-	for (const element of document.querySelectorAll(`[${OUTLINE_ATTRIBUTE}]`)) element.removeAttribute(OUTLINE_ATTRIBUTE);
+	document.getElementById(ids.outlineStyle)?.remove();
+	for (const element of document.querySelectorAll(`[${ids.outlineAttribute}]`)) element.removeAttribute(ids.outlineAttribute);
 }

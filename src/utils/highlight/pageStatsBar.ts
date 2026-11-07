@@ -32,13 +32,12 @@ import { elementsFor, selectorFor } from './elementSelector';
 import {
 	activePageLanguage,
 	languageOfAttribute,
-	languageRules,
 	onPageLanguageChange,
 	sentenceKept,
 	textByLanguage,
 	type LanguageRules,
-} from './textLanguage';
-import { UNCLEAR_TEXT_SITES_KEY } from '@/utils/scripts/textLanguageSettings';
+} from '@/lib/cjk-highlighter';
+import { languageRules, UNCLEAR_TEXT_SITES_KEY } from '@/utils/scripts/textLanguageSettings';
 import TinySegmenter from 'tiny-segmenter';
 
 let segmenter: TinySegmenter | null = null;

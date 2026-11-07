@@ -10,8 +10,7 @@
  * The highlighter asks a LanguageGate which of a paragraph's matches to paint (highlighter.ts).
  */
 
-import { BLOCK_SELECTOR, type HighlightMatch } from './highlighter';
-import { matchesSiteList } from '@/utils/scripts/pageList';
+import { BLOCK_SELECTOR } from './pageHighlighter';
 
 export type TextLanguage = 'japanese' | 'chinese' | 'mixed' | 'unclear';
 export type LanguageChoice = 'highlight' | 'skip';
@@ -281,7 +280,7 @@ export class LanguageGate {
 	}
 
 	/** The matches of these text nodes (one, or a run: furigana) to highlight. */
-	filter(nodes: Text[], text: string, matches: HighlightMatch[]): HighlightMatch[] {
+	filter<M extends { start: number }>(nodes: Text[], text: string, matches: M[]): M[] {
 		if (!matches.length) return matches;
 		const paragraph = paragraphOf(nodes[0]);
 		const language = paragraph
@@ -386,38 +385,17 @@ export class LanguageGate {
 }
 
 /* ------------------------------------------------------------------ */
-/* The rules, for the highlight and for what's read (pageStatsBar.ts)  */
+/* The rules: for the highlight, and for what an extension reads       */
 /* ------------------------------------------------------------------ */
 
+/** What's left out, on this site (the extension's settings decide them). */
 export type LanguageRules = {
+	/** the kanji Japanese uses (Jōyō, Jinmeiyō…): the others are Chinese-only */
 	japaneseKanji: Set<string>;
 	chinese: LanguageChoice;
 	/** this site's choice (the sites listed go the other way) */
 	unclear: LanguageChoice;
 };
-
-type KanjiData = { japanese?: string; learned?: string; notLearned?: string; byStage?: Record<string, string> } | null | undefined;
-
-/**
- * The rules on this site (Settings → Highlight → Japanese or Chinese). Null when nothing is left
- * out (both highlighted, the default): then nothing needs classifying.
- */
-export function languageRules(settings: any, kanji: KanjiData, unclearTextSites: string[] | null | undefined, host: string, always = false): LanguageRules | null {
-	const chinese: LanguageChoice = settings?.highlighter?.chinese_text === 'skip' ? 'skip' : 'highlight';
-	const byDefault: LanguageChoice = settings?.highlighter?.unclear_text === 'skip' ? 'skip' : 'highlight';
-	const unclear: LanguageChoice = matchesSiteList(host, unclearTextSites)
-		? (byDefault === 'skip' ? 'highlight' : 'skip')
-		: byDefault;
-	if (!always && !LanguageGate.needed(chinese, unclear)) return null;
-	// the kanji Japanese uses: Jōyō and Jinmeiyō, and WaniKani's (a few are neither)
-	const japaneseKanji = new Set<string>([
-		...(kanji?.japanese ?? ''),
-		...(kanji?.learned ?? ''),
-		...(kanji?.notLearned ?? ''),
-		...Object.values(kanji?.byStage ?? {}).join(''),
-	]);
-	return { japaneseKanji, chinese, unclear };
-}
 
 /** Whether text of this language is kept (highlighted, read), on a page of `page`'s language. */
 function keeps(language: TextLanguage | null, rules: LanguageRules, page: 'japanese' | 'chinese' | null): boolean {

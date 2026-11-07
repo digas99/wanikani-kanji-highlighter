@@ -3,26 +3,23 @@
  * into spans, so sites that update their own text (YouTube's title, …) and the browser's
  * translation, which needs whole sentences, keep working.
  *
- * Each match becomes a Range in a named Highlight (`::highlight(wkh-…)` in the page's
- * styles, see runtime.ts). Ranges aren't elements, so hovering / clicking is found by
- * hit-testing: the text under the pointer, then the match whose boxes contain it.
+ * Each match becomes a Range in a named Highlight (its `name`: `::highlight(…)` in the
+ * extension's styles). Ranges aren't elements, so hovering / clicking is found by hit-testing:
+ * the text under the pointer, then the match whose boxes contain it.
  */
 
-import { highlightNameFor, type HighlightMatch, type HighlightRenderer } from './highlighter';
+import type { Match, Renderer } from './types';
 
 /** What's highlighted at a point: the popup opens on it. */
 export type RangeHit = {
 	value: string;
-	type: 'kanji' | 'vocabulary';
+	type: string;
 	/** the same object while the pointer stays on the same highlighted text */
 	key: object;
 };
 
 /** A highlighted kanji / word: one range, or (a word over furigana) one per text node it's in. */
 type Entry = RangeHit & { ranges: Range[]; name: string };
-
-/** Painted hover feedback (a span used to fade); above the colors. */
-export const HOVER_HIGHLIGHT = 'wkh-hover';
 
 export function supportsRangeHighlights(): boolean {
 	return typeof CSS !== 'undefined'
@@ -32,14 +29,20 @@ export function supportsRangeHighlights(): boolean {
 			|| typeof (document as any).caretRangeFromPoint === 'function');
 }
 
-export class RangeHighlights implements HighlightRenderer {
+export class RangeHighlights implements Renderer<any> {
+	/** painted hover feedback (above the colors): its highlight name, the extension's */
+	readonly hoverName: string;
 	private readonly highlights = new Map<string, Highlight>();
 	/** what's painted in each text node, and the text it was painted for (`run`: with the nodes around it) */
 	private readonly nodes = new Map<Text, { data: string; entries: Entry[]; run?: string }>();
 	private hover: Highlight | null = null;
 	private hovered: Entry | null = null;
 
-	render(node: Text, matches: HighlightMatch[]): void {
+	constructor(options: { hoverName: string }) {
+		this.hoverName = options.hoverName;
+	}
+
+	render(node: Text, matches: Match[]): void {
 		const current = this.nodes.get(node);
 		// already painted for this text (an element observed twice, a re-added subtree…)
 		if (current && current.data === node.data && current.entries.length === matches.length) return;
@@ -50,7 +53,7 @@ export class RangeHighlights implements HighlightRenderer {
 			const range = new Range();
 			range.setStart(node, match.start);
 			range.setEnd(node, match.end);
-			const name = highlightNameFor(match.meta);
+			const name = match.name;
 			this.highlight(name).add(range);
 			const entry = { value: match.value, type: match.type, ranges: [range], name } as Entry;
 			entry.key = entry;
@@ -64,7 +67,7 @@ export class RangeHighlights implements HighlightRenderer {
 	 * joined text. A match spanning nodes is painted node by node (one range across them would
 	 * also paint the furigana between); each node keeps the matches it's part of (hover, prune).
 	 */
-	renderRun(nodes: Text[], matches: HighlightMatch[]): void {
+	renderRun(nodes: Text[], matches: Match[]): void {
 		// already painted for this text (a block reached again through another of its rubies)
 		const run = nodes.map(node => node.data).join('');
 		if (nodes.every(node => this.nodes.get(node)?.run === run)) return;
@@ -90,7 +93,7 @@ export class RangeHighlights implements HighlightRenderer {
 			const start = locate(match.start, false);
 			const end = locate(match.end, true);
 			if (!start || !end) continue;
-			const name = highlightNameFor(match.meta);
+			const name = match.name;
 			const ranges: Range[] = [];
 			for (let index = start.index; index <= end.index; index++) {
 				const node = nodes[index];
@@ -170,7 +173,7 @@ export class RangeHighlights implements HighlightRenderer {
 			this.hover = new Highlight();
 			// painted over the colors
 			this.hover.priority = 1;
-			CSS.highlights.set(HOVER_HIGHLIGHT, this.hover);
+			CSS.highlights.set(this.hoverName, this.hover);
 		}
 		this.hover.clear();
 		// a word over furigana: all its parts
@@ -180,7 +183,7 @@ export class RangeHighlights implements HighlightRenderer {
 
 	clear(): void {
 		for (const name of this.highlights.keys()) CSS.highlights.delete(name);
-		CSS.highlights.delete(HOVER_HIGHLIGHT);
+		CSS.highlights.delete(this.hoverName);
 		this.highlights.clear();
 		this.nodes.clear();
 		this.hover = null;
