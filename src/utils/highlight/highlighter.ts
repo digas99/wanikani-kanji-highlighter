@@ -28,6 +28,7 @@ import {
 import type { JlptGradeKey, JoyoGradeKey, SchoolGradeKey } from './schoolGradeHighlight';
 import { ConjugationMatcher } from './deinflect';
 import { scanWords } from './wordScan';
+import type { LanguageGate } from './textLanguage';
 
 export type HighlightTarget = 'kanji' | 'vocabulary' | 'mixed';
 export type HighlightColorBy = 'learned' | 'srs_stage' | 'jlpt' | 'joyo';
@@ -123,7 +124,7 @@ const UNWANTED_TAGS = new Set([
 ]);
 
 /** Elements that end a run of text (words aren't joined across them: furigana runs stay inside). */
-const BLOCK_SELECTOR = 'p, div, li, dd, dt, td, th, h1, h2, h3, h4, h5, h6, blockquote, figcaption, caption, section, article, header, footer, main, aside, nav, body';
+export const BLOCK_SELECTOR = 'p, div, li, dd, dt, td, th, h1, h2, h3, h4, h5, h6, blockquote, figcaption, caption, section, article, header, footer, main, aside, nav, body';
 
 /** Hiragana, katakana, CJK ideographs and halfwidth kana. */
 const JAPANESE_REGEX = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9f]/;
@@ -149,6 +150,8 @@ function stageKeyToSrsStage(stageKey: SrsStageKey): number | null {
 export class KanjiHighlighter {
 	private readonly config: HighlightConfig;
 	private readonly renderer: HighlightRenderer | null;
+	/** which matches a paragraph's language lets through (textLanguage.ts); none: all of them */
+	private readonly gate: LanguageGate | null;
 	private readonly highlightedItems = new Map<string, HighlightedItem>();
 
 	// Learned mode.
@@ -175,9 +178,10 @@ export class KanjiHighlighter {
 	private readonly conjugations: ConjugationMatcher;
 
 	/** Without a renderer, matches are wrapped in spans (the page's text is split up). */
-	constructor(config: HighlightConfig, renderer: HighlightRenderer | null = null) {
+	constructor(config: HighlightConfig, renderer: HighlightRenderer | null = null, gate: LanguageGate | null = null) {
 		this.config = config;
 		this.renderer = renderer;
+		this.gate = gate;
 		this.learnedCharSet = new Set(config.learnedChars);
 		this.learnedWordSet = new Set(config.learnedWords);
 
@@ -355,7 +359,7 @@ export class KanjiHighlighter {
 			return;
 		}
 		const text = nodes.map(node => node.nodeValue ?? '').join('');
-		const matches = this.hasMatch(text) ? this.findMatches(text) : [];
+		const matches = this.hasMatch(text) ? this.allowed(nodes, text, this.findMatches(text)) : [];
 		for (const match of matches) this.recordItem(match);
 		this.renderer!.renderRun!(nodes, matches);
 	}
@@ -386,7 +390,7 @@ export class KanjiHighlighter {
 		const text = node.nodeValue;
 		if (!text) return;
 
-		const matches = this.findMatches(text);
+		const matches = this.allowed([node], text, this.findMatches(text));
 		for (const match of matches) this.recordItem(match);
 		if (this.renderer) {
 			// even without matches: the text may have changed, and its old highlights must go
@@ -394,6 +398,11 @@ export class KanjiHighlighter {
 			return;
 		}
 		if (matches.length) this.wrapWithSpans(node, text, matches);
+	}
+
+	/** The matches the paragraph's language lets through (Chinese text, say, may be left alone). */
+	private allowed(nodes: Text[], text: string, matches: HighlightMatch[]): HighlightMatch[] {
+		return this.gate ? this.gate.filter(nodes, text, matches) : matches;
 	}
 
 	/** The kanji / words to highlight in a piece of text. */

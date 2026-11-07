@@ -63,6 +63,72 @@
 				</div>
 			</div>
 
+			<!-- Japanese or Chinese: by paragraph (highlight/textLanguage.ts) -->
+			<div id="settings-text-language" class="settings-section">
+				<p class="settings-section-title">
+					Japanese or Chinese
+					<span class="settings-badge">Content</span>
+				</p>
+				<div class="settings-section-body">
+				<SettingSelect
+					:model-value="highlighter.chinese_text ?? 'highlight'"
+					input-id="highlighter-chinese-text"
+					label="Chinese text"
+					description="Paragraphs that read as Chinese: hanzi Japanese doesn't use (这, 們, 說…) or Chinese function words (的, 是, 很…), and no kana."
+					:options="chineseTextOptions"
+					@update:model-value="set('highlighter', 'chinese_text', $event)"
+				/>
+				<SettingSelect
+					:model-value="highlighter.unclear_text ?? 'highlight'"
+					input-id="highlighter-unclear-text"
+					label="Could be either"
+					description="Only kanji both languages use (東京大学). Its page decides first (its language, its other paragraphs); this is for pages that don't tell."
+					:options="unclearTextOptions"
+					@update:model-value="set('highlighter', 'unclear_text', $event)"
+				/>
+				<button
+					type="button"
+					class="setting-row site-list-toggle"
+					:aria-expanded="unclearSitesExpanded"
+					@click="unclearSitesExpanded = !unclearSitesExpanded"
+				>
+					<span>
+						<span class="settings-item-label">Sites the other way</span>
+						<span class="settings-description">{{ unclearSitesDescription }}</span>
+					</span>
+					<span class="site-list-toggle-end">
+						<span class="site-list-count">{{ unclearTextSites.length }}</span>
+						<svg class="site-list-chevron" :class="{ open: unclearSitesExpanded }" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+					</span>
+				</button>
+				<div v-if="unclearSitesExpanded" class="blacklist-wrapper">
+					<p class="muted site-list-help">Matching includes subdomains.</p>
+					<div class="site-list-add">
+						<input
+							v-model="newUnclearSite"
+							type="text"
+							class="site-list-input"
+							placeholder="example.com"
+							@keyup.enter="addUnclearSite"
+						>
+						<button type="button" class="settings-button clickable" @click="addUnclearSite">Add</button>
+					</div>
+					<p v-if="unclearSiteError" class="site-list-error">{{ unclearSiteError }}</p>
+					<p v-if="!unclearTextSites.length" class="muted">No sites yet.</p>
+					<div
+						v-for="site in unclearTextSites"
+						:key="site"
+						class="blacklisted-site"
+					>
+						<a :href="`https://${site}`" target="_blank" rel="noopener">{{ site }}</a>
+						<button type="button" class="clickable" title="Remove" @click="removeUnclearSite(site)">
+							×
+						</button>
+					</div>
+				</div>
+				</div>
+			</div>
+
 			<div id="settings-highlight-style" class="settings-section">
 				<p class="settings-section-title">
 					Highlight Style
@@ -786,7 +852,8 @@ import {
 } from '@/utils/scripts/defaultSettings';
 import { isSidePanelSupported, openBrowserSidePanel } from '@/utils/scripts/sidePanel';
 import { getActiveBrowserTab } from '@/utils/scripts/activeBrowserTab';
-import { pageListModeOptions } from '@/utils/scripts/pageList';
+import { normalizeSiteEntry, pageListModeOptions } from '@/utils/scripts/pageList';
+import { CHINESE_TEXT_OPTIONS, UNCLEAR_TEXT_OPTIONS, UNCLEAR_TEXT_SITES_KEY } from '@/utils/scripts/textLanguageSettings';
 import { HIDDEN_SITES_KEY, highlightView, MIN_PAGE_KANJI, PAGE_STATS_VIEWS } from '@/utils/scripts/pageStats';
 import { SENTENCE_EXCLUDED_SITES_KEY, SENTENCES_PER_PAGE_OPTIONS, sentencesPerPage } from '@/utils/scripts/pageSentences';
 import {
@@ -823,6 +890,13 @@ export default {
 			/** "Hide on this site" choices of the page reading level bar */
 			pageStatsHiddenSites: [],
 			sentenceExcludedSites: [],
+			chineseTextOptions: CHINESE_TEXT_OPTIONS,
+			unclearTextOptions: UNCLEAR_TEXT_OPTIONS,
+			/** the sites where text that could be Japanese or Chinese goes the other way */
+			unclearTextSites: [],
+			unclearSitesExpanded: false,
+			newUnclearSite: '',
+			unclearSiteError: '',
 			sentenceSiteInput: '',
 			DEFAULT_PAGE_HISTORY,
 			MIN_PAGE_KANJI,
@@ -886,6 +960,12 @@ export default {
 	},
 
 	computed: {
+		/** the exceptions go the other way from "Could be either" */
+		unclearSitesDescription() {
+			return (this.highlighter.unclear_text ?? 'highlight') === 'skip'
+				? 'Text that could be either is highlighted on these sites.'
+				: 'Text that could be either isn\'t highlighted on these sites.';
+		},
 		settings() {
 			return useSettingsStore();
 		},
@@ -1042,6 +1122,8 @@ export default {
 		this.unwatchHiddenSites = storage.watch(HIDDEN_SITES_KEY, sites => { this.pageStatsHiddenSites = sites ?? []; });
 		void storage.getItem(SENTENCE_EXCLUDED_SITES_KEY).then(sites => { this.sentenceExcludedSites = sites ?? []; });
 		this.unwatchSentenceSites = storage.watch(SENTENCE_EXCLUDED_SITES_KEY, sites => { this.sentenceExcludedSites = sites ?? []; });
+		void storage.getItem(UNCLEAR_TEXT_SITES_KEY).then(sites => { this.unclearTextSites = sites ?? []; });
+		this.unwatchUnclearSites = storage.watch(UNCLEAR_TEXT_SITES_KEY, sites => { this.unclearTextSites = sites ?? []; });
 		this.openFromRoute();
 		this.$nextTick(this.revealActiveTab);
 		// the popup's width can change (side panel, popped out window)
@@ -1054,6 +1136,7 @@ export default {
 		clearTimeout(this.flashTimer);
 		this.unwatchHiddenSites?.();
 		this.unwatchSentenceSites?.();
+		this.unwatchUnclearSites?.();
 		this.unwatchSaveHistory?.();
 		clearTimeout(this.saveTimer);
 		this.tabBarObserver?.disconnect();
@@ -1239,6 +1322,21 @@ export default {
 			if (!window.confirm('Reset subject data?\n\nAnything left over from the previous version is removed and your subjects are downloaded from WaniKani again (this takes a minute or two). Your settings, API key and saved history are kept.')) return;
 			await this.wk.clearSubjectsData();
 			this.$router.push({ name: 'Home' });
+		},
+		async addUnclearSite() {
+			this.unclearSiteError = '';
+			const site = normalizeSiteEntry(this.newUnclearSite);
+			if (!site) {
+				this.unclearSiteError = 'Enter a valid domain, e.g. example.com';
+				return;
+			}
+			const sites = (await storage.getItem(UNCLEAR_TEXT_SITES_KEY)) ?? [];
+			if (!sites.includes(site)) await storage.setItem(UNCLEAR_TEXT_SITES_KEY, [...sites, site]);
+			this.newUnclearSite = '';
+		},
+		async removeUnclearSite(site) {
+			const sites = (await storage.getItem(UNCLEAR_TEXT_SITES_KEY)) ?? [];
+			await storage.setItem(UNCLEAR_TEXT_SITES_KEY, sites.filter(entry => entry !== site));
 		},
 		async addBlacklistSite() {
 			this.blacklistAddError = '';

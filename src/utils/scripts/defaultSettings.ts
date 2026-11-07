@@ -94,6 +94,10 @@ export const defaultSettings = {
 		show_not_learned: true,
 		initial_choice_made: false,
 		page_list_mode: 'blacklist' as 'blacklist' | 'whitelist',
+		/** paragraphs that read as Chinese (highlight/textLanguage.ts) */
+		chinese_text: 'highlight' as 'highlight' | 'skip',
+		/** text that could be Japanese or Chinese, on a page that doesn't tell (sites listed: the other way) */
+		unclear_text: 'highlight' as 'highlight' | 'skip',
 	},
 	search: {
 		targeted_search: false,

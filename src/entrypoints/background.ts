@@ -455,6 +455,14 @@ export default defineBackground(() => {
       return true;
     }
 
+    // loaded unpacked (development): the pages show their language classification (languageDebug.ts)
+    if (message?.type === 'wkh:isDevInstall') {
+      browser.management.getSelf()
+        .then(self => sendResponse(self.installType === 'development'))
+        .catch(() => sendResponse(false));
+      return true;
+    }
+
     if (message?.type === 'wkh:getSubjectPreviews') {
       handleGetSubjectPreviews(message)
         .then(sendResponse)

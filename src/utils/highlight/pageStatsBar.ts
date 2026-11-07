@@ -29,6 +29,16 @@ import { pageKey } from '@/utils/scripts/pageHistory';
 import { chooseSentences, extractSentences, SENTENCE_EXCLUDED_SITES_KEY, SENTENCES_PER_PAGE, sentencesPerPage } from '@/utils/scripts/pageSentences';
 import { badgeModeOf, PAGE_LEVEL_BADGE_MODES } from '@/utils/scripts/extensionBadge';
 import { elementsFor, selectorFor } from './elementSelector';
+import {
+	activePageLanguage,
+	languageOfAttribute,
+	languageRules,
+	onPageLanguageChange,
+	sentenceKept,
+	textByLanguage,
+	type LanguageRules,
+} from './textLanguage';
+import { UNCLEAR_TEXT_SITES_KEY } from '@/utils/scripts/textLanguageSettings';
 import TinySegmenter from 'tiny-segmenter';
 
 let segmenter: TinySegmenter | null = null;
@@ -76,6 +86,13 @@ function boxOf(element: Element): Box {
 }
 
 let tables: PageStatsTables | null = null;
+/**
+ * Japanese or Chinese (Settings → Highlight): what the highlight leaves out isn't read either, so
+ * the level, the history and the sentences are of the same text. Null: nothing left out.
+ */
+let rules: LanguageRules | null = null;
+/** the page's language, as last read (unclear sentences follow it) */
+let readLanguage: 'japanese' | 'chinese' | null = null;
 let barWanted = false;
 let historyWanted = false;
 /** with the history: a few sentences from the page (not on the sites left out) */
@@ -141,6 +158,11 @@ export async function mountPageStats(ctx: ContentScriptContext): Promise<void> {
 	storage.watch(SECTIONS_KEY, refresh);
 	storage.watch(FOCUS_SITES_KEY, refresh);
 	storage.watch(SENTENCE_EXCLUDED_SITES_KEY, refresh);
+	storage.watch(UNCLEAR_TEXT_SITES_KEY, refresh);
+	// the highlight found the page's language (or another one): read again with it
+	onPageLanguageChange(() => {
+		if (rules && observer) schedule();
+	});
 	// the badge's choice changed (background): the level again
 	browser.runtime.onMessage.addListener(message => {
 		if (message?.type !== 'wkh:badgeResend') return;
@@ -164,7 +186,7 @@ function refresh(): Promise<void> {
 }
 
 async function readSettingsAndCompute(): Promise<void> {
-	const [settings, data, blacklist, whitelist, hidden, sections, focusSites, sentenceExcluded] = await Promise.all([
+	const [settings, data, blacklist, whitelist, hidden, sections, focusSites, sentenceExcluded, unclearTextSites] = await Promise.all([
 		storage.getItem<any>('local:settings'),
 		storage.getItem<HighlightData>('local:highlightData'),
 		storage.getItem<string[]>('local:blacklist'),
@@ -173,6 +195,7 @@ async function readSettingsAndCompute(): Promise<void> {
 		storage.getItem<Record<string, string[]>>(SECTIONS_KEY),
 		storage.getItem<string[]>(FOCUS_SITES_KEY),
 		storage.getItem<string[]>(SENTENCE_EXCLUDED_SITES_KEY),
+		storage.getItem<string[]>(UNCLEAR_TEXT_SITES_KEY),
 	]);
 	pageStatsState.sections = sections?.[location.hostname] ?? [];
 	// a part was added / removed while choosing (or from the hovered panel): outline the new set
@@ -199,6 +222,7 @@ async function readSettingsAndCompute(): Promise<void> {
 	blocked = isPageHighlightBlocked(location.hostname, listMode, blacklist, whitelist);
 	hiddenHere = (hidden ?? []).includes(location.hostname);
 	tables = data ? buildPageStatsTables(data) : null;
+	rules = languageRules(settings, (data as any)?.kanji, unclearTextSites, location.hostname);
 
 	const active = (barWanted || historyWanted || levelBadgeWanted) && !blocked && tables != null;
 	if (!active) {
@@ -279,15 +303,26 @@ function compute(): void {
 	// a Chinese page isn't rated (nor kept in the history): its hanzi aren't Japanese to read.
 	// Only what the page says: a page of kanji with no kana (a study list) is still Japanese.
 	if (declaredChinese(parts)) {
-		pageStatsState.stats = null;
-		sendLevelBadge('');
-		if (tracking()) updateOutlines();
-		updateVisibility();
+		notRated();
 		return;
 	}
+	// all this visit has shown (what loaded as the page was used, too), as the highlight reads it
+	let read = visitText(text);
+	if (rules) {
+		// the page's language: what it says, else the highlight's (it reads all the page, hidden
+		// parts too), else this text's
+		const page = languageOfAttribute(parts[0] ?? document.body) ?? activePageLanguage() ?? null;
+		const byLanguage = textByLanguage(read, rules, page);
+		read = byLanguage.text;
+		readLanguage = byLanguage.page;
+		// a Chinese page, while Chinese isn't highlighted: not rated, nor kept in the history
+		if (readLanguage === 'chinese' && rules.chinese === 'skip') {
+			notRated();
+			return;
+		}
+	}
 	const stats = {
-		// all this visit has shown (what loaded as the page was used, too)
-		...computePageStats(visitText(text), tables, countWords ? segmentWords : undefined),
+		...computePageStats(read, tables, countWords ? segmentWords : undefined),
 		partial: pageStatsState.sectionsFound > 0,
 	};
 	pageStatsState.stats = stats;
@@ -297,6 +332,14 @@ function compute(): void {
 	if (historyWanted && stats.total >= minimumKanji()) record(stats);
 	const pageLevel = levelBadgeJoyo ? joyoLevel(stats.joyo, stats.total) : stats.level;
 	sendLevelBadge(stats.total >= minimumKanji() ? pageLevel : '');
+}
+
+/** A page that isn't rated (Chinese): no bar, no level on the badge, nothing sent to the history. */
+function notRated(): void {
+	pageStatsState.stats = null;
+	sendLevelBadge('');
+	if (tracking()) updateOutlines();
+	updateVisibility();
 }
 
 /** The page's JLPT level for the extension icon's badge (when that's its choice), when it changes. */
@@ -359,6 +402,8 @@ function pageSentences(): string[] | undefined {
 		const seen = currentVisit();
 		for (const sentence of extractSentences(parts)) {
 			if (seen.sentences.size >= MAX_VISIT_SENTENCES) break;
+			// left out of the highlight (Chinese, say): not an example of Japanese either
+			if (rules && !sentenceKept(sentence, rules, readLanguage)) continue;
 			seen.sentences.add(sentence);
 		}
 		return chooseSentences([...seen.sentences], tables, { limit: sentenceLimit, segment: countWords ? segmentWords : undefined });

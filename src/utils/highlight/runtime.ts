@@ -28,6 +28,9 @@ import { highlightAt, setRangeHitTest } from './highlightHits';
 import { isPageHighlightBlocked,
 	type PageListMode,
 } from '@/utils/scripts/pageList';
+import { LanguageGate, languageRules } from './textLanguage';
+import { isDevInstall, mountLanguageDebug, unmountLanguageDebug } from './languageDebug';
+import { UNCLEAR_TEXT_SITES_KEY } from '@/utils/scripts/textLanguageSettings';
 import { isKanjiCounterEnabled } from '@/utils/scripts/extensionBadge';
 import {
 	clearSubjectBundleCache,
@@ -66,6 +69,8 @@ const UNWANTED_TAGS = new Set([
 ]);
 
 let highlighter: KanjiHighlighter | null = null;
+/** what each paragraph's language lets through (null: everything, the default) */
+let gate: LanguageGate | null = null;
 /** painted highlights (null: spans, the fallback) */
 let ranges: RangeHighlights | null = null;
 let pruneTimer: number | null = null;
@@ -106,6 +111,7 @@ export async function runHighlighter(): Promise<void> {
 	});
 	storage.watch('local:blacklist', scheduleReinit);
 	storage.watch('local:whitelist', scheduleReinit);
+	storage.watch(UNCLEAR_TEXT_SITES_KEY, scheduleReinit);
 }
 
 let lastSettingsKey: string | null = null;
@@ -147,11 +153,12 @@ function scheduleReinit(): void {
 async function init(): Promise<void> {
 	teardown();
 
-	const [settings, data, blacklist, whitelist] = await Promise.all([
+	const [settings, data, blacklist, whitelist, unclearTextSites] = await Promise.all([
 		storage.getItem<any>('local:settings'),
 		storage.getItem<HighlightData>('local:highlightData'),
 		storage.getItem<string[]>('local:blacklist'),
 		storage.getItem<string[]>('local:whitelist'),
+		storage.getItem<string[]>(UNCLEAR_TEXT_SITES_KEY),
 	]);
 
 	const dataKey = highlightDataKey(data);
@@ -171,12 +178,19 @@ async function init(): Promise<void> {
 	if (isPageHighlightBlocked(location.hostname, pageListMode, blacklist, whitelist)) return;
 
 	ranges = supportsRangeHighlights() ? new RangeHighlights() : null;
-	highlighter = new KanjiHighlighter(config, ranges);
+	// loaded unpacked: always classified, and shown (languageDebug.ts)
+	const dev = await isDevInstall();
+	gate = createLanguageGate(settings, data, unclearTextSites, dev);
+	highlighter = new KanjiHighlighter(config, ranges, gate);
 	if (!highlighter.isActive()) {
 		highlighter = null;
 		ranges = null;
+		gate = null;
 		return;
 	}
+	// the page's language, from its first paragraphs: unclear ones then follow it from the start
+	gate?.seed(document.body);
+	if (dev && gate) mountLanguageDebug(gate);
 
 	const highlighterSettings = settings.highlighter ?? {};
 	const style = settings.highlight_style ?? {};
@@ -213,9 +227,36 @@ function teardown(): void {
 	}
 	ranges = null;
 	highlighter = null;
+	gate?.dispose();
+	gate = null;
+	unmountLanguageDebug();
 	removeStyles();
 	// not running here: no number at all (-1), not a 0 (which would look like it ran)
 	if (kanjiCounterEnabled) sendBadge(-1);
+}
+
+/* ------------------------------------------------------------------ */
+/* Japanese or Chinese (textLanguage.ts)                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Chinese text and text that could be either: highlighted, or left alone (Settings → Highlight).
+ * Both highlighted (the default): no gate, nothing classified.
+ */
+function createLanguageGate(settings: any, data: HighlightData | null, unclearTextSites: string[] | null, dev: boolean): LanguageGate | null {
+	// development: classified even when nothing is left out (both highlighted: nothing filtered)
+	const rules = languageRules(settings, data?.kanji, unclearTextSites, location.hostname, dev);
+	if (!rules) return null;
+	return new LanguageGate({
+		...rules,
+		track: dev,
+		// the page's language became clear: the unclear paragraphs decided without it, again
+		onPageLanguage: paragraphs => {
+			if (!highlighter) return;
+			for (const paragraph of paragraphs) highlighter.highlightRoot(paragraph);
+			reportBadge();
+		},
+	});
 }
 
 /* ------------------------------------------------------------------ */
@@ -228,6 +269,7 @@ function startFullMode(): void {
 
 	mutationObserver = new MutationObserver(mutations => {
 		for (const mutation of mutations) {
+			gate?.forget(mutation.target);
 			mutation.addedNodes.forEach(node => pendingRoots.push(node));
 			// painted: text edited in place (sites update their own text) is highlighted again
 			if (mutation.type === 'characterData') pendingRoots.push(mutation.target);
@@ -287,6 +329,7 @@ function startViewportMode(): void {
 
 	mutationObserver = new MutationObserver(mutations => {
 		for (const mutation of mutations) {
+			gate?.forget(mutation.target);
 			// painted: text edited in place (sites update their own text) is highlighted again
 			if (mutation.type === 'characterData') {
 				const node = mutation.target;

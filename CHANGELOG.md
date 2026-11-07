@@ -10,6 +10,7 @@
 ## Content
 - **Words are highlighted too**, not only kanji: Kanji, Words or Mixed modes, with conjugated forms found as their word (話していました → 話す) and pages with furigana supported
 - Highlights colored by learned / not learned, SRS stage, JLPT level or Jōyō grade
+- **Japanese or Chinese**, told by paragraph: Chinese text can be left unhighlighted, and text that could be either (only shared kanji) follows its page, else a setting with per-site exceptions. The page's reading level, history and sentences leave out the same text, and a page considered Chinese isn't rated or saved while Chinese isn't highlighted
 - **Dynamic pages** like YouTube are highlighted as they change, and highlighted text no longer breaks the browser's translate tool
 - **Page reading level**: a small bar with a page's JLPT level and how much of it you know, with Learned, SRS, JLPT and Jōyō breakdowns, rating only chosen parts of a site, and a Focus mode
 - Optional **history of the pages you read**, recorded for as long as you use a page (content that loads as you scroll included), with near-identical pages kept once

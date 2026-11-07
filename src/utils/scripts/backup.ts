@@ -1,3 +1,4 @@
+import { UNCLEAR_TEXT_SITES_KEY } from '@/utils/scripts/textLanguageSettings';
 import { storage } from '#imports';
 import { readFriends, importFriends } from './friends';
 import {
@@ -62,29 +63,32 @@ export const BACKUP_PARTS: BackupPart[] = [
 		label: 'Settings',
 		description: 'Every setting, and the sites the extension is kept off (or only on)',
 		async read() {
-			const [settings, blacklist, whitelist] = await Promise.all([
+			const [settings, blacklist, whitelist, unclearTextSites] = await Promise.all([
 				storage.getItem<Record<string, unknown>>('local:settings'),
 				storage.getItem<string[]>('local:blacklist'),
 				storage.getItem<string[]>('local:whitelist'),
+				storage.getItem<string[]>(UNCLEAR_TEXT_SITES_KEY),
 			]);
-			if (!settings && !blacklist?.length && !whitelist?.length) return null;
-			return { settings: settings ?? null, blacklist: blacklist ?? [], whitelist: whitelist ?? [] };
+			if (!settings && !blacklist?.length && !whitelist?.length && !unclearTextSites?.length) return null;
+			return { settings: settings ?? null, blacklist: blacklist ?? [], whitelist: whitelist ?? [], unclearTextSites: unclearTextSites ?? [] };
 		},
 		describe(data) {
-			const sites = strings(data?.blacklist).length + strings(data?.whitelist).length;
+			const sites = strings(data?.blacklist).length + strings(data?.whitelist).length + strings(data?.unclearTextSites).length;
 			return sites ? `settings, ${plural(sites, 'site')}` : 'settings';
 		},
 		async write(data) {
 			if (!isObject(data)) return '';
 			// replaced (missing ones get their defaults when the settings load)
 			if (isObject(data.settings)) await storage.setItem('local:settings', data.settings);
-			const [blacklist, whitelist] = await Promise.all([
+			const [blacklist, whitelist, unclearTextSites] = await Promise.all([
 				storage.getItem<string[]>('local:blacklist'),
 				storage.getItem<string[]>('local:whitelist'),
+				storage.getItem<string[]>(UNCLEAR_TEXT_SITES_KEY),
 			]);
 			await storage.setItems([
 				{ key: 'local:blacklist', value: union(strings(blacklist), strings(data.blacklist)) },
 				{ key: 'local:whitelist', value: union(strings(whitelist), strings(data.whitelist)) },
+				{ key: UNCLEAR_TEXT_SITES_KEY, value: union(strings(unclearTextSites), strings(data.unclearTextSites)) },
 			]);
 			return 'settings replaced';
 		},
