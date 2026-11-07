@@ -52,6 +52,7 @@ import {
 import { isUpdateFromV1, maybeOpenUpgradeNotice } from '@/utils/scripts/upgradeNotice';
 import { answerPartner } from '@/utils/scripts/partnerExtension';
 import { parsePartnerRequest } from 'cjk-highlighter';
+import { chineseForms, type ChineseFormsData } from '@/utils/scripts/chineseForms';
 import {
   openBrowserSidePanel,
   SIDEPANEL_SUBJECT_KEY,
@@ -466,11 +467,11 @@ export default defineBackground(() => {
       return true;
     }
 
-    // loaded unpacked (development): the pages show their language classification (languageDebug.ts)
-    if (message?.type === 'wkh:isDevInstall') {
-      browser.management.getSelf()
-        .then(self => sendResponse(self.installType === 'development'))
-        .catch(() => sendResponse(false));
+    // WaniKani's pages: a subject's Chinese forms (the content script can't read the extension's files)
+    if (message?.type === 'wkh:chineseForms') {
+      loadChineseForms()
+        .then(data => sendResponse(chineseForms(data, String(message.text ?? ''))))
+        .catch(() => sendResponse(null));
       return true;
     }
 
@@ -511,6 +512,19 @@ export default defineBackground(() => {
     }
   });
 });
+
+let chineseFormsData: Promise<ChineseFormsData> | null = null;
+
+/** public/chinese-forms.json, loaded the first time it's asked for (the setting is off by default). */
+function loadChineseForms(): Promise<ChineseFormsData> {
+  chineseFormsData ??= fetch(browser.runtime.getURL('/chinese-forms.json'))
+    .then(response => response.json() as Promise<ChineseFormsData>)
+    .catch(error => {
+      chineseFormsData = null;
+      throw error;
+    });
+  return chineseFormsData;
+}
 
 /** Hand the requested subject to the side panel (it watches this session item). */
 async function publishSidePanelSubject(message: any): Promise<void> {

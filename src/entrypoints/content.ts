@@ -6,6 +6,7 @@ import { watchAvatarChoice } from '@/utils/highlight/avatarHandoff';
 import { mountPageStats } from '@/utils/highlight/pageStatsBar';
 import { mountReviewInfo } from '@/utils/highlight/reviewInfo';
 import { mountReviewTimer } from '@/utils/highlight/reviewTimer';
+import { mountChineseForms } from '@/utils/highlight/chineseForms';
 import { mountReviewSummary } from '@/utils/highlight/reviewSummary';
 import { watchPartnerPresence } from '@/utils/scripts/partnerExtension';
 
@@ -32,5 +33,7 @@ export default defineContentScript({
     await mountReviewInfo();
     // WaniKani's reviews page: a countdown, then Wrap Up (off by default)
     await mountReviewTimer();
+    // WaniKani's lessons, reviews and subject pages: the subject's Chinese forms (off by default)
+    await mountChineseForms();
   },
 });

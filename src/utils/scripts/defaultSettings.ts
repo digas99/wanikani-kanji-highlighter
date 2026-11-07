@@ -67,6 +67,13 @@ export const defaultSettings = {
 		sentence_replace: false,
 	},
 	/**
+	 * WaniKani's lessons, reviews and subject pages: the subject's traditional and simplified Chinese
+	 * forms next to it (utils/highlight/chineseForms.ts). Off by default.
+	 */
+	chinese_forms: {
+		enabled: false,
+	},
+	/**
 	 * WaniKani's reviews page: a countdown with its stats (utils/highlight/reviewTimer.ts). Pauses
 	 * when the window loses focus or on a click, resumes on typing; at 0 it clicks Wrap Up.
 	 */

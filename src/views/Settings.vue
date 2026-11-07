@@ -70,6 +70,7 @@
 					<span class="settings-badge">Content</span>
 				</p>
 				<div class="settings-section-body">
+				<PageLanguageReport />
 				<!-- the HanziHero Companion installed too: each kind of text is highlighted by one of the two -->
 				<p v-if="partner" class="partner-note">
 					<img :src="PARTNER.logo" alt="">
@@ -533,6 +534,13 @@
 				</p>
 				<div class="settings-section-body">
 				<SettingToggle
+					:model-value="settings.settings.chinese_forms?.enabled === true"
+					input-id="chinese-forms-enabled"
+					label="Chinese forms"
+					description="The subject's simplified and traditional forms next to it, in WaniKani's lessons, reviews and subject pages. Words go character by character, so they aren't always Chinese words. Faded: kanji Chinese doesn't use"
+					@update:model-value="set('chinese_forms', 'enabled', $event)"
+				/>
+				<SettingToggle
 					:model-value="reviewInfo.enabled === true"
 					input-id="review-info-enabled"
 					label="Subject info while reviewing"
@@ -844,6 +852,7 @@ import SettingToggle from '@/components/Settings/SettingToggle.vue';
 import { badgeModeOf } from '@/utils/scripts/extensionBadge';
 import SettingBadgePicker from '@/components/Settings/SettingBadgePicker.vue';
 import SettingSelect from '@/components/Settings/SettingSelect.vue';
+import PageLanguageReport from '@/components/Settings/PageLanguageReport.vue';
 import { SEARCH_HISTORY_SIZE_OPTIONS, trimSearchHistory } from '@/utils/scripts/searchHistory';
 import SettingSlider from '@/components/Settings/SettingSlider.vue';
 import SettingHighlightStyle from '@/components/Settings/SettingHighlightStyle.vue';
@@ -889,6 +898,7 @@ export default {
 		SettingBadgePicker,
 		SettingToggle,
 		SettingSelect,
+		PageLanguageReport,
 		SettingSlider,
 		SettingHighlightStyle,
 		SettingsLevelCache,
@@ -1415,7 +1425,7 @@ export default {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	margin: 0 0 4px;
+	margin: 0 12px 6px;
 	padding: 8px 10px;
 	border-radius: 8px;
 	background: var(--surface-muted-color);

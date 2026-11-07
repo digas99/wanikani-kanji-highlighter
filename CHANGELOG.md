@@ -10,7 +10,7 @@
 ## Content
 - **Words are highlighted too**, not only kanji: Kanji, Words or Mixed modes, with conjugated forms found as their word (話していました → 話す) and pages with furigana supported
 - Highlights colored by learned / not learned, SRS stage, JLPT level or Jōyō grade
-- **Japanese or Chinese**, told by paragraph: Chinese text can be left unhighlighted, and text that could be either (only shared kanji) follows its page, else a setting with per-site exceptions. The page's reading level, history and sentences leave out the same text, and a page considered Chinese isn't rated or saved while Chinese isn't highlighted. With the HanziHero Companion also installed, **each kind of text is highlighted by one of the two**: chosen in either's settings (shown with its logo), and kept in step between them
+- **Japanese or Chinese**, told by paragraph: Chinese text can be left unhighlighted, and text that could be either (only shared kanji) follows its page, else a setting with per-site exceptions. The page's reading level, history and sentences leave out the same text, and a page considered Chinese isn't rated or saved while Chinese isn't highlighted. With the HanziHero Companion also installed, **each kind of text is highlighted by one of the two**: chosen in either's settings (shown with its logo), and kept in step between them. The same settings show how the open page was told apart, with its paragraphs outlined on request
 - **Dynamic pages** like YouTube are highlighted as they change, and highlighted text no longer breaks the browser's translate tool
 - **Page reading level**: a small bar with a page's JLPT level and how much of it you know, with Learned, SRS, JLPT and Jōyō breakdowns, rating only chosen parts of a site, and a Focus mode
 - Optional **history of the pages you read**, recorded for as long as you use a page (content that loads as you scroll included), with near-identical pages kept once
@@ -23,6 +23,7 @@
 - Hover a subject in the summary, or the last subject reviewed, for its card: meanings, readings, level, SRS stage, JLPT and Jōyō, accuracy, what the session changed, and the kanji or words it's part of or made of
 - Optional info during reviews: the subject's SRS stage, level, JLPT and Jōyō, your accuracy, the last answer's SRS change, a context sentence or example words, and a session timer
 - Works with Double-Check (answers changed or retyped are counted as WaniKani counts them)
+- Optional **Chinese forms** (off by default): the subject's simplified and traditional forms next to it, in lessons, reviews and subject pages, with the kanji Chinese doesn't use faded
 
 ## Popup
 - New **Home**: today's reviews, accuracy, lessons and SRS moves, a recap of yesterday, and a customizable layout. Hover or click today's SRS moves to see them on the Progress overview tiles, and the level bar counts radicals too and marks what today changed

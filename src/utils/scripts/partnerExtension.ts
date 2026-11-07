@@ -15,6 +15,7 @@ import {
 	type LanguageChoice,
 	type LanguageChoices,
 	type PartnerAbout,
+	type PartnerProfile,
 	type TextKind,
 } from 'cjk-highlighter';
 
@@ -28,6 +29,16 @@ export const SELF_NAME = 'WaniKani Kanji Highlighter';
 export const PARTNER = { name: 'HanziHero', fullName: 'HanziHero Companion', logo: '/partners/hanzihero.png' };
 
 type Remembered = { extensionId: string; name: string; seenAt: number };
+
+/** Whose this extension is (name, level, avatar), as the popup last knew: for the partner's popup. */
+const PROFILE_CARD_KEY = 'local:profileCard';
+
+/** Popup: the user's name, level and avatar, kept for the partner to show (only when they change). */
+export async function saveProfileCard(card: PartnerProfile): Promise<void> {
+	const saved = await storage.getItem<PartnerProfile>(PROFILE_CARD_KEY);
+	if (JSON.stringify(saved) === JSON.stringify(card)) return;
+	await storage.setItem(PROFILE_CARD_KEY, card);
+}
 
 /** Content script, on every page: says this extension is here, and remembers the HanziHero Companion's id. */
 export function watchPartnerPresence(): void {
@@ -103,7 +114,8 @@ export async function answerPartner(message: unknown, senderId: string | undefin
 	if (!request) return undefined;
 	const settings = (await storage.getItem<any>('local:settings')) ?? {};
 	if (request.action === 'about') {
-		const about: PartnerAbout = { protocol: PROTOCOL_VERSION, name: SELF_NAME, role: 'japanese', choices: settingsChoices(settings) };
+		const profile = await storage.getItem<PartnerProfile>(PROFILE_CARD_KEY);
+		const about: PartnerAbout = { protocol: PROTOCOL_VERSION, name: SELF_NAME, role: 'japanese', choices: settingsChoices(settings), profile };
 		return about;
 	}
 	// only the partner changes the settings

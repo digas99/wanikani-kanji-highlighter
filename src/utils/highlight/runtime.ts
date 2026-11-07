@@ -26,12 +26,12 @@ import {
 import {
 	HighlightSession,
 	LanguageGate,
-	describePeers,
+	outlineParagraphs,
+	reportPageLanguage,
+	type LanguageRules,
 	type PeerInfo,
 	RangeHighlights,
-	mountLanguageDebug,
 	supportsRangeHighlights,
-	unmountLanguageDebug,
 } from 'cjk-highlighter';
 import { highlightAt, setRangeHitTest } from './highlightHits';
 import { isPageHighlightBlocked,
@@ -82,6 +82,12 @@ let badgeTimer: number | null = null;
 let reinitTimer: number | null = null;
 /** the Chinese highlighter sharing the page when it was last highlighted ('' : none) */
 let lastPartnerKey = '';
+/**
+ * The rules on this page, for the popup's report (Settings → Highlight → Japanese or Chinese):
+ * worked out even when nothing is left out. Null: not highlighting here (`notHereBecause`).
+ */
+let reportRules: LanguageRules | null = null;
+let notHereBecause = 'Highlighting is off';
 
 /** Entry point invoked by the content script. */
 export async function runHighlighter(): Promise<void> {
@@ -92,8 +98,24 @@ export async function runHighlighter(): Promise<void> {
 		if (message?.type === 'wkh:getKanji') {
 			sendResponse({ items: getHighlightedItems() });
 		}
+		// the popup's Japanese or Chinese settings: how this page was told apart (classified now)
+		if (message?.type === 'wkh:pageLanguage') {
+			sendResponse(reportRules
+				? { report: reportPageLanguage(document.body, reportRules, wkPeers().partner()) }
+				: { notHere: notHereBecause });
+		}
+		if (message?.type === 'wkh:pageLanguageOutline') {
+			sendResponse({ count: reportRules ? outlineParagraphs(document.body, reportRules, message.on === true, 'wkh') : 0 });
+		}
 		// the badge's choice changed (background): the count again
 		if (message?.type === 'wkh:badgeResend' && highlighter) sendBadge(highlighter.getCount());
+	});
+	// the popup's outlines last while it's open: it keeps this connection, which goes with it
+	browser.runtime.onConnect.addListener(port => {
+		if (port.name !== 'wkh:pageLanguage') return;
+		port.onDisconnect.addListener(() => {
+			if (reportRules) outlineParagraphs(document.body, reportRules, false, 'wkh');
+		});
 	});
 
 	// a Chinese highlighter came, left or changed (HanziHero Companion): the page split again
@@ -172,26 +194,28 @@ async function init(): Promise<void> {
 
 	// not highlighting here: other highlighters aren't left the Japanese text
 	const peers = wkPeers();
-	const notHere = () => {
+	const notHere = (because: string) => {
 		peers.stop();
 		lastPartnerKey = '';
+		reportRules = null;
+		notHereBecause = because;
 	};
-	if (!settings) return notHere();
+	if (!settings) return notHere('Highlighting is off');
 
 	const config = buildHighlightConfig(settings, data);
-	if (!config) return notHere();
+	if (!config) return notHere(settings.highlighter?.enabled === false ? 'Highlighting is off' : 'Nothing to highlight yet');
 
 	const pageListMode: PageListMode = settings.highlighter?.page_list_mode === 'whitelist'
 		? 'whitelist'
 		: 'blacklist';
-	if (isPageHighlightBlocked(location.hostname, pageListMode, blacklist, whitelist)) return notHere();
+	if (isPageHighlightBlocked(location.hostname, pageListMode, blacklist, whitelist)) return notHere('Not highlighted on this site (Site access)');
 
 	ranges = supportsRangeHighlights() ? new RangeHighlights({ hoverName: HOVER_HIGHLIGHT }) : null;
 	highlighter = new KanjiHighlighter(config, ranges);
 	if (!highlighter.isActive()) {
 		highlighter = null;
 		ranges = null;
-		return notHere();
+		return notHere('Nothing to highlight yet');
 	}
 
 	// this one is here: said to the other highlighters (they answer at once, if there are any)
@@ -200,13 +224,11 @@ async function init(): Promise<void> {
 	const partner = peers.partner();
 	lastPartnerKey = partnerKey(partner);
 
-	// loaded unpacked: always classified, and shown (languageDebug.ts)
-	const dev = await isDevInstall();
-	gate = createLanguageGate(settings, data, unclearTextSites, dev, partner);
+	gate = createLanguageGate(settings, data, unclearTextSites, partner);
 	highlighter.page.setGate(gate);
 	// the page's language, from its first paragraphs: unclear ones then follow it from the start
 	gate?.seed(document.body);
-	if (dev && gate) mountLanguageDebug(gate, { namespace: 'wkh', label: 'WaniKani Kanji Highlighter', extra: () => describePeers(peers) });
+	reportRules = languageRules(settings, data?.kanji, unclearTextSites, location.hostname, true, partner);
 
 	const highlighterSettings = settings.highlighter ?? {};
 	const style = settings.highlight_style ?? {};
@@ -245,20 +267,9 @@ function teardown(): void {
 	highlighter = null;
 	gate?.dispose();
 	gate = null;
-	unmountLanguageDebug();
 	removeStyles();
 	// not running here: no number at all (-1), not a 0 (which would look like it ran)
 	if (kanjiCounterEnabled) sendBadge(-1);
-}
-
-let devInstall: Promise<boolean> | null = null;
-
-/** Loaded unpacked (asked once: the background knows how the extension was installed). */
-function isDevInstall(): Promise<boolean> {
-	devInstall ??= browser.runtime.sendMessage({ type: 'wkh:isDevInstall' })
-		.then(answer => answer === true)
-		.catch(() => false);
-	return devInstall;
 }
 
 /* ------------------------------------------------------------------ */
@@ -269,13 +280,11 @@ function isDevInstall(): Promise<boolean> {
  * Chinese text and text that could be either: highlighted, or left alone (Settings → Highlight).
  * Both highlighted (the default): no gate, nothing classified.
  */
-function createLanguageGate(settings: any, data: HighlightData | null, unclearTextSites: string[] | null, dev: boolean, partner: PeerInfo | null): LanguageGate | null {
-	// development: classified even when nothing is left out (both highlighted: nothing filtered)
-	const rules = languageRules(settings, data?.kanji, unclearTextSites, location.hostname, dev, partner);
+function createLanguageGate(settings: any, data: HighlightData | null, unclearTextSites: string[] | null, partner: PeerInfo | null): LanguageGate | null {
+	const rules = languageRules(settings, data?.kanji, unclearTextSites, location.hostname, false, partner);
 	if (!rules) return null;
 	return new LanguageGate({
 		...rules,
-		track: dev,
 		// the page's language became clear: the unclear paragraphs decided without it, again
 		onPageLanguage: paragraphs => {
 			if (!highlighter) return;

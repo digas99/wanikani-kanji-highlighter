@@ -3,6 +3,8 @@
 	<div class="home-hero">
 		<!-- a level-up's celebration (once) -->
 		<canvas v-if="celebrating" ref="confetti" class="hero-confetti" aria-hidden="true"></canvas>
+		<!-- the HanziHero Companion, installed too: they found each other -->
+		<PartnerPill class="hero-partner" />
 		<!-- the level badge beside the name, bar and pills (centred on all of them) -->
 		<div class="hero-top">
 			<RouterLink :to="{ name: 'Profile' }" class="hero-level hero-level-badge-link clickable" title="Open your profile" tabindex="-1">
@@ -149,6 +151,7 @@ import { markCelebrated, pendingCelebration, watchMilestones } from '@/utils/scr
 import { confettiBurst } from '@/utils/scripts/confetti';
 import { useTroubleSubjects } from '@/utils/scripts/troubleSubjects';
 import { useWKStore } from '@/stores';
+import PartnerPill from '@/components/Home/PartnerPill.vue';
 
 const LEVEL_STEP_MS = 450;
 
@@ -156,6 +159,7 @@ export default {
 	name: 'ReviewsInfo',
 
 	components: {
+		PartnerPill,
 		RouterLink,
 	},
 

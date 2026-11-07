@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { storage } from "#imports";
 import { getWKManager } from '@/lib/apiClient';
 import { useWKStore } from '@/stores';
+import { saveProfileCard } from '@/utils/scripts/partnerExtension';
 import { useSettingsStore } from '@/stores/settings';
 import { CONTEXT_MENU_SEARCH_STORAGE_KEY } from '@/utils/scripts/contextMenuSearch';
 
@@ -23,6 +24,16 @@ import { useAccolades } from '@/utils/scripts/useAccolades';
 import { noteAccolades, noteLevel } from '@/utils/scripts/milestones';
 
 const wk = useWKStore();
+
+// whose this is (name, level, avatar): for the HanziHero Companion's popup to show (partnerExtension.ts)
+watch(
+	() => [wk.userInfo?.username, wk.userInfo?.level, wk.userAvatar],
+	([name, level, avatar]) => {
+		if (!name) return;
+		void saveProfileCard({ name, level: level ? `Level ${level}` : null, avatar: avatar || null });
+	},
+	{ immediate: true },
+);
 const settings = useSettingsStore();
 const route = useRoute();
 const router = useRouter();
