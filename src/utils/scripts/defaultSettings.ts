@@ -98,6 +98,8 @@ export const defaultSettings = {
 		chinese_text: 'highlight' as 'highlight' | 'skip',
 		/** text that could be Japanese or Chinese, on a page that doesn't tell (sites listed: the other way) */
 		unclear_text: 'highlight' as 'highlight' | 'skip',
+		/** Japanese text: highlighted, or left to the HanziHero Companion (when it's installed: partnerExtension.ts) */
+		japanese_text: 'highlight' as 'highlight' | 'skip',
 	},
 	search: {
 		targeted_search: false,

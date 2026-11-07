@@ -26,6 +26,8 @@ import {
 import {
 	HighlightSession,
 	LanguageGate,
+	describePeers,
+	type PeerInfo,
 	RangeHighlights,
 	mountLanguageDebug,
 	supportsRangeHighlights,
@@ -35,7 +37,8 @@ import { highlightAt, setRangeHitTest } from './highlightHits';
 import { isPageHighlightBlocked,
 	type PageListMode,
 } from '@/utils/scripts/pageList';
-import { languageRules, UNCLEAR_TEXT_SITES_KEY } from '@/utils/scripts/textLanguageSettings';
+import { languageRules, siteChoices, UNCLEAR_TEXT_SITES_KEY } from '@/utils/scripts/textLanguageSettings';
+import { partnerKey, wkPeers } from './pagePeers';
 import { isKanjiCounterEnabled } from '@/utils/scripts/extensionBadge';
 import {
 	clearSubjectBundleCache,
@@ -77,6 +80,8 @@ let kanjiCounterEnabled = true;
 let detailsPopupEnabled = true;
 let badgeTimer: number | null = null;
 let reinitTimer: number | null = null;
+/** the Chinese highlighter sharing the page when it was last highlighted ('' : none) */
+let lastPartnerKey = '';
 
 /** Entry point invoked by the content script. */
 export async function runHighlighter(): Promise<void> {
@@ -89,6 +94,11 @@ export async function runHighlighter(): Promise<void> {
 		}
 		// the badge's choice changed (background): the count again
 		if (message?.type === 'wkh:badgeResend' && highlighter) sendBadge(highlighter.getCount());
+	});
+
+	// a Chinese highlighter came, left or changed (HanziHero Companion): the page split again
+	wkPeers().onChange(() => {
+		if (partnerKey(wkPeers().partner()) !== lastPartnerKey) scheduleReinit();
 	});
 
 	await init();
@@ -160,30 +170,43 @@ async function init(): Promise<void> {
 	if (lastDataKey !== null && dataKey !== lastDataKey) clearSubjectBundleCache();
 	lastDataKey = dataKey;
 
-	if (!settings) return;
+	// not highlighting here: other highlighters aren't left the Japanese text
+	const peers = wkPeers();
+	const notHere = () => {
+		peers.stop();
+		lastPartnerKey = '';
+	};
+	if (!settings) return notHere();
 
 	const config = buildHighlightConfig(settings, data);
-	if (!config) return;
+	if (!config) return notHere();
 
 	const pageListMode: PageListMode = settings.highlighter?.page_list_mode === 'whitelist'
 		? 'whitelist'
 		: 'blacklist';
-	if (isPageHighlightBlocked(location.hostname, pageListMode, blacklist, whitelist)) return;
+	if (isPageHighlightBlocked(location.hostname, pageListMode, blacklist, whitelist)) return notHere();
 
 	ranges = supportsRangeHighlights() ? new RangeHighlights({ hoverName: HOVER_HIGHLIGHT }) : null;
-	// loaded unpacked: always classified, and shown (languageDebug.ts)
-	const dev = await isDevInstall();
-	gate = createLanguageGate(settings, data, unclearTextSites, dev);
-	highlighter = new KanjiHighlighter(config, ranges, gate);
+	highlighter = new KanjiHighlighter(config, ranges);
 	if (!highlighter.isActive()) {
 		highlighter = null;
 		ranges = null;
-		gate = null;
-		return;
+		return notHere();
 	}
+
+	// this one is here: said to the other highlighters (they answer at once, if there are any)
+	peers.update({ share: true, choices: siteChoices(settings, unclearTextSites, location.hostname) });
+	peers.start();
+	const partner = peers.partner();
+	lastPartnerKey = partnerKey(partner);
+
+	// loaded unpacked: always classified, and shown (languageDebug.ts)
+	const dev = await isDevInstall();
+	gate = createLanguageGate(settings, data, unclearTextSites, dev, partner);
+	highlighter.page.setGate(gate);
 	// the page's language, from its first paragraphs: unclear ones then follow it from the start
 	gate?.seed(document.body);
-	if (dev && gate) mountLanguageDebug(gate, { namespace: 'wkh' });
+	if (dev && gate) mountLanguageDebug(gate, { namespace: 'wkh', label: 'WaniKani Kanji Highlighter', extra: () => describePeers(peers) });
 
 	const highlighterSettings = settings.highlighter ?? {};
 	const style = settings.highlight_style ?? {};
@@ -246,9 +269,9 @@ function isDevInstall(): Promise<boolean> {
  * Chinese text and text that could be either: highlighted, or left alone (Settings → Highlight).
  * Both highlighted (the default): no gate, nothing classified.
  */
-function createLanguageGate(settings: any, data: HighlightData | null, unclearTextSites: string[] | null, dev: boolean): LanguageGate | null {
+function createLanguageGate(settings: any, data: HighlightData | null, unclearTextSites: string[] | null, dev: boolean, partner: PeerInfo | null): LanguageGate | null {
 	// development: classified even when nothing is left out (both highlighted: nothing filtered)
-	const rules = languageRules(settings, data?.kanji, unclearTextSites, location.hostname, dev);
+	const rules = languageRules(settings, data?.kanji, unclearTextSites, location.hostname, dev, partner);
 	if (!rules) return null;
 	return new LanguageGate({
 		...rules,

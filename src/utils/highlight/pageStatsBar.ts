@@ -38,6 +38,7 @@ import {
 	type LanguageRules,
 } from 'cjk-highlighter';
 import { languageRules, UNCLEAR_TEXT_SITES_KEY } from '@/utils/scripts/textLanguageSettings';
+import { wkPeers } from './pagePeers';
 import TinySegmenter from 'tiny-segmenter';
 
 let segmenter: TinySegmenter | null = null;
@@ -158,6 +159,14 @@ export async function mountPageStats(ctx: ContentScriptContext): Promise<void> {
 	storage.watch(FOCUS_SITES_KEY, refresh);
 	storage.watch(SENTENCE_EXCLUDED_SITES_KEY, refresh);
 	storage.watch(UNCLEAR_TEXT_SITES_KEY, refresh);
+	// a Chinese highlighter came or left: read again, with its part left out or back
+	let partner = '';
+	wkPeers().onChange(() => {
+		const now = wkPeers().partner()?.id ?? '';
+		if (now === partner) return;
+		partner = now;
+		void refresh();
+	});
 	// the highlight found the page's language (or another one): read again with it
 	onPageLanguageChange(() => {
 		if (rules && observer) schedule();
@@ -221,7 +230,8 @@ async function readSettingsAndCompute(): Promise<void> {
 	blocked = isPageHighlightBlocked(location.hostname, listMode, blacklist, whitelist);
 	hiddenHere = (hidden ?? []).includes(location.hostname);
 	tables = data ? buildPageStatsTables(data) : null;
-	rules = languageRules(settings, (data as any)?.kanji, unclearTextSites, location.hostname);
+	// shared with a Chinese highlighter (HanziHero Companion): its text isn't this one's to read
+	rules = languageRules(settings, (data as any)?.kanji, unclearTextSites, location.hostname, false, wkPeers().partner());
 
 	const active = (barWanted || historyWanted || levelBadgeWanted) && !blocked && tables != null;
 	if (!active) {

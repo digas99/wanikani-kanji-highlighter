@@ -70,21 +70,35 @@
 					<span class="settings-badge">Content</span>
 				</p>
 				<div class="settings-section-body">
+				<!-- the HanziHero Companion installed too: each kind of text is highlighted by one of the two -->
+				<p v-if="partner" class="partner-note">
+					<img :src="PARTNER.logo" alt="">
+					<span>The {{ PARTNER.fullName }} is installed: each kind of text is highlighted by one of the two. Changing it here changes it there.</span>
+				</p>
+				<SettingSelect
+					v-if="partner"
+					:model-value="highlighter.japanese_text ?? 'highlight'"
+					input-id="highlighter-japanese-text"
+					label="Japanese text"
+					description="Paragraphs with kana."
+					:options="textChoiceOptions('japanese')"
+					@update:model-value="setTextChoice('japanese', $event)"
+				/>
 				<SettingSelect
 					:model-value="highlighter.chinese_text ?? 'highlight'"
 					input-id="highlighter-chinese-text"
 					label="Chinese text"
 					description="Paragraphs that read as Chinese: hanzi Japanese doesn't use (这, 們, 說…) or Chinese function words (的, 是, 很…), and no kana."
-					:options="chineseTextOptions"
-					@update:model-value="set('highlighter', 'chinese_text', $event)"
+					:options="textChoiceOptions('chinese')"
+					@update:model-value="setTextChoice('chinese', $event)"
 				/>
 				<SettingSelect
 					:model-value="highlighter.unclear_text ?? 'highlight'"
 					input-id="highlighter-unclear-text"
 					label="Could be either"
 					description="Only kanji both languages use (東京大学). Its page decides first (its language, its other paragraphs); this is for pages that don't tell."
-					:options="unclearTextOptions"
-					@update:model-value="set('highlighter', 'unclear_text', $event)"
+					:options="textChoiceOptions('unclear')"
+					@update:model-value="setTextChoice('unclear', $event)"
 				/>
 				<button
 					type="button"
@@ -854,6 +868,8 @@ import { isSidePanelSupported, openBrowserSidePanel } from '@/utils/scripts/side
 import { getActiveBrowserTab } from '@/utils/scripts/activeBrowserTab';
 import { normalizeSiteEntry, pageListModeOptions } from '@/utils/scripts/pageList';
 import { CHINESE_TEXT_OPTIONS, UNCLEAR_TEXT_OPTIONS, UNCLEAR_TEXT_SITES_KEY } from '@/utils/scripts/textLanguageSettings';
+import { CHOICE_SETTING, PARTNER, findPartner, tellPartner } from '@/utils/scripts/partnerExtension';
+import { defaultChoices, oppositeChoice } from 'cjk-highlighter';
 import { HIDDEN_SITES_KEY, highlightView, MIN_PAGE_KANJI, PAGE_STATS_VIEWS } from '@/utils/scripts/pageStats';
 import { SENTENCE_EXCLUDED_SITES_KEY, SENTENCES_PER_PAGE_OPTIONS, sentencesPerPage } from '@/utils/scripts/pageSentences';
 import {
@@ -890,8 +906,9 @@ export default {
 			/** "Hide on this site" choices of the page reading level bar */
 			pageStatsHiddenSites: [],
 			sentenceExcludedSites: [],
-			chineseTextOptions: CHINESE_TEXT_OPTIONS,
-			unclearTextOptions: UNCLEAR_TEXT_OPTIONS,
+			/** the HanziHero Companion, when installed: { id, about } (partnerExtension.ts) */
+			partner: null,
+			PARTNER,
 			/** the sites where text that could be Japanese or Chinese goes the other way */
 			unclearTextSites: [],
 			unclearSitesExpanded: false,
@@ -1123,6 +1140,7 @@ export default {
 		void storage.getItem(SENTENCE_EXCLUDED_SITES_KEY).then(sites => { this.sentenceExcludedSites = sites ?? []; });
 		this.unwatchSentenceSites = storage.watch(SENTENCE_EXCLUDED_SITES_KEY, sites => { this.sentenceExcludedSites = sites ?? []; });
 		void storage.getItem(UNCLEAR_TEXT_SITES_KEY).then(sites => { this.unclearTextSites = sites ?? []; });
+		void this.findPartnerExtension();
 		this.unwatchUnclearSites = storage.watch(UNCLEAR_TEXT_SITES_KEY, sites => { this.unclearTextSites = sites ?? []; });
 		this.openFromRoute();
 		this.$nextTick(this.revealActiveTab);
@@ -1275,7 +1293,7 @@ export default {
 		pageHistorySize,
 		sentencesPerPage,
 		set(group, key, value) {
-			this.settings.setSetting(group, key, value);
+			return this.settings.setSetting(group, key, value);
 		},
 		setUnifiedHighlightStyle(value) {
 			const index = highlightStyleOptions.learned.findIndex(option => option.value === value);
@@ -1323,6 +1341,37 @@ export default {
 			await this.wk.clearSubjectsData();
 			this.$router.push({ name: 'Home' });
 		},
+		/** "Highlight" / the HanziHero Companion (its logo), or "Don't highlight" without it. */
+		textChoiceOptions(text) {
+			const highlight = { value: 'highlight', label: text === 'chinese' ? CHINESE_TEXT_OPTIONS[0].label : UNCLEAR_TEXT_OPTIONS[0].label };
+			if (!this.partner) return [highlight, { value: 'skip', label: UNCLEAR_TEXT_OPTIONS[1].label }];
+			return [
+				{ value: 'highlight', label: 'Highlight' },
+				{ value: 'skip', label: PARTNER.name, icon: PARTNER.logo, title: `Highlighted by the ${PARTNER.fullName}` },
+			];
+		},
+		/** Who highlights a kind of text: here, and the opposite in the HanziHero Companion. */
+		async setTextChoice(text, choice) {
+			await this.set('highlighter', CHOICE_SETTING[text], choice);
+			if (this.partner) await tellPartner(this.partner.id, text, oppositeChoice(choice));
+		},
+		/**
+		 * Is the HanziHero Companion installed? Then each kind of text is one choice between the two:
+		 * where both would highlight it (or both leave it), it goes to its owner (Japanese and
+		 * unclear text here, Chinese there).
+		 */
+		async findPartnerExtension() {
+			const found = await findPartner();
+			this.partner = found;
+			if (!found) return;
+			const owner = defaultChoices('japanese');
+			for (const text of Object.keys(CHOICE_SETTING)) {
+				const mine = this.highlighter[CHOICE_SETTING[text]] === 'skip' ? 'skip' : 'highlight';
+				if (mine !== found.about.choices[text]) continue;
+				await this.set('highlighter', CHOICE_SETTING[text], owner[text]);
+				await tellPartner(found.id, text, oppositeChoice(owner[text]));
+			}
+		},
 		async addUnclearSite() {
 			this.unclearSiteError = '';
 			const site = normalizeSiteEntry(this.newUnclearSite);
@@ -1361,6 +1410,27 @@ export default {
 </script>
 
 <style scoped>
+/* the HanziHero Companion installed too: who highlights what is one choice between the two */
+.partner-note {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 4px;
+	padding: 8px 10px;
+	border-radius: 8px;
+	background: var(--surface-muted-color);
+	color: var(--font-sec-color);
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+.partner-note img {
+	width: 22px;
+	height: 22px;
+	border-radius: 5px;
+	flex-shrink: 0;
+}
+
 .settings-page {
 	padding-bottom: 16px;
 }

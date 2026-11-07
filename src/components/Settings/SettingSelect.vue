@@ -39,8 +39,11 @@
 				class="setting-choice"
 				:class="{ active: isChosen(option) }"
 				:aria-checked="isChosen(option)"
+				:title="option.title || null"
 				@click="choose(option)"
 			>
+				<!-- another extension's logo (the HanziHero Companion: who highlights a kind of text) -->
+				<img v-if="option.icon" :src="option.icon" alt="" class="setting-choice-icon">
 				{{ optionLabel(option) }}
 			</button>
 		</div>
@@ -171,5 +174,13 @@ export default {
 	background: var(--pill-color, #e36f94);
 	color: #fff;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.setting-choice-icon {
+	width: 14px;
+	height: 14px;
+	margin-right: 4px;
+	border-radius: 3px;
+	vertical-align: -2px;
 }
 </style>

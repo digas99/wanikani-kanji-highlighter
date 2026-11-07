@@ -7,6 +7,7 @@ import { mountPageStats } from '@/utils/highlight/pageStatsBar';
 import { mountReviewInfo } from '@/utils/highlight/reviewInfo';
 import { mountReviewTimer } from '@/utils/highlight/reviewTimer';
 import { mountReviewSummary } from '@/utils/highlight/reviewSummary';
+import { watchPartnerPresence } from '@/utils/scripts/partnerExtension';
 
 export default defineContentScript({
   matches: ['<all_urls>'],
@@ -14,6 +15,8 @@ export default defineContentScript({
   cssInjectionMode: 'ui',
   async main(ctx) {
     watchSelectionForContextMenu();
+    // the HanziHero Companion, if it's installed too: each learns the other's id (to keep their choices opposite)
+    watchPartnerPresence();
     // WaniKani's API tokens page: "Send to WK Highlighter" next to the keys
     watchApiKeyHandoff();
     // WaniKani's settings page: a newly chosen avatar goes to the extension too

@@ -50,6 +50,8 @@ import {
   setupReviewAlerts,
 } from '@/utils/scripts/reviewAlerts';
 import { isUpdateFromV1, maybeOpenUpgradeNotice } from '@/utils/scripts/upgradeNotice';
+import { answerPartner } from '@/utils/scripts/partnerExtension';
+import { parsePartnerRequest } from 'cjk-highlighter';
 import {
   openBrowserSidePanel,
   SIDEPANEL_SUBJECT_KEY,
@@ -258,6 +260,15 @@ export default defineBackground(() => {
     void browser.notifications.clear(notificationId);
     // opens the popup where the browser allows it (Chrome 127+), else the badge still points to it
     void browser.action.openPopup?.().catch(() => {});
+  });
+
+  // the HanziHero Companion: who highlights which text, kept opposite between the two (partnerExtension.ts)
+  browser.runtime.onMessageExternal.addListener((message: unknown, sender, sendResponse) => {
+    if (!parsePartnerRequest(message)) return false;
+    answerPartner(message, sender.id).then(answer => {
+      if (answer !== undefined) sendResponse(answer);
+    }, () => sendResponse(null));
+    return true;
   });
 
   browser.runtime.onMessage.addListener((message: any, sender, sendResponse) => {
