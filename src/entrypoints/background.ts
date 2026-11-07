@@ -525,8 +525,24 @@ function matchesHighlightType(subject: any, wanted?: string): boolean {
   return wanted === 'vocabulary' && type === 'kana_vocabulary';
 }
 
+/** Retired by WaniKani (shown as "Legacy"): no longer in lessons or reviews. */
+function isLegacySubject(subject: any): boolean {
+  return Boolean(subject?.hidden_at || subject?.assignment?.hidden);
+}
+
+/**
+ * The subject for highlighted characters. A legacy subject gives way to a current one with the
+ * same characters (面: the legacy word → the kanji); with no current one, the legacy one it is.
+ */
 function pickByType(candidates: any[], wanted?: string): any | null {
   if (!candidates.length) return null;
+  const current = candidates.filter(candidate => !isLegacySubject(candidate));
+  if (current.length) {
+    return current.find(candidate => matchesHighlightType(candidate, wanted))
+      // another type: a kanji or a word before a radical (radicals aren't highlighted)
+      ?? current.find(candidate => (candidate?.object ?? candidate?.type) !== 'radical')
+      ?? current[0];
+  }
   return candidates.find(candidate => matchesHighlightType(candidate, wanted)) ?? candidates[0];
 }
 

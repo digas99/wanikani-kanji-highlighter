@@ -14,7 +14,7 @@
 - **Page reading level**: a small bar with a page's JLPT level and how much of it you know, with Learned, SRS, JLPT and Jōyō breakdowns, rating only chosen parts of a site, and a Focus mode
 - Optional **history of the pages you read**, recorded for as long as you use a page (content that loads as you scroll included), with near-identical pages kept once
 - **Example sentences** from the pages you read, shown on each subject, with private on-device translation, a Sentences library, Anki export and per-site exclusions
-- Subject details open from a small preview in the corner, or in the browser's side panel
+- Subject details open from a small preview in the corner, or in the browser's side panel. A legacy subject gives way to the current one with the same characters (面 opens the kanji, not the retired word)
 - New details popup options: lock the subject, keep it open, key bindings
 
 ## WaniKani
